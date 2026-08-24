@@ -567,7 +567,13 @@ export function SqliteIde() {
   const navigate = (pane: MobilePane) => {
     setMobilePane(pane);
     requestAnimationFrame(() => {
-      document.querySelector<HTMLElement>(`[data-pane="${pane}"]`)?.focus();
+      const desktopTarget = {
+        data: ".table-band",
+        query: ".query-workspace",
+        proof: ".proof-panel",
+        graph: ".graph-panel",
+      }[pane];
+      document.querySelector<HTMLElement>(desktopTarget)?.focus({ preventScroll: true });
     });
   };
 
@@ -780,6 +786,7 @@ export function SqliteIde() {
               key={pane as string}
               type="button"
               aria-label={`Open ${pane} pane`}
+              aria-pressed={mobilePane === pane}
               className={mobilePane === pane ? "active" : ""}
               onClick={() => navigate(pane as MobilePane)}
             >
@@ -924,7 +931,7 @@ export function SqliteIde() {
             </div>
           ) : null}
 
-          <section className="table-band" data-pane="data" aria-labelledby="tables-title">
+          <section className="table-band" data-pane="data" tabIndex={-1} aria-labelledby="tables-title">
             <div className="ide-panel-heading horizontal">
               <div>
                 <span>Stored rows, not derived answers</span>

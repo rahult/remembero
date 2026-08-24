@@ -477,6 +477,13 @@ body.is-resizing-columns .ide-resize-handle::after { background: var(--blue); }
 
 body.is-resizing-columns { cursor: col-resize; user-select: none; }
 
+@media (min-width: 901px) {
+  .ide-root[data-mobile-pane="data"] .table-band,
+  .ide-root[data-mobile-pane="query"] .query-workspace,
+  .ide-root[data-mobile-pane="proof"] .proof-panel,
+  .ide-root[data-mobile-pane="graph"] .graph-panel { box-shadow: inset 0 0 0 2px var(--blue); }
+}
+
 .ide-afterword,
 .ide-model-boundary,
 .ide-final-cta,
