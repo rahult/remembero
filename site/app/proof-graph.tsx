@@ -26,7 +26,10 @@ interface Edge {
   to: string;
 }
 
-const WIDTH = 360;
+const MIN_WIDTH = 360;
+const NODE_WIDTH = 140;
+const NODE_GAP = 34;
+const SIDE_PADDING = 18;
 const LEVEL_HEIGHT = 112;
 
 function treeFor(proof: BrowserDatalogProof, id = "proof"): TreeNode {
@@ -44,10 +47,19 @@ function countLeaves(node: TreeNode): number {
   return node.children.reduce((total, child) => total + countLeaves(child), 0);
 }
 
-function layout(root: TreeNode): { nodes: PositionedNode[]; edges: Edge[]; height: number } {
+function layout(root: TreeNode): {
+  nodes: PositionedNode[];
+  edges: Edge[];
+  width: number;
+  height: number;
+} {
   const nodes: PositionedNode[] = [];
   const edges: Edge[] = [];
   const leaves = countLeaves(root);
+  const width = Math.max(
+    MIN_WIDTH,
+    SIDE_PADDING * 2 + leaves * NODE_WIDTH + Math.max(0, leaves - 1) * NODE_GAP,
+  );
   let leafIndex = 0;
   let maxDepth = 0;
 
@@ -59,7 +71,7 @@ function layout(root: TreeNode): { nodes: PositionedNode[]; edges: Edge[]; heigh
     });
     const x =
       childPositions.length === 0
-        ? ((leafIndex++ + 0.5) / leaves) * WIDTH
+        ? ((leafIndex++ + 0.5) / leaves) * width
         : childPositions.reduce((sum, value) => sum + value, 0) /
           childPositions.length;
     nodes.push({ ...node, x, y: 42 + depth * LEVEL_HEIGHT, depth });
@@ -67,7 +79,7 @@ function layout(root: TreeNode): { nodes: PositionedNode[]; edges: Edge[]; heigh
   };
 
   position(root, 0);
-  return { nodes, edges, height: 92 + maxDepth * LEVEL_HEIGHT };
+  return { nodes, edges, width, height: 92 + maxDepth * LEVEL_HEIGHT };
 }
 
 function nodeLabel(proof: BrowserDatalogProof): { title: string; detail: string } {
@@ -95,7 +107,9 @@ export function ProofGraph({ proof, selectedId, onSelect }: ProofGraphProps) {
     <div className="proof-graph-wrap">
       <svg
         className="proof-graph"
-        viewBox={`0 0 ${WIDTH} ${graph.height}`}
+        width={graph.width}
+        height={graph.height}
+        viewBox={`0 0 ${graph.width} ${graph.height}`}
         role="img"
         aria-labelledby="proof-graph-title proof-graph-description"
       >
@@ -134,7 +148,7 @@ export function ProofGraph({ proof, selectedId, onSelect }: ProofGraphProps) {
               }}
               transform={`translate(${node.x}, ${node.y})`}
             >
-              <rect x="-60" y="-25" width="120" height="50" rx="9" />
+              <rect x={-NODE_WIDTH / 2} y="-25" width={NODE_WIDTH} height="50" rx="9" />
               <text textAnchor="middle" y="-3">
                 {label.title.length > 18 ? `${label.title.slice(0, 17)}…` : label.title}
               </text>

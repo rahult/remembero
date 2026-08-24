@@ -14,6 +14,10 @@ are deployed at:
   query, active policy rule, proof chain, deterministic authorization, and measured gate time;
 - `/playground` exposes current-browser SQLite + Wasm boot, rule + proof, SQL, and insert
   timings beside the linked extension identity;
+- the playground scenario picker includes project follow-ups, team collaboration,
+  dependency paths, customer-support escalation, release readiness, and team-based
+  document access; each scenario resets to a small fictional SQLite fixture and exposes
+  the exact Datalog question and proof for that workflow;
 - `/guides/agent-harness` provides the portable MCP and model-tool-loop integration contract,
   including validation, proof-aware synthesis, fail-closed behavior, and review-gated writes;
 - supported queries execute through the actual browser-safe Remembero Datalog engine;

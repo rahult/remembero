@@ -198,6 +198,9 @@ test("server-renders the full SQLite IDE on the playground route", async () => {
   assert.match(html, /Get to the proof/);
   assert.match(html, /Insert SQLite row/);
   assert.match(html, /Who needs a follow-up\?/);
+  assert.match(html, /Which tickets need escalation\?/);
+  assert.match(html, /Which service is ready to ship\?/);
+  assert.match(html, /Who can read the launch plan\?/);
   assert.match(html, /Why this is true/);
   assert.match(html, /Query graph/);
   assert.match(html, /href="\/"[^>]*>Home/);
@@ -237,6 +240,9 @@ test("playground uses the statically linked SQLite extension and remains browser
   assert.match(demo, /CREATE TABLE project_owner/);
   assert.match(demo, /needs_follow_up/);
   assert.match(demo, /reachable/);
+  assert.match(demo, /support_ticket/);
+  assert.match(demo, /release_candidate/);
+  assert.match(demo, /team_member/);
   assert.match(page, /href=\{playground\}/);
   assert.match(playgroundPage, /<Playground \/>/);
   assert.doesNotMatch(`${page}\n${playgroundPage}\n${ide}`, /from "next\/link"/);

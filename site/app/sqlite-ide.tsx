@@ -9,6 +9,7 @@ import {
   useState,
   type CSSProperties,
   type KeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 import {
   CONSTRAINT_EXAMPLE,
@@ -70,6 +71,18 @@ interface RuntimeMetrics {
   insertMs: number | null;
   sqlMs: number | null;
 }
+
+interface WorkspaceLayout {
+  schema: number;
+  inspector: number;
+}
+
+interface ResultColumnConfig {
+  visible: boolean;
+  width: number;
+}
+
+type WorkspacePane = keyof WorkspaceLayout;
 
 type MobilePane = "data" | "query" | "proof" | "graph";
 
@@ -160,9 +173,20 @@ function collectFactProofs(
 }
 
 function displayAnswer(preset: DemoPreset, row: Record<string, string | number>): string {
-  if (preset.id === "follow_up") return `${row.Person} needs a follow-up on ${row.Project}`;
-  if (preset.id === "collaborators") return `${row.Person} collaborates on ${row.Project}`;
-  return `${row.X} can reach ${row.Y}`;
+  switch (preset.id) {
+    case "follow_up":
+      return `${row.Person} needs a follow-up on ${row.Project}`;
+    case "collaborators":
+      return `${row.Person} collaborates on ${row.Project}`;
+    case "recursive_paths":
+      return `${row.X} can reach ${row.Y}`;
+    case "support_escalation":
+      return `${row.Customer} needs escalation for ${row.Ticket}`;
+    case "release_readiness":
+      return `${row.Service} is ready to ship`;
+    case "access_control":
+      return `${row.Person} can read ${row.Document}`;
+  }
 }
 
 function editorPosition(value: string, offset: number): { line: number; column: number } {
@@ -182,6 +206,7 @@ function formatMetric(value: number | null): string {
 
 export function SqliteIde() {
   const databaseRef = useRef<BrowserDatalogDatabase | null>(null);
+  const operationRef = useRef(0);
   const [runtime, setRuntime] = useState<BrowserSqliteRuntimeInfo | null>(null);
   const [phase, setPhase] = useState<"loading" | "ready" | "running" | "error">(
     "loading",
@@ -217,6 +242,25 @@ export function SqliteIde() {
     insertMs: null,
     sqlMs: null,
   });
+  const [workspaceLayout, setWorkspaceLayout] = useState<WorkspaceLayout>({
+    schema: 248,
+    inspector: 340,
+  });
+  const [schemaVisible, setSchemaVisible] = useState(true);
+  const [inspectorVisible, setInspectorVisible] = useState(true);
+  const [resultColumnConfig, setResultColumnConfig] = useState<
+    Record<string, ResultColumnConfig>
+  >({});
+  const workspaceResizeRef = useRef<{
+    pane: WorkspacePane;
+    startX: number;
+    startWidth: number;
+  } | null>(null);
+  const resultResizeRef = useRef<{
+    column: string;
+    startX: number;
+    startWidth: number;
+  } | null>(null);
 
   const selectedSnapshot = useMemo(
     () => tables.find((table) => table.name === selectedTable) ?? tables[0] ?? null,
@@ -244,6 +288,7 @@ export function SqliteIde() {
     let opened: BrowserDatalogDatabase | null = null;
 
     const boot = async () => {
+      const bootOperation = operationRef.current;
       try {
         const bootStarted = performance.now();
         opened = await openBrowserDatalogDatabase();
@@ -264,7 +309,7 @@ export function SqliteIde() {
           opened.exec(DEFAULT_SQL),
           initialRule,
         ]);
-        if (!active) return;
+        if (!active || operationRef.current !== bootOperation) return;
         setRuntime(opened.runtime);
         setTables(nextTables);
         setSqlRows(nextSqlRows);
@@ -457,11 +502,36 @@ export function SqliteIde() {
     setProgram(next.program);
     const database = databaseRef.current;
     if (!database) return;
+    const operation = ++operationRef.current;
+    setPhase("running");
+    setError(null);
     try {
-      if (next.setupSql) {
-        await database.exec(next.setupSql);
-        await refreshTables(database);
+      await database.exec(SAMPLE_SETUP_SQL);
+      if (next.setupSql) await database.exec(next.setupSql);
+      const nextTables = await refreshTables(database);
+      if (operationRef.current !== operation) return;
+      const focusTable = nextTables.find((table) => table.name === next.focusTable) ?? nextTables[0];
+      if (focusTable) {
+        setSelectedTable(focusTable.name);
+        setInsertTable(focusTable.name);
+        setInsertValues(
+          Object.fromEntries(
+            focusTable.columns.map((column) => [
+              column.name,
+              INSERT_DEFAULTS[focusTable.name]?.[column.name] ?? "",
+            ]),
+          ),
+        );
       }
+      setSqlRows([]);
+      setLineage([
+        ...INITIAL_LINEAGE,
+        timestampedEvent(
+          "RESET",
+          "Atlas.db",
+          `${next.category} scenario loaded`,
+        ),
+      ]);
       await runProgram(database, next.program, true);
     } catch (value) {
       setError(describeError(value));
@@ -506,8 +576,107 @@ export function SqliteIde() {
     setProofVisited(true);
   };
 
+  const startWorkspaceResize = (
+    pane: WorkspacePane,
+    event: ReactPointerEvent<HTMLElement>,
+  ) => {
+    event.preventDefault();
+    workspaceResizeRef.current = {
+      pane,
+      startX: event.clientX,
+      startWidth: workspaceLayout[pane],
+    };
+    document.body.classList.add("is-resizing-columns");
+
+    const stop = () => {
+      workspaceResizeRef.current = null;
+      document.body.classList.remove("is-resizing-columns");
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+    };
+    const move = (moveEvent: globalThis.PointerEvent) => {
+      const current = workspaceResizeRef.current;
+      if (!current) return;
+      const delta = moveEvent.clientX - current.startX;
+      const min = current.pane === "schema" ? 180 : 260;
+      const max = current.pane === "schema" ? 420 : 520;
+      const nextWidth = Math.min(max, Math.max(min, current.startWidth + delta));
+      setWorkspaceLayout((currentLayout) => ({
+        ...currentLayout,
+        [current.pane]: nextWidth,
+      }));
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+  };
+
+  const nudgeWorkspaceResize = (
+    pane: WorkspacePane,
+    event: KeyboardEvent<HTMLElement>,
+  ) => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    const direction = event.key === "ArrowRight" ? 1 : -1;
+    const min = pane === "schema" ? 180 : 260;
+    const max = pane === "schema" ? 420 : 520;
+    setWorkspaceLayout((current) => ({
+      ...current,
+      [pane]: Math.min(max, Math.max(min, current[pane] + direction * 16)),
+    }));
+  };
+
+  const startResultColumnResize = (
+    column: string,
+    event: ReactPointerEvent<HTMLButtonElement>,
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+    resultResizeRef.current = {
+      column,
+      startX: event.clientX,
+      startWidth: resultColumnConfig[column]?.width ?? 140,
+    };
+    document.body.classList.add("is-resizing-columns");
+
+    const stop = () => {
+      resultResizeRef.current = null;
+      document.body.classList.remove("is-resizing-columns");
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+    };
+    const move = (moveEvent: globalThis.PointerEvent) => {
+      const current = resultResizeRef.current;
+      if (!current) return;
+      const nextWidth = Math.min(
+        360,
+        Math.max(96, current.startWidth + moveEvent.clientX - current.startX),
+      );
+      setResultColumnConfig((currentConfig) => ({
+        ...currentConfig,
+        [current.column]: {
+          visible: currentConfig[current.column]?.visible ?? true,
+          width: nextWidth,
+        },
+      }));
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+  };
+
   const busy = phase === "loading" || phase === "running";
   const resultColumns = evaluation.rows[0] ? Object.keys(evaluation.rows[0]) : [];
+  const visibleResultColumns = resultColumns.filter(
+    (column) => resultColumnConfig[column]?.visible !== false,
+  );
+  const resultGridTemplate = visibleResultColumns.length
+    ? visibleResultColumns
+        .map((column) => `${resultColumnConfig[column]?.width ?? 140}px`)
+        .join(" ")
+    : "minmax(120px, 1fr)";
   const guidanceSteps = [
     { title: "Add data", body: "Insert or change an ordinary SQLite row.", done: tables.length > 0 },
     { title: "Inspect SQLite", body: "Select a table and read the stored rows.", done: Boolean(selectedSnapshot) },
@@ -535,6 +704,28 @@ export function SqliteIde() {
               : "Starting SQLite WebAssembly…"}
         </span>
         <nav className="ide-top-actions" aria-label="IDE actions">
+          <div className="ide-layout-actions" aria-label="Workspace columns">
+            <button
+              type="button"
+              className={`ide-layout-toggle${schemaVisible ? " active" : ""}`}
+              aria-pressed={schemaVisible}
+              onClick={() => setSchemaVisible((visible) => !visible)}
+              title={`${schemaVisible ? "Hide" : "Show"} schema column`}
+            >
+              <DatabaseIcon width="14" height="14" />
+              <span>Schema</span>
+            </button>
+            <button
+              type="button"
+              className={`ide-layout-toggle${inspectorVisible ? " active" : ""}`}
+              aria-pressed={inspectorVisible}
+              onClick={() => setInspectorVisible((visible) => !visible)}
+              title={`${inspectorVisible ? "Hide" : "Show"} proof column`}
+            >
+              <ProofIcon width="14" height="14" />
+              <span>Proof</span>
+            </button>
+          </div>
           <a href="/">Home</a>
           <a href={`${github}#readme`}>Docs</a>
           <a href={github}>GitHub</a>
@@ -565,7 +756,19 @@ export function SqliteIde() {
         ))}
       </div>
 
-      <div className="ide-body">
+      <div
+        className="ide-body"
+        data-schema-collapsed={!schemaVisible ? "true" : undefined}
+        data-inspector-collapsed={!inspectorVisible ? "true" : undefined}
+        style={
+          {
+            "--schema-width": schemaVisible ? `${workspaceLayout.schema}px` : "0px",
+            "--inspector-width": inspectorVisible
+              ? `${workspaceLayout.inspector}px`
+              : "0px",
+          } as CSSProperties
+        }
+      >
         <nav className="ide-activity" aria-label="Workspace sections">
           {[
             ["data", <DatabaseIcon key="data-icon" />],
@@ -773,6 +976,13 @@ export function SqliteIde() {
                 </select>
               </div>
               <p>{preset.description}</p>
+              <p
+                className="scenario-purpose"
+                aria-label={`${preset.category}: ${preset.useCase}`}
+              >
+                <strong>{preset.category}</strong>
+                <span>· {preset.useCase}</span>
+              </p>
               <label className="code-editor-label">
                 <span>Datalog rule executed by the SQLite extension</span>
                 <textarea
@@ -840,15 +1050,62 @@ export function SqliteIde() {
                   <span>Derived, never stored</span>
                   <h2 id="result-title">Result</h2>
                 </div>
-                <span>{phase === "running" ? "Running…" : `${evaluation.rows.length} rows`}</span>
+                <div className="result-panel-actions">
+                  <details className="result-columns-menu">
+                    <summary>
+                      Columns <span>{visibleResultColumns.length}/{resultColumns.length}</span>
+                      <ChevronIcon />
+                    </summary>
+                    <div className="result-columns-menu-body">
+                      <span>Show and resize result columns</span>
+                      {resultColumns.map((column) => {
+                        const visible = resultColumnConfig[column]?.visible !== false;
+                        return (
+                          <label key={column}>
+                            <input
+                              type="checkbox"
+                              checked={visible}
+                              disabled={visible && visibleResultColumns.length === 1}
+                              onChange={() => {
+                                if (!visible && visibleResultColumns.length === 0) return;
+                                setResultColumnConfig((current) => ({
+                                  ...current,
+                                  [column]: {
+                                    visible: !visible,
+                                    width: current[column]?.width ?? 140,
+                                  },
+                                }));
+                              }}
+                            />
+                            <code>{column}</code>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </details>
+                  <span>{phase === "running" ? "Running…" : `${evaluation.rows.length} rows`}</span>
+                </div>
               </div>
               {selectedRow ? (
                 <>
                   <p className="human-answer">{displayAnswer(preset, selectedRow)}</p>
-                  <div className="result-grid" role="listbox" aria-label="Datalog result rows">
-                    <div className="result-grid-header" style={{ "--columns": resultColumns.length } as CSSProperties}>
-                      {resultColumns.map((column) => (
-                        <span key={column}>{column}</span>
+                  <div
+                    className="result-grid"
+                    role="listbox"
+                    aria-label="Datalog result rows"
+                    style={{ "--result-grid-template": resultGridTemplate } as CSSProperties}
+                  >
+                    <div className="result-grid-header">
+                      {visibleResultColumns.map((column) => (
+                        <span className="result-column-header" key={column}>
+                          <span>{column}</span>
+                          <button
+                            type="button"
+                            className="result-column-resizer"
+                            aria-label={`Resize ${column} result column`}
+                            onPointerDown={(event) => startResultColumnResize(column, event)}
+                          />
+                        </span>
                       ))}
                     </div>
                     {evaluation.rows.map((row, index) => (
@@ -858,7 +1115,7 @@ export function SqliteIde() {
                         aria-selected={selectedResult === index}
                         className={selectedResult === index ? "selected" : ""}
                         key={JSON.stringify(row)}
-                        style={{ "--columns": resultColumns.length } as CSSProperties}
+                        style={{ "--result-grid-template": resultGridTemplate } as CSSProperties}
                         onClick={() => {
                           setSelectedResult(index);
                           setSelectedProofId("proof");
@@ -866,7 +1123,7 @@ export function SqliteIde() {
                           if (window.matchMedia("(max-width: 900px)").matches) setMobilePane("proof");
                         }}
                       >
-                        {resultColumns.map((column) => (
+                        {visibleResultColumns.map((column) => (
                           <code key={column}>{row[column]}</code>
                         ))}
                       </button>
@@ -892,8 +1149,13 @@ export function SqliteIde() {
                 <li key={event.id}>
                   <span className="lineage-dot" />
                   <time>{event.timestamp}</time>
-                  <strong>{event.kind}</strong>
-                  <code>{event.target}</code>
+                  {" "}
+                  <span className="lineage-event-main">
+                    <strong>{event.kind}</strong>
+                    {" "}
+                    <code>{event.target}</code>
+                  </span>
+                  {" "}
                   <small>{event.detail}</small>
                 </li>
               ))}
@@ -1026,6 +1288,21 @@ export function SqliteIde() {
             />
           </section>
         </aside>
+
+        <button
+          type="button"
+          className="ide-resize-handle ide-resize-schema"
+          aria-label="Resize schema column"
+          onPointerDown={(event) => startWorkspaceResize("schema", event)}
+          onKeyDown={(event) => nudgeWorkspaceResize("schema", event)}
+        />
+        <button
+          type="button"
+          className="ide-resize-handle ide-resize-inspector"
+          aria-label="Resize proof column"
+          onPointerDown={(event) => startWorkspaceResize("inspector", event)}
+          onKeyDown={(event) => nudgeWorkspaceResize("inspector", event)}
+        />
       </div>
 
       <footer className="ide-statusbar">
@@ -1038,6 +1315,7 @@ export function SqliteIde() {
         <span>Line {cursor.line}, Col {cursor.column}</span>
         <span>Ctrl/⌘ + Enter to run</span>
       </footer>
+
     </section>
   );
 }
