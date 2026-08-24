@@ -1030,6 +1030,44 @@ describe('CLI ingress limits', () => {
     ]);
   });
 
+  it('exports and verifies the real-PDF Memorg memory without creating a local store', () => {
+    const root = mkdtempSync(join(tmpdir(), 'remembero-cli-document-memorg-'));
+    const home = join(root, 'home');
+    const file = join(root, 'document-intelligence.memorg.json');
+    const exported = spawnSync(
+      process.execPath,
+      [resolve('dist/cli.js'), 'document-memorg'],
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+    );
+
+    expect(exported.status).toBe(0);
+    expect(existsSync(home)).toBe(false);
+    const artifact = JSON.parse(exported.stdout);
+    expect(artifact).toMatchObject({
+      format: 'remembero-memorg-import',
+      version: 1,
+      target: { package: 'memorg', version: '0.1.2' },
+      sha256: '5890e2945a534d0b871f0fa70fdd54b918704bbd8e753544a2dacef8a09ca531',
+    });
+    expect(artifact.items).toHaveLength(66);
+
+    writeFileSync(file, exported.stdout);
+    const verified = spawnSync(
+      process.execPath,
+      [resolve('dist/cli.js'), 'verify-document-memorg', file],
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+    );
+    expect(verified.status).toBe(0);
+    expect(JSON.parse(verified.stdout)).toMatchObject({
+      valid: true,
+      itemCount: 66,
+      documentCount: 4,
+      acceptedClaimCount: 17,
+      proposedClaimCount: 4,
+    });
+    expect(existsSync(home)).toBe(false);
+  });
+
   it('runs knowledge regression files with CI-friendly pass and failure exits', () => {
     const root = mkdtempSync(join(tmpdir(), 'rembero-cli-checks-'));
     const home = join(root, 'home');

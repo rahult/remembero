@@ -5,6 +5,12 @@ portable evaluator without introducing a second persistent store. SQLite remains
 storage and transaction authority; advanced evaluation consumes a read-only snapshot of
 only the relations named by the query.
 
+The unreleased `openRememberoDatabase(...)` API also returns the underlying native
+`DatabaseSync` connection and places the existing governed `MemoryStore` authority in
+internal tables in that same database. Its Datalog routing still follows the matrix below;
+moving durable memory under SQLite authority does not relabel portable evaluation as
+native SQLite execution. See [the database guide](SQLITE-DATABASE.md).
+
 ## Execution surfaces
 
 | Capability | `DatalogDatabase` and CLI | SQLite scalar functions | `datalog_sql` |

@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-08-21T01:16:53.000+10:00",
+  "environment": {
+    "python": "3.12.13",
+    "memorg": "0.1.2",
+    "database": "temporary clean SQLite database",
+    "embeddings": "disabled"
+  },
+  "artifact": "document-intelligence.memorg.json",
+  "exportSha256": "5890e2945a534d0b871f0fa70fdd54b918704bbd8e753544a2dacef8a09ca531",
+  "status": "pass",
+  "items": 66,
+  "indexedItems": 66,
+  "authorityCounts": {
+    "collection": 1,
+    "source": 4,
+    "evidence": 20,
+    "accepted": 17,
+    "proposed_only": 4,
+    "reviewed_rule": 8,
+    "evaluation_contract": 12
+  }
+}

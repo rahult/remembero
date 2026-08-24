@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, lstatSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { loadEnv } from '../env.js';
 import {
   DEFAULT_MODEL,
@@ -28,6 +28,7 @@ interface EvalArgs {
   json: boolean;
   caseIds: Set<string> | null;
   schemaPredicateLimit: number | undefined;
+  output: string | undefined;
 }
 
 const USAGE = `Usage: npm run eval:recall -- [options]
@@ -38,6 +39,7 @@ Options:
   --cases <a,b>        Run only selected case IDs
   --schema-predicate-limit <n>  Detailed predicate budget for each recall pass
   --json               Print machine-readable JSON
+  --output <path>      Write machine-readable JSON to a regular file
 `;
 
 function listValue(argv: string[], index: number, flag: string): string[] {
@@ -55,6 +57,7 @@ function parseArgs(argv: string[]): EvalArgs {
     json: false,
     caseIds: null,
     schemaPredicateLimit: undefined,
+    output: undefined,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -73,6 +76,12 @@ function parseArgs(argv: string[]): EvalArgs {
       index++;
     } else if (arg === '--json') {
       args.json = true;
+    } else if (arg === '--output') {
+      const value = argv[index + 1];
+      if (!value || value.trim() === '') throw new Error('--output needs a path');
+      args.output = value;
+      args.json = true;
+      index++;
     } else if (arg === '--schema-predicate-limit') {
       const value = Number(argv[index + 1]);
       if (!Number.isInteger(value) || value < 1 || value > 256) {
@@ -88,6 +97,17 @@ function parseArgs(argv: string[]): EvalArgs {
     }
   }
   return args;
+}
+
+function writeJsonOutput(path: string, text: string): void {
+  const absolute = resolve(path);
+  if (existsSync(absolute)) {
+    const stat = lstatSync(absolute);
+    if (stat.isSymbolicLink() || !stat.isFile()) {
+      throw new Error('refusing non-regular recall evaluation output file');
+    }
+  }
+  writeFileSync(absolute, `${text}\n`, 'utf8');
 }
 
 function percent(value: number): string {
@@ -206,7 +226,12 @@ async function main(): Promise<void> {
   }
 
   if (args.json) {
-    console.log(JSON.stringify({ generatedAt: new Date().toISOString(), runs }, null, 2));
+    const text = JSON.stringify({ generatedAt: new Date().toISOString(), runs }, null, 2);
+    if (args.output === undefined) console.log(text);
+    else {
+      writeJsonOutput(args.output, text);
+      console.error(`Wrote recall evaluation to ${resolve(args.output)}`);
+    }
     if (runs.some((run) => run.score.errors > 0)) process.exitCode = 1;
     return;
   }

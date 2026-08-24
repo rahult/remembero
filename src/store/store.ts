@@ -3932,6 +3932,16 @@ export class MemoryStore {
     });
   }
 
+  /** Capture the exact current recorded state under the same mutation/journal boundary. */
+  recordedHead(namespaces: string[] | '*'): RecordedKnowledgeSnapshot {
+    return this.withMutationLock(() =>
+      this.withLock('journal', () => {
+        const sequence = this.readJournalUnlocked().length;
+        return this.recordedSnapshot(namespaces, sequence);
+      })
+    );
+  }
+
   /**
    * Reconstruct a deterministic read-only knowledge view at a global journal position.
    * The current files must exactly reconcile with the complete journal before any

@@ -591,6 +591,42 @@ try {
         "INSERT INTO member VALUES ('red','alice'),('red','bob'),('blue','carol');",
     }
   );
+  const rememberoDatabaseEnv = {
+    ...process.env,
+    REMBERO_TEST_DATABASE: databasePath,
+  };
+  run(
+    process.execPath,
+    [
+      '--input-type=module',
+      '--eval',
+      "import { captureKnowledgeVersion, createSemanticLedger, diffKnowledgeVersions, openRememberoDatabase, serializeClause } from 'remembero'; " +
+        "const db = await openRememberoDatabase(process.env.REMBERO_TEST_DATABASE); " +
+        "try { " +
+          "if (db.prepare('SELECT COUNT(*) AS count FROM works_at').get()?.count !== 2) throw new Error('native SQLite query failed'); " +
+          "db.memory.assert('default', 'status(mira, active).', { opId: 'package-sqlite-memory' }); " +
+          "const ledger = createSemanticLedger(db); " +
+          "db.memory.assert('ledger', 'base(a).', { opId: 'package-ledger-v1' }); " +
+          "const ledgerV1 = captureKnowledgeVersion(ledger, db.memory, { namespaces: ['ledger'], label: 'package@1' }); " +
+          "db.memory.assert('ledger', 'derived(X) :- base(X).', { opId: 'package-ledger-v2' }); " +
+          "const ledgerV2 = captureKnowledgeVersion(ledger, db.memory, { namespaces: ['ledger'], parents: [ledgerV1.version.digest], label: 'package@2' }); " +
+          "const ledgerImpact = diffKnowledgeVersions(ledger, db.memory, ledgerV1.version.digest, ledgerV2.version.digest, { query: 'derived(a)' }); " +
+          "if (ledger.resolveVersion('package@2').digest !== ledgerV2.version.digest || ledgerImpact.queryImpact?.added.length !== 1) throw new Error('public semantic ledger API failed'); " +
+          "db.exec('BEGIN'); " +
+          "db.prepare('INSERT INTO works_at VALUES (?, ?)').run('temporary', 'rollback'); " +
+          "db.memory.assert('default', 'status(mira, paused).', { opId: 'package-sqlite-rollback' }); " +
+          "db.exec('ROLLBACK'); " +
+          "if (db.prepare(\"SELECT COUNT(*) AS count FROM works_at WHERE person = 'temporary'\").get()?.count !== 0) throw new Error('SQLite rollback failed'); " +
+          "if (db.memory.load('default').map(serializeClause).join('') !== 'status(mira, active).') throw new Error('SQLite-backed memory rollback failed'); " +
+          "if (db.datalogQuery('available(X) :- employee(X), \\\\+ suspended(X).')[0]?.X !== 'alice') throw new Error('enhanced Datalog query failed'); " +
+          "let blocked = false; try { db.enableLoadExtension(true); } catch { blocked = true; } " +
+          "if (!blocked) throw new Error('extension loading was re-enabled'); " +
+        "} finally { db.close(); } " +
+        "const reopened = await openRememberoDatabase(process.env.REMBERO_TEST_DATABASE); " +
+        "try { if (reopened.memory.load('default').map(serializeClause).join('') !== 'status(mira, active).') throw new Error('SQLite-backed memory did not reopen'); } finally { reopened.close(); }",
+    ],
+    { cwd: directory, env: rememberoDatabaseEnv }
+  );
   const output = run(
     process.execPath,
     [
@@ -889,7 +925,7 @@ try {
     throw new Error(`unexpected packaged aggregate explanation: ${aggregateExplainOutput}`);
   }
   console.log(
-    'packed install, real-use-case local web console, deterministic related-knowledge recall fallback, compact deterministic evidence recall answers, all-writer knowledge check enforcement, regression-gated reviewed personal memory, immutable deterministic personal knowledge health, explicit deterministic relational projection, digest-bound reviewed personal memory application, proposal-first accepted personal memory extraction, digest-bound reviewed rule change application, proposal-only deterministic rule change impact, proof-carrying derived personal knowledge paths, deterministic explicit personal knowledge paths, exact personal knowledge extraction evaluation, verified cross-model recall ranking, indexed-versus-scan deterministic query profiling, transaction-safe schema-only SQLite Datalog planning, enforced semantic rule coverage, portable deterministic knowledge regression suites, bounded provenance-aware recall ranking, verified content-addressed portable knowledge bundle, bounded explicit personal knowledge graph browse, deterministic local knowledge search with evidence graph, deterministic positive answer mode, grounded negative recall without model phrasing, deterministic rule health audit, verified repair planning, exact recorded knowledge diff, deterministic knowledge topology, deterministic why-not explanations, deterministic counterfactual impact, immutable journal checkpoints, reviewable knowledge trust, reusable aggregate rules, non-empty recall disambiguation, focused conflict views, deterministic relation indexing, explicit temporal corrections, recorded-time snapshots, retry-safe writes, graph navigation, explicit entity identity, deterministic recall pruning, safe auto-capture hook lifecycle, temporal history, native recursion, personal proofs, atomic integrity enforcement, stratified negation, scalar aggregation, arithmetic filters, and explanation graph passed'
+    'packed install, generic semantic ledger, real-use-case local web console, deterministic related-knowledge recall fallback, compact deterministic evidence recall answers, all-writer knowledge check enforcement, regression-gated reviewed personal memory, immutable deterministic personal knowledge health, explicit deterministic relational projection, digest-bound reviewed personal memory application, proposal-first accepted personal memory extraction, digest-bound reviewed rule change application, proposal-only deterministic rule change impact, proof-carrying derived personal knowledge paths, deterministic explicit personal knowledge paths, exact personal knowledge extraction evaluation, verified cross-model recall ranking, indexed-versus-scan deterministic query profiling, transaction-safe schema-only SQLite Datalog planning, enforced semantic rule coverage, portable deterministic knowledge regression suites, bounded provenance-aware recall ranking, verified content-addressed portable knowledge bundle, bounded explicit personal knowledge graph browse, deterministic local knowledge search with evidence graph, deterministic positive answer mode, grounded negative recall without model phrasing, deterministic rule health audit, verified repair planning, exact recorded knowledge diff, deterministic knowledge topology, deterministic why-not explanations, deterministic counterfactual impact, immutable journal checkpoints, reviewable knowledge trust, reusable aggregate rules, non-empty recall disambiguation, focused conflict views, deterministic relation indexing, explicit temporal corrections, recorded-time snapshots, retry-safe writes, graph navigation, explicit entity identity, deterministic recall pruning, safe auto-capture hook lifecycle, temporal history, native recursion, personal proofs, atomic integrity enforcement, stratified negation, scalar aggregation, arithmetic filters, and explanation graph passed'
   );
 } finally {
   rmSync(directory, { recursive: true, force: true });

@@ -1,0 +1,413 @@
+{
+  "generatedAt": "2026-08-20T15:05:42.579Z",
+  "documents": [
+    {
+      "documentId": "irs-w9-english",
+      "title": "IRS Form W-9 · English",
+      "namespace": "documents-irs-w9-english",
+      "status": "pass",
+      "checks": [
+        {
+          "questionId": "w9-destination",
+          "label": "Where does it go?",
+          "question": "Where should the completed W-9 go?",
+          "expectedStatus": "answered",
+          "actualStatus": "answered",
+          "statusPass": true,
+          "answerPass": true,
+          "sourceRecallPass": true,
+          "proofGroundingPass": true,
+          "abstentionPass": true,
+          "latencyMs": 7.207
+        },
+        {
+          "questionId": "w9-identity-match",
+          "label": "TIN match",
+          "question": "Does the page establish an identity-match requirement?",
+          "expectedStatus": "answered",
+          "actualStatus": "answered",
+          "statusPass": true,
+          "answerPass": true,
+          "sourceRecallPass": true,
+          "proofGroundingPass": true,
+          "abstentionPass": true,
+          "latencyMs": 0.69
+        },
+        {
+          "questionId": "w9-deadline",
+          "label": "Filing deadline",
+          "question": "What filing deadline does this page establish?",
+          "expectedStatus": "unsupported",
+          "actualStatus": "unsupported",
+          "statusPass": true,
+          "answerPass": true,
+          "sourceRecallPass": true,
+          "proofGroundingPass": true,
+          "abstentionPass": true,
+          "latencyMs": 0.588
+        }
+      ],
+      "metrics": {
+        "parseCoverage": {
+          "passed": 1,
+          "total": 1,
+          "percent": 100
+        },
+        "answerAccuracy": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "statusAccuracy": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "sourceRecall": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "proofGrounding": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "abstentionCorrectness": {
+          "passed": 1,
+          "total": 1,
+          "percent": 100
+        },
+        "idempotency": {
+          "passed": 1,
+          "total": 1,
+          "percent": 100
+        }
+      },
+      "latencyMs": {
+        "parseMs": 8.102,
+        "averageQuestionMs": 2.828,
+        "maxQuestionMs": 7.207,
+        "totalMs": 16.587
+      }
+    },
+    {
+      "documentId": "irs-w9-spanish",
+      "title": "IRS Form W-9 · Spanish",
+      "namespace": "documents-irs-w9-spanish",
+      "status": "pass",
+      "checks": [
+        {
+          "questionId": "w9-es-destination",
+          "label": "¿Dónde se entrega?",
+          "question": "¿A quién se debe entregar el Formulario W-9?",
+          "expectedStatus": "answered",
+          "actualStatus": "answered",
+          "statusPass": true,
+          "answerPass": true,
+          "sourceRecallPass": true,
+          "proofGroundingPass": true,
+          "abstentionPass": true,
+          "latencyMs": 0.586
+        },
+        {
+          "questionId": "w9-es-identity-match",
+          "label": "Concordancia TIN",
+          "question": "¿La página exige que el TIN concuerde con el nombre de la línea 1?",
+          "expectedStatus": "answered",
+          "actualStatus": "answered",
+          "statusPass": true,
+          "answerPass": true,
+          "sourceRecallPass": true,
+          "proofGroundingPass": true,
+          "abstentionPass": true,
+          "latencyMs": 0.581
+        },
+        {
+          "questionId": "w9-es-legal-effect",
+          "label": "Efecto legal",
+          "question": "¿Qué efecto legal completo tiene la certificación?",
+          "expectedStatus": "unsupported",
+          "actualStatus": "unsupported",
+          "statusPass": true,
+          "answerPass": true,
+          "sourceRecallPass": true,
+          "proofGroundingPass": true,
+          "abstentionPass": true,
+          "latencyMs": 0.45
+        }
+      ],
+      "metrics": {
+        "parseCoverage": {
+          "passed": 1,
+          "total": 1,
+          "percent": 100
+        },
+        "answerAccuracy": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "statusAccuracy": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "sourceRecall": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "proofGrounding": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "abstentionCorrectness": {
+          "passed": 1,
+          "total": 1,
+          "percent": 100
+        },
+        "idempotency": {
+          "passed": 1,
+          "total": 1,
+          "percent": 100
+        }
+      },
+      "latencyMs": {
+        "parseMs": 5.392,
+        "averageQuestionMs": 0.539,
+        "maxQuestionMs": 0.586,
+        "totalMs": 7.009
+      }
+    },
+    {
+      "documentId": "mathbridge-paper",
+      "title": "MathBridge · arXiv research paper",
+      "namespace": "documents-mathbridge-paper",
+      "status": "pass",
+      "checks": [
+        {
+          "questionId": "mathbridge-scale",
+          "label": "Dataset scale",
+          "question": "Does the reviewed page support classifying MathBridge as a large dataset?",
+          "expectedStatus": "answered",
+          "actualStatus": "answered",
+          "statusPass": true,
+          "answerPass": true,
+          "sourceRecallPass": true,
+          "proofGroundingPass": true,
+          "abstentionPass": true,
+          "latencyMs": 1.021
+        },
+        {
+          "questionId": "mathbridge-context-limit",
+          "label": "Context limits",
+          "question": "Is the context-before length limit stricter than context-after?",
+          "expectedStatus": "answered",
+          "actualStatus": "answered",
+          "statusPass": true,
+          "answerPass": true,
+          "sourceRecallPass": true,
+          "proofGroundingPass": true,
+          "abstentionPass": true,
+          "latencyMs": 0.662
+        },
+        {
+          "questionId": "mathbridge-training-cost",
+          "label": "Training cost",
+          "question": "What did training the dataset cost?",
+          "expectedStatus": "unsupported",
+          "actualStatus": "unsupported",
+          "statusPass": true,
+          "answerPass": true,
+          "sourceRecallPass": true,
+          "proofGroundingPass": true,
+          "abstentionPass": true,
+          "latencyMs": 0.493
+        }
+      ],
+      "metrics": {
+        "parseCoverage": {
+          "passed": 1,
+          "total": 1,
+          "percent": 100
+        },
+        "answerAccuracy": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "statusAccuracy": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "sourceRecall": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "proofGrounding": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "abstentionCorrectness": {
+          "passed": 1,
+          "total": 1,
+          "percent": 100
+        },
+        "idempotency": {
+          "passed": 1,
+          "total": 1,
+          "percent": 100
+        }
+      },
+      "latencyMs": {
+        "parseMs": 6.312,
+        "averageQuestionMs": 0.725,
+        "maxQuestionMs": 1.021,
+        "totalMs": 8.488
+      }
+    },
+    {
+      "documentId": "un-multilingualism",
+      "title": "UN · Why It Matters: Multilingualism",
+      "namespace": "documents-un-multilingualism",
+      "status": "pass",
+      "checks": [
+        {
+          "questionId": "un-daily-coverage",
+          "label": "Daily coverage",
+          "question": "Which language does the page say received daily coverage in 2018?",
+          "expectedStatus": "answered",
+          "actualStatus": "answered",
+          "statusPass": true,
+          "answerPass": true,
+          "sourceRecallPass": true,
+          "proofGroundingPass": true,
+          "abstentionPass": true,
+          "latencyMs": 0.611
+        },
+        {
+          "questionId": "un-outreach",
+          "label": "Other languages",
+          "question": "Which regularly used non-official languages are named?",
+          "expectedStatus": "answered",
+          "actualStatus": "answered",
+          "statusPass": true,
+          "answerPass": true,
+          "sourceRecallPass": true,
+          "proofGroundingPass": true,
+          "abstentionPass": true,
+          "latencyMs": 0.503
+        },
+        {
+          "questionId": "un-future-commitment",
+          "label": "Future commitment",
+          "question": "Does this page guarantee expanded language coverage next year?",
+          "expectedStatus": "unsupported",
+          "actualStatus": "unsupported",
+          "statusPass": true,
+          "answerPass": true,
+          "sourceRecallPass": true,
+          "proofGroundingPass": true,
+          "abstentionPass": true,
+          "latencyMs": 0.431
+        }
+      ],
+      "metrics": {
+        "parseCoverage": {
+          "passed": 1,
+          "total": 1,
+          "percent": 100
+        },
+        "answerAccuracy": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "statusAccuracy": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "sourceRecall": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "proofGrounding": {
+          "passed": 3,
+          "total": 3,
+          "percent": 100
+        },
+        "abstentionCorrectness": {
+          "passed": 1,
+          "total": 1,
+          "percent": 100
+        },
+        "idempotency": {
+          "passed": 1,
+          "total": 1,
+          "percent": 100
+        }
+      },
+      "latencyMs": {
+        "parseMs": 5.054,
+        "averageQuestionMs": 0.515,
+        "maxQuestionMs": 0.611,
+        "totalMs": 6.599
+      }
+    }
+  ],
+  "aggregate": {
+    "documentCount": 4,
+    "questionCount": 12,
+    "status": "pass",
+    "metrics": {
+      "parseCoverage": {
+        "passed": 4,
+        "total": 4,
+        "percent": 100
+      },
+      "answerAccuracy": {
+        "passed": 12,
+        "total": 12,
+        "percent": 100
+      },
+      "statusAccuracy": {
+        "passed": 12,
+        "total": 12,
+        "percent": 100
+      },
+      "sourceRecall": {
+        "passed": 12,
+        "total": 12,
+        "percent": 100
+      },
+      "proofGrounding": {
+        "passed": 12,
+        "total": 12,
+        "percent": 100
+      },
+      "abstentionCorrectness": {
+        "passed": 4,
+        "total": 4,
+        "percent": 100
+      },
+      "idempotency": {
+        "passed": 4,
+        "total": 4,
+        "percent": 100
+      }
+    },
+    "latencyMs": {
+      "totalParseMs": 24.86,
+      "averageQuestionMs": 1.152,
+      "maxQuestionMs": 7.207,
+      "totalMs": 38.683
+    }
+  }
+}

@@ -1,0 +1,1012 @@
+{
+  "generatedAt": "2026-08-20T15:02:49.950Z",
+  "runs": [
+    {
+      "model": "openai/gpt-5.6-luna",
+      "variant": "grounded",
+      "schemaPredicateLimit": null,
+      "score": {
+        "cases": 26,
+        "accuracy": 0.9615384615384616,
+        "answerabilityAccuracy": 0.9615384615384616,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "truePositives": 25,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "errors": 1,
+        "schemaBudgetExhaustions": 0,
+        "llmCalls": 47,
+        "usageResponses": 47,
+        "costResponses": 47,
+        "promptTokens": 118774,
+        "completionTokens": 1680,
+        "totalTokens": 120454,
+        "cachedPromptTokens": 47202,
+        "reasoningTokens": 916,
+        "costUsd": 0.020845990000000005,
+        "durationMs": 103216.54904099998
+      },
+      "observations": [
+        {
+          "case": {
+            "id": "direct_employer",
+            "question": "Where does Rahul work?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "acme"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "single-answer"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Company where works_at(rahul, Company)",
+          "actualRows": [
+            [
+              "acme"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2143,
+            "completionTokens": 16,
+            "totalTokens": 2159,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.0005548
+          },
+          "durationMs": 1729.736125
+        },
+        {
+          "case": {
+            "id": "lexical_employer",
+            "question": "Who is Mira employed by?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "acme"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "lexical"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Company where works_at(mira, Company)",
+          "actualRows": [
+            [
+              "acme"
+            ]
+          ],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 2,
+            "promptTokens": 4449,
+            "completionTokens": 30,
+            "totalTokens": 4479,
+            "cachedPromptTokens": 2122,
+            "reasoningTokens": 0,
+            "costUsd": 0.00065989
+          },
+          "durationMs": 3292.075417
+        },
+        {
+          "case": {
+            "id": "multiple_workers",
+            "question": "Who works at Acme?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rahul"
+              ],
+              [
+                "mira"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "multi-answer"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Person where works_at(Person, acme)",
+          "actualRows": [
+            [
+              "rahul"
+            ],
+            [
+              "mira"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2107,
+            "completionTokens": 15,
+            "totalTokens": 2122,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.0005446
+          },
+          "durationMs": 1760.1440000000002
+        },
+        {
+          "case": {
+            "id": "reusable_company_size",
+            "question": "How many people work at Acme?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "2"
+              ]
+            ],
+            "tags": [
+              "aggregate-rule",
+              "derived",
+              "single-answer"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Count where company_size(acme, Count)",
+          "actualRows": [
+            [
+              "2"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2109,
+            "completionTokens": 201,
+            "totalTokens": 2310,
+            "cachedPromptTokens": 2094,
+            "reasoningTokens": 184,
+            "costUsd": 0.00028668
+          },
+          "durationMs": 4290.711791999999
+        },
+        {
+          "case": {
+            "id": "derived_colleague",
+            "question": "Who are Rahul's colleagues?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "mira"
+              ]
+            ],
+            "tags": [
+              "derived",
+              "inequality"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Colleague where colleague(rahul, Colleague)",
+          "actualRows": [
+            [
+              "mira"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2144,
+            "completionTokens": 17,
+            "totalTokens": 2161,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.00055625
+          },
+          "durationMs": 1147.8856670000005
+        },
+        {
+          "case": {
+            "id": "conjunctive_location",
+            "question": "Who both works at Acme and lives in Melbourne?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rahul"
+              ]
+            ],
+            "tags": [
+              "join",
+              "constraint"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Person where works_at(Person, acme), lives_in(Person, melbourne)",
+          "actualRows": [
+            [
+              "rahul"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2134,
+            "completionTokens": 45,
+            "totalTokens": 2179,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 21,
+            "costUsd": 0.00058735
+          },
+          "durationMs": 1714.4304169999996
+        },
+        {
+          "case": {
+            "id": "dentist_city_join",
+            "question": "Which city does Rahul's dentist live in?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "'New York'"
+              ]
+            ],
+            "tags": [
+              "join",
+              "quoted-atom",
+              "projected-answer"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select City where dentist(rahul, Dentist), lives_in(Dentist, City)",
+          "actualRows": [
+            [
+              "'New York'"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2163,
+            "completionTokens": 23,
+            "totalTokens": 2186,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.0005682
+          },
+          "durationMs": 1259.0812499999993
+        },
+        {
+          "case": {
+            "id": "project_language",
+            "question": "Which language does the Atlas project use?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rust"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "lexical"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Language where uses_language(atlas, Language)",
+          "actualRows": [
+            [
+              "rust"
+            ]
+          ],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 2,
+            "promptTokens": 4305,
+            "completionTokens": 114,
+            "totalTokens": 4419,
+            "cachedPromptTokens": 2123,
+            "reasoningTokens": 74,
+            "costUsd": 0.00072446
+          },
+          "durationMs": 4805.374082999999
+        },
+        {
+          "case": {
+            "id": "project_owner",
+            "question": "Which project does Rahul own?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "atlas"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "inverse-direction"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Project where project_owner(Project, rahul)",
+          "actualRows": [
+            [
+              "atlas"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2160,
+            "completionTokens": 15,
+            "totalTokens": 2175,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.00055785
+          },
+          "durationMs": 1017.8221249999988
+        },
+        {
+          "case": {
+            "id": "confusable_atlas_owner",
+            "question": "Who owns Atlas?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rahul"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "confusable-nonempty",
+              "owner-vs-language"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Owner where project_owner(atlas, Owner)",
+          "actualRows": [
+            [
+              "rahul"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2122,
+            "completionTokens": 15,
+            "totalTokens": 2137,
+            "cachedPromptTokens": 2111,
+            "reasoningTokens": 0,
+            "costUsd": 0.00006282
+          },
+          "durationMs": 948.4168339999997
+        },
+        {
+          "case": {
+            "id": "confusable_atlas_language",
+            "question": "What language does Atlas use?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rust"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "confusable-nonempty",
+              "language-vs-owner"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Language where uses_language(atlas, Language)",
+          "actualRows": [
+            [
+              "rust"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2124,
+            "completionTokens": 15,
+            "totalTokens": 2139,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.00054885
+          },
+          "durationMs": 877.7602079999997
+        },
+        {
+          "case": {
+            "id": "confusable_rahul_location",
+            "question": "Where does Rahul live?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "melbourne"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "confusable-nonempty",
+              "home-vs-work"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select City where lives_in(rahul, City)",
+          "actualRows": [
+            [
+              "melbourne"
+            ]
+          ],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 2,
+            "promptTokens": 4366,
+            "completionTokens": 109,
+            "totalTokens": 4475,
+            "cachedPromptTokens": 2156,
+            "reasoningTokens": 73,
+            "costUsd": 0.00072612
+          },
+          "durationMs": 3336.5103329999984
+        },
+        {
+          "case": {
+            "id": "confusable_rahul_employer",
+            "question": "Who employs Rahul?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "acme"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "confusable-nonempty",
+              "work-vs-home"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Company where works_at(rahul, Company)",
+          "actualRows": [
+            [
+              "acme"
+            ]
+          ],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 2,
+            "promptTokens": 4525,
+            "completionTokens": 78,
+            "totalTokens": 4603,
+            "cachedPromptTokens": 2155,
+            "reasoningTokens": 44,
+            "costUsd": 0.0007289
+          },
+          "durationMs": 4811.3531250000015
+        },
+        {
+          "case": {
+            "id": "recursive_ancestor",
+            "question": "Who are Alice's descendants?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "bob"
+              ],
+              [
+                "carol"
+              ],
+              [
+                "dan"
+              ]
+            ],
+            "tags": [
+              "recursive",
+              "multi-answer"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Descendant where ancestor(alice, Descendant)",
+          "actualRows": [
+            [
+              "bob"
+            ],
+            [
+              "carol"
+            ],
+            [
+              "dan"
+            ]
+          ],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 2,
+            "promptTokens": 4418,
+            "completionTokens": 48,
+            "totalTokens": 4466,
+            "cachedPromptTokens": 2103,
+            "reasoningTokens": 14,
+            "costUsd": 0.00067811
+          },
+          "durationMs": 3388.301290999996
+        },
+        {
+          "case": {
+            "id": "grandparent",
+            "question": "Who is Alice's grandchild?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "carol"
+              ]
+            ],
+            "tags": [
+              "derived",
+              "join"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Grandchild where grandparent(alice, Grandchild)",
+          "actualRows": [
+            [
+              "carol"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2108,
+            "completionTokens": 50,
+            "totalTokens": 2158,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 31,
+            "costUsd": 0.00058685
+          },
+          "durationMs": 2395.9769589999996
+        },
+        {
+          "case": {
+            "id": "numeric_comparison",
+            "question": "Who was born before 1990?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "chen"
+              ],
+              [
+                "rahul"
+              ]
+            ],
+            "tags": [
+              "comparison",
+              "multi-answer",
+              "projected-answer"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Person where birth_year(Person, Year), Year < 1990",
+          "actualRows": [
+            [
+              "rahul"
+            ],
+            [
+              "chen"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2108,
+            "completionTokens": 20,
+            "totalTokens": 2128,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.00055085
+          },
+          "durationMs": 1533.0384580000027
+        },
+        {
+          "case": {
+            "id": "arithmetic_offset",
+            "question": "Who was born more than 5 years before Mira?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "chen"
+              ],
+              [
+                "rahul"
+              ]
+            ],
+            "tags": [
+              "comparison",
+              "arithmetic",
+              "join",
+              "multi-answer",
+              "projected-answer"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Person where birth_year(Person, Years), birth_year(mira, MiraYears), Years < MiraYears - 5",
+          "actualRows": [
+            [
+              "rahul"
+            ],
+            [
+              "chen"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2111,
+            "completionTokens": 95,
+            "totalTokens": 2206,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 63,
+            "costUsd": 0.0006416
+          },
+          "durationMs": 3513.7731249999997
+        },
+        {
+          "case": {
+            "id": "ground_true",
+            "question": "Does Chen work at Initech?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              []
+            ],
+            "tags": [
+              "boolean",
+              "positive"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "works_at(chen, initech)",
+          "actualRows": [
+            []
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2129,
+            "completionTokens": 13,
+            "totalTokens": 2142,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.0005477
+          },
+          "durationMs": 1371.6790829999954
+        },
+        {
+          "case": {
+            "id": "ground_false",
+            "question": "Does Mira work at Initech?",
+            "expectedQuery": "required",
+            "expectedRows": [],
+            "tags": [
+              "boolean",
+              "negative"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "no_match",
+          "query": "works_at(mira, initech)",
+          "actualRows": [],
+          "llmCalls": 4,
+          "usage": {
+            "calls": 4,
+            "usageResponses": 4,
+            "costResponses": 4,
+            "promptTokens": 12126,
+            "completionTokens": 52,
+            "totalTokens": 12178,
+            "cachedPromptTokens": 5960,
+            "reasoningTokens": 0,
+            "costUsd": 0.0017225
+          },
+          "durationMs": 5218.925750000002
+        },
+        {
+          "case": {
+            "id": "ground_true_language",
+            "question": "Does the Atlas project use Rust?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              []
+            ],
+            "tags": [
+              "boolean",
+              "positive",
+              "prompt-generalization"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "uses_language(atlas, rust)",
+          "actualRows": [
+            []
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2125,
+            "completionTokens": 64,
+            "totalTokens": 2189,
+            "cachedPromptTokens": 2111,
+            "reasoningTokens": 50,
+            "costUsd": 0.00012237
+          },
+          "durationMs": 3156.993457999997
+        },
+        {
+          "case": {
+            "id": "ground_false_language",
+            "question": "Does the Kiln project use Rust?",
+            "expectedQuery": "required",
+            "expectedRows": [],
+            "tags": [
+              "boolean",
+              "negative",
+              "prompt-generalization"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "no_match",
+          "query": "uses_language(kiln, rust)",
+          "actualRows": [],
+          "llmCalls": 4,
+          "usage": {
+            "calls": 4,
+            "usageResponses": 4,
+            "costResponses": 4,
+            "promptTokens": 12130,
+            "completionTokens": 169,
+            "totalTokens": 12299,
+            "cachedPromptTokens": 5962,
+            "reasoningTokens": 109,
+            "costUsd": 0.00186344
+          },
+          "durationMs": 15615.647332999994
+        },
+        {
+          "case": {
+            "id": "missing_entity",
+            "question": "Where does Noor work?",
+            "expectedQuery": "required",
+            "expectedRows": [],
+            "tags": [
+              "empty",
+              "sample-leakage"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "no_match",
+          "query": "select Company where works_at(noor, Company)",
+          "actualRows": [],
+          "llmCalls": 4,
+          "usage": {
+            "calls": 4,
+            "usageResponses": 4,
+            "costResponses": 4,
+            "promptTokens": 12086,
+            "completionTokens": 60,
+            "totalTokens": 12146,
+            "cachedPromptTokens": 5936,
+            "reasoningTokens": 0,
+            "costUsd": 0.0017276200000000002
+          },
+          "durationMs": 9909.014833000008
+        },
+        {
+          "case": {
+            "id": "missing_location",
+            "question": "Where does Priya live?",
+            "expectedQuery": "required",
+            "expectedRows": [],
+            "tags": [
+              "empty",
+              "prompt-generalization"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "unanswerable",
+          "query": null,
+          "actualRows": [],
+          "llmCalls": 5,
+          "usage": {
+            "calls": 5,
+            "usageResponses": 5,
+            "costResponses": 5,
+            "promptTokens": 14249,
+            "completionTokens": 217,
+            "totalTokens": 14466,
+            "cachedPromptTokens": 8081,
+            "reasoningTokens": 131,
+            "costUsd": 0.00196327
+          },
+          "durationMs": 11100.697167000006,
+          "error": "unexpected 'where' after query at line 1"
+        },
+        {
+          "case": {
+            "id": "unexpressible_reason",
+            "question": "Why does Rahul work at Acme?",
+            "expectedQuery": "unanswerable",
+            "expectedRows": [],
+            "tags": [
+              "unanswerable",
+              "related-schema"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "unanswerable",
+          "query": null,
+          "actualRows": [],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 2,
+            "promptTokens": 5992,
+            "completionTokens": 35,
+            "totalTokens": 6027,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 15,
+            "costUsd": 0.0015397
+          },
+          "durationMs": 3583.006708000001
+        },
+        {
+          "case": {
+            "id": "unknown_attribute",
+            "question": "What is Rahul's favorite color?",
+            "expectedQuery": "unanswerable",
+            "expectedRows": [],
+            "tags": [
+              "unanswerable",
+              "unknown-predicate"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "unanswerable",
+          "query": null,
+          "actualRows": [],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 2,
+            "promptTokens": 6006,
+            "completionTokens": 43,
+            "totalTokens": 6049,
+            "cachedPromptTokens": 2147,
+            "reasoningTokens": 23,
+            "costUsd": 0.00105899
+          },
+          "durationMs": 6332.173708000002
+        },
+        {
+          "case": {
+            "id": "tentative_preference",
+            "question": "What might Rahul's favorite color be?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "blue"
+              ]
+            ],
+            "tags": [
+              "tentative",
+              "direct",
+              "single-answer"
+            ],
+            "trustMode": "include_tentative"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select Color where favorite_color(rahul, Color)",
+          "actualRows": [
+            [
+              "blue"
+            ]
+          ],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 2,
+            "promptTokens": 4335,
+            "completionTokens": 121,
+            "totalTokens": 4456,
+            "cachedPromptTokens": 2141,
+            "reasoningTokens": 84,
+            "costUsd": 0.00073622
+          },
+          "durationMs": 5106.019791999992
+        }
+      ]
+    }
+  ]
+}

@@ -55,11 +55,15 @@ change it, so it is not a release threshold.
 
 ## Recommendation
 
-- Keep `openai/gpt-5.6-luna` as the default. It passed both checkpoints and was also the
-  least expensive model in the catalog snapshot below.
-- Use `google/gemini-3.7-flash` as the first verified fallback when independent provider
-  diversity matters.
-- `anthropic/claude-sonnet-5` also passed, but its catalog price was materially higher.
+- Use `anthropic/claude-sonnet-5` as the default for model-assisted writes and recall. In the
+  21 August refresh it was the only tested model that reached 100% on both full checkpoints
+  without an operational error, while costing less and completing faster than Gemini 3.1 Pro.
+- Use `openai/gpt-5.6-luna` as the economy option. It remained about an order of magnitude
+  cheaper and passed extraction, but one of 26 recall cases exhausted its repair attempts after
+  emitting invalid syntax in the current run. Earlier 26/26 runs show live-model variance, not
+  a deterministic regression.
+- Use `google/gemini-3.1-pro-preview` when independent provider diversity matters; it also
+  passed both current checkpoints but used more tokens, time, and cost than Sonnet 5.
 - GPT-5.4 Mini now passes the recall checkpoint after explicit relational projection, but
   it remains below the combined recommendation because it changed `dr_chen` to `chen` in
   the separate extraction checkpoint and costs more than the default catalog snapshot.
@@ -120,3 +124,25 @@ LLM_API_KEY="$OPENROUTER_API_KEY" npm run eval:extract -- \
 Live zero-temperature runs can still move when a provider changes routing or model
 weights. The deterministic corpus and scorer, rather than this dated result, remain the
 repeatable release evidence.
+
+## 21 August 2026 frontier refresh
+
+The current full-corpus runs compare the shipping default/economy model with three current
+frontier families. Raw observations, provider usage, latency, and errors are frozen in:
+
+- `research/results/economy-luna-recall-v1-summary.json`
+- `research/results/economy-luna-extraction-v1-summary.json`
+- `research/results/frontier-recall-v1-summary.json`
+- `research/results/frontier-extraction-v1-summary.json`
+
+| Model | Recall accuracy | Recall tokens | Recall cost | Recall time | Extraction accuracy | Extraction tokens | Extraction cost | Extraction time |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `anthropic/claude-sonnet-5` | 100% | 169,067 | $0.345182 | 145.4 s | 100% | 20,703 | $0.045646 | 54.0 s |
+| `google/gemini-3.1-pro-preview` | 100% | 142,250 | $0.356040 | 147.1 s | 100% | 18,811 | $0.077842 | 62.7 s |
+| `openai/gpt-5.4` | 100% | 110,721 | $0.227240 | 74.9 s | 93.3% | 13,321 | $0.035703 | 22.6 s |
+| `openai/gpt-5.6-luna` | 96.2% | 120,454 | $0.020846 | 103.2 s | 100% | 13,507 | $0.003229 | 27.0 s |
+
+All usage and cost values come from OpenRouter responses. The recall suite contains 26 cases
+with 100 distractor predicates; extraction contains 15 exact mutation and safety cases. The
+model is interpretation infrastructure only: accepted queries still execute through the local
+deterministic engine, and guided document proofs use zero model calls, tokens, and provider cost.

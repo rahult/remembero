@@ -144,6 +144,16 @@ async function apiResponse(
   if (method === 'GET' && url.pathname === '/api/bootstrap') {
     return service.bootstrap();
   }
+  if (method === 'GET' && url.pathname === '/api/document') {
+    return service.documentShowcase({
+      ...(url.searchParams.get('documentId') === null
+        ? {}
+        : { documentId: url.searchParams.get('documentId') ?? undefined }),
+    });
+  }
+  if (method === 'GET' && url.pathname === '/api/document/memorg') {
+    return service.documentMemorg();
+  }
   if (method === 'GET' && url.pathname === '/api/graph') {
     return service.graph({ focus: url.searchParams.get('focus') ?? 'atlas' });
   }
@@ -152,6 +162,21 @@ async function apiResponse(
   }
   const body = objectBody(await jsonBody(request));
   if (url.pathname === '/api/seed') return service.seedDemo();
+  if (url.pathname === '/api/document/parse') {
+    return service.parseDocument({
+      ...(stringField(body, 'documentId', true) === undefined
+        ? {}
+        : { documentId: stringField(body, 'documentId', true) }),
+    });
+  }
+  if (url.pathname === '/api/document/ask') {
+    return service.askDocument({
+      ...(stringField(body, 'documentId', true) === undefined
+        ? {}
+        : { documentId: stringField(body, 'documentId', true) }),
+      questionId: stringField(body, 'questionId')!,
+    });
+  }
   if (url.pathname === '/api/ask') {
     return service.ask({
       question: stringField(body, 'question')!,
@@ -237,7 +262,10 @@ export async function startWebServer(options: StartWebServerOptions = {}) {
     namespace: options.namespace ?? process.env.REMBERO_WEB_NAMESPACE,
   });
   const seedDemo = options.seedDemo ?? process.env.REMBERO_WEB_SEED_DEMO !== 'false';
-  if (seedDemo && service.bootstrap().empty) service.seedDemo();
+  if (seedDemo) {
+    if (service.bootstrap().empty) service.seedDemo();
+    service.parseAllDocuments();
+  }
 
   const clientRoot = resolve(
     dirname(fileURLToPath(import.meta.url)),

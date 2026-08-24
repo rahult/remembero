@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "retrievedAt": "2026-08-20T00:00:00.000Z",
+  "render": {
+    "tool": "pdftoppm",
+    "dpi": 150,
+    "format": "png"
+  },
+  "documents": [
+    {
+      "id": "irs-w9-english",
+      "publisher": "Internal Revenue Service",
+      "sourceUrl": "https://www.irs.gov/pub/irs-pdf/fw9.pdf",
+      "localPath": "real/irs-form-w9-en.pdf",
+      "bytes": 140815,
+      "pageCount": 6,
+      "sha256": "2d420cbb4123dcf1fb82595b2359cfbb5d81f00b9df9d359fcc7af361d093f53",
+      "rightsNote": "Official public IRS form; retained locally for source-attributed evaluation.",
+      "selectedPages": [
+        {
+          "pdfPage": 1,
+          "image": "real/pages/irs-form-w9-en-p1.png",
+          "width": 1275,
+          "height": 1650,
+          "sha256": "05ebe549fcd6805423e1757b45b9901bd3d14ccd5d80281c06ce249f05948dda"
+        }
+      ]
+    },
+    {
+      "id": "irs-w9-spanish",
+      "publisher": "Internal Revenue Service",
+      "sourceUrl": "https://www.irs.gov/pub/irs-pdf/fw9sp.pdf",
+      "localPath": "real/irs-form-w9-es.pdf",
+      "bytes": 155050,
+      "pageCount": 6,
+      "sha256": "ee086e2aa83fb662723b5e2641d9487162a7a9fdc153a84df7c88aa5e1ab9d6c",
+      "rightsNote": "Official Spanish IRS form; retained locally for source-attributed evaluation.",
+      "selectedPages": [
+        {
+          "pdfPage": 1,
+          "image": "real/pages/irs-form-w9-es-p1.png",
+          "width": 1275,
+          "height": 1650,
+          "sha256": "36ce38e97d38a60d4fdae9a19704e6a06b342c25511e365720553c7efe294a41"
+        }
+      ]
+    },
+    {
+      "id": "mathbridge-paper",
+      "publisher": "arXiv",
+      "sourceUrl": "https://arxiv.org/pdf/2408.07081",
+      "localPath": "real/mathbridge-paper.pdf",
+      "bytes": 933599,
+      "pageCount": 9,
+      "sha256": "f305ae6c54e702c304e3be1ea666c369802c6bf93acd5066327da0d98694cf83",
+      "rightsNote": "MathBridge is licensed CC BY 4.0; the selected page is redistributed with author, title, source, and license attribution in THIRD_PARTY_NOTICES.md.",
+      "selectedPages": [
+        {
+          "pdfPage": 4,
+          "image": "real/pages/mathbridge-paper-p4.png",
+          "width": 1275,
+          "height": 1650,
+          "sha256": "5a0d921fd7ea50f69364d74b7c0089f1b8f6e96d120034aebc8260fb080bf4de"
+        }
+      ]
+    },
+    {
+      "id": "un-multilingualism",
+      "publisher": "United Nations Dag Hammarskjöld Library",
+      "sourceUrl": "https://www.un.org/sites/un2.un.org/files/2227864e.pdf",
+      "localPath": "real/un-multilingualism.pdf",
+      "bytes": 18798157,
+      "pageCount": 70,
+      "sha256": "3a376c01bb16dc6be32b7465f7a3851746290223073b42193d8f46ea6fc911ed",
+      "rightsNote": "United Nations publication; local non-commercial evaluation with source credit.",
+      "selectedPages": [
+        {
+          "pdfPage": 20,
+          "printedPage": 15,
+          "image": "real/pages/un-multilingualism-p20.png",
+          "width": 1275,
+          "height": 1650,
+          "sha256": "6a989492d4cef3dbcb868f7e63cea65013eae7e31f4c6f85613108490dae9f04"
+        }
+      ]
+    }
+  ]
+}

@@ -38,6 +38,28 @@ Datalog locally and return real bindings, sourced rule proofs, and a proof graph
 gift does Maya want?” intentionally returns a non-answer with clearly separated related
 knowledge.
 
+The **Documents** workspace adds four real public PDFs: English and Spanish IRS W-9 forms,
+the MathBridge arXiv paper, and the UN multilingualism publication. Each original PDF and
+selected rendered page has a recorded SHA-256 digest, source URL, page count, retrieval time,
+and rights note. The actual page image sits beneath selectable extraction coordinates.
+
+PDF text-layer regions are human reviewed and materialized into separately sourced accepted
+facts or non-authoritative proposed claims. Guided questions then execute through the ordinary
+deterministic query and proof engine. Selecting a proof source highlights the exact region on
+the real page. Each PDF uses an isolated namespace, so switching documents cannot carry stale
+page, claim, or proof state across the boundary.
+
+The official Unlimited-OCR adapter is wired and its real-page attempt is frozen, but the
+provider currently rejects inference because the available ZeroGPU quota is zero. The UI
+labels that operational block and does not display a model-quality score. Raw regions and
+proposed claims remain evidence only; only explicit accepted facts and reviewed rules
+participate in proof.
+
+The workspace also exposes a **Memorg memory** export. It packages the four source documents,
+20 page regions, accepted/proposed claims, reviewed rules, and question contracts into a
+parent-first, content-addressed import plan while preserving the same authority boundary. See
+[DOCUMENT-MEMORG-EXPORT.md](DOCUMENT-MEMORG-EXPORT.md).
+
 Custom questions use the ordinary model-assisted recall pipeline when `LLM_API_KEY` is
 configured. The UI labels this boundary; guided questions, exact evidence, local search,
 health, structured capture, and explicit graph browse remain model-free.
@@ -46,6 +68,9 @@ health, structured capture, and explicit graph browse remain model-free.
 
 - **Ask** — guided or custom recall, canonical query, supported answer, proof claims,
   authored rules, durable sources, and related discovery for non-answers.
+- **Documents** — real rendered pages, provenance hashes, evidence regions, reviewed claims,
+  guided recall, deterministic rule proof, and page-region lineage across four public PDFs.
+  See the [executable evaluation](DOCUMENT-SHOWCASE-EVALUATION.md).
 - **Knowledge** — deterministic local search across fact, rule, and policy text with exact
   score reasons and provenance.
 - **Graph** — bounded explicit stored relationships on an accessible SVG canvas and an
@@ -65,6 +90,15 @@ the personal workspace has no network authentication layer.
 Source statements are stored through the existing journal path, including credential
 redaction and retry-safe provenance. The browser never receives `LLM_API_KEY`.
 
+The document endpoints retain the same boundary:
+
+- `GET /api/document` reads the source-attributed document and default proof;
+- `POST /api/document/parse` validates and idempotently rematerializes accepted claims; and
+- `POST /api/document/ask` accepts only a fixed guided question ID.
+
+The two POST routes require the same origin. Unknown document questions, incomplete source
+lineage, invalid geometry, and source-manifest reference errors fail closed.
+
 ## Configuration
 
 | Variable | Purpose | Default |
@@ -83,3 +117,8 @@ The desktop and mobile references live in
 `docs/assets/rembero-web-concept-mobile.png`. The implementation uses a true-white
 editorial evidence desk, deep ink navigation, cobalt actions, amber provenance markers,
 one primary proof frame, and code-native controls and graph text.
+
+The document workspace reference is
+`docs/assets/rembero-document-intelligence-concept.png`. It extends the same evidence desk
+with a document preview, parsed-evidence rail, and recall/proof rail without making the
+reference image part of the runtime interface.

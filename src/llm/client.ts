@@ -46,7 +46,7 @@ export interface LlmConfig {
   model: string;
 }
 
-export const DEFAULT_MODEL = 'openai/gpt-5.6-luna';
+export const DEFAULT_MODEL = 'anthropic/claude-sonnet-5';
 
 function finiteNonnegative(value: unknown): number | null {
   const parsed = typeof value === 'string' ? Number(value) : value;

@@ -5,6 +5,25 @@ import {
   serializeTerm,
   type Term,
 } from '../engine/index.js';
+import {
+  askDocumentQuestion,
+  DOCUMENT_SHOWCASE_DEFAULT_ID,
+  documentFixtureIds,
+  documentQuestionIds,
+  documentSnapshotResponse,
+  seedAllDocumentShowcases,
+  seedDocumentShowcase,
+} from '../document/showcase.js';
+import { LIVE_OCR_EVIDENCE } from '../document/live-ocr-evidence.js';
+import { PRODUCT_SHIP_EVIDENCE } from '../document/product-ship-evidence.js';
+import {
+  createDocumentMemorgExport,
+  verifyDocumentMemorgExport,
+} from '../document/memorg.js';
+import {
+  evaluateDocumentShowcases,
+  type DocumentEvaluationReport,
+} from '../evals/document-showcase.js';
 import type { LlmClient } from '../llm/client.js';
 import type {
   ExplainKnowledgeResult,
@@ -24,6 +43,12 @@ import {
 } from '../mcp/tools.js';
 
 export const WEB_DEMO_NAMESPACE = 'personal';
+let cachedDocumentEvaluations: DocumentEvaluationReport | undefined;
+
+function documentEvaluationSnapshot(): DocumentEvaluationReport {
+  cachedDocumentEvaluations ??= evaluateDocumentShowcases();
+  return cachedDocumentEvaluations;
+}
 
 export interface GuidedQuestion {
   id: string;
@@ -539,6 +564,79 @@ export class RemberoWebService {
       added: result.added.length,
       duplicate: result.duplicates > 0,
     };
+  }
+
+  private documentSnapshot(documentId = DOCUMENT_SHOWCASE_DEFAULT_ID) {
+    const snapshot = documentSnapshotResponse(this.options.store, documentId);
+    const evaluations = documentEvaluationSnapshot();
+    const evaluationById = new Map(
+      evaluations.documents.map((entry) => [entry.documentId, entry])
+    );
+    const memorg = createDocumentMemorgExport();
+    const memorgVerification = verifyDocumentMemorgExport(memorg);
+    return {
+      ...snapshot,
+      documents: snapshot.documents.map((document) => ({
+        ...document,
+        evaluation: evaluationById.get(document.id),
+      })),
+      evaluation: evaluationById.get(snapshot.document.id),
+      corpusEvaluation: evaluations.aggregate,
+      liveOcrEvidence: LIVE_OCR_EVIDENCE,
+      shipEvidence: PRODUCT_SHIP_EVIDENCE,
+      memorgExport: {
+        format: memorg.format,
+        version: memorg.version,
+        targetVersion: memorg.target.version,
+        sha256: memorg.sha256,
+        itemCount: memorgVerification.itemCount,
+        downloadUrl: '/documents/document-intelligence.memorg.json',
+      },
+    };
+  }
+
+  private allowlistedDocumentId(documentId?: string): string {
+    const selected = documentId ?? DOCUMENT_SHOWCASE_DEFAULT_ID;
+    if (!documentFixtureIds().includes(selected)) {
+      throw new WebServiceError(
+        'invalid_document_id',
+        'Document ID is not allowlisted.'
+      );
+    }
+    return selected;
+  }
+
+  documentShowcase(input?: { documentId?: string }) {
+    return this.documentSnapshot(this.allowlistedDocumentId(input?.documentId));
+  }
+
+  documentMemorg() {
+    return createDocumentMemorgExport();
+  }
+
+  parseDocument(input?: { documentId?: string }) {
+    const documentId = this.allowlistedDocumentId(input?.documentId);
+    const seeded = seedDocumentShowcase(this.options.store, documentId);
+    return {
+      ...this.documentSnapshot(documentId),
+      parse: seeded.parse,
+    };
+  }
+
+  parseAllDocuments() {
+    return seedAllDocumentShowcases(this.options.store);
+  }
+
+  askDocument(input: { questionId: string; documentId?: string }) {
+    const documentId = this.allowlistedDocumentId(input.documentId);
+    const questionId = input.questionId.trim();
+    if (!documentQuestionIds(documentId).includes(questionId)) {
+      throw new WebServiceError(
+        'invalid_document_question',
+        'Document question ID is not allowlisted.'
+      );
+    }
+    return askDocumentQuestion(this.options.store, questionId, documentId);
   }
 }
 

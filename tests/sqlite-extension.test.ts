@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -9,10 +9,12 @@ import {
   parseProgram,
   parseQuery,
   parseQuerySpec,
+  serializeClause,
   serializeTerm,
 } from '../src/engine/index.js';
 import {
   openDatalogDatabase,
+  openRememberoDatabase,
   sqliteDatalogExecutionMode,
 } from '../src/sqlite/extension.js';
 
@@ -827,6 +829,227 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
           keep(X) :- keep(X), candidate(Y), Y != Y.
         `)
       ).toThrow(/tuple checks/i);
+    } finally {
+      database.close();
+    }
+  });
+
+  it('returns an existing SQLite file as a Remembero-enhanced DatabaseSync', async () => {
+    const sqlite = await import('node:sqlite');
+    const directory = mkdtempSync(join(tmpdir(), 'rembero-sqlite-native-api-'));
+    const databasePath = join(directory, 'app.db');
+    try {
+      const seeded = new sqlite.DatabaseSync(databasePath);
+      try {
+        seeded.exec(`
+          CREATE TABLE works_at(person TEXT, company TEXT);
+          CREATE TABLE suspended(person TEXT);
+          INSERT INTO works_at VALUES
+            ('alice', 'acme'),
+            ('bob', 'acme'),
+            ('carol', 'other');
+          INSERT INTO suspended VALUES ('bob');
+        `);
+      } finally {
+        seeded.close();
+      }
+
+      const database = await openRememberoDatabase(databasePath, {
+        extensionPath,
+      });
+      try {
+        expect(database.location()).toBe(realpathSync(databasePath));
+        expect(database.isOpen).toBe(true);
+        expect(database.isTransaction).toBe(false);
+        database.memory.assert('default', 'role(alice, engineer).', {
+          opId: 'remembero-database-seed',
+        });
+        expect(database.memory.load('default').map(serializeClause)).toEqual([
+          'role(alice, engineer).',
+        ]);
+
+        database.function('company_tag', (company: string) => `${company}-tag`);
+        expect(database.prepare('SELECT company_tag(?) AS tagged').get('acme')).toEqual({
+          tagged: 'acme-tag',
+        });
+
+        const insert = database.prepare('INSERT INTO works_at(person, company) VALUES (?, ?)');
+        const select = database.prepare('SELECT company FROM works_at WHERE person = ?');
+        const update = database.prepare('UPDATE works_at SET company = ? WHERE person = ?');
+        const remove = database.prepare('DELETE FROM works_at WHERE person = ?');
+
+        insert.run('dina', 'acme');
+        expect(select.get('dina')).toEqual({ company: 'acme' });
+        update.run('acme-labs', 'dina');
+        expect(select.get('dina')).toEqual({ company: 'acme-labs' });
+        remove.run('dina');
+        expect(select.get('dina')).toBeUndefined();
+
+        expect(
+          database.datalogQuery(
+            'colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.'
+          )
+        ).toEqual([
+          { X: 'alice', Y: 'bob' },
+          { X: 'bob', Y: 'alice' },
+        ]);
+
+        database.exec('BEGIN');
+        expect(database.isTransaction).toBe(true);
+        insert.run('mira', 'acme');
+        database.prepare('INSERT INTO suspended(person) VALUES (?)').run('alice');
+        database.memory.assert('default', 'role(mira, engineer).', {
+          opId: 'remembero-database-rollback',
+        });
+        expect(
+          database.datalogQuery('available(X) :- works_at(X, _), \\+ suspended(X).')
+        ).toEqual([{ X: 'carol' }, { X: 'mira' }]);
+        database.exec('ROLLBACK');
+        expect(database.isTransaction).toBe(false);
+        expect(database.memory.load('default').map(serializeClause)).toEqual([
+          'role(alice, engineer).',
+        ]);
+
+        expect(() => database.enableLoadExtension(true)).toThrow(
+          /extension loading is disabled/i
+        );
+        expect(() => database.loadExtension(extensionPath)).toThrow(
+          /extension loading is disabled/i
+        );
+
+        expect(
+          database.datalogQuery('available(X) :- works_at(X, _), \\+ suspended(X).')
+        ).toEqual([{ X: 'alice' }, { X: 'carol' }]);
+      } finally {
+        database.close();
+      }
+
+      const reopened = new sqlite.DatabaseSync(databasePath);
+      try {
+        expect(
+          reopened.prepare('SELECT person, company FROM works_at ORDER BY person').all()
+        ).toEqual([
+          { person: 'alice', company: 'acme' },
+          { person: 'bob', company: 'acme' },
+          { person: 'carol', company: 'other' },
+        ]);
+      } finally {
+        reopened.close();
+      }
+
+      const reopenedRemembero = await openRememberoDatabase(databasePath, { extensionPath });
+      try {
+        expect(reopenedRemembero.memory.load('default').map(serializeClause)).toEqual([
+          'role(alice, engineer).',
+        ]);
+      } finally {
+        reopenedRemembero.close();
+      }
+
+      if (hasSqliteCli) {
+        const result = spawnSync(
+          'sqlite3',
+          [databasePath, 'SELECT person || "|" || company FROM works_at ORDER BY person;'],
+          { encoding: 'utf8' }
+        );
+        expect(result.status, result.stderr).toBe(0);
+        expect(result.stdout.trim().split('\n')).toEqual([
+          'alice|acme',
+          'bob|acme',
+          'carol|other',
+        ]);
+      }
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects unsupported native options instead of silently ignoring them', async () => {
+    await expect(
+      openRememberoDatabase(':memory:', {
+        extensionPath,
+        timeout: 25,
+      } as never)
+    ).rejects.toThrow("unsupported Remembero SQLite database option 'timeout'");
+  });
+
+  it('adds native and portable logic queries to an ordinary SQLite database file', async () => {
+    const sqlite = await import('node:sqlite');
+    const directory = mkdtempSync(join(tmpdir(), 'rembero-sqlite-adopt-'));
+    const databasePath = join(directory, 'app.db');
+    const applicationDatabase = new sqlite.DatabaseSync(databasePath);
+    try {
+      applicationDatabase.exec(`
+        CREATE TABLE works_at(person TEXT, company TEXT);
+        CREATE TABLE suspended(person TEXT);
+        INSERT INTO works_at VALUES
+          ('alice', 'acme'),
+          ('bob', 'acme'),
+          ('carol', 'other');
+        INSERT INTO suspended VALUES ('bob');
+      `);
+    } finally {
+      applicationDatabase.close();
+    }
+
+    const database = await openDatalogDatabase(databasePath, { extensionPath });
+    try {
+      expect(
+        database.datalogQuery(
+          'colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.'
+        )
+      ).toEqual([
+        { X: 'alice', Y: 'bob' },
+        { X: 'bob', Y: 'alice' },
+      ]);
+      expect(
+        database.datalogQuery('available(X) :- works_at(X, _), \\+ suspended(X).')
+      ).toEqual([{ X: 'alice' }, { X: 'carol' }]);
+    } finally {
+      database.close();
+    }
+
+    const reopened = new sqlite.DatabaseSync(databasePath);
+    try {
+      expect(
+        reopened.prepare('SELECT person, company FROM works_at ORDER BY person').all()
+      ).toEqual([
+        { person: 'alice', company: 'acme' },
+        { person: 'bob', company: 'acme' },
+        { person: 'carol', company: 'other' },
+      ]);
+      reopened.exec(`INSERT INTO works_at VALUES ('dina', 'acme');`);
+      expect(reopened.prepare('SELECT COUNT(*) AS count FROM works_at').get()).toEqual({
+        count: 4,
+      });
+    } finally {
+      reopened.close();
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('keeps portable queries inside the caller transaction snapshot without committing data', async () => {
+    const database = await openDatalogDatabase(':memory:', { extensionPath });
+    try {
+      database.exec(`
+        CREATE TABLE employee(person TEXT);
+        CREATE TABLE suspended(person TEXT);
+        INSERT INTO employee VALUES ('alice');
+      `);
+
+      database.exec('BEGIN');
+      database.exec(`
+        INSERT INTO employee VALUES ('mira');
+        INSERT INTO suspended VALUES ('alice');
+      `);
+      expect(
+        database.datalogQuery('available(X) :- employee(X), \\+ suspended(X).')
+      ).toEqual([{ X: 'mira' }]);
+      database.exec('ROLLBACK');
+
+      expect(
+        database.datalogQuery('available(X) :- employee(X), \\+ suspended(X).')
+      ).toEqual([{ X: 'alice' }]);
     } finally {
       database.close();
     }

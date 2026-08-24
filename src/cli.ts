@@ -10,6 +10,11 @@ import {
   removeClaudeHook,
 } from './autocapture/hooks.js';
 import { DEFAULT_TRANSCRIPT_TAIL_BYTES } from './autocapture/transcript.js';
+import {
+  createDocumentMemorgExport,
+  serializeDocumentMemorgExport,
+  verifyDocumentMemorgExport,
+} from './document/memorg.js';
 import { MAX_PROOFS_PER_ROW, serializeClause } from './engine/index.js';
 import {
   entityIdentityFromEnv,
@@ -139,6 +144,7 @@ import {
 } from './store/store.js';
 import {
   MAX_INPUT_BYTES,
+  MAX_OUTPUT_BYTES,
   assertBoundedOutput,
   llmNamespaceAllowlistFromEnv,
   stringifyBoundedResult,
@@ -179,6 +185,8 @@ Usage:
   remembero connect <from> <to>            Find bounded shortest explicit graph paths
   remembero bundle                         Export raw clauses and provenance with a digest
   remembero verify-bundle <file>           Verify a standalone knowledge bundle
+  remembero document-memorg                Export the real-PDF corpus as Memorg memory
+  remembero verify-document-memorg <file>  Verify a standalone Memorg memory artifact
   remembero test-knowledge <file>          Run a deterministic rule regression suite
   remembero profile <query>                Profile deterministic relation work and proofs
   remembero forget <pattern>               Retract facts matching a pattern
@@ -825,6 +833,33 @@ async function main(): Promise<void> {
   }
   loadEnv();
   const args = parseArgs(rest);
+  if (command === 'document-memorg') {
+    if (args.positional.length !== 0) {
+      throw new Error('document-memorg does not accept positional arguments');
+    }
+    console.log(serializeDocumentMemorgExport(createDocumentMemorgExport()));
+    return;
+  }
+  if (command === 'verify-document-memorg') {
+    if (args.positional.length !== 1) {
+      throw new Error('verify-document-memorg requires exactly one artifact file');
+    }
+    const file = resolve(args.positional[0]);
+    const stat = lstatSync(file);
+    if (stat.isSymbolicLink() || !stat.isFile()) {
+      throw new Error('refusing non-regular Memorg artifact file');
+    }
+    if (stat.size > MAX_OUTPUT_BYTES) {
+      throw new Error(`Memorg artifact exceeds ${MAX_OUTPUT_BYTES} bytes`);
+    }
+    console.log(
+      stringifyBoundedResult(
+        verifyDocumentMemorgExport(readFileSync(file, 'utf8')),
+        'CLI result'
+      )
+    );
+    return;
+  }
   const store = new MemoryStore();
   const graphSelector = graphSelectorOption(args);
   const operationId = operationIdOption(args.opId);

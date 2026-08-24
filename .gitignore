@@ -6,5 +6,7 @@ build/
 .rembero-web/
 .claude/
 .cache/
+.omx/
+.impeccable/
 __pycache__/
 *.pyc

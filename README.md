@@ -90,6 +90,21 @@ knowledge entirely in the browser. Install the `remembero` package and run the `
 CLI; the former `rembero` executable remains a compatibility alias. See
 [the hosted-playground contract](docs/MARKETING-PLAYGROUND.md).
 
+The local web console also includes a four-document intelligence showcase built from real
+public PDFs: English and Spanish IRS W-9 forms, an arXiv research paper, and a UN publication.
+The UI displays each rendered source page, publisher URL, original/page hashes, reviewed
+claims, deterministic recall, proof, and honest abstention. Run `npm run eval:documents` for
+the executable parse/answer/proof/abstention scorecard; see the
+[measured document showcase boundary](docs/DOCUMENT-SHOWCASE-EVALUATION.md).
+The separate `npm run eval:ocr:live` command exercises the bounded Unlimited-OCR transport
+against those real labelled pages; see the current official-provider quota result in the
+[live OCR evidence boundary](docs/UNLIMITED-OCR-LIVE-EVALUATION.md).
+The same real-PDF corpus can be downloaded from the web console or exported as a
+content-addressed, parent-first Memorg memory with `remembero document-memorg`; see the
+[Memorg interoperability contract](docs/DOCUMENT-MEMORG-EXPORT.md).
+Before publishing, run `npm run ship:check` and review the explicit
+[ship-readiness boundary](docs/SHIP-READINESS.md).
+
 ```
 "Rahul works at Acme. Mira also works at Acme.          works_at(rahul, acme).
  People who work at the same company are colleagues."   works_at(mira, acme).
@@ -113,7 +128,7 @@ Configuration is via environment variables (a `.env` file in the working directo
 |---|---|---|
 | `LLM_API_KEY` | for `remember`, `recall`, or semantic search | — (an [OpenRouter](https://openrouter.ai) key) |
 | `LLM_BASE_URL` | no | `https://openrouter.ai/api/v1` |
-| `LLM_MODEL` | no | `openai/gpt-5.6-luna` |
+| `LLM_MODEL` | no | `anthropic/claude-sonnet-5` |
 | `REMBERO_EMBEDDING_MODEL` | no | `perplexity/pplx-embed-v1-0.6b` |
 | `REMBERO_EMBEDDING_BASE_URL` | no | `LLM_BASE_URL` or `https://openrouter.ai/api/v1` |
 | `REMBERO_HOME` | no | `~/.rembero` (memories live in `$REMBERO_HOME/memory/`) |
@@ -355,15 +370,51 @@ close old facts, add their `_until` archives and replacements, and record exact 
 lineage without changing explicit `forget`. See
 [the explainable graph contract](docs/EXPLAINABLE-KNOWLEDGE-GRAPH.md).
 
-## SQLite extension (experimental)
+## Use Remembero as SQLite plus governed memory
+
+For Node applications, `openRememberoDatabase(...)` is the primary database API. It
+returns the real `node:sqlite` connection, so ordinary SQL, prepared statements,
+transactions, functions, and existing `.db` files keep working. The same object adds
+Datalog query/proof methods and a `memory` store whose clauses, provenance journal,
+trust state, checkpoints, and recorded history are authoritative in the same SQLite file.
+
+```ts
+import { openRememberoDatabase } from 'remembero';
+
+const db = await openRememberoDatabase('app.db');
+db.prepare('INSERT INTO works_at(person, company) VALUES (?, ?)').run('mira', 'acme');
+console.log(db.datalogQuery('employed(X) :- works_at(X, _).'));
+
+db.memory.assert('default', 'prefers(mira, tea).', {
+  opId: 'preference-2026-08-24',
+});
+db.close();
+```
+
+Memory mutations participate in caller-owned SQLite transactions, so application rows
+and governed memory commit or roll back together. See the
+[SQLite database guide](docs/SQLITE-DATABASE.md) for install steps, the existing-database
+path, internal-table boundary, and exact compatibility limits.
+
+### Immutable semantic ledger
+
+`createSemanticLedger(...)` adds a standalone content-addressed version graph to any
+`node:sqlite` database. It records immutable objects and versions, typed dependencies,
+contracts, evaluation evidence, compatibility vectors, promotion decisions, and append-only
+ref history. `captureKnowledgeVersion(...)` optionally links an exact Remembero journal state;
+the memory store and ledger remain independently usable. See the
+[semantic ledger guide](docs/SEMANTIC-LEDGER.md).
+
+### Native SQLite extension
 
 Remembero also ships the source for a real loadable SQLite extension. It treats ordinary
 SQLite tables (and views) as Datalog predicates: arguments map to columns by position,
 and SQLite remains the storage and transaction authority. Ordinary positive rules use
 the native extension; the Node adapter deterministically bridges advanced rules to the
 same bounded evaluator used by portable `.dl` knowledge. This is a separate
-application-facing primitive; the existing MCP memory store continues to use portable
-`.dl` files.
+application-facing primitive. The default CLI/MCP memory store continues to use portable
+`.dl` files; `openRememberoDatabase(...)` explicitly selects the same-file SQLite-backed
+authority for embedded applications.
 
 V0 supports macOS and Linux. Build the extension with a C compiler and the SQLite
 development headers. From a source checkout use:

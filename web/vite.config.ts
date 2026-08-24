@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: '../dist/web-client',
-    emptyOutDir: false,
+    emptyOutDir: true,
   },
   server: {
     port: 4173,

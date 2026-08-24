@@ -22,9 +22,35 @@ import {
   predKey,
   serializeClause,
 } from '../engine/index.js';
+import {
+  createSqliteMemoryStore,
+  type SqliteMemoryStore,
+  type SqliteMemoryStoreOptions,
+} from '../store/sqlite-store.js';
+
+interface DatalogDatabaseMethods {
+  datalogSql(rule: string): string;
+  datalogQuery(rule: string): DatalogRow[];
+  datalogExplain(program: string): DatalogExplanation[];
+  datalogPlan(input: string): SqliteDatalogPlan;
+}
+
+export interface RememberoDatabaseMethods extends DatalogDatabaseMethods {
+  /** Durable governed memory stored inside this SQLite database. */
+  readonly memory: SqliteMemoryStore;
+}
+
+export type RememberoDatabase = DatabaseSync & RememberoDatabaseMethods;
 
 export interface OpenDatalogDatabaseOptions {
   extensionPath?: string;
+  enableForeignKeyConstraints?: boolean;
+  enableDoubleQuotedStringLiterals?: boolean;
+  readOnly?: boolean;
+}
+
+export interface OpenRememberoDatabaseOptions extends OpenDatalogDatabaseOptions {
+  memory?: SqliteMemoryStoreOptions;
 }
 
 export type DatalogRow = Record<string, unknown>;
@@ -87,6 +113,12 @@ const MAX_DERIVED_FACTS = 10_000;
 const MAX_QUERY_ROWS = 10_000;
 const MAX_RESULT_BYTES = 16 * 1024 * 1024;
 const PORTABLE_SAVEPOINT = 'rembero_portable_bridge';
+const OPEN_DATABASE_OPTION_KEYS = new Set([
+  'extensionPath',
+  'enableForeignKeyConstraints',
+  'enableDoubleQuotedStringLiterals',
+  'readOnly',
+]);
 
 function containsArithmeticSyntax(program: string): boolean {
   const previousSignificant = (index: number): string => {
@@ -746,27 +778,190 @@ export class DatalogDatabase {
   }
 }
 
-export async function openDatalogDatabase(
-  path: string,
-  options: OpenDatalogDatabaseOptions = {}
-): Promise<DatalogDatabase> {
-  let sqlite: typeof import('node:sqlite');
+type DatalogEnabledDatabase = DatabaseSync & DatalogDatabaseMethods;
+
+function attachDatalogDatabaseMethods(database: DatabaseSync): DatalogEnabledDatabase {
+  const existing = database as Partial<DatalogEnabledDatabase>;
+  if (
+    typeof existing.datalogSql === 'function' &&
+    typeof existing.datalogQuery === 'function' &&
+    typeof existing.datalogExplain === 'function' &&
+    typeof existing.datalogPlan === 'function'
+  ) {
+    return database as DatalogEnabledDatabase;
+  }
+
+  const adapter = new DatalogDatabase(database);
+  Object.defineProperties(database, {
+    datalogSql: {
+      value: adapter.datalogSql.bind(adapter),
+      configurable: true,
+      writable: false,
+    },
+    datalogQuery: {
+      value: adapter.datalogQuery.bind(adapter),
+      configurable: true,
+      writable: false,
+    },
+    datalogExplain: {
+      value: adapter.datalogExplain.bind(adapter),
+      configurable: true,
+      writable: false,
+    },
+    datalogPlan: {
+      value: adapter.datalogPlan.bind(adapter),
+      configurable: true,
+      writable: false,
+    },
+  });
+  return database as DatalogEnabledDatabase;
+}
+
+function validateDatalogDatabaseOptions(
+  options: OpenDatalogDatabaseOptions
+): void {
+  const rawOptions = options as OpenDatalogDatabaseOptions & {
+    allowExtension?: unknown;
+    open?: unknown;
+  };
+  if (Object.prototype.hasOwnProperty.call(rawOptions, 'open')) {
+    throw new Error(
+      'Remembero SQLite integration opens the database during initialization and does not accept an open option.'
+    );
+  }
+  if (Object.prototype.hasOwnProperty.call(rawOptions, 'allowExtension')) {
+    throw new Error(
+      'Remembero SQLite integration manages allowExtension internally and does not accept an override.'
+    );
+  }
+  const unsupported = Object.keys(rawOptions).find(
+    (key) => !OPEN_DATABASE_OPTION_KEYS.has(key)
+  );
+  if (unsupported !== undefined) {
+    throw new Error(`unsupported Remembero SQLite database option '${unsupported}'`);
+  }
+}
+
+function disableFurtherExtensionLoading(database: DatabaseSync): void {
+  database.enableLoadExtension(false);
+  const disabled = () => {
+    throw new Error(
+      'SQLite extension loading is disabled after Remembero database initialization.'
+    );
+  };
+  Object.defineProperties(database, {
+    loadExtension: {
+      value: disabled,
+      configurable: false,
+      writable: false,
+    },
+    enableLoadExtension: {
+      value: disabled,
+      configurable: false,
+      writable: false,
+    },
+  });
+}
+
+async function importSqliteModule(): Promise<typeof import('node:sqlite')> {
   try {
-    sqlite = await import('node:sqlite');
+    return await import('node:sqlite');
   } catch (error) {
     throw new Error('SQLite integration requires Node.js 22.13 or newer.', { cause: error });
   }
+}
 
-  const database = new sqlite.DatabaseSync(path, { allowExtension: true });
+function openDatalogEnabledDatabaseSync(
+  sqlite: typeof import('node:sqlite'),
+  path: string,
+  options: OpenDatalogDatabaseOptions = {}
+): DatalogEnabledDatabase {
+  validateDatalogDatabaseOptions(options);
+  const {
+    extensionPath,
+    enableForeignKeyConstraints,
+    enableDoubleQuotedStringLiterals,
+    readOnly,
+  } = options;
+  const database = new sqlite.DatabaseSync(path, {
+    ...(enableForeignKeyConstraints === undefined ? {} : { enableForeignKeyConstraints }),
+    ...(enableDoubleQuotedStringLiterals === undefined
+      ? {}
+      : { enableDoubleQuotedStringLiterals }),
+    ...(readOnly === undefined ? {} : { readOnly }),
+    allowExtension: true,
+  });
   try {
-    database.loadExtension(
-      resolveSqliteExtensionPath(options.extensionPath),
-      'sqlite3_rembero_init'
-    );
-    database.enableLoadExtension(false);
-    return new DatalogDatabase(database);
+    database.loadExtension(resolveSqliteExtensionPath(extensionPath), 'sqlite3_rembero_init');
+    disableFurtherExtensionLoading(database);
+    return attachDatalogDatabaseMethods(database);
   } catch (error) {
     database.close();
     throw error;
   }
+}
+
+function attachSqliteMemoryStore(
+  database: DatalogEnabledDatabase,
+  options: SqliteMemoryStoreOptions
+): RememberoDatabase {
+  if ('memory' in database) {
+    throw new Error("SQLite database already has a 'memory' property");
+  }
+  const memory = createSqliteMemoryStore(database, options);
+  const closeDatabase = database.close.bind(database);
+  const close = () => {
+    try {
+      memory.dispose();
+    } finally {
+      closeDatabase();
+    }
+  };
+  Object.defineProperties(database, {
+    memory: {
+      value: memory,
+      configurable: false,
+      writable: false,
+    },
+    close: {
+      value: close,
+      configurable: false,
+      writable: false,
+    },
+  });
+  if (typeof Symbol.dispose === 'symbol' && Symbol.dispose in database) {
+    Object.defineProperty(database, Symbol.dispose, {
+      value: close,
+      configurable: false,
+      writable: false,
+    });
+  }
+  return database as RememberoDatabase;
+}
+
+export async function openRememberoDatabase(
+  path: string,
+  options: OpenRememberoDatabaseOptions = {}
+): Promise<RememberoDatabase> {
+  const { memory = {}, ...databaseOptions } = options;
+  const database = openDatalogEnabledDatabaseSync(
+    await importSqliteModule(),
+    path,
+    databaseOptions
+  );
+  try {
+    return attachSqliteMemoryStore(database, memory);
+  } catch (error) {
+    database.close();
+    throw error;
+  }
+}
+
+export async function openDatalogDatabase(
+  path: string,
+  options: OpenDatalogDatabaseOptions = {}
+): Promise<DatalogDatabase> {
+  return new DatalogDatabase(
+    openDatalogEnabledDatabaseSync(await importSqliteModule(), path, options)
+  );
 }

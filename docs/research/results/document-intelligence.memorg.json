@@ -1,0 +1,1863 @@
+{
+  "format": "remembero-memorg-import",
+  "version": 1,
+  "target": {
+    "package": "memorg",
+    "version": "0.1.2",
+    "method": "MemorgSystem.create_memory_item"
+  },
+  "items": [
+    {
+      "key": "remembero-document-intelligence",
+      "item_type": "custom",
+      "parent_key": null,
+      "content": "Remembero real-PDF document intelligence memory. 4 source-attributed documents preserve parsing evidence, review state, deterministic recall, proof rules, and honest abstention boundaries.",
+      "metadata": {
+        "authority": "collection",
+        "workflow": "document_intelligence",
+        "document_count": 4,
+        "proof_policy": "Only accepted claims and reviewed rules are proof-bearing; source regions and proposed claims are evidence only."
+      },
+      "tags": [
+        "document-intelligence",
+        "real-pdf",
+        "remembero"
+      ]
+    },
+    {
+      "key": "document-irs-w9-english",
+      "item_type": "document",
+      "parent_key": "remembero-document-intelligence",
+      "content": "IRS Form W-9 · English\nGovernment form published by Internal Revenue Service.\nSelected PDF pages: 1 of 6.\n4 accepted claims, 1 proposed claims, 2 reviewed rules, and 3 guided questions.",
+      "metadata": {
+        "authority": "source",
+        "remembero_document_id": "irs-w9-english",
+        "remembero_namespace": "documents-irs-w9-english",
+        "fixture_version": "irs-w9-en-2024-live-v1",
+        "parser_mode": "source_text_reviewed",
+        "parser_label": "PDF text-layer extraction · human reviewed",
+        "publisher": "Internal Revenue Service",
+        "source_url": "https://www.irs.gov/pub/irs-pdf/fw9.pdf",
+        "retrieved_at": "2026-08-20T00:00:00.000Z",
+        "pdf_sha256": "2d420cbb4123dcf1fb82595b2359cfbb5d81f00b9df9d359fcc7af361d093f53",
+        "pdf_page_count": 6,
+        "selected_page_numbers": [
+          1
+        ],
+        "rights_note": "Official public IRS form; retained locally for source-attributed evaluation.",
+        "page_images": [
+          {
+            "page_number": 1,
+            "image_url": "/documents/irs-form-w9-en-p1.png",
+            "image_sha256": "05ebe549fcd6805423e1757b45b9901bd3d14ccd5d80281c06ce249f05948dda"
+          }
+        ]
+      },
+      "tags": [
+        "document",
+        "document-intelligence",
+        "government-form",
+        "irs-w9-english",
+        "real-pdf",
+        "remembero"
+      ]
+    },
+    {
+      "key": "region-irs-w9-english-w9-en-region-title",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-english",
+      "content": "Form W-9 (Rev. March 2024) — Request for Taxpayer Identification Number and Certification",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "irs-w9-english",
+        "region_id": "w9-en-region-title",
+        "region_label": "Region 1",
+        "region_kind": "title",
+        "reading_order": 1,
+        "page_number": 1,
+        "bounding_box": {
+          "x": 70,
+          "y": 68,
+          "width": 875,
+          "height": 112
+        },
+        "page_image_sha256": "05ebe549fcd6805423e1757b45b9901bd3d14ccd5d80281c06ce249f05948dda",
+        "pdf_sha256": "2d420cbb4123dcf1fb82595b2359cfbb5d81f00b9df9d359fcc7af361d093f53"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "irs-w9-english",
+        "page-1",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "region-irs-w9-english-w9-en-region-destination",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-english",
+      "content": "Give form to the requester. Do not send to the IRS.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "irs-w9-english",
+        "region_id": "w9-en-region-destination",
+        "region_label": "Region 2",
+        "region_kind": "status",
+        "reading_order": 2,
+        "page_number": 1,
+        "bounding_box": {
+          "x": 1018,
+          "y": 72,
+          "width": 188,
+          "height": 95
+        },
+        "page_image_sha256": "05ebe549fcd6805423e1757b45b9901bd3d14ccd5d80281c06ce249f05948dda",
+        "pdf_sha256": "2d420cbb4123dcf1fb82595b2359cfbb5d81f00b9df9d359fcc7af361d093f53"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "irs-w9-english",
+        "page-1",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "region-irs-w9-english-w9-en-region-line-one",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-english",
+      "content": "1 Name of entity/individual. An entry is required.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "irs-w9-english",
+        "region_id": "w9-en-region-line-one",
+        "region_label": "Region 3",
+        "region_kind": "paragraph",
+        "reading_order": 3,
+        "page_number": 1,
+        "bounding_box": {
+          "x": 118,
+          "y": 202,
+          "width": 1090,
+          "height": 72
+        },
+        "page_image_sha256": "05ebe549fcd6805423e1757b45b9901bd3d14ccd5d80281c06ce249f05948dda",
+        "pdf_sha256": "2d420cbb4123dcf1fb82595b2359cfbb5d81f00b9df9d359fcc7af361d093f53"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "irs-w9-english",
+        "page-1",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "region-irs-w9-english-w9-en-region-tin",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-english",
+      "content": "The TIN provided must match the name given on line 1 to avoid backup withholding.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "irs-w9-english",
+        "region_id": "w9-en-region-tin",
+        "region_label": "Region 4",
+        "region_kind": "paragraph",
+        "reading_order": 4,
+        "page_number": 1,
+        "bounding_box": {
+          "x": 74,
+          "y": 751,
+          "width": 790,
+          "height": 108
+        },
+        "page_image_sha256": "05ebe549fcd6805423e1757b45b9901bd3d14ccd5d80281c06ce249f05948dda",
+        "pdf_sha256": "2d420cbb4123dcf1fb82595b2359cfbb5d81f00b9df9d359fcc7af361d093f53"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "irs-w9-english",
+        "page-1",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "region-irs-w9-english-w9-en-region-certification",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-english",
+      "content": "Under penalties of perjury, I certify that the number shown on this form is my correct taxpayer identification number.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "irs-w9-english",
+        "region_id": "w9-en-region-certification",
+        "region_label": "Region 5",
+        "region_kind": "paragraph",
+        "reading_order": 5,
+        "page_number": 1,
+        "bounding_box": {
+          "x": 72,
+          "y": 922,
+          "width": 1134,
+          "height": 148
+        },
+        "page_image_sha256": "05ebe549fcd6805423e1757b45b9901bd3d14ccd5d80281c06ce249f05948dda",
+        "pdf_sha256": "2d420cbb4123dcf1fb82595b2359cfbb5d81f00b9df9d359fcc7af361d093f53"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "irs-w9-english",
+        "page-1",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "region-irs-w9-english-w9-en-region-purpose",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-english",
+      "content": "An individual or entity (Form W-9 requester) who is required to file an information return with the IRS is giving you this form.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "irs-w9-english",
+        "region_id": "w9-en-region-purpose",
+        "region_label": "Region 6",
+        "region_kind": "paragraph",
+        "reading_order": 6,
+        "page_number": 1,
+        "bounding_box": {
+          "x": 658,
+          "y": 1471,
+          "width": 544,
+          "height": 78
+        },
+        "page_image_sha256": "05ebe549fcd6805423e1757b45b9901bd3d14ccd5d80281c06ce249f05948dda",
+        "pdf_sha256": "2d420cbb4123dcf1fb82595b2359cfbb5d81f00b9df9d359fcc7af361d093f53"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "irs-w9-english",
+        "page-1",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "claim-irs-w9-english-w9-en-claim-recipient",
+      "item_type": "custom",
+      "parent_key": "region-irs-w9-english-w9-en-region-destination",
+      "content": "form_recipient(w9_en, requester).\nA reviewer accepted the form recipient stated in the extracted source block.\nSource: Give form to the requester. Do not send to the IRS.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "irs-w9-english",
+        "claim_id": "w9-en-claim-recipient",
+        "clause": "form_recipient(w9_en, requester).",
+        "review_state": "accepted",
+        "page_number": 1,
+        "region_id": "w9-en-region-destination",
+        "pdf_sha256": "2d420cbb4123dcf1fb82595b2359cfbb5d81f00b9df9d359fcc7af361d093f53"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "irs-w9-english",
+        "proof-bearing",
+        "remembero"
+      ]
+    },
+    {
+      "key": "claim-irs-w9-english-w9-en-claim-prohibited-recipient",
+      "item_type": "custom",
+      "parent_key": "region-irs-w9-english-w9-en-region-destination",
+      "content": "prohibited_recipient(w9_en, irs).\nA reviewer accepted the explicit prohibition on sending this form to the IRS.\nSource: Give form to the requester. Do not send to the IRS.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "irs-w9-english",
+        "claim_id": "w9-en-claim-prohibited-recipient",
+        "clause": "prohibited_recipient(w9_en, irs).",
+        "review_state": "accepted",
+        "page_number": 1,
+        "region_id": "w9-en-region-destination",
+        "pdf_sha256": "2d420cbb4123dcf1fb82595b2359cfbb5d81f00b9df9d359fcc7af361d093f53"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "irs-w9-english",
+        "proof-bearing",
+        "remembero"
+      ]
+    },
+    {
+      "key": "claim-irs-w9-english-w9-en-claim-required-line",
+      "item_type": "custom",
+      "parent_key": "region-irs-w9-english-w9-en-region-line-one",
+      "content": "required_entry(w9_en, line_1).\nLine 1 is explicitly marked as required.\nSource: 1 Name of entity/individual. An entry is required.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "irs-w9-english",
+        "claim_id": "w9-en-claim-required-line",
+        "clause": "required_entry(w9_en, line_1).",
+        "review_state": "accepted",
+        "page_number": 1,
+        "region_id": "w9-en-region-line-one",
+        "pdf_sha256": "2d420cbb4123dcf1fb82595b2359cfbb5d81f00b9df9d359fcc7af361d093f53"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "irs-w9-english",
+        "proof-bearing",
+        "remembero"
+      ]
+    },
+    {
+      "key": "claim-irs-w9-english-w9-en-claim-tin-match",
+      "item_type": "custom",
+      "parent_key": "region-irs-w9-english-w9-en-region-tin",
+      "content": "tin_matches(w9_en, line_1_name).\nThe TIN must match the name supplied on line 1.\nSource: The TIN provided must match the name given on line 1 to avoid backup withholding.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "irs-w9-english",
+        "claim_id": "w9-en-claim-tin-match",
+        "clause": "tin_matches(w9_en, line_1_name).",
+        "review_state": "accepted",
+        "page_number": 1,
+        "region_id": "w9-en-region-tin",
+        "pdf_sha256": "2d420cbb4123dcf1fb82595b2359cfbb5d81f00b9df9d359fcc7af361d093f53"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "irs-w9-english",
+        "proof-bearing",
+        "remembero"
+      ]
+    },
+    {
+      "key": "claim-irs-w9-english-w9-en-claim-filing-party",
+      "item_type": "custom",
+      "parent_key": "region-irs-w9-english-w9-en-region-purpose",
+      "content": "filing_party(w9_en, requester).\nThe visible purpose paragraph suggests the requester files an information return, but the extraction remains proposed.\nSource: An individual or entity (Form W-9 requester) who is required to file an information return with the IRS is giving you this form.",
+      "metadata": {
+        "authority": "proposed_only",
+        "remembero_document_id": "irs-w9-english",
+        "claim_id": "w9-en-claim-filing-party",
+        "clause": "filing_party(w9_en, requester).",
+        "review_state": "proposed",
+        "page_number": 1,
+        "region_id": "w9-en-region-purpose",
+        "pdf_sha256": "2d420cbb4123dcf1fb82595b2359cfbb5d81f00b9df9d359fcc7af361d093f53"
+      },
+      "tags": [
+        "claim",
+        "document-intelligence",
+        "irs-w9-english",
+        "proposed",
+        "remembero",
+        "review-required"
+      ]
+    },
+    {
+      "key": "rule-irs-w9-english-w9-en-rule-destination",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-english",
+      "content": "safe_submission(Form, Recipient) :- form_recipient(Form, Recipient), prohibited_recipient(Form, irs).\nA safe submission destination requires both the named recipient and the explicit IRS prohibition.",
+      "metadata": {
+        "authority": "reviewed_rule",
+        "remembero_document_id": "irs-w9-english",
+        "rule_id": "w9-en-rule-destination",
+        "clause": "safe_submission(Form, Recipient) :- form_recipient(Form, Recipient), prohibited_recipient(Form, irs).",
+        "source_text": "Reviewed form-routing rule.",
+        "proof_bearing": true
+      },
+      "tags": [
+        "document-intelligence",
+        "irs-w9-english",
+        "proof-bearing",
+        "remembero",
+        "reviewed-rule"
+      ]
+    },
+    {
+      "key": "rule-irs-w9-english-w9-en-rule-identity-match",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-english",
+      "content": "identity_match_required(Form) :- required_entry(Form, line_1), tin_matches(Form, line_1_name).\nThe required line-1 name and TIN matching statement jointly establish the identity-match requirement.",
+      "metadata": {
+        "authority": "reviewed_rule",
+        "remembero_document_id": "irs-w9-english",
+        "rule_id": "w9-en-rule-identity-match",
+        "clause": "identity_match_required(Form) :- required_entry(Form, line_1), tin_matches(Form, line_1_name).",
+        "source_text": "Reviewed form-completion rule.",
+        "proof_bearing": true
+      },
+      "tags": [
+        "document-intelligence",
+        "irs-w9-english",
+        "proof-bearing",
+        "remembero",
+        "reviewed-rule"
+      ]
+    },
+    {
+      "key": "question-irs-w9-english-w9-destination",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-english",
+      "content": "Question: Where should the completed W-9 go?\nCanonical query: safe_submission(w9_en, Recipient)\nExpected status: answered\nSupported answer: Give the completed W-9 to the requester; do not send it to the IRS.",
+      "metadata": {
+        "authority": "evaluation_contract",
+        "remembero_document_id": "irs-w9-english",
+        "question_id": "w9-destination",
+        "query": "safe_submission(w9_en, Recipient)",
+        "expected_status": "answered",
+        "related_evidence_ids": [
+          "w9-en-claim-recipient",
+          "w9-en-claim-prohibited-recipient"
+        ],
+        "expected_source_region_ids": [
+          "w9-en-region-destination"
+        ],
+        "expected_accepted_claim_ids": [
+          "w9-en-claim-recipient",
+          "w9-en-claim-prohibited-recipient"
+        ],
+        "expected_rule_ids": [
+          "w9-en-rule-destination"
+        ]
+      },
+      "tags": [
+        "answered",
+        "document-intelligence",
+        "evaluation-contract",
+        "irs-w9-english",
+        "question",
+        "remembero"
+      ]
+    },
+    {
+      "key": "question-irs-w9-english-w9-identity-match",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-english",
+      "content": "Question: Does the page establish an identity-match requirement?\nCanonical query: identity_match_required(w9_en)\nExpected status: answered\nSupported answer: Yes. Line 1 is required and the TIN must match the name entered there.",
+      "metadata": {
+        "authority": "evaluation_contract",
+        "remembero_document_id": "irs-w9-english",
+        "question_id": "w9-identity-match",
+        "query": "identity_match_required(w9_en)",
+        "expected_status": "answered",
+        "related_evidence_ids": [
+          "w9-en-claim-required-line",
+          "w9-en-claim-tin-match"
+        ],
+        "expected_source_region_ids": [
+          "w9-en-region-line-one",
+          "w9-en-region-tin"
+        ],
+        "expected_accepted_claim_ids": [
+          "w9-en-claim-required-line",
+          "w9-en-claim-tin-match"
+        ],
+        "expected_rule_ids": [
+          "w9-en-rule-identity-match"
+        ]
+      },
+      "tags": [
+        "answered",
+        "document-intelligence",
+        "evaluation-contract",
+        "irs-w9-english",
+        "question",
+        "remembero"
+      ]
+    },
+    {
+      "key": "question-irs-w9-english-w9-deadline",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-english",
+      "content": "Question: What filing deadline does this page establish?\nCanonical query: filing_deadline(w9_en, Date)\nExpected status: unsupported\nAbstention: No accepted evidence on this page establishes a filing deadline.",
+      "metadata": {
+        "authority": "evaluation_contract",
+        "remembero_document_id": "irs-w9-english",
+        "question_id": "w9-deadline",
+        "query": "filing_deadline(w9_en, Date)",
+        "expected_status": "unsupported",
+        "related_evidence_ids": [
+          "w9-en-region-purpose",
+          "w9-en-claim-filing-party"
+        ],
+        "expected_source_region_ids": [],
+        "expected_accepted_claim_ids": [],
+        "expected_rule_ids": []
+      },
+      "tags": [
+        "document-intelligence",
+        "evaluation-contract",
+        "irs-w9-english",
+        "question",
+        "remembero",
+        "unsupported"
+      ]
+    },
+    {
+      "key": "document-irs-w9-spanish",
+      "item_type": "document",
+      "parent_key": "remembero-document-intelligence",
+      "content": "IRS Form W-9 · Spanish\nMultilingual form published by Internal Revenue Service.\nSelected PDF pages: 1 of 6.\n4 accepted claims, 1 proposed claims, 2 reviewed rules, and 3 guided questions.",
+      "metadata": {
+        "authority": "source",
+        "remembero_document_id": "irs-w9-spanish",
+        "remembero_namespace": "documents-irs-w9-spanish",
+        "fixture_version": "irs-w9-es-2024-live-v1",
+        "parser_mode": "source_text_reviewed",
+        "parser_label": "PDF text-layer extraction · human reviewed",
+        "publisher": "Internal Revenue Service",
+        "source_url": "https://www.irs.gov/pub/irs-pdf/fw9sp.pdf",
+        "retrieved_at": "2026-08-20T00:00:00.000Z",
+        "pdf_sha256": "ee086e2aa83fb662723b5e2641d9487162a7a9fdc153a84df7c88aa5e1ab9d6c",
+        "pdf_page_count": 6,
+        "selected_page_numbers": [
+          1
+        ],
+        "rights_note": "Official Spanish IRS form; retained locally for source-attributed evaluation.",
+        "page_images": [
+          {
+            "page_number": 1,
+            "image_url": "/documents/irs-form-w9-es-p1.png",
+            "image_sha256": "36ce38e97d38a60d4fdae9a19704e6a06b342c25511e365720553c7efe294a41"
+          }
+        ]
+      },
+      "tags": [
+        "document",
+        "document-intelligence",
+        "irs-w9-spanish",
+        "multilingual-form",
+        "real-pdf",
+        "remembero"
+      ]
+    },
+    {
+      "key": "region-irs-w9-spanish-w9-es-region-title",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-spanish",
+      "content": "Formulario W-9 — Solicitud y Certificación del Número de Identificación del Contribuyente",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "irs-w9-spanish",
+        "region_id": "w9-es-region-title",
+        "region_label": "Region 1",
+        "region_kind": "title",
+        "reading_order": 1,
+        "page_number": 1,
+        "bounding_box": {
+          "x": 72,
+          "y": 70,
+          "width": 902,
+          "height": 110
+        },
+        "page_image_sha256": "36ce38e97d38a60d4fdae9a19704e6a06b342c25511e365720553c7efe294a41",
+        "pdf_sha256": "ee086e2aa83fb662723b5e2641d9487162a7a9fdc153a84df7c88aa5e1ab9d6c"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "irs-w9-spanish",
+        "page-1",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "region-irs-w9-spanish-w9-es-region-destination",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-spanish",
+      "content": "Entregue el formulario al solicitante. No lo envíe al IRS.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "irs-w9-spanish",
+        "region_id": "w9-es-region-destination",
+        "region_label": "Region 2",
+        "region_kind": "status",
+        "reading_order": 2,
+        "page_number": 1,
+        "bounding_box": {
+          "x": 1032,
+          "y": 76,
+          "width": 174,
+          "height": 94
+        },
+        "page_image_sha256": "36ce38e97d38a60d4fdae9a19704e6a06b342c25511e365720553c7efe294a41",
+        "pdf_sha256": "ee086e2aa83fb662723b5e2641d9487162a7a9fdc153a84df7c88aa5e1ab9d6c"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "irs-w9-spanish",
+        "page-1",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "region-irs-w9-spanish-w9-es-region-line-one",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-spanish",
+      "content": "1 Nombre de la entidad/del individuo. Se requiere una anotación.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "irs-w9-spanish",
+        "region_id": "w9-es-region-line-one",
+        "region_label": "Region 3",
+        "region_kind": "paragraph",
+        "reading_order": 3,
+        "page_number": 1,
+        "bounding_box": {
+          "x": 120,
+          "y": 200,
+          "width": 1087,
+          "height": 72
+        },
+        "page_image_sha256": "36ce38e97d38a60d4fdae9a19704e6a06b342c25511e365720553c7efe294a41",
+        "pdf_sha256": "ee086e2aa83fb662723b5e2641d9487162a7a9fdc153a84df7c88aa5e1ab9d6c"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "irs-w9-spanish",
+        "page-1",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "region-irs-w9-spanish-w9-es-region-tin",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-spanish",
+      "content": "El TIN tiene que concordar con el nombre provisto en la línea 1 para evitar la retención adicional de impuesto.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "irs-w9-spanish",
+        "region_id": "w9-es-region-tin",
+        "region_label": "Region 4",
+        "region_kind": "paragraph",
+        "reading_order": 4,
+        "page_number": 1,
+        "bounding_box": {
+          "x": 74,
+          "y": 827,
+          "width": 790,
+          "height": 112
+        },
+        "page_image_sha256": "36ce38e97d38a60d4fdae9a19704e6a06b342c25511e365720553c7efe294a41",
+        "pdf_sha256": "ee086e2aa83fb662723b5e2641d9487162a7a9fdc153a84df7c88aa5e1ab9d6c"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "irs-w9-spanish",
+        "page-1",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "region-irs-w9-spanish-w9-es-region-certification",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-spanish",
+      "content": "Bajo pena de perjurio, yo certifico que el número que aparece en este formulario es mi número de identificación del contribuyente correcto.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "irs-w9-spanish",
+        "region_id": "w9-es-region-certification",
+        "region_label": "Region 5",
+        "region_kind": "paragraph",
+        "reading_order": 5,
+        "page_number": 1,
+        "bounding_box": {
+          "x": 72,
+          "y": 1031,
+          "width": 1134,
+          "height": 142
+        },
+        "page_image_sha256": "36ce38e97d38a60d4fdae9a19704e6a06b342c25511e365720553c7efe294a41",
+        "pdf_sha256": "ee086e2aa83fb662723b5e2641d9487162a7a9fdc153a84df7c88aa5e1ab9d6c"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "irs-w9-spanish",
+        "page-1",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "claim-irs-w9-spanish-w9-es-claim-recipient",
+      "item_type": "custom",
+      "parent_key": "region-irs-w9-spanish-w9-es-region-destination",
+      "content": "form_recipient(w9_es, solicitante).\nEl destinatario fue aceptado después de revisar el bloque extraído.\nSource: Entregue el formulario al solicitante. No lo envíe al IRS.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "irs-w9-spanish",
+        "claim_id": "w9-es-claim-recipient",
+        "clause": "form_recipient(w9_es, solicitante).",
+        "review_state": "accepted",
+        "page_number": 1,
+        "region_id": "w9-es-region-destination",
+        "pdf_sha256": "ee086e2aa83fb662723b5e2641d9487162a7a9fdc153a84df7c88aa5e1ab9d6c"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "irs-w9-spanish",
+        "proof-bearing",
+        "remembero"
+      ]
+    },
+    {
+      "key": "claim-irs-w9-spanish-w9-es-claim-prohibited-recipient",
+      "item_type": "custom",
+      "parent_key": "region-irs-w9-spanish-w9-es-region-destination",
+      "content": "prohibited_recipient(w9_es, irs).\nLa prohibición explícita de enviar el formulario al IRS fue aceptada.\nSource: Entregue el formulario al solicitante. No lo envíe al IRS.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "irs-w9-spanish",
+        "claim_id": "w9-es-claim-prohibited-recipient",
+        "clause": "prohibited_recipient(w9_es, irs).",
+        "review_state": "accepted",
+        "page_number": 1,
+        "region_id": "w9-es-region-destination",
+        "pdf_sha256": "ee086e2aa83fb662723b5e2641d9487162a7a9fdc153a84df7c88aa5e1ab9d6c"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "irs-w9-spanish",
+        "proof-bearing",
+        "remembero"
+      ]
+    },
+    {
+      "key": "claim-irs-w9-spanish-w9-es-claim-required-line",
+      "item_type": "custom",
+      "parent_key": "region-irs-w9-spanish-w9-es-region-line-one",
+      "content": "required_entry(w9_es, linea_1).\nLa línea 1 requiere una anotación.\nSource: 1 Nombre de la entidad/del individuo. Se requiere una anotación.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "irs-w9-spanish",
+        "claim_id": "w9-es-claim-required-line",
+        "clause": "required_entry(w9_es, linea_1).",
+        "review_state": "accepted",
+        "page_number": 1,
+        "region_id": "w9-es-region-line-one",
+        "pdf_sha256": "ee086e2aa83fb662723b5e2641d9487162a7a9fdc153a84df7c88aa5e1ab9d6c"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "irs-w9-spanish",
+        "proof-bearing",
+        "remembero"
+      ]
+    },
+    {
+      "key": "claim-irs-w9-spanish-w9-es-claim-tin-match",
+      "item_type": "custom",
+      "parent_key": "region-irs-w9-spanish-w9-es-region-tin",
+      "content": "tin_matches(w9_es, nombre_linea_1).\nEl TIN tiene que concordar con el nombre de la línea 1.\nSource: El TIN tiene que concordar con el nombre provisto en la línea 1 para evitar la retención adicional de impuesto.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "irs-w9-spanish",
+        "claim_id": "w9-es-claim-tin-match",
+        "clause": "tin_matches(w9_es, nombre_linea_1).",
+        "review_state": "accepted",
+        "page_number": 1,
+        "region_id": "w9-es-region-tin",
+        "pdf_sha256": "ee086e2aa83fb662723b5e2641d9487162a7a9fdc153a84df7c88aa5e1ab9d6c"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "irs-w9-spanish",
+        "proof-bearing",
+        "remembero"
+      ]
+    },
+    {
+      "key": "claim-irs-w9-spanish-w9-es-claim-certification-scope",
+      "item_type": "custom",
+      "parent_key": "region-irs-w9-spanish-w9-es-region-certification",
+      "content": "certification_scope(w9_es, taxpayer_identity).\nThe extracted text suggests an identity certification scope, but the broader legal meaning remains proposed.\nSource: Bajo pena de perjurio, yo certifico que el número que aparece en este formulario es mi número de identificación del contribuyente correcto.",
+      "metadata": {
+        "authority": "proposed_only",
+        "remembero_document_id": "irs-w9-spanish",
+        "claim_id": "w9-es-claim-certification-scope",
+        "clause": "certification_scope(w9_es, taxpayer_identity).",
+        "review_state": "proposed",
+        "page_number": 1,
+        "region_id": "w9-es-region-certification",
+        "pdf_sha256": "ee086e2aa83fb662723b5e2641d9487162a7a9fdc153a84df7c88aa5e1ab9d6c"
+      },
+      "tags": [
+        "claim",
+        "document-intelligence",
+        "irs-w9-spanish",
+        "proposed",
+        "remembero",
+        "review-required"
+      ]
+    },
+    {
+      "key": "rule-irs-w9-spanish-w9-es-rule-destination",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-spanish",
+      "content": "safe_submission(Form, Recipient) :- form_recipient(Form, Recipient), prohibited_recipient(Form, irs).\nLa ruta aceptada combina el destinatario nombrado con la prohibición de enviar al IRS.",
+      "metadata": {
+        "authority": "reviewed_rule",
+        "remembero_document_id": "irs-w9-spanish",
+        "rule_id": "w9-es-rule-destination",
+        "clause": "safe_submission(Form, Recipient) :- form_recipient(Form, Recipient), prohibited_recipient(Form, irs).",
+        "source_text": "Regla de enrutamiento revisada.",
+        "proof_bearing": true
+      },
+      "tags": [
+        "document-intelligence",
+        "irs-w9-spanish",
+        "proof-bearing",
+        "remembero",
+        "reviewed-rule"
+      ]
+    },
+    {
+      "key": "rule-irs-w9-spanish-w9-es-rule-identity-match",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-spanish",
+      "content": "identity_match_required(Form) :- required_entry(Form, linea_1), tin_matches(Form, nombre_linea_1).\nLa anotación obligatoria y la concordancia del TIN establecen el requisito de identidad.",
+      "metadata": {
+        "authority": "reviewed_rule",
+        "remembero_document_id": "irs-w9-spanish",
+        "rule_id": "w9-es-rule-identity-match",
+        "clause": "identity_match_required(Form) :- required_entry(Form, linea_1), tin_matches(Form, nombre_linea_1).",
+        "source_text": "Regla de cumplimentación revisada.",
+        "proof_bearing": true
+      },
+      "tags": [
+        "document-intelligence",
+        "irs-w9-spanish",
+        "proof-bearing",
+        "remembero",
+        "reviewed-rule"
+      ]
+    },
+    {
+      "key": "question-irs-w9-spanish-w9-es-destination",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-spanish",
+      "content": "Question: ¿A quién se debe entregar el Formulario W-9?\nCanonical query: safe_submission(w9_es, Recipient)\nExpected status: answered\nSupported answer: Se debe entregar al solicitante; no se debe enviar al IRS.",
+      "metadata": {
+        "authority": "evaluation_contract",
+        "remembero_document_id": "irs-w9-spanish",
+        "question_id": "w9-es-destination",
+        "query": "safe_submission(w9_es, Recipient)",
+        "expected_status": "answered",
+        "related_evidence_ids": [
+          "w9-es-claim-recipient",
+          "w9-es-claim-prohibited-recipient"
+        ],
+        "expected_source_region_ids": [
+          "w9-es-region-destination"
+        ],
+        "expected_accepted_claim_ids": [
+          "w9-es-claim-recipient",
+          "w9-es-claim-prohibited-recipient"
+        ],
+        "expected_rule_ids": [
+          "w9-es-rule-destination"
+        ]
+      },
+      "tags": [
+        "answered",
+        "document-intelligence",
+        "evaluation-contract",
+        "irs-w9-spanish",
+        "question",
+        "remembero"
+      ]
+    },
+    {
+      "key": "question-irs-w9-spanish-w9-es-identity-match",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-spanish",
+      "content": "Question: ¿La página exige que el TIN concuerde con el nombre de la línea 1?\nCanonical query: identity_match_required(w9_es)\nExpected status: answered\nSupported answer: Sí. La línea 1 requiere una anotación y el TIN tiene que concordar con ese nombre.",
+      "metadata": {
+        "authority": "evaluation_contract",
+        "remembero_document_id": "irs-w9-spanish",
+        "question_id": "w9-es-identity-match",
+        "query": "identity_match_required(w9_es)",
+        "expected_status": "answered",
+        "related_evidence_ids": [
+          "w9-es-claim-required-line",
+          "w9-es-claim-tin-match"
+        ],
+        "expected_source_region_ids": [
+          "w9-es-region-line-one",
+          "w9-es-region-tin"
+        ],
+        "expected_accepted_claim_ids": [
+          "w9-es-claim-required-line",
+          "w9-es-claim-tin-match"
+        ],
+        "expected_rule_ids": [
+          "w9-es-rule-identity-match"
+        ]
+      },
+      "tags": [
+        "answered",
+        "document-intelligence",
+        "evaluation-contract",
+        "irs-w9-spanish",
+        "question",
+        "remembero"
+      ]
+    },
+    {
+      "key": "question-irs-w9-spanish-w9-es-legal-effect",
+      "item_type": "custom",
+      "parent_key": "document-irs-w9-spanish",
+      "content": "Question: ¿Qué efecto legal completo tiene la certificación?\nCanonical query: complete_legal_effect(w9_es, Effect)\nExpected status: unsupported\nAbstention: El bloque extraído no basta para probar el efecto legal completo de la certificación.",
+      "metadata": {
+        "authority": "evaluation_contract",
+        "remembero_document_id": "irs-w9-spanish",
+        "question_id": "w9-es-legal-effect",
+        "query": "complete_legal_effect(w9_es, Effect)",
+        "expected_status": "unsupported",
+        "related_evidence_ids": [
+          "w9-es-region-certification",
+          "w9-es-claim-certification-scope"
+        ],
+        "expected_source_region_ids": [],
+        "expected_accepted_claim_ids": [],
+        "expected_rule_ids": []
+      },
+      "tags": [
+        "document-intelligence",
+        "evaluation-contract",
+        "irs-w9-spanish",
+        "question",
+        "remembero",
+        "unsupported"
+      ]
+    },
+    {
+      "key": "document-mathbridge-paper",
+      "item_type": "document",
+      "parent_key": "remembero-document-intelligence",
+      "content": "MathBridge · arXiv research paper\nResearch paper published by arXiv.\nSelected PDF pages: 4 of 9.\n5 accepted claims, 1 proposed claims, 2 reviewed rules, and 3 guided questions.",
+      "metadata": {
+        "authority": "source",
+        "remembero_document_id": "mathbridge-paper",
+        "remembero_namespace": "documents-mathbridge-paper",
+        "fixture_version": "mathbridge-arxiv-2408-07081-live-v1",
+        "parser_mode": "source_text_reviewed",
+        "parser_label": "PDF text-layer extraction · human reviewed",
+        "publisher": "arXiv",
+        "source_url": "https://arxiv.org/pdf/2408.07081",
+        "retrieved_at": "2026-08-20T00:00:00.000Z",
+        "pdf_sha256": "f305ae6c54e702c304e3be1ea666c369802c6bf93acd5066327da0d98694cf83",
+        "pdf_page_count": 9,
+        "selected_page_numbers": [
+          4
+        ],
+        "rights_note": "MathBridge is licensed CC BY 4.0; the selected page is redistributed with author, title, source, and license attribution in THIRD_PARTY_NOTICES.md.",
+        "page_images": [
+          {
+            "page_number": 4,
+            "image_url": "/documents/mathbridge-paper-p4.png",
+            "image_sha256": "5a0d921fd7ea50f69364d74b7c0089f1b8f6e96d120034aebc8260fb080bf4de"
+          }
+        ]
+      },
+      "tags": [
+        "document",
+        "document-intelligence",
+        "mathbridge-paper",
+        "real-pdf",
+        "remembero",
+        "research-paper"
+      ]
+    },
+    {
+      "key": "region-mathbridge-paper-mathbridge-region-table",
+      "item_type": "custom",
+      "parent_key": "document-mathbridge-paper",
+      "content": "Table 2: Examples of MathBridge dataset. Columns: context_before, LaTeX formula, context_after, spoken_sentence.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "mathbridge-paper",
+        "region_id": "mathbridge-region-table",
+        "region_label": "Region 1",
+        "region_kind": "table_row",
+        "reading_order": 1,
+        "page_number": 4,
+        "bounding_box": {
+          "x": 108,
+          "y": 108,
+          "width": 1060,
+          "height": 330
+        },
+        "page_image_sha256": "5a0d921fd7ea50f69364d74b7c0089f1b8f6e96d120034aebc8260fb080bf4de",
+        "pdf_sha256": "f305ae6c54e702c304e3be1ea666c369802c6bf93acd5066327da0d98694cf83"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "mathbridge-paper",
+        "page-4",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "region-mathbridge-paper-mathbridge-region-unique-formulas",
+      "item_type": "custom",
+      "parent_key": "document-mathbridge-paper",
+      "content": "The API generated spoken English text for approximately 13 million unique formulas out of the initial 49 million collected.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "mathbridge-paper",
+        "region_id": "mathbridge-region-unique-formulas",
+        "region_label": "Region 2",
+        "region_kind": "paragraph",
+        "reading_order": 2,
+        "page_number": 4,
+        "bounding_box": {
+          "x": 108,
+          "y": 1070,
+          "width": 510,
+          "height": 258
+        },
+        "page_image_sha256": "5a0d921fd7ea50f69364d74b7c0089f1b8f6e96d120034aebc8260fb080bf4de",
+        "pdf_sha256": "f305ae6c54e702c304e3be1ea666c369802c6bf93acd5066327da0d98694cf83"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "mathbridge-paper",
+        "page-4",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "region-mathbridge-paper-mathbridge-region-limits",
+      "item_type": "custom",
+      "parent_key": "document-mathbridge-paper",
+      "content": "MathBridge keeps context before to no more than 200 characters, equation to 80, context after to 250, and spoken English to 120.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "mathbridge-paper",
+        "region_id": "mathbridge-region-limits",
+        "region_label": "Region 3",
+        "region_kind": "paragraph",
+        "reading_order": 3,
+        "page_number": 4,
+        "bounding_box": {
+          "x": 658,
+          "y": 904,
+          "width": 520,
+          "height": 278
+        },
+        "page_image_sha256": "5a0d921fd7ea50f69364d74b7c0089f1b8f6e96d120034aebc8260fb080bf4de",
+        "pdf_sha256": "f305ae6c54e702c304e3be1ea666c369802c6bf93acd5066327da0d98694cf83"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "mathbridge-paper",
+        "page-4",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "region-mathbridge-paper-mathbridge-region-retained",
+      "item_type": "custom",
+      "parent_key": "document-mathbridge-paper",
+      "content": "This process led to the removal of fewer than 500 K data points, maintaining a total of approximately 23 million data points on MathBridge.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "mathbridge-paper",
+        "region_id": "mathbridge-region-retained",
+        "region_label": "Region 4",
+        "region_kind": "paragraph",
+        "reading_order": 4,
+        "page_number": 4,
+        "bounding_box": {
+          "x": 660,
+          "y": 1172,
+          "width": 520,
+          "height": 184
+        },
+        "page_image_sha256": "5a0d921fd7ea50f69364d74b7c0089f1b8f6e96d120034aebc8260fb080bf4de",
+        "pdf_sha256": "f305ae6c54e702c304e3be1ea666c369802c6bf93acd5066327da0d98694cf83"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "mathbridge-paper",
+        "page-4",
+        "remembero",
+        "source-region"
+      ]
+    },
+    {
+      "key": "claim-mathbridge-paper-mathbridge-claim-unique",
+      "item_type": "custom",
+      "parent_key": "region-mathbridge-paper-mathbridge-region-unique-formulas",
+      "content": "unique_formula_count(mathbridge, 13000000).\nApproximately 13 million unique formulas were processed.\nSource: The API generated spoken English text for approximately 13 million unique formulas out of the initial 49 million collected.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "mathbridge-paper",
+        "claim_id": "mathbridge-claim-unique",
+        "clause": "unique_formula_count(mathbridge, 13000000).",
+        "review_state": "accepted",
+        "page_number": 4,
+        "region_id": "mathbridge-region-unique-formulas",
+        "pdf_sha256": "f305ae6c54e702c304e3be1ea666c369802c6bf93acd5066327da0d98694cf83"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "mathbridge-paper",
+        "proof-bearing",
+        "remembero"
+      ]
+    },
+    {
+      "key": "claim-mathbridge-paper-mathbridge-claim-initial",
+      "item_type": "custom",
+      "parent_key": "region-mathbridge-paper-mathbridge-region-unique-formulas",
+      "content": "initial_formula_count(mathbridge, 49000000).\nThe initial collection is described as approximately 49 million formulas.\nSource: The API generated spoken English text for approximately 13 million unique formulas out of the initial 49 million collected.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "mathbridge-paper",
+        "claim_id": "mathbridge-claim-initial",
+        "clause": "initial_formula_count(mathbridge, 49000000).",
+        "review_state": "accepted",
+        "page_number": 4,
+        "region_id": "mathbridge-region-unique-formulas",
+        "pdf_sha256": "f305ae6c54e702c304e3be1ea666c369802c6bf93acd5066327da0d98694cf83"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "mathbridge-paper",
+        "proof-bearing",
+        "remembero"
+      ]
+    },
+    {
+      "key": "claim-mathbridge-paper-mathbridge-claim-retained",
+      "item_type": "custom",
+      "parent_key": "region-mathbridge-paper-mathbridge-region-retained",
+      "content": "retained_data_points(mathbridge, 23000000).\nApproximately 23 million data points remained after post-processing.\nSource: This process led to the removal of fewer than 500 K data points, maintaining a total of approximately 23 million data points on MathBridge.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "mathbridge-paper",
+        "claim_id": "mathbridge-claim-retained",
+        "clause": "retained_data_points(mathbridge, 23000000).",
+        "review_state": "accepted",
+        "page_number": 4,
+        "region_id": "mathbridge-region-retained",
+        "pdf_sha256": "f305ae6c54e702c304e3be1ea666c369802c6bf93acd5066327da0d98694cf83"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "mathbridge-paper",
+        "proof-bearing",
+        "remembero"
+      ]
+    },
+    {
+      "key": "claim-mathbridge-paper-mathbridge-claim-before-limit",
+      "item_type": "custom",
+      "parent_key": "region-mathbridge-paper-mathbridge-region-limits",
+      "content": "length_limit(mathbridge, context_before, 200).\nReviewed maximum for context_before.\nSource: MathBridge keeps context before to no more than 200 characters, equation to 80, context after to 250, and spoken English to 120.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "mathbridge-paper",
+        "claim_id": "mathbridge-claim-before-limit",
+        "clause": "length_limit(mathbridge, context_before, 200).",
+        "review_state": "accepted",
+        "page_number": 4,
+        "region_id": "mathbridge-region-limits",
+        "pdf_sha256": "f305ae6c54e702c304e3be1ea666c369802c6bf93acd5066327da0d98694cf83"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "mathbridge-paper",
+        "proof-bearing",
+        "remembero"
+      ]
+    },
+    {
+      "key": "claim-mathbridge-paper-mathbridge-claim-after-limit",
+      "item_type": "custom",
+      "parent_key": "region-mathbridge-paper-mathbridge-region-limits",
+      "content": "length_limit(mathbridge, context_after, 250).\nReviewed maximum for context_after.\nSource: MathBridge keeps context before to no more than 200 characters, equation to 80, context after to 250, and spoken English to 120.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "mathbridge-paper",
+        "claim_id": "mathbridge-claim-after-limit",
+        "clause": "length_limit(mathbridge, context_after, 250).",
+        "review_state": "accepted",
+        "page_number": 4,
+        "region_id": "mathbridge-region-limits",
+        "pdf_sha256": "f305ae6c54e702c304e3be1ea666c369802c6bf93acd5066327da0d98694cf83"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "mathbridge-paper",
+        "proof-bearing",
+        "remembero"
+      ]
+    },
+    {
+      "key": "claim-mathbridge-paper-mathbridge-claim-table-shape",
+      "item_type": "custom",
+      "parent_key": "region-mathbridge-paper-mathbridge-region-table",
+      "content": "table_schema(mathbridge, four_columns).\nThe extracted table shape is proposed until each cell boundary is reviewed.\nSource: Table 2: Examples of MathBridge dataset. Columns: context_before, LaTeX formula, context_after, spoken_sentence.",
+      "metadata": {
+        "authority": "proposed_only",
+        "remembero_document_id": "mathbridge-paper",
+        "claim_id": "mathbridge-claim-table-shape",
+        "clause": "table_schema(mathbridge, four_columns).",
+        "review_state": "proposed",
+        "page_number": 4,
+        "region_id": "mathbridge-region-table",
+        "pdf_sha256": "f305ae6c54e702c304e3be1ea666c369802c6bf93acd5066327da0d98694cf83"
+      },
+      "tags": [
+        "claim",
+        "document-intelligence",
+        "mathbridge-paper",
+        "proposed",
+        "remembero",
+        "review-required"
+      ]
+    },
+    {
+      "key": "rule-mathbridge-paper-mathbridge-rule-scale",
+      "item_type": "custom",
+      "parent_key": "document-mathbridge-paper",
+      "content": "large_dataset(Dataset) :- retained_data_points(Dataset, Count), Count > 20000000.\nA reviewed threshold classifies a retained dataset above 20 million rows as large.",
+      "metadata": {
+        "authority": "reviewed_rule",
+        "remembero_document_id": "mathbridge-paper",
+        "rule_id": "mathbridge-rule-scale",
+        "clause": "large_dataset(Dataset) :- retained_data_points(Dataset, Count), Count > 20000000.",
+        "source_text": "Reviewed scale-classification rule for the showcase.",
+        "proof_bearing": true
+      },
+      "tags": [
+        "document-intelligence",
+        "mathbridge-paper",
+        "proof-bearing",
+        "remembero",
+        "reviewed-rule"
+      ]
+    },
+    {
+      "key": "rule-mathbridge-paper-mathbridge-rule-context",
+      "item_type": "custom",
+      "parent_key": "document-mathbridge-paper",
+      "content": "context_before_is_stricter(Dataset) :- length_limit(Dataset, context_before, Before), length_limit(Dataset, context_after, After), Before < After.\nThe context-before limit is stricter when its accepted maximum is lower.",
+      "metadata": {
+        "authority": "reviewed_rule",
+        "remembero_document_id": "mathbridge-paper",
+        "rule_id": "mathbridge-rule-context",
+        "clause": "context_before_is_stricter(Dataset) :- length_limit(Dataset, context_before, Before), length_limit(Dataset, context_after, After), Before < After.",
+        "source_text": "Reviewed limit-comparison rule.",
+        "proof_bearing": true
+      },
+      "tags": [
+        "document-intelligence",
+        "mathbridge-paper",
+        "proof-bearing",
+        "remembero",
+        "reviewed-rule"
+      ]
+    },
+    {
+      "key": "question-mathbridge-paper-mathbridge-scale",
+      "item_type": "custom",
+      "parent_key": "document-mathbridge-paper",
+      "content": "Question: Does the reviewed page support classifying MathBridge as a large dataset?\nCanonical query: large_dataset(mathbridge)\nExpected status: answered\nSupported answer: Yes. The page reports approximately 23 million retained data points, above the reviewed 20 million threshold.",
+      "metadata": {
+        "authority": "evaluation_contract",
+        "remembero_document_id": "mathbridge-paper",
+        "question_id": "mathbridge-scale",
+        "query": "large_dataset(mathbridge)",
+        "expected_status": "answered",
+        "related_evidence_ids": [
+          "mathbridge-claim-retained"
+        ],
+        "expected_source_region_ids": [
+          "mathbridge-region-retained"
+        ],
+        "expected_accepted_claim_ids": [
+          "mathbridge-claim-retained"
+        ],
+        "expected_rule_ids": [
+          "mathbridge-rule-scale"
+        ]
+      },
+      "tags": [
+        "answered",
+        "document-intelligence",
+        "evaluation-contract",
+        "mathbridge-paper",
+        "question",
+        "remembero"
+      ]
+    },
+    {
+      "key": "question-mathbridge-paper-mathbridge-context-limit",
+      "item_type": "custom",
+      "parent_key": "document-mathbridge-paper",
+      "content": "Question: Is the context-before length limit stricter than context-after?\nCanonical query: context_before_is_stricter(mathbridge)\nExpected status: answered\nSupported answer: Yes. The accepted limits are 200 characters before and 250 characters after.",
+      "metadata": {
+        "authority": "evaluation_contract",
+        "remembero_document_id": "mathbridge-paper",
+        "question_id": "mathbridge-context-limit",
+        "query": "context_before_is_stricter(mathbridge)",
+        "expected_status": "answered",
+        "related_evidence_ids": [
+          "mathbridge-claim-before-limit",
+          "mathbridge-claim-after-limit"
+        ],
+        "expected_source_region_ids": [
+          "mathbridge-region-limits"
+        ],
+        "expected_accepted_claim_ids": [
+          "mathbridge-claim-before-limit",
+          "mathbridge-claim-after-limit"
+        ],
+        "expected_rule_ids": [
+          "mathbridge-rule-context"
+        ]
+      },
+      "tags": [
+        "answered",
+        "document-intelligence",
+        "evaluation-contract",
+        "mathbridge-paper",
+        "question",
+        "remembero"
+      ]
+    },
+    {
+      "key": "question-mathbridge-paper-mathbridge-training-cost",
+      "item_type": "custom",
+      "parent_key": "document-mathbridge-paper",
+      "content": "Question: What did training the dataset cost?\nCanonical query: training_cost(mathbridge, Cost)\nExpected status: unsupported\nAbstention: No accepted evidence on this page establishes a training cost.",
+      "metadata": {
+        "authority": "evaluation_contract",
+        "remembero_document_id": "mathbridge-paper",
+        "question_id": "mathbridge-training-cost",
+        "query": "training_cost(mathbridge, Cost)",
+        "expected_status": "unsupported",
+        "related_evidence_ids": [
+          "mathbridge-region-table",
+          "mathbridge-claim-table-shape"
+        ],
+        "expected_source_region_ids": [],
+        "expected_accepted_claim_ids": [],
+        "expected_rule_ids": []
+      },
+      "tags": [
+        "document-intelligence",
+        "evaluation-contract",
+        "mathbridge-paper",
+        "question",
+        "remembero",
+        "unsupported"
+      ]
+    },
+    {
+      "key": "document-un-multilingualism",
+      "item_type": "document",
+      "parent_key": "remembero-document-intelligence",
+      "content": "UN · Why It Matters: Multilingualism\nPublic report published by United Nations Dag Hammarskjöld Library.\nSelected PDF pages: 20 of 70.\n4 accepted claims, 1 proposed claims, 2 reviewed rules, and 3 guided questions.",
+      "metadata": {
+        "authority": "source",
+        "remembero_document_id": "un-multilingualism",
+        "remembero_namespace": "documents-un-multilingualism",
+        "fixture_version": "un-multilingualism-2023-live-v1",
+        "parser_mode": "source_text_reviewed",
+        "parser_label": "PDF text-layer extraction · human reviewed",
+        "publisher": "United Nations Dag Hammarskjöld Library",
+        "source_url": "https://www.un.org/sites/un2.un.org/files/2227864e.pdf",
+        "retrieved_at": "2026-08-20T00:00:00.000Z",
+        "pdf_sha256": "3a376c01bb16dc6be32b7465f7a3851746290223073b42193d8f46ea6fc911ed",
+        "pdf_page_count": 70,
+        "selected_page_numbers": [
+          20
+        ],
+        "rights_note": "United Nations publication; local non-commercial evaluation with source credit.",
+        "page_images": [
+          {
+            "page_number": 20,
+            "image_url": "/documents/un-multilingualism-p20.png",
+            "image_sha256": "6a989492d4cef3dbcb868f7e63cea65013eae7e31f4c6f85613108490dae9f04"
+          }
+        ]
+      },
+      "tags": [
+        "document",
+        "document-intelligence",
+        "public-report",
+        "real-pdf",
+        "remembero",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "region-un-multilingualism-un-region-title",
+      "item_type": "custom",
+      "parent_key": "document-un-multilingualism",
+      "content": "OTHER LANGUAGES AT THE UNITED NATIONS",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "un-multilingualism",
+        "region_id": "un-region-title",
+        "region_label": "Region 1",
+        "region_kind": "title",
+        "reading_order": 1,
+        "page_number": 20,
+        "bounding_box": {
+          "x": 169,
+          "y": 126,
+          "width": 720,
+          "height": 64
+        },
+        "page_image_sha256": "6a989492d4cef3dbcb868f7e63cea65013eae7e31f4c6f85613108490dae9f04",
+        "pdf_sha256": "3a376c01bb16dc6be32b7465f7a3851746290223073b42193d8f46ea6fc911ed"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "page-20",
+        "remembero",
+        "source-region",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "region-un-multilingualism-un-region-regular-languages",
+      "item_type": "custom",
+      "parent_key": "document-un-multilingualism",
+      "content": "In addition to the six official languages, other languages, such as Kiswahili and Portuguese, are regularly used by the Department of Global Communications.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "un-multilingualism",
+        "region_id": "un-region-regular-languages",
+        "region_label": "Region 2",
+        "region_kind": "paragraph",
+        "reading_order": 2,
+        "page_number": 20,
+        "bounding_box": {
+          "x": 170,
+          "y": 778,
+          "width": 990,
+          "height": 95
+        },
+        "page_image_sha256": "6a989492d4cef3dbcb868f7e63cea65013eae7e31f4c6f85613108490dae9f04",
+        "pdf_sha256": "3a376c01bb16dc6be32b7465f7a3851746290223073b42193d8f46ea6fc911ed"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "page-20",
+        "remembero",
+        "source-region",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "region-un-multilingualism-un-region-hindi",
+      "item_type": "custom",
+      "parent_key": "document-un-multilingualism",
+      "content": "In 2018, Hindi was added to the list of non-official languages receiving daily coverage.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "un-multilingualism",
+        "region_id": "un-region-hindi",
+        "region_label": "Region 3",
+        "region_kind": "paragraph",
+        "reading_order": 3,
+        "page_number": 20,
+        "bounding_box": {
+          "x": 170,
+          "y": 850,
+          "width": 990,
+          "height": 72
+        },
+        "page_image_sha256": "6a989492d4cef3dbcb868f7e63cea65013eae7e31f4c6f85613108490dae9f04",
+        "pdf_sha256": "3a376c01bb16dc6be32b7465f7a3851746290223073b42193d8f46ea6fc911ed"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "page-20",
+        "remembero",
+        "source-region",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "region-un-multilingualism-un-region-resolution",
+      "item_type": "custom",
+      "parent_key": "document-un-multilingualism",
+      "content": "Resolution 76/268 highlights Portuguese, Hindi, Kiswahili, Persian, Bangla and Urdu in addition to official languages.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "un-multilingualism",
+        "region_id": "un-region-resolution",
+        "region_label": "Region 4",
+        "region_kind": "paragraph",
+        "reading_order": 4,
+        "page_number": 20,
+        "bounding_box": {
+          "x": 170,
+          "y": 918,
+          "width": 990,
+          "height": 118
+        },
+        "page_image_sha256": "6a989492d4cef3dbcb868f7e63cea65013eae7e31f4c6f85613108490dae9f04",
+        "pdf_sha256": "3a376c01bb16dc6be32b7465f7a3851746290223073b42193d8f46ea6fc911ed"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "page-20",
+        "remembero",
+        "source-region",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "region-un-multilingualism-un-region-future",
+      "item_type": "custom",
+      "parent_key": "document-un-multilingualism",
+      "content": "The Department continues to disseminate information in more non-official languages.",
+      "metadata": {
+        "authority": "evidence",
+        "remembero_document_id": "un-multilingualism",
+        "region_id": "un-region-future",
+        "region_label": "Region 5",
+        "region_kind": "paragraph",
+        "reading_order": 5,
+        "page_number": 20,
+        "bounding_box": {
+          "x": 170,
+          "y": 900,
+          "width": 990,
+          "height": 62
+        },
+        "page_image_sha256": "6a989492d4cef3dbcb868f7e63cea65013eae7e31f4c6f85613108490dae9f04",
+        "pdf_sha256": "3a376c01bb16dc6be32b7465f7a3851746290223073b42193d8f46ea6fc911ed"
+      },
+      "tags": [
+        "document-intelligence",
+        "evidence",
+        "page-20",
+        "remembero",
+        "source-region",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "claim-un-multilingualism-un-claim-official-count",
+      "item_type": "custom",
+      "parent_key": "region-un-multilingualism-un-region-regular-languages",
+      "content": "official_language_count(un, 6).\nThe page explicitly refers to six official languages.\nSource: In addition to the six official languages, other languages, such as Kiswahili and Portuguese, are regularly used by the Department of Global Communications.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "un-multilingualism",
+        "claim_id": "un-claim-official-count",
+        "clause": "official_language_count(un, 6).",
+        "review_state": "accepted",
+        "page_number": 20,
+        "region_id": "un-region-regular-languages",
+        "pdf_sha256": "3a376c01bb16dc6be32b7465f7a3851746290223073b42193d8f46ea6fc911ed"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "proof-bearing",
+        "remembero",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "claim-un-multilingualism-un-claim-kiswahili",
+      "item_type": "custom",
+      "parent_key": "region-un-multilingualism-un-region-regular-languages",
+      "content": "regular_nonofficial_language(un, kiswahili).\nKiswahili is named as a regularly used language beyond the six official languages.\nSource: In addition to the six official languages, other languages, such as Kiswahili and Portuguese, are regularly used by the Department of Global Communications.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "un-multilingualism",
+        "claim_id": "un-claim-kiswahili",
+        "clause": "regular_nonofficial_language(un, kiswahili).",
+        "review_state": "accepted",
+        "page_number": 20,
+        "region_id": "un-region-regular-languages",
+        "pdf_sha256": "3a376c01bb16dc6be32b7465f7a3851746290223073b42193d8f46ea6fc911ed"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "proof-bearing",
+        "remembero",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "claim-un-multilingualism-un-claim-portuguese",
+      "item_type": "custom",
+      "parent_key": "region-un-multilingualism-un-region-regular-languages",
+      "content": "regular_nonofficial_language(un, portuguese).\nPortuguese is named as a regularly used language beyond the six official languages.\nSource: In addition to the six official languages, other languages, such as Kiswahili and Portuguese, are regularly used by the Department of Global Communications.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "un-multilingualism",
+        "claim_id": "un-claim-portuguese",
+        "clause": "regular_nonofficial_language(un, portuguese).",
+        "review_state": "accepted",
+        "page_number": 20,
+        "region_id": "un-region-regular-languages",
+        "pdf_sha256": "3a376c01bb16dc6be32b7465f7a3851746290223073b42193d8f46ea6fc911ed"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "proof-bearing",
+        "remembero",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "claim-un-multilingualism-un-claim-hindi",
+      "item_type": "custom",
+      "parent_key": "region-un-multilingualism-un-region-hindi",
+      "content": "daily_coverage_added(un, hindi, 2018).\nHindi was added to daily non-official-language coverage in 2018.\nSource: In 2018, Hindi was added to the list of non-official languages receiving daily coverage.",
+      "metadata": {
+        "authority": "accepted",
+        "remembero_document_id": "un-multilingualism",
+        "claim_id": "un-claim-hindi",
+        "clause": "daily_coverage_added(un, hindi, 2018).",
+        "review_state": "accepted",
+        "page_number": 20,
+        "region_id": "un-region-hindi",
+        "pdf_sha256": "3a376c01bb16dc6be32b7465f7a3851746290223073b42193d8f46ea6fc911ed"
+      },
+      "tags": [
+        "accepted",
+        "claim",
+        "document-intelligence",
+        "proof-bearing",
+        "remembero",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "claim-un-multilingualism-un-claim-future-expansion",
+      "item_type": "custom",
+      "parent_key": "region-un-multilingualism-un-region-future",
+      "content": "future_coverage_expansion(un, likely).\nContinued dissemination does not prove a future expansion commitment, so this inference remains proposed.\nSource: The Department continues to disseminate information in more non-official languages.",
+      "metadata": {
+        "authority": "proposed_only",
+        "remembero_document_id": "un-multilingualism",
+        "claim_id": "un-claim-future-expansion",
+        "clause": "future_coverage_expansion(un, likely).",
+        "review_state": "proposed",
+        "page_number": 20,
+        "region_id": "un-region-future",
+        "pdf_sha256": "3a376c01bb16dc6be32b7465f7a3851746290223073b42193d8f46ea6fc911ed"
+      },
+      "tags": [
+        "claim",
+        "document-intelligence",
+        "proposed",
+        "remembero",
+        "review-required",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "rule-un-multilingualism-un-rule-outreach",
+      "item_type": "custom",
+      "parent_key": "document-un-multilingualism",
+      "content": "multilingual_outreach(Language) :- regular_nonofficial_language(un, Language).\nRegularly used non-official languages count as multilingual outreach for this reviewed query.",
+      "metadata": {
+        "authority": "reviewed_rule",
+        "remembero_document_id": "un-multilingualism",
+        "rule_id": "un-rule-outreach",
+        "clause": "multilingual_outreach(Language) :- regular_nonofficial_language(un, Language).",
+        "source_text": "Reviewed outreach classification rule.",
+        "proof_bearing": true
+      },
+      "tags": [
+        "document-intelligence",
+        "proof-bearing",
+        "remembero",
+        "reviewed-rule",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "rule-un-multilingualism-un-rule-coverage",
+      "item_type": "custom",
+      "parent_key": "document-un-multilingualism",
+      "content": "documented_daily_coverage(Language, Year) :- daily_coverage_added(un, Language, Year), Year >= 2018.\nDaily coverage added in or after 2018 is returned as documented coverage.",
+      "metadata": {
+        "authority": "reviewed_rule",
+        "remembero_document_id": "un-multilingualism",
+        "rule_id": "un-rule-coverage",
+        "clause": "documented_daily_coverage(Language, Year) :- daily_coverage_added(un, Language, Year), Year >= 2018.",
+        "source_text": "Reviewed temporal coverage rule.",
+        "proof_bearing": true
+      },
+      "tags": [
+        "document-intelligence",
+        "proof-bearing",
+        "remembero",
+        "reviewed-rule",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "question-un-multilingualism-un-daily-coverage",
+      "item_type": "custom",
+      "parent_key": "document-un-multilingualism",
+      "content": "Question: Which language does the page say received daily coverage in 2018?\nCanonical query: documented_daily_coverage(Language, Year)\nExpected status: answered\nSupported answer: Hindi was added to daily non-official-language coverage in 2018.",
+      "metadata": {
+        "authority": "evaluation_contract",
+        "remembero_document_id": "un-multilingualism",
+        "question_id": "un-daily-coverage",
+        "query": "documented_daily_coverage(Language, Year)",
+        "expected_status": "answered",
+        "related_evidence_ids": [
+          "un-claim-hindi"
+        ],
+        "expected_source_region_ids": [
+          "un-region-hindi"
+        ],
+        "expected_accepted_claim_ids": [
+          "un-claim-hindi"
+        ],
+        "expected_rule_ids": [
+          "un-rule-coverage"
+        ]
+      },
+      "tags": [
+        "answered",
+        "document-intelligence",
+        "evaluation-contract",
+        "question",
+        "remembero",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "question-un-multilingualism-un-outreach",
+      "item_type": "custom",
+      "parent_key": "document-un-multilingualism",
+      "content": "Question: Which regularly used non-official languages are named?\nCanonical query: multilingual_outreach(Language)\nExpected status: answered\nSupported answer: The reviewed page names Kiswahili and Portuguese as regularly used beyond the six official languages.",
+      "metadata": {
+        "authority": "evaluation_contract",
+        "remembero_document_id": "un-multilingualism",
+        "question_id": "un-outreach",
+        "query": "multilingual_outreach(Language)",
+        "expected_status": "answered",
+        "related_evidence_ids": [
+          "un-claim-kiswahili",
+          "un-claim-portuguese"
+        ],
+        "expected_source_region_ids": [
+          "un-region-regular-languages"
+        ],
+        "expected_accepted_claim_ids": [
+          "un-claim-kiswahili",
+          "un-claim-portuguese"
+        ],
+        "expected_rule_ids": [
+          "un-rule-outreach"
+        ]
+      },
+      "tags": [
+        "answered",
+        "document-intelligence",
+        "evaluation-contract",
+        "question",
+        "remembero",
+        "un-multilingualism"
+      ]
+    },
+    {
+      "key": "question-un-multilingualism-un-future-commitment",
+      "item_type": "custom",
+      "parent_key": "document-un-multilingualism",
+      "content": "Question: Does this page guarantee expanded language coverage next year?\nCanonical query: guaranteed_future_expansion(un, Year)\nExpected status: unsupported\nAbstention: No accepted evidence on this page guarantees expanded language coverage next year.",
+      "metadata": {
+        "authority": "evaluation_contract",
+        "remembero_document_id": "un-multilingualism",
+        "question_id": "un-future-commitment",
+        "query": "guaranteed_future_expansion(un, Year)",
+        "expected_status": "unsupported",
+        "related_evidence_ids": [
+          "un-region-future",
+          "un-claim-future-expansion"
+        ],
+        "expected_source_region_ids": [],
+        "expected_accepted_claim_ids": [],
+        "expected_rule_ids": []
+      },
+      "tags": [
+        "document-intelligence",
+        "evaluation-contract",
+        "question",
+        "remembero",
+        "un-multilingualism",
+        "unsupported"
+      ]
+    }
+  ],
+  "sha256": "5890e2945a534d0b871f0fa70fdd54b918704bbd8e753544a2dacef8a09ca531"
+}

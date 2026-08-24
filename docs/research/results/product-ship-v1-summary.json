@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "remembero.product-ship.v1",
+  "generatedAt": "2026-08-21T00:55:00.000+10:00",
+  "decision": "ready_local_alpha_with_live_ocr_disabled",
+  "surfaces": ["cli", "mcp", "web", "documents", "memorg"],
+  "defaultModel": {
+    "model": "anthropic/claude-sonnet-5",
+    "reason": "Only current tested model with 100% recall and extraction; lower measured cost and latency than Gemini 3.1 Pro Preview."
+  },
+  "deterministicDocuments": {
+    "documents": 4,
+    "questions": 12,
+    "accuracyPercent": 100,
+    "sourceRecallPercent": 100,
+    "proofGroundingPercent": 100,
+    "abstentionPercent": 100,
+    "averageQuestionMs": 1.152,
+    "maxQuestionMs": 7.207,
+    "modelCalls": 0,
+    "tokens": 0,
+    "providerCostUsd": 0
+  },
+  "frontierMatrix": [
+    {
+      "model": "anthropic/claude-sonnet-5",
+      "recallAccuracyPercent": 100,
+      "recallTokens": 169067,
+      "recallCostUsd": 0.345182,
+      "recallDurationMs": 145440.32,
+      "extractionAccuracyPercent": 100,
+      "extractionTokens": 20703,
+      "extractionCostUsd": 0.045646,
+      "extractionDurationMs": 53959.498
+    },
+    {
+      "model": "google/gemini-3.1-pro-preview",
+      "recallAccuracyPercent": 100,
+      "recallTokens": 142250,
+      "recallCostUsd": 0.35604,
+      "recallDurationMs": 147129.66,
+      "extractionAccuracyPercent": 100,
+      "extractionTokens": 18811,
+      "extractionCostUsd": 0.077842,
+      "extractionDurationMs": 62662.878
+    },
+    {
+      "model": "openai/gpt-5.4",
+      "recallAccuracyPercent": 100,
+      "recallTokens": 110721,
+      "recallCostUsd": 0.22724,
+      "recallDurationMs": 74912.061,
+      "extractionAccuracyPercent": 93.3,
+      "extractionTokens": 13321,
+      "extractionCostUsd": 0.035703,
+      "extractionDurationMs": 22629.118
+    },
+    {
+      "model": "openai/gpt-5.6-luna",
+      "recallAccuracyPercent": 96.2,
+      "recallTokens": 120454,
+      "recallCostUsd": 0.020846,
+      "recallDurationMs": 103216.549,
+      "extractionAccuracyPercent": 100,
+      "extractionTokens": 13507,
+      "extractionCostUsd": 0.003229,
+      "extractionDurationMs": 27044.601,
+      "role": "economy_option"
+    }
+  ],
+  "memorg": {
+    "status": "pass",
+    "items": 66,
+    "indexedItems": 66,
+    "artifactSha256": "5890e2945a534d0b871f0fa70fdd54b918704bbd8e753544a2dacef8a09ca531"
+  },
+  "distribution": {
+    "maximumTarballBytes": 8388608,
+    "entryCount": 440,
+    "originalPdfs": 0,
+    "pythonBytecodeFiles": 0,
+    "thirdPartyNoticeIncluded": true
+  },
+  "liveOcr": {
+    "status": "blocked_optional",
+    "completedPages": 0,
+    "attemptedPages": 4,
+    "reason": "Official ZeroGPU provider quota reported 0 seconds available.",
+    "shippingBehavior": "Disabled as a quality claim; reviewed PDF text-layer path remains available."
+  },
+  "gates": {
+    "fullTestSuite": "pass_55_files_747_tests_1_skipped",
+    "packedInstall": "pass",
+    "packagePolicy": "pass_under_8m_no_pdfs_or_python_bytecode",
+    "memoryStack": "pass",
+    "agentDatabase": "pass",
+    "documentProof": "pass",
+    "memorgRoundTrip": "pass",
+    "dependencyAudit": "pass",
+    "browserDesktopMobile": "pass",
+    "liveUnlimitedOcr": "blocked_optional"
+  },
+  "notClaims": [
+    "No successful real-page Unlimited-OCR quality score is claimed.",
+    "The loopback web console is not a remote multi-user service.",
+    "The bounded model matrices are release checkpoints, not universal model rankings."
+  ]
+}

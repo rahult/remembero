@@ -5,6 +5,20 @@ chronological order. Only releases that had a standalone README note are listed.
 
 ## Unreleased
 
+Adds a generic SQLite semantic ledger for content-addressed objects, immutable version and
+dependency graphs, first-class contracts, evaluation evidence, compatibility vectors,
+promotion decisions, and append-only ref history. The optional Remembero bridge captures an
+exact recorded knowledge state and reuses the existing semantic knowledge diff; the ledger
+also operates standalone and contains no downstream-platform assumptions.
+
+Adds `openRememberoDatabase(...)`, a Node database API that returns the native SQLite
+connection with normal SQL behavior plus Datalog planning/query/explanation and a
+`MemoryStore`-compatible `memory` surface. Governed memory files and history are durable
+inside the same SQLite database, participate in caller-owned transactions, refresh across
+connections, and reopen without a sidecar authority. Dynamic extension loading is locked
+again after initialization; the derived semantic embedding cache remains outside the
+durable SQLite claim.
+
 Adds an executable agent-database scorecard with real stdio MCP proof, structured-query
 cost boundaries, 100,000-fact scale gates, and a million-fact diagnostic. OpenRouter usage
 metadata now flows into recall and extraction evals. The default detailed recall schema

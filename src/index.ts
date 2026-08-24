@@ -50,14 +50,25 @@ export {
   type PruneAutoCaptureOptions,
 } from './store/store.js';
 export {
+  createSqliteMemoryStore,
+  type SqliteMemoryStore,
+  type SqliteMemoryStoreOptions,
+} from './store/sqlite-store.js';
+export * from './ledger/semantic-ledger.js';
+export * from './ledger/knowledge-version.js';
+export {
   DatalogDatabase,
   buildSqliteExtension,
   openDatalogDatabase,
+  openRememberoDatabase,
   resolveSqliteExtensionPath,
   sqliteDatalogExecutionMode,
   type DatalogRow,
   type DatalogExplanation,
   type DatalogProof,
+  type RememberoDatabase,
+  type RememberoDatabaseMethods,
+  type OpenRememberoDatabaseOptions,
   type OpenDatalogDatabaseOptions,
   type SqliteDatalogExecutionMode,
   type SqliteDatalogPlanColumn,
@@ -211,6 +222,52 @@ export {
   type RemberoWebServiceOptions,
 } from './web/service.js';
 export { startWebServer, type StartWebServerOptions } from './web/server.js';
+export {
+  DEFAULT_UNLIMITED_OCR_MODEL,
+  UNLIMITED_OCR_PROMPT,
+  UNLIMITED_OCR_MAX_TOKENS,
+  UNLIMITED_OCR_SINGLE_PAGE_WINDOW,
+  UNLIMITED_OCR_MULTI_PAGE_WINDOW,
+  UNLIMITED_OCR_NGRAM_SIZE,
+  UNLIMITED_OCR_MAX_IMAGES,
+  UNLIMITED_OCR_MAX_IMAGE_BYTES,
+  UNLIMITED_OCR_MAX_TOTAL_IMAGE_BYTES,
+  UNLIMITED_OCR_MAX_RESPONSE_BYTES,
+  UNLIMITED_OCR_MAX_OUTPUT_CHARS,
+  UNLIMITED_OCR_MAX_GROUNDING_BLOCKS,
+  UNLIMITED_OCR_DEFAULT_TIMEOUT_MS,
+  UnlimitedOcrClient,
+  parseUnlimitedOcrGrounding,
+  type UnlimitedOcrClientOptions,
+  type UnlimitedOcrGroundingBlock,
+  type UnlimitedOcrImageInput,
+  type UnlimitedOcrParseResult,
+} from './document/unlimited-ocr.js';
+export {
+  LIVE_OCR_EVIDENCE,
+  type LiveOcrDocumentEvidence,
+  type LiveOcrEvidenceMetric,
+  type LiveOcrEvidenceSnapshot,
+} from './document/live-ocr-evidence.js';
+export {
+  PRODUCT_SHIP_EVIDENCE,
+  type ProductShipEvidence,
+  type ProductShipModelEvidence,
+} from './document/product-ship-evidence.js';
+export {
+  DOCUMENT_MEMORG_FORMAT,
+  DOCUMENT_MEMORG_VERSION,
+  DOCUMENT_MEMORG_TARGET_VERSION,
+  DOCUMENT_MEMORG_ROOT_KEY,
+  createDocumentMemorgExport,
+  serializeDocumentMemorgExport,
+  verifyDocumentMemorgExport,
+  type DocumentMemorgAuthority,
+  type DocumentMemorgExport,
+  type DocumentMemorgItem,
+  type DocumentMemorgItemType,
+  type DocumentMemorgVerification,
+} from './document/memorg.js';
 export {
   type AbsenceGraphNode,
   type AggregateGraphNode,

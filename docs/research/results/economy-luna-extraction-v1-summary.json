@@ -1,0 +1,716 @@
+{
+  "generatedAt": "2026-08-20T15:03:24.639Z",
+  "runs": [
+    {
+      "model": "openai/gpt-5.6-luna",
+      "score": {
+        "cases": 15,
+        "accuracy": 1,
+        "mutationPrecision": 1,
+        "mutationRecall": 1,
+        "mutationF1": 1,
+        "truePositives": 12,
+        "falsePositives": 0,
+        "falseNegatives": 0,
+        "safetyAccuracy": 1,
+        "safetyCases": 1,
+        "unexpectedErrors": 0,
+        "llmCalls": 14,
+        "usageResponses": 14,
+        "costResponses": 14,
+        "promptTokens": 13129,
+        "completionTokens": 378,
+        "totalTokens": 13507,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 176,
+        "costUsd": 0.0032287499999999994,
+        "durationMs": 27044.601458999998
+      },
+      "observations": [
+        {
+          "case": {
+            "initialProgram": "",
+            "expectedAddedProgram": "works_at(rahul, acme). lives_in(rahul, melbourne).",
+            "expectedDuplicates": 0,
+            "expectedRetractions": 0,
+            "id": "two_personal_facts",
+            "input": "Rahul works at Acme and lives in Melbourne.",
+            "expectedFinalProgram": "works_at(rahul, acme). lives_in(rahul, melbourne).",
+            "tags": [
+              "facts",
+              "multi-clause",
+              "personal"
+            ],
+            "expectedOutcome": "completed"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "completed",
+          "actualClauses": [
+            "works_at(rahul, acme).",
+            "lives_in(rahul, melbourne)."
+          ],
+          "added": [
+            "works_at(rahul, acme).",
+            "lives_in(rahul, melbourne)."
+          ],
+          "duplicates": 0,
+          "retracted": 0,
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 772,
+            "completionTokens": 23,
+            "totalTokens": 795,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.000182
+          },
+          "durationMs": 1562.641959
+        },
+        {
+          "case": {
+            "initialProgram": "",
+            "expectedAddedProgram": "lives_in(dr_chen, 'New York').",
+            "expectedDuplicates": 0,
+            "expectedRetractions": 0,
+            "id": "quoted_city",
+            "input": "Dr Chen lives in New York.",
+            "expectedFinalProgram": "lives_in(dr_chen, 'New York').",
+            "tags": [
+              "fact",
+              "quoted-atom"
+            ],
+            "expectedOutcome": "completed"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "completed",
+          "actualClauses": [
+            "lives_in(dr_chen, 'New York')."
+          ],
+          "added": [
+            "lives_in(dr_chen, 'New York')."
+          ],
+          "duplicates": 0,
+          "retracted": 0,
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 768,
+            "completionTokens": 15,
+            "totalTokens": 783,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.0001716
+          },
+          "durationMs": 1519.7298329999999
+        },
+        {
+          "case": {
+            "initialProgram": "",
+            "expectedAddedProgram": "birth_year(rahul, 1985).",
+            "expectedDuplicates": 0,
+            "expectedRetractions": 0,
+            "id": "numeric_fact",
+            "input": "Rahul was born in 1985.",
+            "expectedFinalProgram": "birth_year(rahul, 1985).",
+            "tags": [
+              "fact",
+              "number"
+            ],
+            "expectedOutcome": "completed"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "completed",
+          "actualClauses": [
+            "birth_year(rahul, 1985)."
+          ],
+          "added": [
+            "birth_year(rahul, 1985)."
+          ],
+          "duplicates": 0,
+          "retracted": 0,
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 770,
+            "completionTokens": 14,
+            "totalTokens": 784,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.0001708
+          },
+          "durationMs": 1336.9987919999999
+        },
+        {
+          "case": {
+            "initialProgram": "",
+            "expectedAddedProgram": "favorite_color(rahul, blue).",
+            "expectedDuplicates": 0,
+            "expectedRetractions": 0,
+            "id": "preference",
+            "input": "Rahul's favorite color is blue.",
+            "expectedFinalProgram": "favorite_color(rahul, blue).",
+            "tags": [
+              "fact",
+              "preference",
+              "personal"
+            ],
+            "expectedOutcome": "completed"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "completed",
+          "actualClauses": [
+            "favorite_color(rahul, blue)."
+          ],
+          "added": [
+            "favorite_color(rahul, blue)."
+          ],
+          "duplicates": 0,
+          "retracted": 0,
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 769,
+            "completionTokens": 12,
+            "totalTokens": 781,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.0001682
+          },
+          "durationMs": 1169.10225
+        },
+        {
+          "case": {
+            "initialProgram": "extract_noise_000(subject_0, value_0).\nextract_noise_001(subject_1, value_1).\nextract_noise_002(subject_2, value_2).\nextract_noise_003(subject_3, value_3).\nextract_noise_004(subject_4, value_4).\nextract_noise_005(subject_5, value_5).\nextract_noise_006(subject_6, value_6).\nextract_noise_007(subject_7, value_7).\nextract_noise_008(subject_8, value_8).\nextract_noise_009(subject_9, value_9).\nextract_noise_010(subject_10, value_10).\nextract_noise_011(subject_11, value_11).\nextract_noise_012(subject_12, value_12).\nextract_noise_013(subject_13, value_13).\nextract_noise_014(subject_14, value_14).\nextract_noise_015(subject_15, value_15).\nextract_noise_016(subject_16, value_16).\nextract_noise_017(subject_17, value_17).\nextract_noise_018(subject_18, value_18).\nextract_noise_019(subject_19, value_19).\nextract_noise_020(subject_20, value_20).\nextract_noise_021(subject_21, value_21).\nextract_noise_022(subject_22, value_22).\nextract_noise_023(subject_23, value_23).\nextract_noise_024(subject_24, value_24).\nextract_noise_025(subject_25, value_25).\nextract_noise_026(subject_26, value_26).\nextract_noise_027(subject_27, value_27).\nextract_noise_028(subject_28, value_28).\nextract_noise_029(subject_29, value_29).\nextract_noise_030(subject_30, value_30).\nextract_noise_031(subject_31, value_31).\nextract_noise_032(subject_32, value_32).\nextract_noise_033(subject_33, value_33).\nextract_noise_034(subject_34, value_34).\nextract_noise_035(subject_35, value_35).\nextract_noise_036(subject_36, value_36).\nextract_noise_037(subject_37, value_37).\nextract_noise_038(subject_38, value_38).\nextract_noise_039(subject_39, value_39).\nextract_noise_040(subject_40, value_40).\nextract_noise_041(subject_41, value_41).\nextract_noise_042(subject_42, value_42).\nextract_noise_043(subject_43, value_43).\nextract_noise_044(subject_44, value_44).\nextract_noise_045(subject_45, value_45).\nextract_noise_046(subject_46, value_46).\nextract_noise_047(subject_47, value_47).\nextract_noise_048(subject_48, value_48).\nextract_noise_049(subject_49, value_49).\nextract_noise_050(subject_50, value_50).\nextract_noise_051(subject_51, value_51).\nextract_noise_052(subject_52, value_52).\nextract_noise_053(subject_53, value_53).\nextract_noise_054(subject_54, value_54).\nextract_noise_055(subject_55, value_55).\nextract_noise_056(subject_56, value_56).\nextract_noise_057(subject_57, value_57).\nextract_noise_058(subject_58, value_58).\nextract_noise_059(subject_59, value_59).\nextract_noise_060(subject_60, value_60).\nextract_noise_061(subject_61, value_61).\nextract_noise_062(subject_62, value_62).\nextract_noise_063(subject_63, value_63).\nextract_noise_064(subject_64, value_64).\nextract_noise_065(subject_65, value_65).\nextract_noise_066(subject_66, value_66).\nextract_noise_067(subject_67, value_67).\nextract_noise_068(subject_68, value_68).\nextract_noise_069(subject_69, value_69).\nextract_noise_070(subject_70, value_70).\nextract_noise_071(subject_71, value_71).\nextract_noise_072(subject_72, value_72).\nextract_noise_073(subject_73, value_73).\nextract_noise_074(subject_74, value_74).\nextract_noise_075(subject_75, value_75).\nextract_noise_076(subject_76, value_76).\nextract_noise_077(subject_77, value_77).\nextract_noise_078(subject_78, value_78).\nextract_noise_079(subject_79, value_79).\nextract_noise_080(subject_80, value_80).\nextract_noise_081(subject_81, value_81).\nextract_noise_082(subject_82, value_82).\nextract_noise_083(subject_83, value_83).\nextract_noise_084(subject_84, value_84).\nextract_noise_085(subject_85, value_85).\nextract_noise_086(subject_86, value_86).\nextract_noise_087(subject_87, value_87).\nextract_noise_088(subject_88, value_88).\nextract_noise_089(subject_89, value_89).\nextract_noise_090(subject_90, value_90).\nextract_noise_091(subject_91, value_91).\nextract_noise_092(subject_92, value_92).\nextract_noise_093(subject_93, value_93).\nextract_noise_094(subject_94, value_94).\nextract_noise_095(subject_95, value_95).\nextract_noise_096(subject_96, value_96).\nextract_noise_097(subject_97, value_97).\nextract_noise_098(subject_98, value_98).\nextract_noise_099(subject_99, value_99).\nworks_at(rahul, acme).",
+            "expectedAddedProgram": "works_at(mira, initech).",
+            "expectedDuplicates": 0,
+            "expectedRetractions": 0,
+            "id": "reuse_predicate_at_scale",
+            "input": "Mira works at Initech.",
+            "expectedFinalProgram": "extract_noise_000(subject_0, value_0).\nextract_noise_001(subject_1, value_1).\nextract_noise_002(subject_2, value_2).\nextract_noise_003(subject_3, value_3).\nextract_noise_004(subject_4, value_4).\nextract_noise_005(subject_5, value_5).\nextract_noise_006(subject_6, value_6).\nextract_noise_007(subject_7, value_7).\nextract_noise_008(subject_8, value_8).\nextract_noise_009(subject_9, value_9).\nextract_noise_010(subject_10, value_10).\nextract_noise_011(subject_11, value_11).\nextract_noise_012(subject_12, value_12).\nextract_noise_013(subject_13, value_13).\nextract_noise_014(subject_14, value_14).\nextract_noise_015(subject_15, value_15).\nextract_noise_016(subject_16, value_16).\nextract_noise_017(subject_17, value_17).\nextract_noise_018(subject_18, value_18).\nextract_noise_019(subject_19, value_19).\nextract_noise_020(subject_20, value_20).\nextract_noise_021(subject_21, value_21).\nextract_noise_022(subject_22, value_22).\nextract_noise_023(subject_23, value_23).\nextract_noise_024(subject_24, value_24).\nextract_noise_025(subject_25, value_25).\nextract_noise_026(subject_26, value_26).\nextract_noise_027(subject_27, value_27).\nextract_noise_028(subject_28, value_28).\nextract_noise_029(subject_29, value_29).\nextract_noise_030(subject_30, value_30).\nextract_noise_031(subject_31, value_31).\nextract_noise_032(subject_32, value_32).\nextract_noise_033(subject_33, value_33).\nextract_noise_034(subject_34, value_34).\nextract_noise_035(subject_35, value_35).\nextract_noise_036(subject_36, value_36).\nextract_noise_037(subject_37, value_37).\nextract_noise_038(subject_38, value_38).\nextract_noise_039(subject_39, value_39).\nextract_noise_040(subject_40, value_40).\nextract_noise_041(subject_41, value_41).\nextract_noise_042(subject_42, value_42).\nextract_noise_043(subject_43, value_43).\nextract_noise_044(subject_44, value_44).\nextract_noise_045(subject_45, value_45).\nextract_noise_046(subject_46, value_46).\nextract_noise_047(subject_47, value_47).\nextract_noise_048(subject_48, value_48).\nextract_noise_049(subject_49, value_49).\nextract_noise_050(subject_50, value_50).\nextract_noise_051(subject_51, value_51).\nextract_noise_052(subject_52, value_52).\nextract_noise_053(subject_53, value_53).\nextract_noise_054(subject_54, value_54).\nextract_noise_055(subject_55, value_55).\nextract_noise_056(subject_56, value_56).\nextract_noise_057(subject_57, value_57).\nextract_noise_058(subject_58, value_58).\nextract_noise_059(subject_59, value_59).\nextract_noise_060(subject_60, value_60).\nextract_noise_061(subject_61, value_61).\nextract_noise_062(subject_62, value_62).\nextract_noise_063(subject_63, value_63).\nextract_noise_064(subject_64, value_64).\nextract_noise_065(subject_65, value_65).\nextract_noise_066(subject_66, value_66).\nextract_noise_067(subject_67, value_67).\nextract_noise_068(subject_68, value_68).\nextract_noise_069(subject_69, value_69).\nextract_noise_070(subject_70, value_70).\nextract_noise_071(subject_71, value_71).\nextract_noise_072(subject_72, value_72).\nextract_noise_073(subject_73, value_73).\nextract_noise_074(subject_74, value_74).\nextract_noise_075(subject_75, value_75).\nextract_noise_076(subject_76, value_76).\nextract_noise_077(subject_77, value_77).\nextract_noise_078(subject_78, value_78).\nextract_noise_079(subject_79, value_79).\nextract_noise_080(subject_80, value_80).\nextract_noise_081(subject_81, value_81).\nextract_noise_082(subject_82, value_82).\nextract_noise_083(subject_83, value_83).\nextract_noise_084(subject_84, value_84).\nextract_noise_085(subject_85, value_85).\nextract_noise_086(subject_86, value_86).\nextract_noise_087(subject_87, value_87).\nextract_noise_088(subject_88, value_88).\nextract_noise_089(subject_89, value_89).\nextract_noise_090(subject_90, value_90).\nextract_noise_091(subject_91, value_91).\nextract_noise_092(subject_92, value_92).\nextract_noise_093(subject_93, value_93).\nextract_noise_094(subject_94, value_94).\nextract_noise_095(subject_95, value_95).\nextract_noise_096(subject_96, value_96).\nextract_noise_097(subject_97, value_97).\nextract_noise_098(subject_98, value_98).\nextract_noise_099(subject_99, value_99).\nworks_at(rahul, acme).\nworks_at(mira, initech).",
+            "tags": [
+              "fact",
+              "schema-reuse",
+              "scaled"
+            ],
+            "expectedOutcome": "completed"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "completed",
+          "actualClauses": [
+            "extract_noise_000(subject_0, value_0).",
+            "extract_noise_001(subject_1, value_1).",
+            "extract_noise_002(subject_2, value_2).",
+            "extract_noise_003(subject_3, value_3).",
+            "extract_noise_004(subject_4, value_4).",
+            "extract_noise_005(subject_5, value_5).",
+            "extract_noise_006(subject_6, value_6).",
+            "extract_noise_007(subject_7, value_7).",
+            "extract_noise_008(subject_8, value_8).",
+            "extract_noise_009(subject_9, value_9).",
+            "extract_noise_010(subject_10, value_10).",
+            "extract_noise_011(subject_11, value_11).",
+            "extract_noise_012(subject_12, value_12).",
+            "extract_noise_013(subject_13, value_13).",
+            "extract_noise_014(subject_14, value_14).",
+            "extract_noise_015(subject_15, value_15).",
+            "extract_noise_016(subject_16, value_16).",
+            "extract_noise_017(subject_17, value_17).",
+            "extract_noise_018(subject_18, value_18).",
+            "extract_noise_019(subject_19, value_19).",
+            "extract_noise_020(subject_20, value_20).",
+            "extract_noise_021(subject_21, value_21).",
+            "extract_noise_022(subject_22, value_22).",
+            "extract_noise_023(subject_23, value_23).",
+            "extract_noise_024(subject_24, value_24).",
+            "extract_noise_025(subject_25, value_25).",
+            "extract_noise_026(subject_26, value_26).",
+            "extract_noise_027(subject_27, value_27).",
+            "extract_noise_028(subject_28, value_28).",
+            "extract_noise_029(subject_29, value_29).",
+            "extract_noise_030(subject_30, value_30).",
+            "extract_noise_031(subject_31, value_31).",
+            "extract_noise_032(subject_32, value_32).",
+            "extract_noise_033(subject_33, value_33).",
+            "extract_noise_034(subject_34, value_34).",
+            "extract_noise_035(subject_35, value_35).",
+            "extract_noise_036(subject_36, value_36).",
+            "extract_noise_037(subject_37, value_37).",
+            "extract_noise_038(subject_38, value_38).",
+            "extract_noise_039(subject_39, value_39).",
+            "extract_noise_040(subject_40, value_40).",
+            "extract_noise_041(subject_41, value_41).",
+            "extract_noise_042(subject_42, value_42).",
+            "extract_noise_043(subject_43, value_43).",
+            "extract_noise_044(subject_44, value_44).",
+            "extract_noise_045(subject_45, value_45).",
+            "extract_noise_046(subject_46, value_46).",
+            "extract_noise_047(subject_47, value_47).",
+            "extract_noise_048(subject_48, value_48).",
+            "extract_noise_049(subject_49, value_49).",
+            "extract_noise_050(subject_50, value_50).",
+            "extract_noise_051(subject_51, value_51).",
+            "extract_noise_052(subject_52, value_52).",
+            "extract_noise_053(subject_53, value_53).",
+            "extract_noise_054(subject_54, value_54).",
+            "extract_noise_055(subject_55, value_55).",
+            "extract_noise_056(subject_56, value_56).",
+            "extract_noise_057(subject_57, value_57).",
+            "extract_noise_058(subject_58, value_58).",
+            "extract_noise_059(subject_59, value_59).",
+            "extract_noise_060(subject_60, value_60).",
+            "extract_noise_061(subject_61, value_61).",
+            "extract_noise_062(subject_62, value_62).",
+            "extract_noise_063(subject_63, value_63).",
+            "extract_noise_064(subject_64, value_64).",
+            "extract_noise_065(subject_65, value_65).",
+            "extract_noise_066(subject_66, value_66).",
+            "extract_noise_067(subject_67, value_67).",
+            "extract_noise_068(subject_68, value_68).",
+            "extract_noise_069(subject_69, value_69).",
+            "extract_noise_070(subject_70, value_70).",
+            "extract_noise_071(subject_71, value_71).",
+            "extract_noise_072(subject_72, value_72).",
+            "extract_noise_073(subject_73, value_73).",
+            "extract_noise_074(subject_74, value_74).",
+            "extract_noise_075(subject_75, value_75).",
+            "extract_noise_076(subject_76, value_76).",
+            "extract_noise_077(subject_77, value_77).",
+            "extract_noise_078(subject_78, value_78).",
+            "extract_noise_079(subject_79, value_79).",
+            "extract_noise_080(subject_80, value_80).",
+            "extract_noise_081(subject_81, value_81).",
+            "extract_noise_082(subject_82, value_82).",
+            "extract_noise_083(subject_83, value_83).",
+            "extract_noise_084(subject_84, value_84).",
+            "extract_noise_085(subject_85, value_85).",
+            "extract_noise_086(subject_86, value_86).",
+            "extract_noise_087(subject_87, value_87).",
+            "extract_noise_088(subject_88, value_88).",
+            "extract_noise_089(subject_89, value_89).",
+            "extract_noise_090(subject_90, value_90).",
+            "extract_noise_091(subject_91, value_91).",
+            "extract_noise_092(subject_92, value_92).",
+            "extract_noise_093(subject_93, value_93).",
+            "extract_noise_094(subject_94, value_94).",
+            "extract_noise_095(subject_95, value_95).",
+            "extract_noise_096(subject_96, value_96).",
+            "extract_noise_097(subject_97, value_97).",
+            "extract_noise_098(subject_98, value_98).",
+            "extract_noise_099(subject_99, value_99).",
+            "works_at(rahul, acme).",
+            "works_at(mira, initech)."
+          ],
+          "added": [
+            "works_at(mira, initech)."
+          ],
+          "duplicates": 0,
+          "retracted": 0,
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 2990,
+            "completionTokens": 12,
+            "totalTokens": 3002,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.00076175
+          },
+          "durationMs": 1339.319375
+        },
+        {
+          "case": {
+            "initialProgram": "works_at(rahul, acme).",
+            "expectedAddedProgram": "",
+            "expectedDuplicates": 1,
+            "expectedRetractions": 0,
+            "id": "duplicate_fact",
+            "input": "Rahul works at Acme.",
+            "expectedFinalProgram": "works_at(rahul, acme).",
+            "tags": [
+              "fact",
+              "duplicate",
+              "idempotent"
+            ],
+            "expectedOutcome": "completed"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "completed",
+          "actualClauses": [
+            "works_at(rahul, acme)."
+          ],
+          "added": [],
+          "duplicates": 1,
+          "retracted": 0,
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 790,
+            "completionTokens": 13,
+            "totalTokens": 803,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.0001736
+          },
+          "durationMs": 1566.6227499999995
+        },
+        {
+          "case": {
+            "initialProgram": "works_at(mira, acme).",
+            "expectedAddedProgram": "works_at(mira, initech).",
+            "expectedDuplicates": 0,
+            "expectedRetractions": 1,
+            "id": "replace_current_fact",
+            "input": "Mira now works at Initech.",
+            "expectedFinalProgram": "works_at(mira, initech).",
+            "tags": [
+              "correction",
+              "retraction",
+              "personal"
+            ],
+            "expectedOutcome": "completed"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "completed",
+          "actualClauses": [
+            "works_at(mira, initech)."
+          ],
+          "added": [
+            "works_at(mira, initech)."
+          ],
+          "duplicates": 0,
+          "retracted": 1,
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 790,
+            "completionTokens": 49,
+            "totalTokens": 839,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 26,
+            "costUsd": 0.0002168
+          },
+          "durationMs": 3296.109624999999
+        },
+        {
+          "case": {
+            "initialProgram": "subscription(rahul, premium).",
+            "expectedAddedProgram": "",
+            "expectedDuplicates": 0,
+            "expectedRetractions": 1,
+            "id": "remove_fact",
+            "input": "Rahul no longer has a premium subscription.",
+            "expectedFinalProgram": "",
+            "tags": [
+              "retraction",
+              "removal"
+            ],
+            "expectedOutcome": "completed"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "completed",
+          "actualClauses": [],
+          "added": [],
+          "duplicates": 0,
+          "retracted": 1,
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 789,
+            "completionTokens": 44,
+            "totalTokens": 833,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 29,
+            "costUsd": 0.0002106
+          },
+          "durationMs": 1939.2540830000016
+        },
+        {
+          "case": {
+            "initialProgram": "works_at(rahul, acme). works_at(mira, acme).",
+            "expectedAddedProgram": "colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.",
+            "expectedDuplicates": 0,
+            "expectedRetractions": 0,
+            "id": "derived_colleague_rule",
+            "input": "People who work at the same company are colleagues, but nobody is their own colleague.",
+            "expectedFinalProgram": "works_at(rahul, acme). works_at(mira, acme). colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.",
+            "tags": [
+              "rule",
+              "join",
+              "inequality"
+            ],
+            "expectedOutcome": "completed"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "completed",
+          "actualClauses": [
+            "works_at(rahul, acme).",
+            "works_at(mira, acme).",
+            "colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y."
+          ],
+          "added": [
+            "colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y."
+          ],
+          "duplicates": 0,
+          "retracted": 0,
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 809,
+            "completionTokens": 59,
+            "totalTokens": 868,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 30,
+            "costUsd": 0.0002326
+          },
+          "durationMs": 3418.811667
+        },
+        {
+          "case": {
+            "initialProgram": "employee(alice). suspended(bob).",
+            "expectedAddedProgram": "eligible(X) :- employee(X), \\+ suspended(X).",
+            "expectedDuplicates": 0,
+            "expectedRetractions": 0,
+            "id": "closed_world_rule",
+            "input": "Every employee who is not suspended is eligible.",
+            "expectedFinalProgram": "employee(alice). suspended(bob). eligible(X) :- employee(X), \\+ suspended(X).",
+            "tags": [
+              "rule",
+              "negation"
+            ],
+            "expectedOutcome": "completed"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "completed",
+          "actualClauses": [
+            "employee(alice).",
+            "suspended(bob).",
+            "eligible(X) :- employee(X), \\+ suspended(X)."
+          ],
+          "added": [
+            "eligible(X) :- employee(X), \\+ suspended(X)."
+          ],
+          "duplicates": 0,
+          "retracted": 0,
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 798,
+            "completionTokens": 50,
+            "totalTokens": 848,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 32,
+            "costUsd": 0.0002196
+          },
+          "durationMs": 3440.266667
+        },
+        {
+          "case": {
+            "initialProgram": "project(beacon).",
+            "expectedAddedProgram": "project(atlas).",
+            "expectedDuplicates": 0,
+            "expectedRetractions": 0,
+            "id": "tentative_caller_authority",
+            "input": "Atlas may be a project.",
+            "expectedFinalProgram": "project(beacon). rembero_tentative('project(atlas).').",
+            "trust": "tentative",
+            "tags": [
+              "fact",
+              "tentative",
+              "authority"
+            ],
+            "expectedOutcome": "completed"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "completed",
+          "actualClauses": [
+            "project(beacon).",
+            "rembero_tentative('project(atlas).')."
+          ],
+          "added": [
+            "project(atlas)."
+          ],
+          "duplicates": 0,
+          "retracted": 0,
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 778,
+            "completionTokens": 8,
+            "totalTokens": 786,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.0001652
+          },
+          "durationMs": 1585.6249169999974
+        },
+        {
+          "case": {
+            "initialProgram": "",
+            "expectedAddedProgram": "",
+            "expectedDuplicates": 0,
+            "expectedRetractions": 0,
+            "id": "non_fact_noop",
+            "input": "Thanks for the help!",
+            "expectedFinalProgram": "",
+            "tags": [
+              "noop",
+              "non-factual"
+            ],
+            "expectedOutcome": "completed"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "completed",
+          "actualClauses": [],
+          "added": [],
+          "duplicates": 0,
+          "retracted": 0,
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 766,
+            "completionTokens": 6,
+            "totalTokens": 772,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.0001604
+          },
+          "durationMs": 1354.9844170000033
+        },
+        {
+          "case": {
+            "initialProgram": "",
+            "expectedAddedProgram": "",
+            "expectedDuplicates": 0,
+            "expectedRetractions": 0,
+            "id": "policy_request_noop",
+            "input": "Make sure active users are never suspended.",
+            "expectedFinalProgram": "",
+            "tags": [
+              "noop",
+              "policy-boundary"
+            ],
+            "expectedOutcome": "completed"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "completed",
+          "actualClauses": [],
+          "added": [],
+          "duplicates": 0,
+          "retracted": 0,
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 769,
+            "completionTokens": 67,
+            "totalTokens": 836,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 59,
+            "costUsd": 0.0002342
+          },
+          "durationMs": 2301.412207999998
+        },
+        {
+          "case": {
+            "initialProgram": "",
+            "expectedAddedProgram": "",
+            "expectedDuplicates": 0,
+            "expectedRetractions": 0,
+            "id": "identity_request_noop",
+            "input": "Mira Patel and Mira are the same person.",
+            "expectedFinalProgram": "",
+            "tags": [
+              "noop",
+              "identity-boundary"
+            ],
+            "expectedOutcome": "completed"
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "completed",
+          "actualClauses": [],
+          "added": [],
+          "duplicates": 0,
+          "retracted": 0,
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 1,
+            "promptTokens": 771,
+            "completionTokens": 6,
+            "totalTokens": 777,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0.0001614
+          },
+          "durationMs": 1211.726541
+        },
+        {
+          "case": {
+            "id": "secret_rejected_locally",
+            "input": "Rahul’s GitHub token is ghp_supersecretvalue.",
+            "initialProgram": "",
+            "expectedFinalProgram": "",
+            "expectedAddedProgram": "",
+            "expectedOutcome": "rejected",
+            "expectedDuplicates": 0,
+            "expectedRetractions": 0,
+            "expectedErrorPattern": "sensitive memory text",
+            "expectedLlmCalls": 0,
+            "tags": [
+              "safety",
+              "secret",
+              "local-only"
+            ]
+          },
+          "model": "openai/gpt-5.6-luna",
+          "outcome": "rejected",
+          "actualClauses": [],
+          "added": [],
+          "duplicates": 0,
+          "retracted": 0,
+          "llmCalls": 0,
+          "usage": {
+            "calls": 0,
+            "usageResponses": 0,
+            "costResponses": 0,
+            "promptTokens": 0,
+            "completionTokens": 0,
+            "totalTokens": 0,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 1.9963749999988067,
+          "error": "refusing to send sensitive memory text to the external LLM"
+        }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, lstatSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { serializeClause } from '../engine/index.js';
 import { loadEnv } from '../env.js';
 import {
@@ -24,6 +24,7 @@ interface EvalArgs {
   models: string[];
   json: boolean;
   caseIds: Set<string> | null;
+  output: string | undefined;
 }
 
 const USAGE = `Usage: npm run eval:extract -- [options]
@@ -32,6 +33,7 @@ Options:
   --models <a,b>       OpenRouter model IDs (default: LLM_MODEL or ${DEFAULT_MODEL})
   --cases <a,b>        Run only selected case IDs
   --json               Print machine-readable JSON
+  --output <path>      Write machine-readable JSON to a regular file
 `;
 
 function listValue(argv: string[], index: number, flag: string): string[] {
@@ -47,6 +49,7 @@ function parseArgs(argv: string[]): EvalArgs {
     models: [process.env.LLM_MODEL ?? DEFAULT_MODEL],
     json: false,
     caseIds: null,
+    output: undefined,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -58,6 +61,12 @@ function parseArgs(argv: string[]): EvalArgs {
       index++;
     } else if (arg === '--json') {
       args.json = true;
+    } else if (arg === '--output') {
+      const value = argv[index + 1];
+      if (!value || value.trim() === '') throw new Error('--output needs a path');
+      args.output = value;
+      args.json = true;
+      index++;
     } else if (arg === '--help' || arg === '-h') {
       console.log(USAGE);
       process.exit(0);
@@ -66,6 +75,17 @@ function parseArgs(argv: string[]): EvalArgs {
     }
   }
   return args;
+}
+
+function writeJsonOutput(path: string, text: string): void {
+  const absolute = resolve(path);
+  if (existsSync(absolute)) {
+    const stat = lstatSync(absolute);
+    if (stat.isSymbolicLink() || !stat.isFile()) {
+      throw new Error('refusing non-regular extraction evaluation output file');
+    }
+  }
+  writeFileSync(absolute, `${text}\n`, 'utf8');
 }
 
 function percent(value: number): string {
@@ -178,7 +198,12 @@ async function main(): Promise<void> {
   }
 
   if (args.json) {
-    console.log(JSON.stringify({ generatedAt: new Date().toISOString(), runs }, null, 2));
+    const text = JSON.stringify({ generatedAt: new Date().toISOString(), runs }, null, 2);
+    if (args.output === undefined) console.log(text);
+    else {
+      writeJsonOutput(args.output, text);
+      console.error(`Wrote extraction evaluation to ${resolve(args.output)}`);
+    }
     if (runs.some((run) => run.score.unexpectedErrors > 0)) process.exitCode = 1;
     return;
   }

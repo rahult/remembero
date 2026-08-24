@@ -1,0 +1,100 @@
+{
+  "version": 2,
+  "documents": [
+    {
+      "id": "irs-w9-english-p1",
+      "kind": "government_form",
+      "image": "real/pages/irs-form-w9-en-p1.png",
+      "expectedReadingOrder": [
+        "Form W-9",
+        "Request for Taxpayer Identification Number and Certification",
+        "Give form to the requester",
+        "Name of entity/individual",
+        "Taxpayer Identification Number (TIN)",
+        "Certification",
+        "General Instructions",
+        "Purpose of Form"
+      ],
+      "requiredFields": [
+        "Rev. March 2024",
+        "Do not send to the IRS",
+        "An entry is required",
+        "Social security number",
+        "Employer identification number",
+        "FATCA"
+      ],
+      "expectedTable": false
+    },
+    {
+      "id": "irs-w9-spanish-p1",
+      "kind": "multilingual_government_form",
+      "image": "real/pages/irs-form-w9-es-p1.png",
+      "expectedReadingOrder": [
+        "Formulario W-9",
+        "Solicitud y Certificación del Número de Identificación del Contribuyente",
+        "Entregue el formulario al solicitante",
+        "Nombre de la entidad/del individuo",
+        "Número de Identificación del Contribuyente",
+        "Certificación",
+        "Instrucciones Generales",
+        "Qué Hay de Nuevo"
+      ],
+      "requiredFields": [
+        "Rev. marzo de 2024",
+        "No lo envíe al IRS",
+        "Se requiere una anotación",
+        "Número de Seguro Social",
+        "Número de identificación del empleador",
+        "FATCA"
+      ],
+      "expectedTable": false
+    },
+    {
+      "id": "mathbridge-paper-p4",
+      "kind": "technical_research_paper",
+      "image": "real/pages/mathbridge-paper-p4.png",
+      "expectedReadingOrder": [
+        "context_before",
+        "LaTeX formula",
+        "context_after",
+        "spoken_sentence",
+        "Table 2: Examples of MathBridge dataset",
+        "Spoken Sentence",
+        "Post-Processing",
+        "Dataset Statistics"
+      ],
+      "requiredFields": [
+        "approximately 13 million unique formulas",
+        "initial 49 million",
+        "no more than 200 characters",
+        "no more than 80 characters",
+        "no more than 250 characters",
+        "no more than 120 characters",
+        "approximately 23 million data points"
+      ],
+      "expectedTable": true
+    },
+    {
+      "id": "un-multilingualism-p20",
+      "kind": "visual_publication",
+      "image": "real/pages/un-multilingualism-p20.png",
+      "expectedReadingOrder": [
+        "OTHER LANGUAGES AT THE UNITED NATIONS",
+        "In addition to the six official languages",
+        "Kiswahili and Portuguese",
+        "Department of Global Communications",
+        "In 2018, Hindi",
+        "resolution 76/268",
+        "Portuguese, Hindi, Kiswahili, Persian, Bangla and Urdu"
+      ],
+      "requiredFields": [
+        "six official languages",
+        "United Nations News",
+        "Government of India",
+        "Secretary-General",
+        "within existing resources"
+      ],
+      "expectedTable": false
+    }
+  ]
+}

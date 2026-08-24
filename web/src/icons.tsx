@@ -205,6 +205,46 @@ export function DocumentIcon(props: IconProps) {
   );
 }
 
+export function DocumentEvidenceIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M5.5 4.5h9l4 4v11a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2Z" />
+      <path d="M14.5 4.5v4h4" />
+      <path d="M8.5 11h7" />
+      <path d="M8.5 15h5" />
+      <circle cx="7" cy="18" r="1.2" fill="currentColor" stroke="none" />
+    </IconBase>
+  );
+}
+
+export function ProofIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M6 5.5h9l3 3v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2Z" />
+      <path d="M15 5.5v3h3" />
+      <path d="m8.5 14 2.2 2.2 4.8-5.1" />
+    </IconBase>
+  );
+}
+
+export function RefreshIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M18.5 8A7 7 0 1 0 19 14" />
+      <path d="M18.5 3.5V8H14" />
+    </IconBase>
+  );
+}
+
+export function CheckCircleIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <circle cx="12" cy="12" r="8.25" />
+      <path d="m8.7 12.2 2.1 2.1 4.5-4.9" />
+    </IconBase>
+  );
+}
+
 export function SearchLineIcon(props: IconProps) {
   return (
     <IconBase {...props}>

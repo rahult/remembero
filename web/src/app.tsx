@@ -4,6 +4,9 @@ import type {
   AskPreset,
   AskResponse,
   BootstrapResponse,
+  DocumentListItem,
+  DocumentProofResult,
+  DocumentShowcaseResponse,
   GraphResponse,
   NavigationView,
   SearchKind,
@@ -11,9 +14,12 @@ import type {
 } from './api';
 import {
   ApiError,
+  askDocumentQuestion,
   createMemory,
+  getDocument,
   getBootstrap,
   getGraph,
+  parseDocument,
   seedDemo,
   searchKnowledge,
   askMemory,
@@ -25,6 +31,7 @@ import {
   ChevronRightIcon,
   CloseIcon,
   DatabaseIcon,
+  DocumentIcon,
   FolderIcon,
   GearIcon,
   GraphIcon,
@@ -41,6 +48,27 @@ import { GraphView } from './components/graph-view';
 import { GraphCanvas } from './components/graph-canvas';
 import { KnowledgeView } from './components/knowledge-view';
 import { RulesView } from './components/rules-view';
+import { DocumentView } from './components/document-view';
+
+type DocumentEvidenceMode = 'regions' | 'claims';
+
+interface DocumentSelectionState {
+  questionId: string | null;
+  pageId: string | null;
+  regionId: string | null;
+  claimId: string | null;
+  sourceId: string | null;
+  evidenceMode: DocumentEvidenceMode;
+}
+
+const EMPTY_DOCUMENT_SELECTION: DocumentSelectionState = {
+  questionId: null,
+  pageId: null,
+  regionId: null,
+  claimId: null,
+  sourceId: null,
+  evidenceMode: 'regions',
+};
 
 const NAV_ITEMS: Array<{
   id: NavigationView;
@@ -48,10 +76,127 @@ const NAV_ITEMS: Array<{
   icon: typeof AskIcon;
 }> = [
   { id: 'ask', label: 'Ask', icon: AskIcon },
+  { id: 'documents', label: 'Documents', icon: DocumentIcon },
   { id: 'knowledge', label: 'Knowledge', icon: KnowledgeIcon },
   { id: 'graph', label: 'Graph', icon: GraphIcon },
   { id: 'rules', label: 'Rules', icon: RulesIcon },
 ];
+
+function firstDocumentPageId(data: DocumentShowcaseResponse | null): string | null {
+  return data?.document.pages[0]?.id ?? null;
+}
+
+function firstRegionForPage(
+  data: DocumentShowcaseResponse | null,
+  pageId: string | null
+): string | null {
+  if (data === null || pageId === null) return null;
+  return data.document.pages.find((page) => page.id === pageId)?.regions[0]?.id ?? null;
+}
+
+function pageIdForRegion(
+  data: DocumentShowcaseResponse | null,
+  regionId: string | null
+): string | null {
+  if (data === null || regionId === null) return null;
+  for (const page of data.document.pages) {
+    if (page.regions.some((region) => region.id === regionId)) return page.id;
+  }
+  return null;
+}
+
+function claimIdForRegion(
+  data: DocumentShowcaseResponse | null,
+  regionId: string | null
+): string | null {
+  if (data === null || regionId === null) return null;
+  return data.document.claims.find((claim) => claim.regionId === regionId)?.id ?? null;
+}
+
+function claimPageId(
+  data: DocumentShowcaseResponse | null,
+  claimId: string | null
+): string | null {
+  if (data === null || claimId === null) return null;
+  return data.document.claims.find((claim) => claim.id === claimId)?.pageId ?? null;
+}
+
+function claimRegionId(
+  data: DocumentShowcaseResponse | null,
+  claimId: string | null
+): string | null {
+  if (data === null || claimId === null) return null;
+  return data.document.claims.find((claim) => claim.id === claimId)?.regionId ?? null;
+}
+
+function firstGroundedTrace(proof: DocumentProofResult): { id: string; regionId: string } | null {
+  for (const step of proof.steps) {
+    if (step.regionId !== undefined) return { id: step.id, regionId: step.regionId };
+  }
+  return null;
+}
+
+function firstRelatedAnchor(proof: DocumentProofResult): { regionId: string } | null {
+  const evidence = proof.relatedEvidence.find((item) => item.regionId !== undefined);
+  return evidence?.regionId === undefined ? null : { regionId: evidence.regionId };
+}
+
+function traceById(
+  data: DocumentShowcaseResponse | null,
+  sourceId: string | null
+) {
+  if (data === null || sourceId === null) return null;
+  return data.proof.steps.find((step) => step.id === sourceId) ?? null;
+}
+
+function claimIdForTrace(
+  data: DocumentShowcaseResponse | null,
+  sourceId: string | null
+): string | null {
+  const trace = traceById(data, sourceId);
+  if (trace?.regionId === undefined) return null;
+  const normalizedClause = trace.clause?.replace(/\.$/, '');
+  return (
+    data?.document.claims.find(
+      (claim) =>
+        claim.regionId === trace.regionId &&
+        claim.clause.replace(/\.$/, '') === normalizedClause
+    )?.id ??
+    claimIdForRegion(data, trace.regionId)
+  );
+}
+
+function questionIdForSnapshot(data: DocumentShowcaseResponse): string {
+  return data.proof.questionId || data.defaultQuestionId;
+}
+
+function selectionFromSnapshot(data: DocumentShowcaseResponse): DocumentSelectionState {
+  const grounded = firstGroundedTrace(data.proof);
+  const related = grounded === null ? firstRelatedAnchor(data.proof) : null;
+  const pageId =
+    grounded === null
+      ? related === null
+        ? firstDocumentPageId(data)
+        : pageIdForRegion(data, related.regionId)
+      : pageIdForRegion(data, grounded.regionId);
+  const regionId =
+    grounded?.regionId ??
+    related?.regionId ??
+    firstRegionForPage(data, pageId);
+  const claimId =
+    grounded === null
+      ? claimIdForRegion(data, regionId)
+      : (claimIdForTrace(data, grounded.id) ?? claimIdForRegion(data, grounded.regionId));
+
+  return {
+    questionId: questionIdForSnapshot(data),
+    pageId,
+    regionId,
+    claimId,
+    sourceId: grounded?.id ?? null,
+    evidenceMode: grounded === null ? 'regions' : 'claims',
+  };
+}
 
 function normalizeError(error: unknown): string {
   if (error instanceof ApiError) return error.message;
@@ -299,6 +444,14 @@ export function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [memoryStatus, setMemoryStatus] = useState<'idle' | 'saving'>('idle');
   const [memoryError, setMemoryError] = useState<string | null>(null);
+  const [documentCatalog, setDocumentCatalog] = useState<DocumentListItem[]>([]);
+  const [documentData, setDocumentData] = useState<DocumentShowcaseResponse | null>(null);
+  const [documentLoading, setDocumentLoading] = useState(false);
+  const [documentError, setDocumentError] = useState<string | null>(null);
+  const [documentPendingId, setDocumentPendingId] = useState<string | null>(null);
+  const [documentAction, setDocumentAction] = useState<'idle' | 'asking' | 'parsing'>('idle');
+  const [documentSelection, setDocumentSelection] =
+    useState<DocumentSelectionState>(EMPTY_DOCUMENT_SELECTION);
 
   const deferredKnowledgeQuery = useDeferredValue(knowledgeQuery);
 
@@ -331,6 +484,17 @@ export function App() {
   useEffect(() => {
     void loadBootstrap();
   }, []);
+
+  useEffect(() => {
+    if (
+      activeView !== 'documents' ||
+      (documentData !== null && documentCatalog.length > 0) ||
+      documentLoading
+    ) {
+      return;
+    }
+    void loadDocument();
+  }, [activeView, documentCatalog.length, documentData, documentLoading]);
 
   useEffect(() => {
     if (activeView !== 'knowledge') return;
@@ -421,6 +585,71 @@ export function App() {
     }
   }
 
+  async function loadDocument(documentId?: string) {
+    setDocumentLoading(true);
+    setDocumentPendingId(documentId ?? null);
+    try {
+      const data = await getDocument(documentId);
+      startTransition(() => {
+        setDocumentCatalog(data.documents);
+        setDocumentData(data);
+        setDocumentError(null);
+        setDocumentSelection(selectionFromSnapshot(data));
+      });
+    } catch (error) {
+      startTransition(() => {
+        setDocumentError(normalizeError(error));
+      });
+    } finally {
+      setDocumentPendingId(null);
+      setDocumentLoading(false);
+    }
+  }
+
+  async function handleParseDocument() {
+    if (documentData === null) return;
+    setDocumentAction('parsing');
+    try {
+      const result = await parseDocument({ documentId: documentData.document.id });
+      startTransition(() => {
+        setDocumentCatalog(result.documents);
+        setDocumentData(result);
+        setDocumentSelection(selectionFromSnapshot(result));
+        setDocumentError(null);
+      });
+    } catch (error) {
+      startTransition(() => {
+        setDocumentError(normalizeError(error));
+      });
+    } finally {
+      setDocumentAction('idle');
+    }
+  }
+
+  async function handleAskDocumentQuestion() {
+    if (documentData === null) return;
+    const questionId = documentSelection.questionId ?? documentData.defaultQuestionId;
+    setDocumentAction('asking');
+    try {
+      const proof = await askDocumentQuestion({
+        documentId: documentData.document.id,
+        questionId,
+      });
+      const nextData: DocumentShowcaseResponse = { ...documentData, proof };
+      startTransition(() => {
+        setDocumentData(nextData);
+        setDocumentError(null);
+        setDocumentSelection(selectionFromSnapshot(nextData));
+      });
+    } catch (error) {
+      startTransition(() => {
+        setDocumentError(normalizeError(error));
+      });
+    } finally {
+      setDocumentAction('idle');
+    }
+  }
+
   async function handleMemorySubmit(payload: {
     subject: string;
     predicate: string;
@@ -459,9 +688,96 @@ export function App() {
   function navigateTo(view: NavigationView) {
     setActiveView(view);
     setMobileMenuOpen(false);
+    if (view === 'documents' && documentCatalog.length === 0 && documentData === null && !documentLoading) {
+      void loadDocument();
+    }
     if (view === 'graph') {
       void handleGraphExplore(graphFocusInput.trim() || 'atlas');
     }
+  }
+
+  function selectDocument(documentId: string) {
+    if (documentLoading || documentPendingId === documentId || documentData?.document.id === documentId) {
+      return;
+    }
+    void loadDocument(documentId);
+  }
+
+  function selectDocumentPage(pageId: string) {
+    if (documentData === null) return;
+    const firstRegionId = firstRegionForPage(documentData, pageId);
+    const currentSource = traceById(documentData, documentSelection.sourceId);
+    const keepSource =
+      currentSource?.pageNumber ===
+      documentData.document.pages.find((page) => page.id === pageId)?.pageNumber;
+    const nextRegionId = keepSource ? currentSource?.regionId ?? firstRegionId : firstRegionId;
+    startTransition(() => {
+      setDocumentSelection((current) => ({
+        ...current,
+        pageId,
+        regionId: nextRegionId,
+        claimId:
+          keepSource && currentSource !== null
+            ? claimIdForTrace(documentData, current.sourceId) ??
+              claimIdForRegion(documentData, nextRegionId)
+            : claimPageId(documentData, current.claimId) === pageId
+              ? current.claimId
+              : claimIdForRegion(documentData, nextRegionId),
+        sourceId: keepSource ? current.sourceId : null,
+      }));
+    });
+  }
+
+  function selectDocumentRegion(regionId: string) {
+    if (documentData === null) return;
+    startTransition(() => {
+      setDocumentSelection((current) => ({
+        ...current,
+        pageId: pageIdForRegion(documentData, regionId),
+        regionId,
+        claimId: claimIdForRegion(documentData, regionId),
+        sourceId:
+          traceById(documentData, current.sourceId)?.regionId === regionId ? current.sourceId : null,
+        evidenceMode: 'regions',
+      }));
+    });
+  }
+
+  function selectDocumentClaim(claimId: string) {
+    if (documentData === null) return;
+    const regionId = claimRegionId(documentData, claimId);
+    startTransition(() => {
+      setDocumentSelection((current) => ({
+        ...current,
+        claimId,
+        pageId: pageIdForRegion(documentData, regionId),
+        regionId,
+        sourceId:
+          documentData.proof.steps.find((step) => {
+            if (step.regionId !== regionId) return false;
+            const clause = documentData.document.claims.find((claim) => claim.id === claimId)?.clause;
+            return step.clause?.replace(/\.$/, '') === clause?.replace(/\.$/, '');
+          })?.id ?? null,
+        evidenceMode: 'claims',
+      }));
+    });
+  }
+
+  function selectDocumentSource(sourceId: string) {
+    if (documentData === null) return;
+    const trace = traceById(documentData, sourceId);
+    if (trace?.regionId === undefined) return;
+    const regionId = trace.regionId;
+    startTransition(() => {
+      setDocumentSelection((current) => ({
+        ...current,
+        sourceId,
+        pageId: pageIdForRegion(documentData, regionId),
+        regionId,
+        claimId: claimIdForTrace(documentData, sourceId) ?? claimIdForRegion(documentData, regionId),
+        evidenceMode: 'claims',
+      }));
+    });
   }
 
   const topBar = mobile ? (
@@ -628,6 +944,38 @@ export function App() {
                     error={knowledgeError}
                     onQueryChange={setKnowledgeQuery}
                     onKindChange={setKnowledgeKind}
+                  />
+                ) : null}
+
+                {activeView === 'documents' ? (
+                  <DocumentView
+                    documents={documentCatalog}
+                    data={documentData}
+                    loading={documentLoading}
+                    error={documentError}
+                    pendingDocumentId={documentPendingId}
+                    action={documentAction}
+                    mobile={mobile}
+                    evidenceMode={documentSelection.evidenceMode}
+                    selectedQuestionId={documentSelection.questionId}
+                    selectedPageId={documentSelection.pageId}
+                    selectedRegionId={documentSelection.regionId}
+                    selectedClaimId={documentSelection.claimId}
+                    selectedSourceId={documentSelection.sourceId}
+                    onSelectDocument={selectDocument}
+                    onSelectEvidenceMode={(mode) =>
+                      setDocumentSelection((current) => ({ ...current, evidenceMode: mode }))
+                    }
+                    onSelectQuestion={(questionId) =>
+                      setDocumentSelection((current) => ({ ...current, questionId }))
+                    }
+                    onAskQuestion={() => void handleAskDocumentQuestion()}
+                    onParse={() => void handleParseDocument()}
+                    onRetry={() => void loadDocument()}
+                    onSelectPage={selectDocumentPage}
+                    onSelectRegion={selectDocumentRegion}
+                    onSelectClaim={selectDocumentClaim}
+                    onSelectSource={selectDocumentSource}
                   />
                 ) : null}
 
