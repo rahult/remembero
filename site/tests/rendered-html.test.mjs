@@ -231,6 +231,7 @@ test("playground uses the statically linked SQLite extension and remains browser
   assert.match(ide, /onClick=\{\(\) => void insertRow\(\)\}/);
   assert.match(ide, /Current browser performance/);
   assert.match(ide, /performance\.now\(\)/);
+  assert.doesNotMatch(ide, /className="ide-activity"/);
   assert.match(globalCss, /grid-template-rows: minmax\(140px, auto\)/);
   assert.doesNotMatch(ide, /localStorage|sessionStorage|document\.cookie/);
   assert.match(adapter, /new Worker\(/);

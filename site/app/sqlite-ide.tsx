@@ -38,10 +38,8 @@ import {
   ChevronIcon,
   CloseIcon,
   DatabaseIcon,
-  GraphIcon,
   PlayIcon,
   ProofIcon,
-  QueryIcon,
   ResetIcon,
 } from "./ide-icons";
 import { ProofGraph } from "./proof-graph";
@@ -775,28 +773,6 @@ export function SqliteIde() {
           } as CSSProperties
         }
       >
-        <nav className="ide-activity" aria-label="Workspace sections">
-          {[
-            ["data", <DatabaseIcon key="data-icon" />],
-            ["query", <QueryIcon key="query-icon" />],
-            ["proof", <ProofIcon key="proof-icon" />],
-            ["graph", <GraphIcon key="graph-icon" />],
-          ].map(([pane, icon]) => (
-            <button
-              key={pane as string}
-              type="button"
-              aria-label={`Open ${pane} pane`}
-              aria-pressed={mobilePane === pane}
-              className={mobilePane === pane ? "active" : ""}
-              onClick={() => navigate(pane as MobilePane)}
-            >
-              {icon}
-              <span>{pane as string}</span>
-            </button>
-          ))}
-          <a href={`${github}/blob/main/docs/SQLITE-DETERMINISM.md`}>Help</a>
-        </nav>
-
         <aside className="ide-left" data-pane="data" tabIndex={-1}>
           {guidanceOpen ? (
             <section className="guide-panel" aria-labelledby="guide-title">
