@@ -10,3 +10,4 @@ build/
 .impeccable/
 __pycache__/
 *.pyc
+.shipcheck-log.txt
