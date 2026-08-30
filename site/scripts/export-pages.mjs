@@ -62,7 +62,7 @@ if (
 if (!playgroundHtml.includes("SQLite + Datalog IDE") || !playgroundHtml.includes('id="playground"')) {
   throw new Error("static playground is missing the SQLite IDE bundle");
 }
-if (!chatMemoryHtml.includes("Same small model") || !chatMemoryHtml.includes("Shared SQLite")) {
+if (!chatMemoryHtml.includes("Same database. Same model. Different powers.") || !chatMemoryHtml.includes("Shared SQLite")) {
   throw new Error("static chat memory lab is missing its comparison experience");
 }
 if (!groundedAgentHtml.includes("Let the model propose") || !groundedAgentHtml.includes("Grounded agent")) {

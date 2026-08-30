@@ -184,6 +184,12 @@ function displayAnswer(preset: DemoPreset, row: Record<string, string | number>)
       return `${row.Service} is ready to ship`;
     case "access_control":
       return `${row.Person} can read ${row.Document}`;
+    case "proven_absence":
+      return `${row.Document} is published with no owning team — a proven absence, not a NULL`;
+    case "write_gate":
+      return `refuse the write: marking ${row.Project} active contradicts blocker ${row.Blocker}`;
+    case "why_not":
+      return `${row.Service} cannot ship because the ${row.Check} check is failing`;
   }
 }
 

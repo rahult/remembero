@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { ChatMemoryLab } from "./chat-memory-lab";
 
 export const metadata: Metadata = {
-  title: "Remembero Lab — Same small model, different tool",
+  title: "Remembero Lab — Same database, different powers",
   description:
-    "Watch the same local model call either a typed SQL tool or Remembero over one shared browser-local SQLite database.",
+    "Four questions where SQL and Remembero structurally diverge over one shared browser-local SQLite database: recursive proof chains, refused contradictions, proven absences, and why-not diagnoses.",
 };
 
 export default function ChatMemoryPage() {

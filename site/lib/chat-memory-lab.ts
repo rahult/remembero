@@ -12,9 +12,10 @@ import {
 } from "./engine";
 
 export type ChatMemoryScenarioId =
-  | "schedule-review"
-  | "follow-up-maya"
-  | "unknown-preference";
+  | "root-blocker"
+  | "write-gate"
+  | "unknown-preference"
+  | "why-not";
 
 export interface ChatMemoryScenario {
   id: ChatMemoryScenarioId;
@@ -41,21 +42,77 @@ export interface ChatMemoryRun {
   query: string;
 }
 
+const SHARED_FACTS = `
+  status(atlas, blocked).
+  status(orchard, active).
+  blocker(atlas, vendor_security_review).
+  waits_on(atlas, vendor_security_review).
+  waits_on(vendor_security_review, legal_signoff).
+  waits_on(legal_signoff, procurement_freeze).
+  prefers_meeting(maya, morning).
+  pending_meeting(jordan, roadmap_sync).
+  review_slot(atlas, tuesday, morning).
+`;
+
 export const CHAT_MEMORY_SCENARIOS: readonly ChatMemoryScenario[] = [
   {
-    id: "schedule-review",
-    label: "Schedule the review",
-    question: "When should I schedule the Atlas review?",
+    id: "root-blocker",
+    label: "Find the root blocker",
+    question: "What is really blocking the Atlas review?",
     baselineAnswer:
-      "Atlas is blocked by the vendor security review, and Maya prefers mornings. The raw snapshot still has to be interpreted.",
-    query: "schedule_review(atlas, Day, Window, Blocker)",
-    requiredTerms: ["tuesday", "morning", "vendor security review"],
+      "The recursive SQL closure lists every dependency row — vendor security review, legal signoff, procurement freeze — but the rows arrive without any derivation to check.",
+    query: "root_blocker(atlas, Root)",
+    requiredTerms: ["procurement", "freeze"],
     program: `
-      status(atlas, blocked).
-      blocker(atlas, vendor_security_review).
-      prefers_meeting(maya, morning).
-      review_slot(atlas, tuesday, morning).
-
+      ${SHARED_FACTS}
+      reaches(P, X) :- waits_on(P, X).
+      reaches(P, X) :- reaches(P, M), waits_on(M, X).
+      root_blocker(P, Root) :-
+        reaches(P, Root),
+        \\+ waits_on(Root, _).
+    `,
+  },
+  {
+    id: "write-gate",
+    label: "Reject a bad update",
+    question: "Mark Atlas active — the review can go ahead now, right?",
+    baselineAnswer:
+      "The UPDATE succeeded, the schedule query returned Tuesday morning, and nothing warned that the vendor security review still blocks Atlas.",
+    query: "violation('active project keeps a blocker', P, B)",
+    requiredTerms: ["vendor security review", "refus"],
+    program: `
+      ${SHARED_FACTS}
+      proposed_status(atlas, active).
+      violation('active project keeps a blocker', P, B) :-
+        proposed_status(P, active),
+        blocker(P, B).
+    `,
+  },
+  {
+    id: "unknown-preference",
+    label: "Prove an absence",
+    question: "Should I book Jordan for the morning sync?",
+    baselineAnswer:
+      "The LEFT JOIN returned Jordan’s sync with a NULL preference column; whether NULL means unknown or no preference is left for the model to guess.",
+    query: "missing_preference(jordan)",
+    requiredTerms: ["jordan", "ask", "preference"],
+    program: `
+      ${SHARED_FACTS}
+      missing_preference(Person) :-
+        pending_meeting(Person, _),
+        \\+ prefers_meeting(Person, _).
+    `,
+  },
+  {
+    id: "why-not",
+    label: "Explain a missing answer",
+    question: "Why isn’t the Orchard review on the calendar?",
+    baselineAnswer:
+      "The schedule query for Orchard returned zero rows. SQL has nothing further to say about which condition failed.",
+    query: "schedule_review(orchard, Day, Window, Blocker)",
+    requiredTerms: ["orchard", "blocked", "slot"],
+    program: `
+      ${SHARED_FACTS}
       schedule_review(Project, Day, Window, Blocker) :-
         review_slot(Project, Day, Window),
         status(Project, blocked),
@@ -63,40 +120,61 @@ export const CHAT_MEMORY_SCENARIOS: readonly ChatMemoryScenario[] = [
         prefers_meeting(maya, Window).
     `,
   },
-  {
-    id: "follow-up-maya",
-    label: "Follow up with Maya",
-    question: "Should I follow up with Maya today?",
-    baselineAnswer:
-      "The snapshot shows a promised Atlas update to Maya and a blocked project, so following up today is reasonable.",
-    query: "needs_follow_up(maya, Project)",
-    requiredTerms: ["maya", "atlas", "follow up"],
-    program: `
-      promised_update(rahul, maya, atlas).
-      status(atlas, blocked).
-
-      needs_follow_up(Person, Project) :-
-        promised_update(rahul, Person, Project),
-        status(Project, blocked).
-    `,
-  },
-  {
-    id: "unknown-preference",
-    label: "Unknown preference",
-    question: "Should I book Jordan for the morning sync?",
-    baselineAnswer:
-      "The complete snapshot has Jordan’s sync but no stored meeting preference, so ask before booking.",
-    query: "missing_preference(jordan)",
-    requiredTerms: ["jordan", "ask", "preference"],
-    program: `
-      pending_meeting(jordan, roadmap_sync).
-
-      missing_preference(Person) :-
-        pending_meeting(Person, _),
-        \\+ prefers_meeting(Person, _).
-    `,
-  },
 ] as const;
+
+export interface WhyNotPremise {
+  literal: string;
+  holds: boolean;
+  detail: string;
+}
+
+/**
+ * Premise-by-premise diagnosis of why schedule_review(orchard, …) derives no
+ * rows: each body literal of the rule is evaluated on its own so the failing
+ * conditions are named instead of inferred from an empty result set.
+ */
+export function diagnoseWhyNot(): WhyNotPremise[] {
+  const scenario = CHAT_MEMORY_SCENARIOS.find((entry) => entry.id === "why-not")!;
+  const clauses = parseProgram(scenario.program);
+  const premises: ReadonlyArray<{ literal: string; description: string }> = [
+    {
+      literal: "review_slot(orchard, Day, Window)",
+      description: "a review slot exists for orchard",
+    },
+    {
+      literal: "status(orchard, blocked)",
+      description: "orchard is in the blocked state",
+    },
+    {
+      literal: "blocker(orchard, Blocker)",
+      description: "a blocker is recorded for orchard",
+    },
+    {
+      literal: "prefers_meeting(maya, Window)",
+      description: "maya has a stored meeting window",
+    },
+  ];
+  return premises.map(({ literal, description }) => {
+    const rows = evaluateQuerySpecWithProof(clauses, parseQuerySpec(literal), {
+      maxFacts: 128,
+      maxIterations: 16,
+      maxRows: 4,
+      maxProofDepth: 8,
+      maxProofNodes: 64,
+      maxProofsPerRow: 1,
+      maxAggregateRows: 64,
+      maxAggregateProofRows: 16,
+    });
+    return {
+      literal,
+      holds: rows.length > 0,
+      detail:
+        rows.length > 0
+          ? `holds — ${description}`
+          : `fails — no fact satisfies ${literal}`,
+    };
+  });
+}
 
 function termText(term: Term): string {
   return serializeTerm(term);
@@ -209,14 +287,16 @@ function scenarioAnswer(
   absences: string[],
 ): string {
   switch (scenario.id) {
-    case "schedule-review":
-      return `${title(bindings.Day)} ${bindings.Window}, after the ${title(bindings.Blocker).toLowerCase()}. Maya prefers mornings.`;
-    case "follow-up-maya":
-      return `Yes. Follow up with Maya about ${title(bindings.Project)} today. You already owe her an update, and the project is blocked.`;
+    case "root-blocker":
+      return `The ${title(bindings.Root).toLowerCase()} is the root blocker. The proof walks the chain vendor security review → legal signoff → procurement freeze, and proves nothing sits beneath it.`;
+    case "write-gate":
+      return `Refused. Marking ${title(bindings.P)} active would contradict the recorded blocker ${title(bindings.B).toLowerCase()}; the write was rolled back and the review stays blocked.`;
     case "unknown-preference":
       return absences.length > 0
-        ? "Don’t guess. Ask Jordan first because no meeting preference is stored."
+        ? "Don’t guess. Ask Jordan first — the proof contains the verified absence of any stored meeting preference."
         : "I don’t have a grounded preference for Jordan.";
+    case "why-not":
+      return "It can’t be derived, and here is exactly why: orchard is not in the blocked state, no review slot exists for orchard, and no blocker is recorded — each failing premise is named below.";
   }
 }
 
@@ -241,6 +321,28 @@ export function runChatMemoryScenario(id: ChatMemoryScenarioId): ChatMemoryRun {
   const facts = factsOnly(clauses);
   const rules = authoredRules(clauses);
   if (rows.length === 0) {
+    if (scenario.id === "why-not") {
+      const diagnosis = diagnoseWhyNot();
+      return {
+        answer: scenarioAnswer(scenario, {}, []),
+        claims: diagnosis
+          .filter((premise) => premise.holds)
+          .map((premise) => premise.detail),
+        absences: diagnosis
+          .filter((premise) => !premise.holds)
+          .map((premise) => premise.detail),
+        proofTrail: diagnosis.map(
+          (premise) => `${premise.holds ? "✓" : "✗"} ${premise.literal} — ${premise.detail}`,
+        ),
+        bindings: {},
+        factCount: diagnosis.filter((premise) => premise.holds).length,
+        ruleCount: 1,
+        absenceCount: diagnosis.filter((premise) => !premise.holds).length,
+        facts,
+        rules,
+        query: scenario.query,
+      };
+    }
     return {
       answer: "No supported answer was proven.",
       claims: [],

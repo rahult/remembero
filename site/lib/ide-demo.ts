@@ -7,7 +7,10 @@ export interface DemoPreset {
     | "recursive_paths"
     | "support_escalation"
     | "release_readiness"
-    | "access_control";
+    | "access_control"
+    | "proven_absence"
+    | "write_gate"
+    | "why_not";
   category: string;
   useCase: string;
   focusTable: string;
@@ -202,6 +205,81 @@ path(X, Y) :- edge(X, Z), path(Z, Y).`,
   team_grant(Team, Document),
   workspace_document(Document, published).`,
   },
+  {
+    id: "proven_absence",
+    category: "Beyond SQL · proven absence",
+    useCase:
+      "A LEFT JOIN NULL is silence the model must interpret; stratified negation returns the absence as a proven claim.",
+    focusTable: "workspace_document",
+    title: "Which published document has no owner team?",
+    description:
+      "Derive the documents that are published while no team grant exists — the proof records the verified absence itself.",
+    setupSql: `
+      DROP TABLE IF EXISTS team_grant;
+      DROP TABLE IF EXISTS workspace_document;
+      CREATE TABLE team_grant(team TEXT NOT NULL, document TEXT NOT NULL);
+      CREATE TABLE workspace_document(document TEXT NOT NULL, state TEXT NOT NULL);
+      INSERT INTO team_grant VALUES
+        ('launch', 'launch_plan'),
+        ('support', 'runbook');
+      INSERT INTO workspace_document VALUES
+        ('launch_plan', 'published'),
+        ('runbook', 'published'),
+        ('postmortem', 'published'),
+        ('roadmap', 'draft');
+    `,
+    program: `ungoverned_document(Document) :-
+  workspace_document(Document, published),
+  \\+ team_grant(_, Document).`,
+  },
+  {
+    id: "write_gate",
+    category: "Beyond SQL · write gate",
+    useCase:
+      "SQLite accepts a contradictory UPDATE without complaint; a violation rule turns the same store into a write gate that can refuse it.",
+    focusTable: "proposed_status",
+    title: "Should this status change be refused?",
+    description:
+      "Stage a proposed write next to the recorded blockers; any derived violation names the exact contradiction, so the write is rolled back instead of applied.",
+    setupSql: `
+      DROP TABLE IF EXISTS blocker;
+      DROP TABLE IF EXISTS proposed_status;
+      CREATE TABLE blocker(project TEXT NOT NULL, blocker TEXT NOT NULL);
+      CREATE TABLE proposed_status(project TEXT NOT NULL, state TEXT NOT NULL);
+      INSERT INTO blocker VALUES ('atlas', 'vendor_security_review');
+      INSERT INTO proposed_status VALUES ('atlas', 'active');
+    `,
+    program: `rejected_write(Project, Blocker) :-
+  proposed_status(Project, active),
+  blocker(Project, Blocker).`,
+  },
+  {
+    id: "why_not",
+    category: "Beyond SQL · why not",
+    useCase:
+      "An empty SQL result explains nothing; checking each premise names the exact requirement that blocks the answer.",
+    focusTable: "release_check",
+    title: "Why can’t search ship?",
+    description:
+      "Instead of an empty result set, derive the unmet requirement directly — the failing premise becomes the answer, with its own proof.",
+    setupSql: `
+      DROP TABLE IF EXISTS release_candidate;
+      DROP TABLE IF EXISTS release_check;
+      CREATE TABLE release_candidate(service TEXT NOT NULL, stage TEXT NOT NULL);
+      CREATE TABLE release_check(service TEXT NOT NULL, check_name TEXT NOT NULL, state TEXT NOT NULL);
+      INSERT INTO release_candidate VALUES
+        ('checkout', 'production'),
+        ('search', 'production');
+      INSERT INTO release_check VALUES
+        ('checkout', 'tests', 'passing'),
+        ('checkout', 'security', 'passing'),
+        ('search', 'tests', 'passing'),
+        ('search', 'security', 'failing');
+    `,
+    program: `unmet_requirement(Service, Check) :-
+  release_candidate(Service, production),
+  release_check(Service, Check, failing).`,
+  },
 ] as const;
 
 export const DEFAULT_SQL = "SELECT project, state FROM status ORDER BY project;";
@@ -260,6 +338,8 @@ export const INSERT_DEFAULTS: Record<string, Record<string, SqliteScalar>> = {
   team_member: { person: "maya", team: "launch" },
   team_grant: { team: "launch", document: "launch_plan" },
   workspace_document: { document: "launch_plan", state: "published" },
+  blocker: { project: "atlas", blocker: "vendor_security_review" },
+  proposed_status: { project: "atlas", state: "active" },
 };
 
 export const CONSTRAINT_EXAMPLE =

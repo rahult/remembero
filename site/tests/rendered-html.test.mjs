@@ -46,8 +46,8 @@ test("server-renders both real-life browser labs", async () => {
     chatResponse.text(),
     agentResponse.text(),
   ]);
-  assert.match(chatHtml, /<title>Remembero Lab — Same small model, different tool<\/title>/i);
-  assert.match(chatHtml, /Same small model\. Different tool\./);
+  assert.match(chatHtml, /<title>Remembero Lab — Same database, different powers<\/title>/i);
+  assert.match(chatHtml, /Same database\. Same model\. Different powers\./);
   assert.match(chatHtml, /Shared SQLite/);
   assert.match(chatHtml, /Model calls/);
   assert.match(chatHtml, /Data only/);
@@ -136,9 +136,9 @@ test("labs run real browser-safe tool and policy loops without remote model APIs
   assert.match(chatClient, /rows verified/);
   assert.match(chatClient, /requestLoadedWebLlmToolCall/);
   assert.match(chatClient, /finalAnswerPrompt/);
-  assert.match(chatClient, /not \(\?:to \)\?follow up/);
+  assert.match(chatClient, /includesAll\("procurement", "freeze"\)/);
   assert.match(chatClient, /vendor security review/);
-  assert.match(chatClient, /maya prefers/);
+  assert.match(chatClient, /failing premise/);
   assert.match(chatClient, /parseChatToolCall/);
   assert.match(chatClient, /executeChatTool/);
   assert.match(chatClient, /Tool execution failed closed/);
@@ -148,9 +148,12 @@ test("labs run real browser-safe tool and policy loops without remote model APIs
   assert.match(chatClient, /Seed data loaded · run the tool loop/);
   assert.match(chatClient, /if \(value === null\) return "not run"/);
   assert.doesNotMatch(chatClient, /sharedSourceData|SOURCE_DATA:/);
-  assert.match(chatTools, /CREATE TABLE promised_update/);
+  assert.match(chatTools, /CREATE TABLE waits_on/);
   assert.match(chatTools, /CREATE TABLE review_slot/);
-  assert.match(chatTools, /schedule_review_atlas/);
+  assert.match(chatTools, /root_blocker\(Root\)/);
+  assert.match(chatTools, /WITH RECURSIVE chain/);
+  assert.match(chatTools, /ROLLBACK TO remembero_gate/);
+  assert.match(chatTools, /WHY_NOT_PREMISES/);
   assert.match(chatTools, /name: "Query"/);
   assert.match(chatTools, /lane === "data"/);
   assert.match(chatTools, /normalizedName/);
@@ -275,7 +278,7 @@ test("GitHub Pages export is self-contained when present", async () => {
   assert.match(html, /href="\/playground"/);
   assert.match(playgroundHtml, /SQLite \+ Datalog IDE/);
   assert.match(playgroundHtml, /The database is the demo\./);
-  assert.match(chatLabHtml, /Same small model\. Different tool\./);
+  assert.match(chatLabHtml, /Same database\. Same model\. Different powers\./);
   assert.match(agentLabHtml, /Let the model propose\. Let the gate show its work\./);
   assert.match(agentGuideHtml, /Wire one narrow tool loop\./);
   for (const labHtml of [chatLabHtml, agentLabHtml]) {

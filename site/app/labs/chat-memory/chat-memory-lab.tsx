@@ -142,21 +142,13 @@ function matchesAnswerContract(
     terms.every((term) => normalized.includes(normalize(term)));
 
   switch (scenarioId) {
-    case "schedule-review":
+    case "root-blocker":
+      return includesAll("procurement", "freeze");
+    case "write-gate":
       return (
-        includesAll(
-          "tuesday",
-          "morning",
-          "after",
-          "vendor security review",
-          "maya prefers",
-        ) &&
-        !normalized.includes("before the vendor security review")
-      );
-    case "follow-up-maya":
-      return (
-        includesAll("follow up", "maya", "atlas", "blocked", "update") &&
-        !/not (?:to )?follow up|do not follow up|should not follow up/.test(normalized)
+        (normalized.includes("refus") || normalized.includes("reject") ||
+          normalized.includes("cannot") || normalized.includes("blocked")) &&
+        normalized.includes("vendor security review")
       );
     case "unknown-preference":
       return (
@@ -164,6 +156,16 @@ function matchesAnswerContract(
         (normalized.includes("ask") ||
           normalized.includes("not stored") ||
           normalized.includes("missing"))
+      );
+    case "why-not":
+      return (
+        includesAll("orchard") &&
+        (normalized.includes("not blocked") ||
+          normalized.includes("no review slot") ||
+          normalized.includes("no slot") ||
+          normalized.includes("failing premise") ||
+          normalized.includes("cannot be derived") ||
+          normalized.includes("underivable"))
       );
   }
 }
@@ -200,15 +202,24 @@ function PlayIcon() {
   );
 }
 
+function ShieldIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 2.5 4.5 5.5v5.09c0 4.6 3.2 8.9 7.5 9.91 4.3-1.01 7.5-5.31 7.5-9.91V5.5Zm-1.2 12.3-2.8-2.8 1.06-1.06 1.74 1.73 4.14-4.13L16 9.6Z" />
+    </svg>
+  );
+}
+
 const SCENARIO_ICONS = {
-  "schedule-review": CalendarIcon,
-  "follow-up-maya": PersonIcon,
-  "unknown-preference": QuestionIcon,
+  "root-blocker": CalendarIcon,
+  "write-gate": ShieldIcon,
+  "unknown-preference": PersonIcon,
+  "why-not": QuestionIcon,
 } satisfies Record<ChatMemoryScenarioId, () => JSX.Element>;
 
 export function ChatMemoryLab() {
   const [scenarioId, setScenarioId] =
-    useState<ChatMemoryScenarioId>("schedule-review");
+    useState<ChatMemoryScenarioId>("root-blocker");
   const [hasRun, setHasRun] = useState(false);
   const [running, setRunning] = useState(false);
   const [modelMode, setModelMode] = useState<BrowserModelMode>("simulated");
@@ -546,10 +557,13 @@ export function ChatMemoryLab() {
 
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <h1>Same small model. Different tool.</h1>
+          <h1>Same database. Same model. Different powers.</h1>
           <p>
-            Watch the model issue a real tool call, SQLite execute it, and the
-            tool result return to the model. Both lanes share one browser-local database.
+            Both lanes share one browser-local SQLite database and the same model.
+            The only difference is what the tool can return — and these four cases
+            pick questions where that difference is structural: SQL hands back rows,
+            silence, or a silently corrupted state; Remembero hands back a checkable
+            proof, a named missing premise, or a refused contradiction.
           </p>
         </div>
         <div className={styles.heroStatus} aria-label="Current lab status">

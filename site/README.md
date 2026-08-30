@@ -5,9 +5,13 @@ browser-contained proof playground at `/playground` for
 [Remembero](https://github.com/rahult/remembero).
 
 - `/labs/chat-memory` runs a real model → tool → SQLite → tool result → model loop twice
-  over one browser-local database. The data-only agent calls a typed, prepared SQL tool;
-  the Remembero agent calls Datalog query + proof functions. Both calls, commands, results,
-  raw Hermes 7B WebLLM output, and answer contract remain visible.
+  over one browser-local database, on four questions chosen so the lanes structurally
+  diverge rather than tie: a recursive root-cause chain (steelmanned against
+  `WITH RECURSIVE` — rows agree, only one lane carries a checkable proof), a
+  contradictory write that SQL applies silently while the Remembero constraint refuses
+  and rolls it back, a proven absence versus a NULL cell, and a why-not diagnosis that
+  names each failing premise where SQL returns an empty set. Both calls, commands,
+  results, raw Hermes 7B WebLLM output, and answer contract remain visible.
 - `/labs/grounded-agent` keeps request facts, both model packets, the proposed action,
   deterministic gate rule, complete decision proof, and measured gate time visible together.
 - `/playground` measures SQLite + Wasm boot, rule + proof, SQL, and insert operations in
