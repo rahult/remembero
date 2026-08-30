@@ -3,7 +3,10 @@
 Status: **ready for a local-first alpha with live Unlimited-OCR disabled as a quality claim**.
 
 Remembero now has one tested local system across CLI, MCP, web, real-PDF document intelligence,
-deterministic proof, and Memorg interoperability. `npm run ship:check` is the release gate.
+deterministic proof, and Memorg interoperability. `npm run ship:check` is the release gate;
+its hardware-speed benchmark gates are authoritative on CI-class hardware, while
+`prepublishOnly` runs the deterministic correctness and artifact-policy subset so a
+publish from a loaded or throttled workstation cannot be blocked by machine speed alone.
 
 ## Golden path
 

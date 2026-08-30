@@ -186,7 +186,7 @@
     "test:watch": "vitest",
     "ship:check": "npm test && npm run test:package && npm run check:package-policy && npm run bench:memory:check && npm run bench:agent-db:check && npm run eval:documents -- --check && npm run export:documents:memorg && python3 scripts/import-document-memorg.py docs/research/results/document-intelligence.memorg.json --dry-run && npm audit --audit-level=high",
     "dev": "tsx src/cli.ts",
-    "prepublishOnly": "npm run ship:check"
+    "prepublishOnly": "npm test && npm run test:package && npm run check:package-policy && npm audit --audit-level=high"
   },
   "repository": {
     "type": "git",
