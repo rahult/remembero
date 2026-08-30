@@ -1,4 +1,4 @@
-export type NavigationView = 'ask' | 'documents' | 'knowledge' | 'graph' | 'rules';
+export type NavigationView = 'ask' | 'documents' | 'knowledge' | 'graph' | 'rules' | 'versions';
 export type SearchKind = 'fact' | 'rule' | 'constraint';
 export type HealthTone = 'healthy' | 'review' | 'violations';
 export type DocumentEvidenceKind =
@@ -109,6 +109,44 @@ export interface BootstrapResponse {
   graph: GraphData;
   rules: RuleListItem[];
   healthFindings: string[];
+}
+
+export interface SemanticRefView {
+  name: string;
+  versionDigest: string;
+  updatedAt: string;
+}
+
+export interface SemanticVersionView {
+  digest: string;
+  labels: string[];
+  parents: string[];
+  createdAt: string;
+  status: 'baseline' | 'candidate' | 'review' | 'blocked' | 'promoted';
+  memberKeys: string[];
+  edgeCount: number;
+  contractCount: number;
+  changed: boolean;
+  compatibility?: {
+    digest: string;
+    checks: Array<{ dimension: string; status: string; summary: string }>;
+  };
+}
+
+export interface SemanticVersionWorkspace {
+  refs: SemanticRefView[];
+  versions: SemanticVersionView[];
+}
+
+export interface SemanticVersionReview {
+  candidateVersionDigest: string;
+  baselineVersionDigest?: string;
+  diff: Record<string, unknown>;
+  evidence: Array<{ digest: string; kind: string; status: string; evaluator?: string; metrics: Record<string, number | null> }>;
+  assessment: {
+    digest: string;
+    checks: Array<{ dimension: string; status: string; summary: string }>;
+  };
 }
 
 export interface AskResponse {
@@ -1237,6 +1275,88 @@ function normalizeSearch(
 export async function getBootstrap(): Promise<BootstrapResponse> {
   const payload = await requestJson<unknown>('/api/bootstrap');
   return normalizeBootstrap(payload);
+}
+
+function normalizeVersionWorkspace(payload: unknown): SemanticVersionWorkspace {
+  const root = isRecord(payload) ? payload : {};
+  return {
+    refs: asArray(root.refs).map((value) => {
+      const record = isRecord(value) ? value : {};
+      return {
+        name: asString(record.name),
+        versionDigest: asString(record.versionDigest),
+        updatedAt: asString(record.updatedAt),
+      };
+    }),
+    versions: asArray(root.versions).map((value) => {
+      const record = isRecord(value) ? value : {};
+      const compatibility = isRecord(record.compatibility) ? record.compatibility : undefined;
+      return {
+        digest: asString(record.digest),
+        labels: asArray<string>(record.labels),
+        parents: asArray<string>(record.parents),
+        createdAt: asString(record.createdAt),
+        status: asString(record.status, 'candidate') as SemanticVersionView['status'],
+        memberKeys: asArray<string>(record.memberKeys),
+        edgeCount: asNumber(record.edgeCount),
+        contractCount: asNumber(record.contractCount),
+        changed: asBoolean(record.changed),
+        ...(compatibility === undefined
+          ? {}
+          : {
+              compatibility: {
+                digest: asString(compatibility.digest),
+                checks: asArray(compatibility.checks).map((check) => {
+                  const item = isRecord(check) ? check : {};
+                  return {
+                    dimension: asString(item.dimension),
+                    status: asString(item.status),
+                    summary: asString(item.summary),
+                  };
+                }),
+              },
+            }),
+      };
+    }),
+  };
+}
+
+export async function getVersionWorkspace(): Promise<SemanticVersionWorkspace> {
+  return normalizeVersionWorkspace(await requestJson<unknown>('/api/versions'));
+}
+
+export async function captureSemanticVersion(input: {
+  label?: string;
+  ref?: string;
+}): Promise<Record<string, unknown>> {
+  return requestJson<Record<string, unknown>>('/api/versions/capture', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function reviewSemanticVersion(input: {
+  candidateVersionDigest: string;
+  includeDocumentEvaluation?: boolean;
+}): Promise<SemanticVersionReview> {
+  return requestJson<SemanticVersionReview>('/api/versions/review', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function promoteSemanticVersion(input: {
+  ref: string;
+  candidateVersionDigest: string;
+  assessmentDigest: string;
+  operationId: string;
+  acceptedReviewDimensions?: string[];
+  reason?: string;
+}): Promise<Record<string, unknown>> {
+  return requestJson<Record<string, unknown>>('/api/versions/promote', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
 }
 
 export async function askMemory(input: {

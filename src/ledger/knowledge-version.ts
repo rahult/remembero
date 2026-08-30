@@ -66,6 +66,11 @@ export interface CapturedKnowledgeVersion {
   recordedSnapshot: RecordedKnowledgeSnapshot;
 }
 
+export interface CapturedKnowledgeSnapshot {
+  knowledgeObject: SemanticObject;
+  recordedSnapshot: RecordedKnowledgeSnapshot;
+}
+
 export interface DiffKnowledgeVersionsOptions extends RecordedKnowledgeDiffOptions {
   memberKey?: string;
 }
@@ -184,21 +189,13 @@ export function captureKnowledgeVersion(
   store: MemoryStore,
   options: CaptureKnowledgeVersionOptions = {}
 ): CapturedKnowledgeVersion {
-  const namespaces = options.namespaces ?? '*';
-  const recordedSnapshot = options.recordedSequence === undefined
-    ? store.recordedHead(namespaces)
-    : store.recordedSnapshot(namespaces, options.recordedSequence);
-  const value = snapshotValue(recordedSnapshot);
-  const knowledgeObject = ledger.putObject({
-    kind: REMEMBERO_KNOWLEDGE_OBJECT_KIND,
-    value,
-    createdAt: options.createdAt,
-  });
+  const snapshot = captureKnowledgeSnapshot(ledger, store, options);
   const memberKey = options.memberKey ?? DEFAULT_KNOWLEDGE_MEMBER_KEY;
   const members: SemanticVersionMemberInput[] = [
-    { key: memberKey, objectDigest: knowledgeObject.digest },
+    { key: memberKey, objectDigest: snapshot.knowledgeObject.digest },
     ...(options.members ?? []),
   ];
+  const value = snapshot.knowledgeObject.value as unknown as RememberoKnowledgeSnapshotValue;
   const versionInput: CreateSemanticVersionInput = {
     parents: options.parents,
     members,
@@ -219,6 +216,28 @@ export function captureKnowledgeVersion(
   };
   return {
     version: ledger.createVersion(versionInput),
+    knowledgeObject: snapshot.knowledgeObject,
+    recordedSnapshot: snapshot.recordedSnapshot,
+  };
+}
+
+/** Capture only the exact knowledge object and recorded coordinate. */
+export function captureKnowledgeSnapshot(
+  ledger: SemanticLedger,
+  store: MemoryStore,
+  options: Pick<CaptureKnowledgeVersionOptions, 'namespaces' | 'recordedSequence' | 'createdAt'> = {}
+): CapturedKnowledgeSnapshot {
+  const namespaces = options.namespaces ?? '*';
+  const recordedSnapshot = options.recordedSequence === undefined
+    ? store.recordedHead(namespaces)
+    : store.recordedSnapshot(namespaces, options.recordedSequence);
+  const value = snapshotValue(recordedSnapshot);
+  const knowledgeObject = ledger.putObject({
+    kind: REMEMBERO_KNOWLEDGE_OBJECT_KIND,
+    value,
+    createdAt: options.createdAt,
+  });
+  return {
     knowledgeObject,
     recordedSnapshot,
   };

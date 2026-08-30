@@ -11,6 +11,8 @@ import type {
   NavigationView,
   SearchKind,
   SearchResponse,
+  SemanticVersionReview,
+  SemanticVersionWorkspace,
 } from './api';
 import {
   ApiError,
@@ -23,6 +25,10 @@ import {
   seedDemo,
   searchKnowledge,
   askMemory,
+  captureSemanticVersion,
+  getVersionWorkspace,
+  promoteSemanticVersion,
+  reviewSemanticVersion,
 } from './api';
 import {
   AskIcon,
@@ -34,6 +40,7 @@ import {
   DocumentIcon,
   FolderIcon,
   GearIcon,
+  GitBranchIcon,
   GraphIcon,
   KnowledgeIcon,
   MenuIcon,
@@ -48,6 +55,7 @@ import { GraphView } from './components/graph-view';
 import { GraphCanvas } from './components/graph-canvas';
 import { KnowledgeView } from './components/knowledge-view';
 import { RulesView } from './components/rules-view';
+import { VersionsView } from './components/versions-view';
 import { DocumentView } from './components/document-view';
 
 type DocumentEvidenceMode = 'regions' | 'claims';
@@ -80,6 +88,7 @@ const NAV_ITEMS: Array<{
   { id: 'knowledge', label: 'Knowledge', icon: KnowledgeIcon },
   { id: 'graph', label: 'Graph', icon: GraphIcon },
   { id: 'rules', label: 'Rules', icon: RulesIcon },
+  { id: 'versions', label: 'Versions', icon: GitBranchIcon },
 ];
 
 function firstDocumentPageId(data: DocumentShowcaseResponse | null): string | null {
@@ -452,6 +461,11 @@ export function App() {
   const [documentAction, setDocumentAction] = useState<'idle' | 'asking' | 'parsing'>('idle');
   const [documentSelection, setDocumentSelection] =
     useState<DocumentSelectionState>(EMPTY_DOCUMENT_SELECTION);
+  const [versionWorkspace, setVersionWorkspace] = useState<SemanticVersionWorkspace | null>(null);
+  const [selectedVersionDigest, setSelectedVersionDigest] = useState<string | null>(null);
+  const [versionReview, setVersionReview] = useState<SemanticVersionReview | null>(null);
+  const [versionLoading, setVersionLoading] = useState(false);
+  const [versionError, setVersionError] = useState<string | null>(null);
 
   const deferredKnowledgeQuery = useDeferredValue(knowledgeQuery);
 
@@ -495,6 +509,11 @@ export function App() {
     }
     void loadDocument();
   }, [activeView, documentCatalog.length, documentData, documentLoading]);
+
+  useEffect(() => {
+    if (activeView !== 'versions' || versionLoading || versionWorkspace !== null) return;
+    void loadVersions();
+  }, [activeView]);
 
   useEffect(() => {
     if (activeView !== 'knowledge') return;
@@ -623,6 +642,81 @@ export function App() {
       });
     } finally {
       setDocumentAction('idle');
+    }
+  }
+
+  async function loadVersions() {
+    setVersionLoading(true);
+    try {
+      const data = await getVersionWorkspace();
+      startTransition(() => {
+        setVersionWorkspace(data);
+        setVersionError(null);
+        setSelectedVersionDigest((current) => current ?? data.versions[0]?.digest ?? null);
+      });
+    } catch (error) {
+      startTransition(() => setVersionError(normalizeError(error)));
+    } finally {
+      setVersionLoading(false);
+    }
+  }
+
+  async function handleCaptureVersion() {
+    setVersionLoading(true);
+    try {
+      const result = await captureSemanticVersion({ ref: 'main' });
+      const version = result.version;
+      if (typeof version === 'object' && version !== null && !Array.isArray(version)) {
+        const digest = (version as { digest?: unknown }).digest;
+        if (typeof digest === 'string') setSelectedVersionDigest(digest);
+      }
+      setVersionWorkspace(null);
+      setVersionReview(null);
+      setVersionError(null);
+      await loadVersions();
+    } catch (error) {
+      setVersionError(normalizeError(error));
+      setVersionLoading(false);
+    }
+  }
+
+  async function handleReviewVersion() {
+    if (selectedVersionDigest === null) return;
+    setVersionLoading(true);
+    try {
+      const result = await reviewSemanticVersion({ candidateVersionDigest: selectedVersionDigest });
+      setVersionReview(result);
+      setVersionError(null);
+      setVersionWorkspace(null);
+      await loadVersions();
+    } catch (error) {
+      setVersionError(normalizeError(error));
+      setVersionLoading(false);
+    }
+  }
+
+  async function handlePromoteVersion() {
+    if (selectedVersionDigest === null || versionReview === null) return;
+    const acceptedReviewDimensions = versionReview.assessment.checks
+      .filter((check) => check.status === 'review')
+      .map((check) => check.dimension);
+    setVersionLoading(true);
+    try {
+      await promoteSemanticVersion({
+        ref: 'main',
+        candidateVersionDigest: selectedVersionDigest,
+        assessmentDigest: versionReview.assessment.digest,
+        operationId: `web-promote-${selectedVersionDigest.slice(0, 16)}`,
+        acceptedReviewDimensions,
+        reason: 'Reviewed the exact semantic diff and deterministic evidence.',
+      });
+      setVersionReview(null);
+      setVersionWorkspace(null);
+      setVersionError(null);
+      await loadVersions();
+    } catch (error) {
+      setVersionError(normalizeError(error));
+      setVersionLoading(false);
     }
   }
 
@@ -993,6 +1087,23 @@ export function App() {
 
                 {activeView === 'rules' ? (
                   <RulesView bootstrap={bootstrap} onSeed={() => void handleSeed()} />
+                ) : null}
+
+                {activeView === 'versions' ? (
+                  <VersionsView
+                    workspace={versionWorkspace}
+                    selectedDigest={selectedVersionDigest}
+                    review={versionReview}
+                    loading={versionLoading}
+                    error={versionError}
+                    onSelect={(digest) => {
+                      setSelectedVersionDigest(digest);
+                      setVersionReview(null);
+                    }}
+                    onCapture={() => void handleCaptureVersion()}
+                    onReview={() => void handleReviewVersion()}
+                    onPromote={() => void handlePromoteVersion()}
+                  />
                 ) : null}
               </>
             ) : null}

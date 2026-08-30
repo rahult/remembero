@@ -60,6 +60,18 @@ export function GraphIcon(props: IconProps) {
   );
 }
 
+export function GitBranchIcon(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <circle cx="6" cy="6" r="2" />
+      <circle cx="18" cy="18" r="2" />
+      <circle cx="18" cy="6" r="2" />
+      <path d="M8 6h5a5 5 0 0 1 5 5v5" />
+      <path d="M6 8v8a2 2 0 0 0 2 2h8" />
+    </IconBase>
+  );
+}
+
 export function RulesIcon(props: IconProps) {
   return (
     <IconBase {...props}>

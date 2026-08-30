@@ -118,6 +118,11 @@ import {
   serializeKnowledgeBundle,
 } from '../knowledge/bundle.js';
 import { MAX_KNOWLEDGE_CHECK_SUITE_BYTES } from '../knowledge/checks.js';
+import { captureRememberoVersion } from '../ledger/remembero-version.js';
+import {
+  promoteRememberoReview,
+  reviewRememberoCandidate,
+} from '../ledger/remembero-review.js';
 import { TrustMetadataError } from '../knowledge/trust.js';
 import {
   IntegrityViolationError,
@@ -522,6 +527,198 @@ export function createServer(deps: PipelineDeps): McpServer {
     new FileEmbeddingCache(resolvedDeps.store.semanticEmbeddingCacheRoot())
   );
   const server = new McpServer({ name: 'rembero', version: '0.54.0' });
+
+  const semanticLedger = () => {
+    if (resolvedDeps.semanticLedger === undefined) {
+      throw new Error('semantic version authority is not configured for this MCP server');
+    }
+    return resolvedDeps.semanticLedger;
+  };
+
+  server.registerTool(
+    'capture_semantic_version',
+    {
+      title: 'Capture semantic version',
+      description:
+        'Capture the exact Remembero knowledge head plus document, rule, integrity-policy, model, runtime, and evaluation-suite objects into the SQLite semantic ledger. This does not mutate memory. If the ref does not exist, it initializes that ref.',
+      inputSchema: {
+        label: z.string().max(256).optional(),
+        ref: z.string().max(256).optional(),
+      },
+    },
+    async ({ label, ref }) => {
+      try {
+        const ledger = semanticLedger();
+        const targetRef = ref ?? 'main';
+        const parent = ledger.getRef(targetRef)?.versionDigest;
+        const capture = captureRememberoVersion({
+          ledger,
+          store: resolvedDeps.store,
+          ...(parent === undefined ? {} : { parents: [parent] }),
+          label: label ?? `remembero@mcp-${Date.now()}`,
+          metadata: { source: 'mcp' },
+        });
+        if (parent === undefined) {
+          ledger.setRef({
+            name: targetRef,
+            versionDigest: capture.version.digest,
+            operationId: `remembero-mcp-version-initialize-${targetRef}`,
+            reason: 'Initialize semantic version ref',
+          });
+        }
+        return asContent({
+          version: capture.version,
+          baselineVersionDigest: parent,
+          recordedSnapshot: {
+            sequence: capture.recordedSnapshot.sequence,
+            journalEntries: capture.recordedSnapshot.journalEntries,
+            namespaces: capture.recordedSnapshot.namespaces,
+          },
+        });
+      } catch (e) {
+        return asError(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    'list_semantic_versions',
+    {
+      title: 'List semantic versions',
+      description: 'List current semantic refs and recent immutable Remembero versions.',
+      inputSchema: {},
+    },
+    async () => {
+      try {
+        const ledger = semanticLedger();
+        return asContent({ refs: ledger.listRefs(), versions: ledger.listVersions() });
+      } catch (e) {
+        return asError(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    'inspect_semantic_version',
+    {
+      title: 'Inspect semantic version',
+      description: 'Resolve an exact digest, immutable label, or mutable ref to its full semantic version.',
+      inputSchema: { reference: z.string().min(1).max(256) },
+    },
+    async ({ reference }) => {
+      try {
+        return asContent(semanticLedger().resolveVersion(reference));
+      } catch (e) {
+        return asError(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    'diff_semantic_versions',
+    {
+      title: 'Diff semantic versions',
+      description: 'Compare semantic members, typed edges, contracts, evidence metrics, and compatibility for two exact versions.',
+      inputSchema: {
+        from: z.string().min(1).max(256),
+        to: z.string().min(1).max(256),
+      },
+    },
+    async ({ from, to }) => {
+      try {
+        const ledger = semanticLedger();
+        const left = ledger.resolveVersion(from);
+        const right = ledger.resolveVersion(to);
+        return asContent(ledger.diffVersions(left.digest, right.digest));
+      } catch (e) {
+        return asError(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    'review_semantic_version',
+    {
+      title: 'Review semantic version',
+      description:
+        'Run deterministic document evidence and record a compatibility vector for a candidate version. This is non-mutating and does not move refs.',
+      inputSchema: {
+        candidate: z.string().min(1).max(256),
+        includeDocumentEvaluation: z.boolean().optional(),
+      },
+    },
+    async ({ candidate, includeDocumentEvaluation }) => {
+      try {
+        const ledger = semanticLedger();
+        const version = ledger.resolveVersion(candidate);
+        return asContent(
+          reviewRememberoCandidate({
+            ledger,
+            store: resolvedDeps.store,
+            candidateVersionDigest: version.digest,
+            baselineVersionDigest: version.parents[0],
+            includeDocumentEvaluation,
+          })
+        );
+      } catch (e) {
+        return asError(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    'promote_semantic_version',
+    {
+      title: 'Promote reviewed semantic version',
+      description:
+        'Move a ref only after an exact compatibility assessment. Failed and blocked dimensions always reject; review dimensions require explicit acceptance. This is mutation authority and should be called only after human review.',
+      inputSchema: {
+        ref: z.string().min(1).max(256),
+        candidate: z.string().min(1).max(256),
+        assessment: z.string().regex(/^[a-f0-9]{64}$/),
+        operationId: z.string().min(1).max(MAX_OPERATION_ID_BYTES),
+        acceptedReviewDimensions: z.array(z.string().min(1).max(128)).max(256).optional(),
+        reason: z.string().max(4096).optional(),
+      },
+    },
+    async ({ ref, candidate, assessment, operationId, acceptedReviewDimensions, reason }) => {
+      try {
+        const ledger = semanticLedger();
+        const version = ledger.resolveVersion(candidate);
+        const current = ledger.getRef(ref);
+        return asContent(
+          promoteRememberoReview({
+            ledger,
+            ref,
+            candidateVersionDigest: version.digest,
+            assessmentDigest: assessment,
+            operationId,
+            expectedCurrentVersionDigest: current?.versionDigest,
+            acceptedReviewDimensions,
+            reason,
+          })
+        );
+      } catch (e) {
+        return asError(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    'semantic_ref_history',
+    {
+      title: 'Semantic ref history',
+      description: 'List immutable movements of one semantic ref, including promotion decisions.',
+      inputSchema: { ref: z.string().min(1).max(256) },
+    },
+    async ({ ref }) => {
+      try {
+        return asContent({ ref, history: semanticLedger().refHistory(ref) });
+      } catch (e) {
+        return asError(e);
+      }
+    }
+  );
 
   server.registerTool(
     'remember',

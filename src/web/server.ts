@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { dirname, extname, resolve, sep } from 'node:path';
+import { dirname, extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadEnv } from '../env.js';
 import { lazyClientFromEnv } from '../llm/client.js';
 import { MAX_INPUT_BYTES, stringifyBoundedResult } from '../safety.js';
 import { MemoryStore } from '../store/store.js';
+import { openSemanticLedger } from '../ledger/remembero-review.js';
 import { RemberoWebService, WebServiceError } from './service.js';
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '::1']);
@@ -157,6 +158,12 @@ async function apiResponse(
   if (method === 'GET' && url.pathname === '/api/graph') {
     return service.graph({ focus: url.searchParams.get('focus') ?? 'atlas' });
   }
+  if (method === 'GET' && url.pathname === '/api/versions') {
+    return service.versionWorkspace();
+  }
+  if (method === 'GET' && url.pathname === '/api/versions/history') {
+    return { ref: url.searchParams.get('ref') ?? 'main', history: service.semanticRefHistory(url.searchParams.get('ref') ?? 'main') };
+  }
   if (method !== 'POST') {
     throw new WebServiceError('method_not_allowed', 'Method not allowed.', 405);
   }
@@ -197,6 +204,46 @@ async function apiResponse(
       predicate: stringField(body, 'predicate')!,
       object: stringField(body, 'object')!,
       sourceText: stringField(body, 'sourceText')!,
+    });
+  }
+  if (url.pathname === '/api/versions/capture') {
+    return service.captureSemanticVersion({
+      ...(stringField(body, 'label', true) === undefined
+        ? {}
+        : { label: stringField(body, 'label', true) }),
+      ...(stringField(body, 'ref', true) === undefined
+        ? {}
+        : { ref: stringField(body, 'ref', true) }),
+    });
+  }
+  if (url.pathname === '/api/versions/review') {
+    return service.reviewSemanticVersion({
+      candidateVersionDigest: stringField(body, 'candidateVersionDigest')!,
+      ...(typeof body.includeDocumentEvaluation === 'boolean'
+        ? { includeDocumentEvaluation: body.includeDocumentEvaluation }
+        : {}),
+    });
+  }
+  if (url.pathname === '/api/versions/promote') {
+    const accepted = body.acceptedReviewDimensions;
+    if (
+      accepted !== undefined &&
+      (!Array.isArray(accepted) || accepted.some((value) => typeof value !== 'string'))
+    ) {
+      throw new WebServiceError(
+        'invalid_request',
+        'acceptedReviewDimensions must be an array of strings.'
+      );
+    }
+    return service.promoteSemanticVersion({
+      ref: stringField(body, 'ref')!,
+      candidateVersionDigest: stringField(body, 'candidateVersionDigest')!,
+      assessmentDigest: stringField(body, 'assessmentDigest')!,
+      operationId: stringField(body, 'operationId')!,
+      ...(accepted === undefined ? {} : { acceptedReviewDimensions: accepted as string[] }),
+      ...(stringField(body, 'reason', true) === undefined
+        ? {}
+        : { reason: stringField(body, 'reason', true) }),
     });
   }
   throw new WebServiceError('not_found', 'API route not found.', 404);
@@ -254,9 +301,11 @@ export async function startWebServer(options: StartWebServerOptions = {}) {
   const port = options.port ?? portFromEnv(process.env.REMBERO_WEB_PORT);
   const root = options.root ?? process.env.REMBERO_WEB_ROOT ?? resolve('.rembero-web');
   const store = new MemoryStore(root);
+  const semantic = await openSemanticLedger(join(root, 'semantic.sqlite'));
   const llmConfigured = Boolean(process.env.LLM_API_KEY);
   const service = new RemberoWebService({
     store,
+    ledger: semantic.ledger,
     llm: lazyClientFromEnv(),
     llmConfigured,
     namespace: options.namespace ?? process.env.REMBERO_WEB_NAMESPACE,
@@ -266,6 +315,7 @@ export async function startWebServer(options: StartWebServerOptions = {}) {
     if (service.bootstrap().empty) service.seedDemo();
     service.parseAllDocuments();
   }
+  service.ensureSemanticBaseline();
 
   const clientRoot = resolve(
     dirname(fileURLToPath(import.meta.url)),
@@ -332,6 +382,7 @@ export async function startWebServer(options: StartWebServerOptions = {}) {
     url,
     close: async () => {
       await vite?.close();
+      semantic.database.close();
       await new Promise<void>((resolveClose, reject) =>
         server.close((error) => (error === undefined ? resolveClose() : reject(error)))
       );

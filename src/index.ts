@@ -56,6 +56,8 @@ export {
 } from './store/sqlite-store.js';
 export * from './ledger/semantic-ledger.js';
 export * from './ledger/knowledge-version.js';
+export * from './ledger/remembero-version.js';
+export * from './ledger/remembero-review.js';
 export {
   DatalogDatabase,
   buildSqliteExtension,

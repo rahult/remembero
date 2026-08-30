@@ -405,6 +405,26 @@ ref history. `captureKnowledgeVersion(...)` optionally links an exact Remembero 
 the memory store and ledger remain independently usable. See the
 [semantic ledger guide](docs/SEMANTIC-LEDGER.md).
 
+The Remembero review surface builds a complete product version around that generic ledger:
+knowledge, document/source lineage, rules, integrity policy, model, runtime, and evaluation
+suite are captured as typed members and edges. Use the CLI to inspect the same authority:
+
+```bash
+remembero version capture --label remembero@baseline
+remembero version list
+remembero version diff main <candidate-digest>
+remembero version review <candidate-digest>
+remembero version promote <candidate-digest> <assessment-digest> \
+  --op-id reviewed-candidate \
+  --accept-review knowledge-schema \
+  --accept-review policy-review
+```
+
+The local web console exposes the same flow under **Versions**. Capture and review are
+non-mutating; only an explicitly reviewed promotion moves the `main` ref. The MCP server
+exposes equivalent `capture_semantic_version`, `diff_semantic_versions`,
+`review_semantic_version`, and `promote_semantic_version` tools when started by the CLI.
+
 ### Native SQLite extension
 
 Remembero also ships the source for a real loadable SQLite extension. It treats ordinary

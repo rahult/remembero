@@ -32,6 +32,7 @@ import type {
 import type { ChatMessage, LlmClient } from './client.js';
 import type { EmbeddingClient } from './embeddings.js';
 import type { EmbeddingCache } from '../knowledge/semantic-search.js';
+import type { SemanticLedger } from '../ledger/semantic-ledger.js';
 import {
   explainKnowledge,
   type ExplainKnowledgeResult,
@@ -90,6 +91,8 @@ import {
 export interface PipelineDeps {
   store: MemoryStore;
   llm: LlmClient;
+  /** Optional SQLite semantic version authority for review/promotion tools. */
+  semanticLedger?: SemanticLedger;
   /** Optional semantic-retrieval provider; structured reasoning never requires it. */
   embeddings?: EmbeddingClient;
   /** Optional process-local document-vector cache for semantic retrieval. */

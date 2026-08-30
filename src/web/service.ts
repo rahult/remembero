@@ -33,6 +33,15 @@ import type { KnowledgeSearchClauseKind } from '../knowledge/search.js';
 import { assertBoundedInput } from '../safety.js';
 import type { MemorySource, MemoryStore } from '../store/store.js';
 import {
+  captureRememberoVersion,
+  type RememberoVersionCapture,
+} from '../ledger/remembero-version.js';
+import {
+  promoteRememberoReview,
+  reviewRememberoCandidate,
+} from '../ledger/remembero-review.js';
+import type { SemanticLedger, SemanticVersion } from '../ledger/semantic-ledger.js';
+import {
   browseKnowledgeGraphTool,
   explainQueryTool,
   exportKnowledgeBundleTool,
@@ -138,6 +147,7 @@ export class WebServiceError extends Error {
 
 export interface RemberoWebServiceOptions {
   store: MemoryStore;
+  ledger?: SemanticLedger;
   llm?: LlmClient;
   llmConfigured?: boolean;
   namespace?: string;
@@ -593,6 +603,134 @@ export class RemberoWebService {
         downloadUrl: '/documents/document-intelligence.memorg.json',
       },
     };
+  }
+
+  private requireLedger(): SemanticLedger {
+    if (this.options.ledger === undefined) {
+      throw new WebServiceError(
+        'versioning_unavailable',
+        'Semantic version review is unavailable for this workspace.',
+        503
+      );
+    }
+    return this.options.ledger;
+  }
+
+  private versionStatus(version: SemanticVersion, currentRefs: Map<string, string>): string {
+    if ([...currentRefs.values()].includes(version.digest)) return 'promoted';
+    const parent = version.parents[0];
+    if (parent === undefined) return 'baseline';
+    const diff = this.requireLedger().diffVersions(parent, version.digest);
+    const checks = diff.compatibility?.checks ?? [];
+    if (checks.some((check) => check.status === 'fail' || check.status === 'blocked')) {
+      return 'blocked';
+    }
+    if (checks.some((check) => check.status === 'review')) return 'review';
+    return 'candidate';
+  }
+
+  ensureSemanticBaseline(): Record<string, unknown> {
+    const ledger = this.requireLedger();
+    const current = ledger.getRef('main');
+    if (current !== undefined) return { created: false, versionDigest: current.versionDigest };
+    const capture = captureRememberoVersion({
+      ledger,
+      store: this.options.store,
+      label: 'remembero@0.55.0',
+      metadata: { purpose: 'web-baseline' },
+    });
+    ledger.setRef({
+      name: 'main',
+      versionDigest: capture.version.digest,
+      operationId: 'remembero-web-main-baseline',
+      reason: 'Initialize the human review baseline',
+    });
+    return { created: true, versionDigest: capture.version.digest };
+  }
+
+  versionWorkspace() {
+    const ledger = this.requireLedger();
+    const refs = ledger.listRefs();
+    const currentRefs = new Map(refs.map((ref) => [ref.name, ref.versionDigest]));
+    const versions = ledger.listVersions(100).map((version) => {
+      const parent = version.parents[0];
+      const diff = parent === undefined ? undefined : ledger.diffVersions(parent, version.digest);
+      return {
+        digest: version.digest,
+        labels: version.labels,
+        parents: version.parents,
+        createdAt: version.createdAt,
+        status: this.versionStatus(version, currentRefs),
+        memberKeys: version.members.map((member) => member.key),
+        edgeCount: version.edges.length,
+        contractCount: version.contracts.length,
+        compatibility: diff?.compatibility,
+        changed: diff?.changed ?? false,
+      };
+    });
+    return { refs, versions };
+  }
+
+  captureSemanticVersion(input: { label?: string; ref?: string }): Record<string, unknown> {
+    const ledger = this.requireLedger();
+    const ref = input.ref ?? 'main';
+    const baseline = ledger.getRef(ref);
+    const capture: RememberoVersionCapture = captureRememberoVersion({
+      ledger,
+      store: this.options.store,
+      ...(baseline === undefined ? {} : { parents: [baseline.versionDigest] }),
+      label: input.label ?? `remembero@candidate-${Date.now()}`,
+      metadata: { purpose: 'web-candidate', baselineRef: ref },
+    });
+    return {
+      version: capture.version,
+      baselineVersionDigest: baseline?.versionDigest,
+      documents: capture.documents,
+      recordedSnapshot: {
+        sequence: capture.recordedSnapshot.sequence,
+        journalEntries: capture.recordedSnapshot.journalEntries,
+        namespaces: capture.recordedSnapshot.namespaces,
+      },
+    };
+  }
+
+  reviewSemanticVersion(input: { candidateVersionDigest: string; includeDocumentEvaluation?: boolean }) {
+    const ledger = this.requireLedger();
+    const candidate = ledger.getVersion(input.candidateVersionDigest);
+    const baseline = candidate.parents[0];
+    return reviewRememberoCandidate({
+      ledger,
+      store: this.options.store,
+      candidateVersionDigest: candidate.digest,
+      baselineVersionDigest: baseline,
+      includeDocumentEvaluation: input.includeDocumentEvaluation,
+    });
+  }
+
+  promoteSemanticVersion(input: {
+    ref: string;
+    candidateVersionDigest: string;
+    assessmentDigest: string;
+    operationId: string;
+    acceptedReviewDimensions?: string[];
+    reason?: string;
+  }) {
+    const ledger = this.requireLedger();
+    const current = ledger.getRef(input.ref);
+    return promoteRememberoReview({
+      ledger,
+      ref: input.ref,
+      candidateVersionDigest: input.candidateVersionDigest,
+      assessmentDigest: input.assessmentDigest,
+      operationId: input.operationId,
+      expectedCurrentVersionDigest: current?.versionDigest,
+      acceptedReviewDimensions: input.acceptedReviewDimensions,
+      reason: input.reason,
+    });
+  }
+
+  semanticRefHistory(ref: string) {
+    return this.requireLedger().refHistory(ref);
   }
 
   private allowlistedDocumentId(documentId?: string): string {

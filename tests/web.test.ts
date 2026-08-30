@@ -500,4 +500,63 @@ describe('Remembero web use-case service', () => {
       startWebServer({ host: '0.0.0.0', port: 0, seedDemo: false })
     ).rejects.toThrow(/loopback hosts only/i);
   });
+
+  it('serves the semantic version review board through the same-origin API', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'rembero-web-versions-'));
+    const running = await startWebServer({ root, port: 0, seedDemo: true });
+    try {
+      const initial = await fetch(`${running.url}/api/versions`).then((response) => response.json());
+      expect(initial).toMatchObject({
+        refs: [expect.objectContaining({ name: 'main', versionDigest: expect.stringMatching(/^[a-f0-9]{64}$/) })],
+        versions: expect.arrayContaining([
+          expect.objectContaining({ status: 'promoted', memberKeys: expect.arrayContaining(['knowledge', 'documents', 'rules']) }),
+        ]),
+      });
+
+      const candidateResponse = await fetch(`${running.url}/api/versions/capture`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Origin: running.url },
+        body: JSON.stringify({ label: 'remembero@web-candidate', ref: 'main' }),
+      });
+      expect(candidateResponse.status).toBe(200);
+      const candidatePayload = await candidateResponse.json();
+      const candidateDigest = candidatePayload.version.digest as string;
+      expect(candidateDigest).toMatch(/^[a-f0-9]{64}$/);
+
+      const reviewResponse = await fetch(`${running.url}/api/versions/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Origin: running.url },
+        body: JSON.stringify({ candidateVersionDigest: candidateDigest }),
+      });
+      expect(reviewResponse.status).toBe(200);
+      const reviewPayload = await reviewResponse.json();
+      expect(reviewPayload).toMatchObject({
+        candidateVersionDigest: candidateDigest,
+        assessment: { digest: expect.stringMatching(/^[a-f0-9]{64}$/) },
+        evidence: expect.arrayContaining([
+          expect.objectContaining({ kind: 'document-evaluation', status: 'passed' }),
+        ]),
+      });
+
+      const acceptedReviewDimensions = reviewPayload.assessment.checks
+        .filter((check: { status: string }) => check.status === 'review')
+        .map((check: { dimension: string }) => check.dimension);
+      const promoteResponse = await fetch(`${running.url}/api/versions/promote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Origin: running.url },
+        body: JSON.stringify({
+          ref: 'main',
+          candidateVersionDigest: candidateDigest,
+          assessmentDigest: reviewPayload.assessment.digest,
+          operationId: `web-test-promote-${candidateDigest.slice(0, 12)}`,
+          acceptedReviewDimensions,
+          reason: 'Reviewed semantic candidate.',
+        }),
+      });
+      expect(promoteResponse.status).toBe(200);
+      await expect(promoteResponse.json()).resolves.toMatchObject({ outcome: 'accepted' });
+    } finally {
+      await running.close();
+    }
+  });
 });

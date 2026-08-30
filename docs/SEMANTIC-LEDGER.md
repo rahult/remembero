@@ -140,6 +140,33 @@ The captured object contains the exact recorded sequence, journal length, select
 canonical clauses, durable sources, and knowledge-program digest. The generic version can also
 contain application, schema, runtime, model, or policy objects supplied by the caller.
 
+## Remembero product review adapter
+
+`captureRememberoVersion(...)` composes the knowledge snapshot with stable Remembero members:
+
+```text
+application
+documents
+evaluation-suite
+integrity-policy
+knowledge
+model
+rules
+runtime
+```
+
+It adds typed edges for document production, rule consumption, evaluation, integrity checks, and
+runtime/model requirements. The adapter does not mutate memory. `reviewRememberoCandidate(...)`
+records deterministic knowledge-diff and document-showcase evidence, then records a compatibility
+vector covering schema, lineage, integrity behavior, evaluation quality, provider status, cost,
+latency, and human policy review. `promoteRememberoReview(...)` delegates the final ref mutation
+to the generic `promote(...)` gate.
+
+The CLI exposes this adapter as `remembero version capture|list|inspect|diff|review|history|promote`.
+The MCP server exposes the corresponding semantic-version tools, and the local web console's
+**Versions** workspace is a human review surface over the same APIs. The dark-factory worker,
+queue, coding harness, and autonomous promotion loop are intentionally not part of this layer.
+
 Remembero continues to operate normally without this bridge. The portable file store, SQLite
 memory store, CLI, MCP server, and reasoning engine do not depend on semantic-ledger tables.
 

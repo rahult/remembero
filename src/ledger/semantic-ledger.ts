@@ -1158,6 +1158,45 @@ export class SemanticLedger {
     return { name, versionDigest: row.version_digest, updatedAt: row.updated_at };
   }
 
+  listRefs(): SemanticRef[] {
+    const rows = this.database
+      .prepare(
+        `SELECT name, version_digest, updated_at
+         FROM ${quoted(this.tables.refs)} ORDER BY name`
+      )
+      .all() as Array<{ name?: string; version_digest?: string; updated_at?: string }>;
+    return rows.map((row) => {
+      if (
+        typeof row.name !== 'string' ||
+        typeof row.version_digest !== 'string' ||
+        typeof row.updated_at !== 'string'
+      ) {
+        throw new Error('semantic ref list contains a corrupt record');
+      }
+      return {
+        name: validateRef(row.name, 'semantic ref name'),
+        versionDigest: validateDigest(row.version_digest, 'semantic ref version digest'),
+        updatedAt: row.updated_at,
+      };
+    });
+  }
+
+  listVersions(limit = 100): SemanticVersion[] {
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1_000) {
+      throw new Error('semantic version list limit must be from 1 to 1000');
+    }
+    const rows = this.database
+      .prepare(
+        `SELECT digest FROM ${quoted(this.tables.versions)}
+         ORDER BY created_at DESC, digest DESC LIMIT ?`
+      )
+      .all(limit) as Array<{ digest?: string }>;
+    return rows.map((row) => {
+      if (typeof row.digest !== 'string') throw new Error('semantic version list is corrupt');
+      return this.getVersion(row.digest);
+    });
+  }
+
   refHistory(name: string): SemanticRefEvent[] {
     validateRef(name, 'semantic ref name');
     const rows = this.database

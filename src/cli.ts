@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { lstatSync, readFileSync, statSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { autoCaptureClaudeStop } from './autocapture/capture.js';
 import {
   DEFAULT_AUTO_CAPTURE_DAILY_CAP,
@@ -92,6 +92,12 @@ import {
   type ExplanationGraphSelector,
 } from './knowledge/graph-navigation.js';
 import { serveStdio } from './mcp/server.js';
+import { captureRememberoVersion } from './ledger/remembero-version.js';
+import {
+  openSemanticLedger,
+  promoteRememberoReview,
+  reviewRememberoCandidate,
+} from './ledger/remembero-review.js';
 import {
   checkIntegrityTool,
   conflictViewsTool,
@@ -136,6 +142,7 @@ import {
   MAX_OPERATION_ID_BYTES,
   MAX_SUPERSEDE_PATTERNS,
   MemoryStore,
+  defaultRoot,
   IncompleteHistoryError,
   OperationConflictError,
   MemoryChangeStaleError,
@@ -175,6 +182,7 @@ Usage:
   remembero why-not <query>                Explain deterministic blockers for a query
   remembero topology [predicate]           Map rules, policies, strata, and influence
   remembero diff <from> <to>               Compare two exact recorded knowledge states
+  remembero version <command>              Capture and review semantic versions
   remembero repair <query>                 Propose minimal verified fact-only query repairs
   remembero audit-rules [predicate]        Audit rule health with deterministic evidence
   remembero health                         Inspect complete deterministic knowledge health
@@ -825,6 +833,175 @@ function reviewSelections(raw: string | undefined, factCount: number): number[] 
   return selected;
 }
 
+const VERSION_USAGE = `Remembero semantic versions
+
+Commands:
+  remembero version capture [--label <label>] [--ref <name>] [--ledger <path>]
+  remembero version list [--ledger <path>]
+  remembero version inspect <digest|label|ref> [--ledger <path>]
+  remembero version diff <from> <to> [--ledger <path>]
+  remembero version review <candidate> [--no-document-evaluation] [--ledger <path>]
+  remembero version history [ref] [--ledger <path>]
+  remembero version promote <candidate> <assessment> --op-id <id> [--ref <name>]
+    [--accept-review <dimension>] [--reason <text>] [--ledger <path>]
+`;
+
+interface VersionArgs {
+  positional: string[];
+  ledgerPath?: string;
+  label?: string;
+  ref: string;
+  opId?: string;
+  acceptReviews: string[];
+  reason?: string;
+  documentEvaluation: boolean;
+}
+
+function parseVersionArgs(argv: string[]): VersionArgs {
+  const parsed: VersionArgs = {
+    positional: [],
+    ref: 'main',
+    acceptReviews: [],
+    documentEvaluation: true,
+  };
+  const valueAfter = (index: number, flag: string): string => {
+    const value = argv[index + 1];
+    if (value === undefined) throw new Error(`${flag} requires a value`);
+    return value;
+  };
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === '--ledger') {
+      parsed.ledgerPath = valueAfter(index, arg);
+      index += 1;
+    } else if (arg === '--label') {
+      parsed.label = valueAfter(index, arg);
+      index += 1;
+    } else if (arg === '--ref') {
+      parsed.ref = valueAfter(index, arg);
+      index += 1;
+    } else if (arg === '--op-id') {
+      parsed.opId = valueAfter(index, arg);
+      index += 1;
+    } else if (arg === '--accept-review') {
+      parsed.acceptReviews.push(valueAfter(index, arg));
+      index += 1;
+    } else if (arg === '--reason') {
+      parsed.reason = valueAfter(index, arg);
+      index += 1;
+    } else if (arg === '--no-document-evaluation') {
+      parsed.documentEvaluation = false;
+    } else if (arg === '--help' || arg === '-h') {
+      console.log(VERSION_USAGE);
+      return parsed;
+    } else {
+      parsed.positional.push(arg);
+    }
+  }
+  return parsed;
+}
+
+async function runVersionCommand(argv: string[]): Promise<void> {
+  const [subcommand, ...rest] = argv;
+  if (subcommand === undefined || subcommand === '--help' || subcommand === '-h') {
+    console.log(VERSION_USAGE);
+    return;
+  }
+  const args = parseVersionArgs(rest);
+  const ledgerPath = args.ledgerPath ?? join(defaultRoot(), 'semantic.sqlite');
+  const { database, ledger } = await openSemanticLedger(ledgerPath);
+  try {
+    if (subcommand === 'capture') {
+      if (args.positional.length !== 0) throw new Error('version capture accepts no positional arguments');
+      const store = new MemoryStore();
+      const parent = ledger.getRef(args.ref)?.versionDigest;
+      const capture = captureRememberoVersion({
+        ledger,
+        store,
+        ...(parent === undefined ? {} : { parents: [parent] }),
+        label: args.label ?? `remembero@capture-${Date.now()}`,
+        metadata: { source: 'cli' },
+      });
+      if (parent === undefined) {
+        ledger.setRef({
+          name: args.ref,
+          versionDigest: capture.version.digest,
+          operationId: `remembero-version-initialize-${args.ref}`,
+          reason: 'Initialize semantic version ref',
+        });
+      }
+      console.log(stringifyBoundedResult({
+        version: capture.version,
+        baselineVersionDigest: parent,
+        recordedSnapshot: {
+          sequence: capture.recordedSnapshot.sequence,
+          journalEntries: capture.recordedSnapshot.journalEntries,
+          namespaces: capture.recordedSnapshot.namespaces,
+        },
+      }, 'version capture'));
+      return;
+    }
+    if (subcommand === 'list') {
+      if (args.positional.length !== 0) throw new Error('version list accepts no positional arguments');
+      console.log(stringifyBoundedResult({ refs: ledger.listRefs(), versions: ledger.listVersions() }, 'version list'));
+      return;
+    }
+    if (subcommand === 'inspect') {
+      if (args.positional.length !== 1) throw new Error('version inspect requires one reference');
+      console.log(stringifyBoundedResult(ledger.resolveVersion(args.positional[0]), 'version inspect'));
+      return;
+    }
+    if (subcommand === 'diff') {
+      if (args.positional.length !== 2) throw new Error('version diff requires <from> <to>');
+      const from = ledger.resolveVersion(args.positional[0]);
+      const to = ledger.resolveVersion(args.positional[1]);
+      console.log(stringifyBoundedResult(ledger.diffVersions(from.digest, to.digest), 'version diff'));
+      return;
+    }
+    if (subcommand === 'review') {
+      if (args.positional.length !== 1) throw new Error('version review requires one candidate');
+      const candidate = ledger.resolveVersion(args.positional[0]);
+      const store = new MemoryStore();
+      const result = reviewRememberoCandidate({
+        ledger,
+        store,
+        candidateVersionDigest: candidate.digest,
+        baselineVersionDigest: candidate.parents[0],
+        includeDocumentEvaluation: args.documentEvaluation,
+      });
+      console.log(stringifyBoundedResult(result, 'version review'));
+      return;
+    }
+    if (subcommand === 'history') {
+      if (args.positional.length > 1) throw new Error('version history accepts at most one ref');
+      const ref = args.positional[0] ?? args.ref;
+      console.log(stringifyBoundedResult({ ref, history: ledger.refHistory(ref) }, 'version history'));
+      return;
+    }
+    if (subcommand === 'promote') {
+      if (args.positional.length !== 2) throw new Error('version promote requires <candidate> <assessment>');
+      if (args.opId === undefined) throw new Error('version promote requires --op-id');
+      const candidate = ledger.resolveVersion(args.positional[0]);
+      const current = ledger.getRef(args.ref);
+      const decision = promoteRememberoReview({
+        ledger,
+        ref: args.ref,
+        candidateVersionDigest: candidate.digest,
+        assessmentDigest: args.positional[1],
+        operationId: args.opId,
+        expectedCurrentVersionDigest: current?.versionDigest,
+        acceptedReviewDimensions: args.acceptReviews,
+        reason: args.reason,
+      });
+      console.log(stringifyBoundedResult(decision, 'version promotion'));
+      return;
+    }
+    throw new Error(`unknown version command '${subcommand}'`);
+  } finally {
+    database.close();
+  }
+}
+
 async function main(): Promise<void> {
   const [command, ...rest] = process.argv.slice(2);
   if (command === undefined || command === '--help' || command === '-h') {
@@ -832,6 +1009,10 @@ async function main(): Promise<void> {
     return;
   }
   loadEnv();
+  if (command === 'version') {
+    await runVersionCommand(rest);
+    return;
+  }
   const args = parseArgs(rest);
   if (command === 'document-memorg') {
     if (args.positional.length !== 0) {
@@ -1081,8 +1262,11 @@ async function main(): Promise<void> {
 
   switch (command) {
     case 'serve':
+      {
+        const semantic = await openSemanticLedger(join(defaultRoot(), 'semantic.sqlite'));
       await serveStdio({
         store,
+        semanticLedger: semantic.ledger,
         llm: lazyClientFromEnv(),
         llmAllowedNamespaces,
         validTimeMode: validTimeModeOption(args.validTimeMode),
@@ -1096,6 +1280,7 @@ async function main(): Promise<void> {
         trustMode: trustViewOption(args.trust),
       });
       return; // keep process alive; transport owns stdio
+      }
     case 'remember': {
       if (args.batch) {
         if (args.managedBy !== undefined && args.managedBy !== MANAGED_HOOK_MARKER) {
