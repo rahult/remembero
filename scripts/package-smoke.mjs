@@ -6,12 +6,18 @@ import { join, resolve } from 'node:path';
 const projectRoot = resolve(import.meta.dirname, '..');
 const directory = mkdtempSync(join(tmpdir(), 'rembero-package-smoke-'));
 
+// `npm publish --dry-run` exports npm_config_dry_run=true to child processes,
+// which would make the nested `npm pack` here produce no archive; the smoke
+// test must always perform its real local pack and install.
+const smokeEnv = { ...process.env };
+delete smokeEnv.npm_config_dry_run;
+
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
     cwd: options.cwd ?? projectRoot,
     encoding: 'utf8',
     input: options.input,
-    env: options.env,
+    env: options.env ?? smokeEnv,
   });
   if (result.status !== 0) {
     throw new Error(
