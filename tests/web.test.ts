@@ -39,6 +39,8 @@ describe('web console configuration', () => {
   });
 });
 
+const nodeMajor = Number(process.versions.node.split('.')[0]);
+
 function webService(label: string): RemberoWebService {
   return new RemberoWebService({
     store: new MemoryStore(mkdtempSync(join(tmpdir(), `rembero-web-${label}-`))),
@@ -364,7 +366,7 @@ describe('Remembero web use-case service', () => {
     ).resolves.toMatchObject({ status: 'answered', answer: 'Rahul owns Atlas.' });
   });
 
-  it('serves the real same-origin JSON workflow over loopback HTTP', async () => {
+  it.skipIf(nodeMajor < 22)('serves the real same-origin JSON workflow over loopback HTTP', async () => {
     const root = mkdtempSync(join(tmpdir(), 'rembero-web-http-'));
     const running = await startWebServer({ root, port: 0, seedDemo: true });
     try {
@@ -534,7 +536,7 @@ describe('Remembero web use-case service', () => {
     ).rejects.toThrow(/loopback hosts only/i);
   });
 
-  it('serves the semantic version review board through the same-origin API', async () => {
+  it.skipIf(nodeMajor < 22)('serves the semantic version review board through the same-origin API', async () => {
     const root = mkdtempSync(join(tmpdir(), 'rembero-web-versions-'));
     const running = await startWebServer({ root, port: 0, seedDemo: true });
     try {

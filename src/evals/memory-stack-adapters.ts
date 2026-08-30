@@ -373,6 +373,14 @@ export function createExternalCommandAdapter(
           diagnosticBytes += chunk.length;
         });
         child.on('error', (error) => finish(error));
+        // A child may exit before reading its request (crash, refusal); the
+        // close handler reports that outcome, so a broken stdin pipe is not
+        // itself an error worth crashing the process for.
+        child.stdin.on('error', (error: NodeJS.ErrnoException) => {
+          if (error.code !== 'EPIPE' && error.code !== 'ERR_STREAM_DESTROYED') {
+            finish(error);
+          }
+        });
         child.on('close', (code, signal) => {
           if (settled) return;
           if (code !== 0) {

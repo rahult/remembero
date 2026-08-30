@@ -99,7 +99,7 @@ import {
 import { serveStdio } from './mcp/server.js';
 import { captureRememberoVersion } from './ledger/remembero-version.js';
 import {
-  openSemanticLedger,
+  openSemanticLedgerIfSupported,
   promoteRememberoReview,
   reviewRememberoCandidate,
 } from './ledger/remembero-review.js';
@@ -928,7 +928,13 @@ async function runVersionCommand(argv: string[]): Promise<void> {
   }
   const args = parseVersionArgs(rest);
   const ledgerPath = args.ledgerPath ?? join(defaultRoot(), 'semantic.sqlite');
-  const { database, ledger } = await openSemanticLedger(ledgerPath);
+  const semanticAuthority = await openSemanticLedgerIfSupported(ledgerPath);
+  if (semanticAuthority === undefined) {
+    throw new Error(
+      "semantic version commands require the node:sqlite module (Node 22 or newer)"
+    );
+  }
+  const { database, ledger } = semanticAuthority;
   try {
     if (subcommand === 'capture') {
       if (args.positional.length !== 0) throw new Error('version capture accepts no positional arguments');
@@ -1285,10 +1291,12 @@ async function main(): Promise<void> {
   switch (command) {
     case 'serve':
       {
-        const semantic = await openSemanticLedger(join(defaultRoot(), 'semantic.sqlite'));
+        const semantic = await openSemanticLedgerIfSupported(
+          join(defaultRoot(), 'semantic.sqlite')
+        );
       await serveStdio({
         store,
-        semanticLedger: semantic.ledger,
+        ...(semantic === undefined ? {} : { semanticLedger: semantic.ledger }),
         llm: lazyClientFromEnv(),
         llmAllowedNamespaces,
         validTimeMode: validTimeModeOption(args.validTimeMode),

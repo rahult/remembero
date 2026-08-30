@@ -15,7 +15,9 @@ class NoopLlm implements LlmClient {
   }
 }
 
-describe('semantic version MCP surface', () => {
+const nodeMajor = Number(process.versions.node.split('.')[0]);
+
+describe.skipIf(nodeMajor < 22)('semantic version MCP surface', () => {
   let DatabaseSync: typeof import('node:sqlite').DatabaseSync;
 
   beforeAll(async () => {

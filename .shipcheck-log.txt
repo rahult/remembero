@@ -1,0 +1,150 @@
+npm notice run remembero@0.56.0 ship:check
+npm notice run npm test && npm run test:package && npm run check:package-policy && npm run bench:memory:check && npm run bench:agent-db:check && npm run eval:documents -- --check && npm run export:documents:memorg && python3 scripts/import-document-memorg.py docs/research/results/document-intelligence.memorg.json --dry-run && npm audit --audit-level=high
+npm notice run remembero@0.56.0 pretest
+npm notice run npm run build
+npm notice run remembero@0.56.0 build
+npm notice run npm run build:core && npm run check:web && npm run build:web
+npm notice run remembero@0.56.0 build:core
+npm notice run tsc -p tsconfig.json
+npm notice run remembero@0.56.0 check:web
+npm notice run tsc -p web/tsconfig.json --noEmit
+npm notice run remembero@0.56.0 build:web
+npm notice run vite build --config web/vite.config.ts
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 38 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/web-client/index.html                   0.59 kB │ gzip:  0.35 kB
+../dist/web-client/assets/index-D0lsP5YT.css   29.49 kB │ gzip:  6.23 kB
+../dist/web-client/assets/index-CCQvruNk.js   277.26 kB │ gzip: 81.44 kB
+✓ built in 4.65s
+npm notice run remembero@0.56.0 test
+npm notice run vitest run
+
+ RUN  v4.1.10 /Volumes/Atlas/Code/projects/rembero
+
+Remembero web console: http://127.0.0.1:63542
+Memory root: /var/folders/07/9f19dc0n0gndfg5yqnd4hn3c0000gn/T/rembero-web-http-Gs1vUc
+Remembero web console: http://127.0.0.1:63546
+Memory root: /var/folders/07/9f19dc0n0gndfg5yqnd4hn3c0000gn/T/rembero-web-versions-EnMd2E
+
+ Test Files  63 passed (63)
+      Tests  785 passed | 1 skipped (786)
+   Start at  14:42:07
+   Duration  71.66s (transform 22.78s, setup 0ms, import 50.97s, tests 155.77s, environment 22ms)
+
+npm notice run remembero@0.56.0 test:package
+npm notice run npm run build && node scripts/package-smoke.mjs
+npm notice run remembero@0.56.0 build
+npm notice run npm run build:core && npm run check:web && npm run build:web
+npm notice run remembero@0.56.0 build:core
+npm notice run tsc -p tsconfig.json
+npm notice run remembero@0.56.0 check:web
+npm notice run tsc -p web/tsconfig.json --noEmit
+npm notice run remembero@0.56.0 build:web
+npm notice run vite build --config web/vite.config.ts
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 38 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/web-client/index.html                   0.59 kB │ gzip:  0.35 kB
+../dist/web-client/assets/index-D0lsP5YT.css   29.49 kB │ gzip:  6.23 kB
+../dist/web-client/assets/index-CCQvruNk.js   277.26 kB │ gzip: 81.44 kB
+✓ built in 3.82s
+packed install, generic semantic ledger, real-use-case local web console, deterministic related-knowledge recall fallback, compact deterministic evidence recall answers, all-writer knowledge check enforcement, regression-gated reviewed personal memory, immutable deterministic personal knowledge health, explicit deterministic relational projection, digest-bound reviewed personal memory application, proposal-first accepted personal memory extraction, digest-bound reviewed rule change application, proposal-only deterministic rule change impact, proof-carrying derived personal knowledge paths, deterministic explicit personal knowledge paths, exact personal knowledge extraction evaluation, verified cross-model recall ranking, indexed-versus-scan deterministic query profiling, transaction-safe schema-only SQLite Datalog planning, enforced semantic rule coverage, portable deterministic knowledge regression suites, bounded provenance-aware recall ranking, verified content-addressed portable knowledge bundle, bounded explicit personal knowledge graph browse, deterministic local knowledge search with evidence graph, deterministic positive answer mode, grounded negative recall without model phrasing, deterministic rule health audit, verified repair planning, exact recorded knowledge diff, deterministic knowledge topology, deterministic why-not explanations, deterministic counterfactual impact, immutable journal checkpoints, reviewable knowledge trust, reusable aggregate rules, non-empty recall disambiguation, focused conflict views, deterministic relation indexing, explicit temporal corrections, recorded-time snapshots, retry-safe writes, graph navigation, explicit entity identity, deterministic recall pruning, safe auto-capture hook lifecycle, temporal history, native recursion, personal proofs, atomic integrity enforcement, stratified negation, scalar aggregation, arithmetic filters, and explanation graph passed
+npm notice run remembero@0.56.0 check:package-policy
+npm notice run npm run build && node scripts/check-package-policy.mjs
+npm notice run remembero@0.56.0 build
+npm notice run npm run build:core && npm run check:web && npm run build:web
+npm notice run remembero@0.56.0 build:core
+npm notice run tsc -p tsconfig.json
+npm notice run remembero@0.56.0 check:web
+npm notice run tsc -p web/tsconfig.json --noEmit
+npm notice run remembero@0.56.0 build:web
+npm notice run vite build --config web/vite.config.ts
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 38 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/web-client/index.html                   0.59 kB │ gzip:  0.35 kB
+../dist/web-client/assets/index-D0lsP5YT.css   29.49 kB │ gzip:  6.23 kB
+../dist/web-client/assets/index-CCQvruNk.js   277.26 kB │ gzip: 81.44 kB
+✓ built in 2.18s
+package policy: PASS · 466 files · 3122624 byte tarball · no PDFs, pyc, or __pycache__
+npm notice run remembero@0.56.0 bench:memory:check
+npm notice run npm run build && node dist/evals/run-memory-stack.js --check
+npm notice run remembero@0.56.0 build
+npm notice run npm run build:core && npm run check:web && npm run build:web
+npm notice run remembero@0.56.0 build:core
+npm notice run tsc -p tsconfig.json
+npm notice run remembero@0.56.0 check:web
+npm notice run tsc -p web/tsconfig.json --noEmit
+npm notice run remembero@0.56.0 build:web
+npm notice run vite build --config web/vite.config.ts
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 38 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/web-client/index.html                   0.59 kB │ gzip:  0.35 kB
+../dist/web-client/assets/index-D0lsP5YT.css   29.49 kB │ gzip:  6.23 kB
+../dist/web-client/assets/index-CCQvruNk.js   277.26 kB │ gzip: 81.44 kB
+✓ built in 2.08s
+Running rembero-engine...
+Running direct-fact-scan...
+Running lexical-overlap-top-k...
+Running recency-top-k...
+
+adapter | answer coverage | answer accuracy | retrieval precision | retrieval recall | MRR | citation recall | stale leakage | p50 ms | p95 ms | errors
+--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---:
+rembero-engine | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 100.0% | 0.0% | 0.61 | 4.86 | 0
+direct-fact-scan | 100.0% | 50.0% | 42.9% | 42.9% | 42.9% | 50.0% | 0.0% | 0.12 | 3.10 | 0
+lexical-overlap-top-k | 0.0% | n/a | 92.9% | 85.7% | 100.0% | n/a | 0.0% | 0.03 | 0.80 | 0
+recency-top-k | 0.0% | n/a | 81.4% | 100.0% | 92.9% | n/a | 0.0% | 0.00 | 0.10 | 0
+npm notice run remembero@0.56.0 bench:agent-db:check
+npm notice run npm run build && node dist/evals/run-agent-db-scorecard.js --check
+npm notice run remembero@0.56.0 build
+npm notice run npm run build:core && npm run check:web && npm run build:web
+npm notice run remembero@0.56.0 build:core
+npm notice run tsc -p tsconfig.json
+npm notice run remembero@0.56.0 check:web
+npm notice run tsc -p web/tsconfig.json --noEmit
+npm notice run remembero@0.56.0 build:web
+npm notice run vite build --config web/vite.config.ts
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 38 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/web-client/index.html                   0.59 kB │ gzip:  0.35 kB
+../dist/web-client/assets/index-D0lsP5YT.css   29.49 kB │ gzip:  6.23 kB
+../dist/web-client/assets/index-CCQvruNk.js   277.26 kB │ gzip: 81.44 kB
+✓ built in 1.26s
+agent database scorecard: FAIL
+evidence digest: 85448a68f2a141a8d9b681267365c576c9e072099165568e8f6f03d6ff3807de
+
+dimension | metric | result
+--- | --- | ---:
+accuracy | exact answers | 100.0%
+accuracy | answerability | 100.0%
+accuracy | retrieval precision@k | 100.0%
+accuracy | citation recall | 100.0%
+accuracy | stale leakage | 0.0%
+speed | engine p50 | 0.11 ms
+speed | engine p95 | 2.16 ms
+speed | MCP startup | 787.86 ms
+speed | MCP explain round trip | 29.63 ms
+scale | maximum facts | 100000
+scale | maximum query p95 | 497.74 ms
+scale | maximum proof p95 | 502.99 ms
+cost | model calls / structured query | 0
+cost | embedding calls / structured query | 0
+cost | required API keys / structured query | 0
+ease | setup commands | 2
+ease | discovered MCP tools | 43
+
+FAIL: scale query p95 497.74ms exceeds 250ms
+FAIL: scale proof p95 502.99ms exceeds 500ms

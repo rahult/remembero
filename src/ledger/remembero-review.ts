@@ -50,6 +50,32 @@ export async function openSemanticLedger(path: string): Promise<OpenSemanticLedg
   return { database, ledger: createSemanticLedger(database) };
 }
 
+function isMissingSqliteBuiltin(error: unknown): boolean {
+  return (
+    (error as NodeJS.ErrnoException)?.code === 'ERR_UNKNOWN_BUILTIN_MODULE' ||
+    /No such built-in module: node:sqlite/.test(
+      error instanceof Error ? error.message : String(error)
+    )
+  );
+}
+
+/**
+ * Open the semantic ledger when this Node runtime ships `node:sqlite`
+ * (Node 22+), or return undefined so memory surfaces degrade gracefully:
+ * the MCP server and web console run without the semantic version authority
+ * rather than refusing to start on Node 20.
+ */
+export async function openSemanticLedgerIfSupported(
+  path: string
+): Promise<OpenSemanticLedgerResult | undefined> {
+  try {
+    return await openSemanticLedger(path);
+  } catch (error) {
+    if (isMissingSqliteBuiltin(error)) return undefined;
+    throw error;
+  }
+}
+
 function metricPercent(metric: { percent?: unknown; total?: unknown }): number | null {
   return typeof metric.total === 'number' && metric.total > 0 && typeof metric.percent === 'number'
     ? metric.percent

@@ -7,7 +7,7 @@ import { loadEnv } from '../env.js';
 import { lazyClientFromEnv } from '../llm/client.js';
 import { MAX_INPUT_BYTES, stringifyBoundedResult } from '../safety.js';
 import { defaultRoot, MemoryStore } from '../store/store.js';
-import { openSemanticLedger } from '../ledger/remembero-review.js';
+import { openSemanticLedgerIfSupported } from '../ledger/remembero-review.js';
 import { RemberoWebService, WebServiceError } from './service.js';
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '::1']);
@@ -327,11 +327,11 @@ export async function startWebServer(options: StartWebServerOptions = {}) {
   const port = options.port ?? portFromEnv(process.env.REMBERO_WEB_PORT);
   const { root, namespace, seedDemo } = resolveWebConfig(options);
   const store = new MemoryStore(root);
-  const semantic = await openSemanticLedger(join(root, 'semantic.sqlite'));
+  const semantic = await openSemanticLedgerIfSupported(join(root, 'semantic.sqlite'));
   const llmConfigured = Boolean(process.env.LLM_API_KEY);
   const service = new RemberoWebService({
     store,
-    ledger: semantic.ledger,
+    ...(semantic === undefined ? {} : { ledger: semantic.ledger }),
     llm: lazyClientFromEnv(),
     llmConfigured,
     ...(namespace === undefined ? {} : { namespace }),
@@ -407,7 +407,7 @@ export async function startWebServer(options: StartWebServerOptions = {}) {
     url,
     close: async () => {
       await vite?.close();
-      semantic.database.close();
+      semantic?.database.close();
       await new Promise<void>((resolveClose, reject) =>
         server.close((error) => (error === undefined ? resolveClose() : reject(error)))
       );
