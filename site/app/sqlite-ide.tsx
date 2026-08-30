@@ -32,6 +32,8 @@ import {
   type BrowserSqliteRuntimeInfo,
   type SqliteRow,
   type SqliteScalar,
+  proofStepTitle,
+  proofStepValues,
 } from "../lib/sqlite-wasm";
 import {
   CheckIcon,
@@ -1225,8 +1227,8 @@ export function SqliteIde() {
                     <div>
                       <strong>Facts from SQLite</strong>
                       {factProofs.map((fact) => (
-                        <code key={`${fact.predicate}-${fact.values.join("-")}`}>
-                          {fact.predicate}({fact.values.join(", ")})
+                        <code key={`${proofStepTitle(fact)}-${proofStepValues(fact).join("-")}`}>
+                          {proofStepTitle(fact)}({proofStepValues(fact).join(", ")})
                         </code>
                       ))}
                     </div>
@@ -1247,8 +1249,8 @@ export function SqliteIde() {
                     <div>
                       <strong>Derived answer</strong>
                       <code>
-                        {selectedExplanation.proof.predicate}(
-                        {selectedExplanation.proof.values.join(", ")})
+                        {proofStepTitle(selectedExplanation.proof)}(
+                        {proofStepValues(selectedExplanation.proof).join(", ")})
                       </code>
                     </div>
                   </button>

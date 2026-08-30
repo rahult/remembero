@@ -133,6 +133,7 @@ function matchesAnswerContract(
   value: string,
   expected: string,
   scenarioId: ChatMemoryScenarioId,
+  lane: ChatToolLane,
 ): boolean {
   const normalize = (text: string) =>
     text.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -140,32 +141,49 @@ function matchesAnswerContract(
   if (normalized === normalize(expected)) return true;
   const includesAll = (...terms: string[]) =>
     terms.every((term) => normalized.includes(normalize(term)));
+  const includesAny = (...terms: string[]) =>
+    terms.some((term) => normalized.includes(normalize(term)));
+
+  // The lanes intentionally diverge: the data lane is held to a faithful
+  // reading of its raw rows — including the confidently wrong write-gate
+  // go-ahead — while the Remembero lane is held to the proof-carrying answer.
+  if (lane === "data") {
+    switch (scenarioId) {
+      case "root-blocker":
+        return includesAny("procurement", "vendor security review", "legal signoff");
+      case "write-gate":
+        return includesAny("tuesday", "active", "go ahead", "scheduled");
+      case "unknown-preference":
+        return includesAll("jordan") && includesAny("null", "no preference", "unknown", "not stored", "no stored");
+      case "why-not":
+        return includesAny("no rows", "zero rows", "empty", "returned nothing", "no result");
+    }
+  }
 
   switch (scenarioId) {
     case "root-blocker":
       return includesAll("procurement", "freeze");
     case "write-gate":
       return (
-        (normalized.includes("refus") || normalized.includes("reject") ||
-          normalized.includes("cannot") || normalized.includes("blocked")) &&
+        includesAny("refus", "reject", "cannot", "blocked") &&
         normalized.includes("vendor security review")
       );
     case "unknown-preference":
       return (
         includesAll("jordan", "preference") &&
-        (normalized.includes("ask") ||
-          normalized.includes("not stored") ||
-          normalized.includes("missing"))
+        includesAny("ask", "not stored", "missing")
       );
     case "why-not":
       return (
         includesAll("orchard") &&
-        (normalized.includes("not blocked") ||
-          normalized.includes("no review slot") ||
-          normalized.includes("no slot") ||
-          normalized.includes("failing premise") ||
-          normalized.includes("cannot be derived") ||
-          normalized.includes("underivable"))
+        includesAny(
+          "not blocked",
+          "no review slot",
+          "no slot",
+          "failing premise",
+          "cannot be derived",
+          "underivable",
+        )
       );
   }
 }
@@ -456,27 +474,29 @@ export function ChatMemoryLab() {
       );
       const baselinePassed = matchesAnswerContract(
         dataRun.answer,
-        comparison.answer,
+        scenario.baselineAnswer,
         scenarioId,
+        "data",
       );
       const memoryPassed = matchesAnswerContract(
         rememberoRun.answer,
         comparison.answer,
         scenarioId,
+        "remembero",
       );
       setBaselineTrace(dataRun.trace);
       setMemoryTrace(rememberoRun.trace);
       setBaselineAnswer(
         dataRun.trace.status === "invalid" || dataRun.trace.status === "error"
           ? dataRun.answer
-          : baselinePassed
+          : baselinePassed || dataRun.trace.status === "simulated"
             ? dataRun.answer
-            : comparison.answer,
+            : scenario.baselineAnswer,
       );
       setMemoryAnswer(
         rememberoRun.trace.status === "invalid" || rememberoRun.trace.status === "error"
           ? rememberoRun.answer
-          : memoryPassed
+          : memoryPassed || rememberoRun.trace.status === "simulated"
             ? rememberoRun.answer
             : comparison.answer,
       );

@@ -3,9 +3,25 @@ export type SqliteRow = Record<string, SqliteScalar>;
 
 export interface BrowserDatalogProof {
   predicate: string;
-  values: Array<string | number>;
+  values?: Array<string | number>;
   rule?: number;
   because?: BrowserDatalogProof[];
+  /** Absence step from stratified negation: the pattern proven to match nothing. */
+  negated?: true;
+  pattern?: Array<string | number | null>;
+}
+
+/** Display terms for any proof step, including verified-absence steps. */
+export function proofStepValues(proof: BrowserDatalogProof): string[] {
+  if (proof.values !== undefined) return proof.values.map(String);
+  return (proof.pattern ?? []).map((value) => (value === null ? "_" : String(value)));
+}
+
+/** Display predicate for a proof step; absences read as `not pred`. */
+export function proofStepTitle(proof: BrowserDatalogProof): string {
+  return proof.negated === true || "negated" in proof
+    ? `not ${proof.predicate}`
+    : proof.predicate;
 }
 
 export interface BrowserDatalogExplanation {
@@ -118,6 +134,12 @@ async function waitForWorkerPromiser(
   }
 }
 
+import {
+  portableExecutionMode,
+  runPortableExplain,
+  runPortableQuery,
+} from "./portable-datalog";
+
 function parseJsonArray<T>(value: SqliteScalar, label: string): T[] {
   if (typeof value !== "string") throw new Error(`${label} did not return JSON text`);
   const parsed: unknown = JSON.parse(value);
@@ -164,6 +186,9 @@ export class BrowserDatalogDatabase {
   }
 
   async datalogQuery(program: string): Promise<Array<Record<string, string | number>>> {
+    if (portableExecutionMode(program) === "portable") {
+      return runPortableQuery((sql) => this.exec(sql), program);
+    }
     const rows = await this.exec("SELECT datalog_query(?) AS value", [program]);
     return parseJsonArray<Record<string, string | number>>(
       rows[0]?.value ?? null,
@@ -172,6 +197,10 @@ export class BrowserDatalogDatabase {
   }
 
   async datalogExplain(program: string): Promise<BrowserDatalogExplanation[]> {
+    if (portableExecutionMode(program) === "portable") {
+      const explanations = await runPortableExplain((sql) => this.exec(sql), program);
+      return explanations as unknown as BrowserDatalogExplanation[];
+    }
     const rows = await this.exec("SELECT datalog_explain(?) AS value", [program]);
     return parseJsonArray<BrowserDatalogExplanation>(
       rows[0]?.value ?? null,

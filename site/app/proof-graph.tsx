@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import type { BrowserDatalogProof } from "../lib/sqlite-wasm";
+import { proofStepTitle, proofStepValues, type BrowserDatalogProof } from "../lib/sqlite-wasm";
 
 interface ProofGraphProps {
   proof: BrowserDatalogProof | null;
@@ -84,8 +84,8 @@ function layout(root: TreeNode): {
 
 function nodeLabel(proof: BrowserDatalogProof): { title: string; detail: string } {
   return {
-    title: proof.predicate,
-    detail: `(${proof.values.join(", ")})`,
+    title: proofStepTitle(proof),
+    detail: `(${proofStepValues(proof).join(", ")})`,
   };
 }
 
