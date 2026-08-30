@@ -37,6 +37,7 @@ export interface AgentDbScorecard {
   };
   speed: {
     repetitions: number;
+    warmupRepetitions: number;
     observations: number;
     engineMedianMs: number;
     engineP95Ms: number;
@@ -195,6 +196,7 @@ function requiredMetric(value: number | null, label: string): number {
 
 export async function buildAgentDbScorecard(options: {
   repetitions?: number;
+  warmupRepetitions?: number;
   generatedAt?: string;
   engineP95ThresholdMs?: number;
   mcpRoundTripThresholdMs?: number;
@@ -207,6 +209,21 @@ export async function buildAgentDbScorecard(options: {
   const repetitions = options.repetitions ?? 10;
   if (!Number.isInteger(repetitions) || repetitions < 1 || repetitions > 100) {
     throw new Error('repetitions must be an integer between 1 and 100');
+  }
+  const warmupRepetitions = options.warmupRepetitions ?? 1;
+  if (!Number.isInteger(warmupRepetitions) || warmupRepetitions < 0 || warmupRepetitions > 10) {
+    throw new Error('warmupRepetitions must be an integer between 0 and 10');
+  }
+  // The engine gate measures steady-state evaluation latency, not first-call JIT
+  // compilation; untimed warmup passes keep process warmup out of the percentile.
+  for (let index = 0; index < warmupRepetitions; index++) {
+    await runMemoryStackBenchmark({
+      suite: MEMORY_STACK_SUITE,
+      cases: MEMORY_STACK_CASES,
+      labels: MEMORY_STACK_LABELS,
+      adapter: createRemberoMemoryAdapter(),
+      generatedAt: options.generatedAt,
+    });
   }
   const wallTimes: number[] = [];
   let reference: Awaited<ReturnType<typeof runMemoryStackBenchmark>> | null = null;
@@ -332,6 +349,7 @@ export async function buildAgentDbScorecard(options: {
     },
     speed: {
       repetitions,
+      warmupRepetitions,
       observations: wallTimes.length,
       engineMedianMs: percentile(wallTimes, 0.5),
       engineP95Ms,

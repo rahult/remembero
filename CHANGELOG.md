@@ -3,7 +3,29 @@
 Release notes previously embedded in the README are collected here in reverse
 chronological order. Only releases that had a standalone README note are listed.
 
-## Unreleased
+## 0.56.0
+
+The daily-driver release; see [docs/MIGRATING-0.56.md](docs/MIGRATING-0.56.md).
+
+Makes ambient capture work in real agentic sessions: the transcript reader widens its
+backward scan until it finds user text instead of skipping with `no_user_text` when tool
+output fills the fixed window, and extraction now receives user-authored text only, so a
+model can no longer mint "facts" from the assistant's own words.
+Adds `remembero session-brief` and a managed SessionStart hook that injects a bounded,
+deterministic, zero-LLM memory brief at the start of every Claude Code session, closing
+the read side of the capture → recall loop.
+Adds `remembero init` (hooks + core-profile MCP registration + CLAUDE.md snippet), MCP
+tool profiles (`serve --profile core` registers the 12 daily-driver tools), and a server
+default namespace (`serve -n <namespace>`).
+Adds `remembero backup`/`restore` — verified, tamper-rejecting, idempotent whole-store
+recovery — plus a backup/sync guide and a README quickstart.
+The web console now opens the real memory root by default; the seeded fictional
+workspace moved behind `--demo`. Card-number redaction is Luhn-gated so timestamps and
+build IDs no longer block writes. Journal appends reuse a stat-validated cache instead of
+re-parsing the whole journal per write, and the agent-database scorecard measures engine
+p95 after untimed warmup passes.
+
+Also in 0.56.0, previously unreleased:
 
 Adds a generic SQLite semantic ledger for content-addressed objects, immutable version and
 dependency graphs, first-class contracts, evaluation evidence, compatibility vectors,

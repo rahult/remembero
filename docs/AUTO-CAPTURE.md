@@ -48,9 +48,12 @@ The hook passes JSON to `remembero remember --batch` on standard input. Remember
 2. resolves a regular `.jsonl` transcript beneath the configured Claude `projects/`
    directory and rejects symbolic links, hard links, changed file identities, or paths
    outside that root;
-3. reads only a bounded tail, extracts user/assistant text blocks, ignores tool results,
-   private thinking, system notices, and fenced code, and includes Claude's authoritative
-   `last_assistant_message` field;
+3. reads only a bounded tail and extracts **user-authored text only** — tool results,
+   private thinking, system notices, fenced code, and all assistant text (including
+   `last_assistant_message`) are excluded from the extraction prompt, so the model cannot
+   mint "facts" from the assistant's own words. Because agentic sessions bury user turns
+   under large tool results, the backward scan widens (up to a 16 MiB window) until it
+   finds user text; the extracted message tail itself stays bounded by `--tail-bytes`;
 4. rejects credential-like text before any external LLM call;
 5. asks the model for at most 12 stable facts explicitly stated or confirmed by the user;
 6. accepts additive ground facts only. Rules, variables, retractions, comparisons, and

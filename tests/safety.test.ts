@@ -40,6 +40,17 @@ describe('sensitive text detection', () => {
     }
   });
 
+  it('does not block long digit runs that fail the card checksum', () => {
+    for (const text of [
+      'The deploy finished at 1756518000000.',
+      'Build 1717171717171 is green.',
+      'Session stamp 20260830115959 was recorded.',
+      'The card-like value 4111 1111 1111 1112 is not a valid number.',
+    ]) {
+      expect(containsSensitiveText(text)).toBe(false);
+    }
+  });
+
   it('preserves valid Unicode and replaces only lone surrogate code units', () => {
     expect(normalizeUnicodeScalarText('hello 👋 world')).toBe('hello 👋 world');
     expect(normalizeUnicodeScalarText(`left\uD800right`)).toBe('left�right');

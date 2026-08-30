@@ -1,6 +1,6 @@
 {
   "name": "remembero",
-  "version": "0.55.0",
+  "version": "0.56.0",
   "description": "Logic-based memory for LLM chats and agents: deterministic Datalog rules, explicit entity identity, integrity, provenance, graphs, and MCP",
   "type": "module",
   "bin": {
@@ -149,8 +149,8 @@
     "build:web": "vite build --config web/vite.config.ts",
     "build:sqlite": "sh native/build.sh",
     "build:sqlite:wasm": "sh native/build-wasm.sh",
-    "web:dev": "tsx src/web/server.ts --dev",
-    "web:start": "node dist/web/server.js",
+    "web:dev": "tsx src/web/server.ts --dev --demo",
+    "web:start": "node dist/web/server.js --demo",
     "web": "npm run build && npm run web:start",
     "pretest": "npm run build",
     "pretest:sqlite": "npm run build",

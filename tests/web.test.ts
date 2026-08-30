@@ -2,9 +2,42 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { MemoryStore } from '../src/store/store.js';
+import { defaultRoot, MemoryStore } from '../src/store/store.js';
 import { RemberoWebService, WebServiceError } from '../src/web/service.js';
-import { startWebServer } from '../src/web/server.js';
+import { resolveWebConfig, startWebServer } from '../src/web/server.js';
+
+describe('web console configuration', () => {
+  it('defaults to the real memory root with no demo seeding', () => {
+    const config = resolveWebConfig({}, {});
+    expect(config.demo).toBe(false);
+    expect(config.root).toBe(defaultRoot());
+    expect(config.namespace).toBe('default');
+    expect(config.seedDemo).toBe(false);
+  });
+
+  it('uses the sandbox and demo seed only in demo mode', () => {
+    const config = resolveWebConfig({ demo: true }, {});
+    expect(config.root).toMatch(/\.rembero-web$/);
+    expect(config.namespace).toBeUndefined();
+    expect(config.seedDemo).toBe(true);
+  });
+
+  it('lets explicit environment overrides win', () => {
+    const config = resolveWebConfig(
+      {},
+      {
+        REMBERO_WEB_ROOT: '/tmp/custom-root',
+        REMBERO_WEB_NAMESPACE: 'family',
+        REMBERO_WEB_DEMO: 'true',
+        REMBERO_WEB_SEED_DEMO: 'false',
+      }
+    );
+    expect(config.demo).toBe(true);
+    expect(config.root).toBe('/tmp/custom-root');
+    expect(config.namespace).toBe('family');
+    expect(config.seedDemo).toBe(false);
+  });
+});
 
 function webService(label: string): RemberoWebService {
   return new RemberoWebService({

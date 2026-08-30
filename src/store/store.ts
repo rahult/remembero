@@ -787,6 +787,12 @@ export function defaultRoot(): string {
 export class MemoryStore {
   private cache = new Map<string, CachedNamespace>();
   private heldLocks = new Set<string>();
+  private activeJournalCache?: {
+    size: number;
+    mtimeMs: number;
+    ino: number;
+    contents: JournalFileContents;
+  };
 
   constructor(private root: string = defaultRoot()) {
     this.withMutationLock(() =>
@@ -1191,13 +1197,26 @@ export class MemoryStore {
       throw new Error(`journal.log would exceed ${MAX_JOURNAL_BYTES} bytes`);
     }
     const tmp = `${path}.tmp-${process.pid}-${randomUUID()}`;
+    const text = `${current}${line}`;
     try {
-      writeFileSync(tmp, `${current}${line}`, { encoding: 'utf8', mode: 0o600, flag: 'wx' });
+      writeFileSync(tmp, text, { encoding: 'utf8', mode: 0o600, flag: 'wx' });
       renameSync(tmp, path);
     } catch (error) {
       this.unlinkIfPresent(tmp);
       throw error;
     }
+    const stat = lstatSync(path);
+    this.activeJournalCache = {
+      size: stat.size,
+      mtimeMs: stat.mtimeMs,
+      ino: stat.ino,
+      contents: {
+        text,
+        bytes: nextBytes,
+        sha256: createHash('sha256').update(text).digest('hex'),
+        entries: [...active.entries, entry],
+      },
+    };
   }
 
   private readJournalFileUnlocked(
@@ -1296,10 +1315,12 @@ export class MemoryStore {
 
   private activeJournalUnlocked(): JournalFileContents {
     const path = this.journalPath();
+    let stat: ReturnType<typeof lstatSync>;
     try {
-      return this.readJournalFileUnlocked(path, 'journal.log');
+      stat = lstatSync(path);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        this.activeJournalCache = undefined;
         return {
           text: '',
           bytes: 0,
@@ -1309,6 +1330,27 @@ export class MemoryStore {
       }
       throw error;
     }
+    // Re-parsing and re-hashing the whole journal on every access is the
+    // dominant per-write cost; a stat-validated cache is safe because writers
+    // hold the cross-process mutation lock and any external append changes the
+    // file's size, mtime, or inode.
+    const cached = this.activeJournalCache;
+    if (
+      cached !== undefined &&
+      cached.size === stat.size &&
+      cached.mtimeMs === stat.mtimeMs &&
+      cached.ino === stat.ino
+    ) {
+      return cached.contents;
+    }
+    const contents = this.readJournalFileUnlocked(path, 'journal.log');
+    this.activeJournalCache = {
+      size: stat.size,
+      mtimeMs: stat.mtimeMs,
+      ino: stat.ino,
+      contents,
+    };
+    return contents;
   }
 
   private readJournalUnlocked(): JournalEntry[] {

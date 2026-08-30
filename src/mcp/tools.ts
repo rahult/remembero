@@ -152,6 +152,8 @@ export interface StoreToolDeps {
   knowledgeCheckEnforcement?: KnowledgeCheckEnforcementOptions | false;
   entityIdentity?: EntityIdentityMode | false;
   trustMode?: TrustViewMode | false;
+  /** Namespace used when a tool call names none (default: 'default'). */
+  defaultNamespace?: string;
 }
 
 export interface SemanticSearchToolDeps extends StoreToolDeps {
@@ -187,8 +189,11 @@ function configuredCheckEnforcement(
 
 type NamespacesArg = string[] | '*' | undefined;
 
-const namespacesOrDefault = (namespaces: NamespacesArg): string[] | '*' => {
-  const resolved = namespaces ?? ['default'];
+const namespacesOrDefault = (
+  namespaces: NamespacesArg,
+  deps?: { defaultNamespace?: string }
+): string[] | '*' => {
+  const resolved = namespaces ?? [deps?.defaultNamespace ?? 'default'];
   assertNamespaceCount(resolved);
   return resolved;
 };
@@ -237,7 +242,7 @@ export function rememberTool(
   }
 ): Promise<RememberResult> {
   assertBoundedInput(args.text, 'memory text');
-  return rememberText(deps, args.text, args.namespace ?? 'default', {
+  return rememberText(deps, args.text, args.namespace ?? deps.defaultNamespace ?? 'default', {
     ...(args.integrityEnforcement === undefined
       ? {}
       : { integrityEnforcement: args.integrityEnforcement }),
@@ -272,7 +277,7 @@ export function proposeMemoryTool(
   return proposeRememberText(
     deps,
     args.text,
-    args.namespace ?? 'default',
+    args.namespace ?? deps.defaultNamespace ?? 'default',
     {
       ...(args.namespaces === undefined ? {} : { namespaces: args.namespaces }),
       ...(args.validTimeMode === undefined
@@ -351,7 +356,7 @@ export function recallTool(
   }
 ): Promise<RecallResult> {
   assertBoundedInput(args.question, 'recall question');
-  return recallQuestion(deps, args.question, namespacesOrDefault(args.namespaces), {
+  return recallQuestion(deps, args.question, namespacesOrDefault(args.namespaces, deps), {
     ...(args.schemaPredicateLimit === undefined
       ? {}
       : { schemaPredicateLimit: args.schemaPredicateLimit }),
@@ -385,7 +390,7 @@ export function recallExplainTool(
   }
 ): Promise<RecallResult> {
   assertBoundedInput(args.question, 'recall question');
-  return recallQuestion(deps, args.question, namespacesOrDefault(args.namespaces), {
+  return recallQuestion(deps, args.question, namespacesOrDefault(args.namespaces, deps), {
     explain: true,
     ...(args.proofLimit === undefined ? {} : { proofLimit: args.proofLimit }),
     ...(args.schemaPredicateLimit === undefined
@@ -426,7 +431,7 @@ export function assertFactsTool(
   const integrity = configured === false ? undefined : configured;
   const checks = configuredCheckEnforcement(deps);
   const { added, duplicates, opId } = deps.store.assert(
-    args.namespace ?? 'default',
+    args.namespace ?? deps.defaultNamespace ?? 'default',
     parsed,
     {
       ...(args.opId === undefined ? {} : { opId: args.opId }),
@@ -452,7 +457,7 @@ export function assertTentativeTool(
   const checks = configuredCheckEnforcement(deps);
   return assertTentativeFacts(
     deps.store,
-    args.namespace ?? 'default',
+    args.namespace ?? deps.defaultNamespace ?? 'default',
     args.clauses,
     {
       ...(args.opId === undefined ? {} : { opId: args.opId }),
@@ -468,7 +473,7 @@ export function reviewTentativeTool(
 ): { claims: StoredTentativeClaim[]; count: number } {
   const claims = reviewTentativeClaims(
     deps.store,
-    namespacesOrDefault(args.namespaces)
+    namespacesOrDefault(args.namespaces, deps)
   );
   return { claims, count: claims.length };
 }
@@ -489,7 +494,7 @@ export function resolveTentativeTool(
   const checks = configuredCheckEnforcement(deps);
   return resolveTentativeFacts(
     deps.store,
-    args.namespace ?? 'default',
+    args.namespace ?? deps.defaultNamespace ?? 'default',
     args.clauses,
     args.action,
     {
@@ -538,7 +543,7 @@ export function supersedeFactsTool(
   const integrity = configured === false ? undefined : configured;
   const checks = configuredCheckEnforcement(deps);
   const result: SupersedeResult = deps.store.supersede(
-    args.namespace ?? 'default',
+    args.namespace ?? deps.defaultNamespace ?? 'default',
     args.patterns,
     replacements,
     {
@@ -572,7 +577,7 @@ export function queryTool(
   recordedSnapshot?: RecordedSnapshotMetadata;
 } {
   assertBoundedInput(args.query, 'query');
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   const recorded = recordedView(deps.store, namespaces, args.recordedSequence);
   const { clauses, sources } = recorded;
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
@@ -610,7 +615,7 @@ export function explainQueryTool(
   }
 ): ExplainKnowledgeResult & { recordedSnapshot?: RecordedSnapshotMetadata } {
   assertBoundedInput(args.query, 'query');
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
   const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
   const trustMode = configuredTrustMode(deps, args.trustMode);
@@ -647,7 +652,7 @@ export function checkIntegrityTool(
     recordedSequence?: number;
   }
 ): IntegrityCheckResult & { recordedSnapshot?: RecordedSnapshotMetadata } {
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
   const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
   const trustMode = configuredTrustMode(deps, args.trustMode);
@@ -690,7 +695,7 @@ export function conflictViewsTool(
   }
 ): ConflictViewResult & { recordedSnapshot?: RecordedSnapshotMetadata } {
   if (args.focus !== undefined) assertBoundedInput(args.focus, 'conflict focus');
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
   const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
   const trustMode = configuredTrustMode(deps, args.trustMode);
@@ -818,7 +823,7 @@ export function whyNotTool(
   }
 ): ExplainWhyNotResult & { recordedSnapshot?: RecordedSnapshotMetadata } {
   assertBoundedInput(args.query, 'why-not query');
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
   const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
   const trustMode = configuredTrustMode(deps, args.trustMode);
@@ -865,7 +870,7 @@ export function topologyTool(
   }
 ): KnowledgeTopologyResult & { recordedSnapshot?: RecordedSnapshotMetadata } {
   if (args.focus !== undefined) assertBoundedInput(args.focus, 'topology focus');
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
   const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
   const trustMode = configuredTrustMode(deps, args.trustMode);
@@ -898,7 +903,7 @@ export function recordedDiffTool(
   }
 ): RecordedKnowledgeDiffResult {
   if (args.query !== undefined) assertBoundedInput(args.query, 'recorded diff query');
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
   const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
   const trustMode = configuredTrustMode(deps, args.trustMode);
@@ -966,7 +971,7 @@ export function auditRulesTool(
   }
 ): RuleAuditResult & { recordedSnapshot?: RecordedSnapshotMetadata } {
   if (args.focus !== undefined) assertBoundedInput(args.focus, 'rule audit focus');
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
   const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
   const trustMode = configuredTrustMode(deps, args.trustMode);
@@ -998,7 +1003,7 @@ export function searchKnowledgeTool(
   }
 ): KnowledgeSearchResult & { recordedSnapshot?: RecordedSnapshotMetadata } {
   assertBoundedInput(args.text, 'knowledge search text');
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
   const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
   const trustMode = configuredTrustMode(deps, args.trustMode);
@@ -1030,7 +1035,7 @@ export async function semanticSearchKnowledgeTool(
   }
 ): Promise<SemanticKnowledgeSearchResult & { recordedSnapshot?: RecordedSnapshotMetadata }> {
   assertBoundedInput(args.text, 'semantic knowledge search text');
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   assertLlmExportNamespacesAllowed(deps, namespaces);
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
   const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
@@ -1069,7 +1074,7 @@ export async function prepareSemanticKnowledgeTool(
     recordedSequence?: number;
   }
 ): Promise<PrepareSemanticKnowledgeResult & { recordedSnapshot?: RecordedSnapshotMetadata }> {
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   assertLlmExportNamespacesAllowed(deps, namespaces);
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
   const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
@@ -1116,7 +1121,7 @@ export function browseKnowledgeGraphTool(
   if (args.predicate !== undefined) {
     assertBoundedInput(args.predicate, 'knowledge graph predicate focus');
   }
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
   const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
   const trustMode = configuredTrustMode(deps, args.trustMode);
@@ -1158,7 +1163,7 @@ export function connectKnowledgeGraphTool(
   if (typeof args.to === 'string') {
     assertBoundedInput(args.to, 'knowledge graph path end');
   }
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
   const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
   const trustMode = configuredTrustMode(deps, args.trustMode);
@@ -1220,7 +1225,7 @@ export function runKnowledgeChecksTool(
     includePassingEvidence?: boolean;
   }
 ): KnowledgeCheckSuiteResult & { recordedSnapshot?: RecordedSnapshotMetadata } {
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
   const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
   const trustMode = configuredTrustMode(deps, args.trustMode);
@@ -1262,7 +1267,7 @@ export function profileKnowledgeTool(
   }
 ): ProfileKnowledgeResult & { recordedSnapshot?: RecordedSnapshotMetadata } {
   assertBoundedInput(args.query, 'profile query');
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   const configuredIdentity = args.entityIdentity ?? deps.entityIdentity;
   const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
   const trustMode = configuredTrustMode(deps, args.trustMode);
@@ -1307,7 +1312,7 @@ export function forgetTool(
   const integrity = configured === false ? undefined : configured;
   const checks = configuredCheckEnforcement(deps);
   return deps.store.retract(
-    args.namespace ?? 'default',
+    args.namespace ?? deps.defaultNamespace ?? 'default',
     args.pattern,
     {
       ...(args.opId === undefined ? {} : { opId: args.opId }),
@@ -1322,7 +1327,7 @@ export function historyTool(
   args: { pattern: string; namespaces?: string[] | '*'; limit?: number }
 ): MemoryHistory {
   assertBoundedInput(args.pattern, 'history pattern');
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   return deps.store.history(args.pattern, {
     namespaces,
     ...(args.limit === undefined ? {} : { limit: args.limit }),
@@ -1370,7 +1375,7 @@ export function listMemoriesTool(
   trustMode?: TrustViewMode;
   recordedSnapshot?: RecordedSnapshotMetadata;
 } {
-  const namespaces = namespacesOrDefault(args.namespaces);
+  const namespaces = namespacesOrDefault(args.namespaces, deps);
   const recorded = recordedView(deps.store, namespaces, args.recordedSequence);
   const storedClauses = recorded.clauses;
   const storedSources = recorded.sources;

@@ -134,6 +134,23 @@ describe('Claude Stop transcript ingress', () => {
     expect(tail.bytes).toBeLessThanOrEqual(1024);
   });
 
+  it('finds the latest user message when tool output pushes it past the base read window', () => {
+    // Agentic sessions bury the user's turn under hundreds of KB of tool_result
+    // lines; the reader must widen its backward scan until user text is found.
+    const noise = Array.from({ length: 60 }, () =>
+      transcriptLine('user', [{ type: 'tool_result', content: 'x'.repeat(2000) }])
+    );
+    writeTranscript([
+      transcriptLine('user', 'My timezone is Australia/Sydney.'),
+      ...noise,
+    ]);
+    const input = parseClaudeStopHookInput(stopInput());
+    const tail = readClaudeTranscriptTail(input, { claudeConfigDir, tailBytes: 1024 });
+
+    expect(tail.text).toContain('USER: My timezone is Australia/Sydney.');
+    expect(tail.userMessageCount).toBe(1);
+  });
+
   it('rejects non-Stop payloads and transcripts outside the Claude config root', () => {
     expect(() =>
       parseClaudeStopHookInput(stopInput({ hook_event_name: 'PreToolUse' }))
@@ -247,6 +264,26 @@ describe('auto-capture pipeline', () => {
     expect(store.load('default')).toEqual([]);
     const journal = readFileSync(join(root, 'memory', 'journal.log'), 'utf8');
     expect(journal).toContain('"status":"failed"');
+  });
+
+  it('sends only user-authored text to the extraction model', async () => {
+    // Assistant prose is not memory authority; keeping it out of the prompt
+    // makes hallucinated "facts" from the assistant's own words impossible.
+    writeTranscript([
+      transcriptLine('user', 'I prefer dark mode.'),
+      transcriptLine('assistant', 'Noted. Also, the folio plan review feature is disabled.'),
+    ]);
+    const llm = new ScriptedLlm(['prefers_theme(user, dark).']);
+    const result = await autoCaptureClaudeStop(
+      { store, llm },
+      stopInput({ last_assistant_message: 'The folio feature stays disabled.' }),
+      captureOptions()
+    );
+
+    expect(result.status).toBe('captured');
+    const prompts = llm.calls.flat().map((message) => message.content).join('\n');
+    expect(prompts).toContain('I prefer dark mode.');
+    expect(prompts).not.toContain('folio');
   });
 
   it('deduplicates the same transcript before spending another LLM call', async () => {
@@ -542,6 +579,43 @@ describe('Claude hook installer', () => {
       async: true,
       timeout: 120,
     });
+  });
+
+  it('installs a managed SessionStart brief hook alongside Stop and removes both', () => {
+    const settingsPath = join(claudeConfigDir, 'settings.json');
+    installClaudeHook({
+      settingsPath,
+      nodePath: '/usr/local/bin/node',
+      cliPath: '/opt/rembero/dist/cli.js',
+      namespace: 'personal',
+      dailyCap: 5,
+      tailBytes: 8192,
+    });
+    const settings = JSON.parse(readFileSync(settingsPath, 'utf8'));
+    const startHandlers = settings.hooks.SessionStart.flatMap(
+      (group: { hooks: Record<string, unknown>[] }) => group.hooks
+    );
+    expect(startHandlers).toContainEqual({
+      type: 'command',
+      command: '/usr/local/bin/node',
+      args: [
+        '/opt/rembero/dist/cli.js',
+        'session-brief',
+        '--managed-by',
+        MANAGED_HOOK_MARKER,
+        '--namespace',
+        'personal',
+      ],
+      timeout: 15,
+    });
+
+    expect(removeClaudeHook({ settingsPath }).changed).toBe(true);
+    const after = JSON.parse(readFileSync(settingsPath, 'utf8'));
+    expect(after.hooks?.SessionStart).toBeUndefined();
+    const stopHandlers = (after.hooks?.Stop ?? []).flatMap(
+      (group: { hooks: Record<string, unknown>[] }) => group.hooks
+    );
+    expect(stopHandlers).toEqual([]);
   });
 
   it('removes only the managed hook and leaves unrelated hooks intact', () => {

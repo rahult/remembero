@@ -128,26 +128,29 @@ function isManagedHandler(value: unknown): boolean {
   );
 }
 
-function withoutManagedStopHook(settings: JsonObject): JsonObject {
+const MANAGED_HOOK_EVENTS = ['Stop', 'SessionStart'] as const;
+
+function withoutManagedHooks(settings: JsonObject): JsonObject {
   const next = structuredClone(settings);
   if (next.hooks === undefined) return next;
   const hooks = asObject(next.hooks, "Claude settings 'hooks'");
-  if (hooks.Stop === undefined) return next;
-  if (!Array.isArray(hooks.Stop)) {
-    throw new Error("Claude settings 'hooks.Stop' must be an array");
-  }
-
-  const groups: unknown[] = [];
-  for (const rawGroup of hooks.Stop) {
-    const group = asObject(rawGroup, "Claude settings 'hooks.Stop' entry");
-    if (!Array.isArray(group.hooks)) {
-      throw new Error("Claude settings Stop matcher group's 'hooks' must be an array");
+  for (const event of MANAGED_HOOK_EVENTS) {
+    if (hooks[event] === undefined) continue;
+    if (!Array.isArray(hooks[event])) {
+      throw new Error(`Claude settings 'hooks.${event}' must be an array`);
     }
-    const handlers = group.hooks.filter((handler) => !isManagedHandler(handler));
-    if (handlers.length > 0) groups.push({ ...group, hooks: handlers });
+    const groups: unknown[] = [];
+    for (const rawGroup of hooks[event] as unknown[]) {
+      const group = asObject(rawGroup, `Claude settings 'hooks.${event}' entry`);
+      if (!Array.isArray(group.hooks)) {
+        throw new Error(`Claude settings ${event} matcher group's 'hooks' must be an array`);
+      }
+      const handlers = group.hooks.filter((handler) => !isManagedHandler(handler));
+      if (handlers.length > 0) groups.push({ ...group, hooks: handlers });
+    }
+    if (groups.length > 0) hooks[event] = groups;
+    else delete hooks[event];
   }
-  if (groups.length > 0) hooks.Stop = groups;
-  else delete hooks.Stop;
   if (Object.keys(hooks).length === 0) delete next.hooks;
   return next;
 }
@@ -162,7 +165,7 @@ export function installClaudeHook(options: InstallClaudeHookOptions): HookChange
   }
 
   const current = readSettings(settingsPath);
-  const next = withoutManagedStopHook(current);
+  const next = withoutManagedHooks(current);
   const hooks = next.hooks === undefined
     ? ((next.hooks = {}) as JsonObject)
     : asObject(next.hooks, "Claude settings 'hooks'");
@@ -194,6 +197,32 @@ export function installClaudeHook(options: InstallClaudeHookOptions): HookChange
   });
   hooks.Stop = stop;
 
+  // SessionStart runs synchronously so its stdout is injected as session
+  // context; the brief is local-only and bounded, so a short timeout is safe.
+  const sessionStart = hooks.SessionStart === undefined ? [] : hooks.SessionStart;
+  if (!Array.isArray(sessionStart)) {
+    throw new Error("Claude settings 'hooks.SessionStart' must be an array");
+  }
+  sessionStart.push({
+    matcher: '',
+    hooks: [
+      {
+        type: 'command',
+        command: resolve(options.nodePath),
+        args: [
+          resolve(options.cliPath),
+          'session-brief',
+          '--managed-by',
+          MANAGED_HOOK_MARKER,
+          '--namespace',
+          namespace,
+        ],
+        timeout: 15,
+      },
+    ],
+  });
+  hooks.SessionStart = sessionStart;
+
   const changed = JSON.stringify(current) !== JSON.stringify(next);
   if (changed) writeSettings(settingsPath, next);
   return { changed, settingsPath };
@@ -203,7 +232,7 @@ export function removeClaudeHook(options: RemoveClaudeHookOptions): HookChangeRe
   const settingsPath = resolve(options.settingsPath);
   if (!existsSync(settingsPath)) return { changed: false, settingsPath };
   const current = readSettings(settingsPath);
-  const next = withoutManagedStopHook(current);
+  const next = withoutManagedHooks(current);
   const changed = JSON.stringify(current) !== JSON.stringify(next);
   if (changed) writeSettings(settingsPath, next);
   return { changed, settingsPath };

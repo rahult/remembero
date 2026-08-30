@@ -20,6 +20,78 @@ class ScriptedLlm implements LlmClient {
   }
 }
 
+describe('MCP tool profiles', () => {
+  it('exposes only the core memory surface under the core profile', async () => {
+    const store = new MemoryStore(mkdtempSync(join(tmpdir(), 'rembero-mcp-profile-')));
+    const server = createServer({
+      store,
+      llm: new ScriptedLlm([]),
+      toolProfile: 'core',
+    });
+    const client = new Client({ name: 'rembero-profile-test', version: '1.0.0' });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+    try {
+      const tools = await client.listTools();
+      expect(tools.tools.map((tool) => tool.name).sort()).toEqual(
+        [
+          'assert_facts',
+          'check_integrity',
+          'explain_query',
+          'forget',
+          'history',
+          'list_memories',
+          'query',
+          'recall',
+          'recall_explain',
+          'remember',
+          'search_knowledge',
+          'supersede_facts',
+        ]
+      );
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+});
+
+describe('MCP server default namespace', () => {
+  it('routes namespace-less tool calls to the configured default namespace', async () => {
+    const store = new MemoryStore(mkdtempSync(join(tmpdir(), 'rembero-mcp-ns-')));
+    const server = createServer({
+      store,
+      llm: new ScriptedLlm([]),
+      defaultNamespace: 'proj-atlas',
+    });
+    const client = new Client({ name: 'rembero-ns-test', version: '1.0.0' });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+    try {
+      await client.callTool({
+        name: 'assert_facts',
+        arguments: { clauses: 'city(sydney).' },
+      });
+      expect(store.load('proj-atlas').length).toBe(1);
+      expect(store.load('default').length).toBe(0);
+
+      const result = await client.callTool({
+        name: 'query',
+        arguments: { query: 'city(X)' },
+      });
+      const text = (result.content as { type: string; text: string }[])
+        .map((block) => block.text)
+        .join('\n');
+      expect(text).toContain('sydney');
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+});
+
 describe('MCP explanation surfaces', () => {
   it('registers and executes explain_query and recall_explain over the real protocol', async () => {
     const store = new MemoryStore(mkdtempSync(join(tmpdir(), 'rembero-mcp-')));

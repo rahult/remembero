@@ -2,6 +2,9 @@
 import { lstatSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { autoCaptureClaudeStop } from './autocapture/capture.js';
+import { buildSessionBrief } from './autocapture/session-brief.js';
+import { runInit } from './init.js';
+import { backupKnowledge, restoreKnowledge } from './knowledge/backup.js';
 import {
   DEFAULT_AUTO_CAPTURE_DAILY_CAP,
   MANAGED_HOOK_MARKER,
@@ -21,6 +24,7 @@ import {
   integrityEnforcementFromEnv,
   knowledgeCheckEnforcementFromEnv,
   loadEnv,
+  mcpToolProfileFromEnv,
   recallAnswerModeFromEnv,
   recallSchemaPredicateLimitFromEnv,
   validTimeModeFromEnv,
@@ -29,6 +33,7 @@ import { clientFromEnv, lazyClientFromEnv } from './llm/client.js';
 import {
   rememberText,
   recallQuestion,
+  type McpToolProfile,
   type RecallAnswerMode,
   type RecallRelatedKnowledgeOptions,
 } from './llm/pipeline.js';
@@ -162,6 +167,8 @@ const USAGE = `remembero — logic-based memory for chats and agents
 
 Usage:
   remembero serve                          Start the MCP server on stdio
+  remembero serve --profile core           Register only the daily-driver tool set
+  remembero serve -n proj-myapp            Default namespace for namespace-less tool calls
   remembero remember <text>                Extract facts from text and store them
   remembero propose-memory <text>         Extract and preview accepted memory without writing
   remembero apply-memory <file>            Apply one reviewed accepted-memory proposal
@@ -203,8 +210,10 @@ Usage:
   remembero checkpoints                    List immutable journal checkpoints
   remembero list                           List stored memories
   remembero review                         Review recent auto-captured facts
-  remembero init-hooks                     Install the opt-in Claude Stop hook
-  remembero init-hooks --remove            Remove only Remembero's managed hook
+  remembero init                           One-command Claude Code setup (hooks + MCP + snippet)
+  remembero init-hooks                     Install the opt-in Claude capture + brief hooks
+  remembero init-hooks --remove            Remove only Remembero's managed hooks
+  remembero session-brief                  Print the bounded session-start memory brief
   remembero export                         Print all memories as portable Datalog
   remembero import <ns> <file>             Load clauses from a .dl file into a namespace
   remembero sqlite-build                   Compile the loadable SQLite extension
@@ -299,6 +308,7 @@ interface ParsedArgs {
   entityIdentity?: string;
   trust?: string;
   answerMode?: string;
+  profile?: string;
   opId?: string;
   graphResult?: string;
   graphSupport?: string;
@@ -396,6 +406,9 @@ function parseArgs(argv: string[]): ParsedArgs {
       i += 1;
     } else if (arg === '--valid-time-mode') {
       parsed.validTimeMode = valueAfter(i, arg);
+      i += 1;
+    } else if (arg === '--profile') {
+      parsed.profile = valueAfter(i, arg);
       i += 1;
     } else if (arg === '--schema-predicate-limit') {
       parsed.schemaPredicateLimit = valueAfter(i, arg);
@@ -692,6 +705,12 @@ function recallAnswerModeOption(
     return value;
   }
   throw new Error("--answer-mode must be 'natural', 'deterministic', or 'evidence'");
+}
+
+function toolProfileOption(value: string | undefined): McpToolProfile {
+  if (value === undefined) return mcpToolProfileFromEnv();
+  if (value === 'core' || value === 'full') return value;
+  throw new Error("--profile must be 'core' or 'full'");
 }
 
 function graphNodeIdOption(value: string, label: string): string {
@@ -1113,6 +1132,9 @@ async function main(): Promise<void> {
   ) {
     throw new Error('--answer-mode is available only for serve, recall, or recall-explain');
   }
+  if (args.profile !== undefined && command !== 'serve') {
+    throw new Error('--profile is available only for serve');
+  }
   if (args.patterns.length > 0 && command !== 'supersede') {
     throw new Error('--pattern is available only for supersede');
   }
@@ -1278,9 +1300,30 @@ async function main(): Promise<void> {
         knowledgeCheckEnforcement,
         entityIdentity: entityIdentitySetting,
         trustMode: trustViewOption(args.trust),
+        toolProfile: toolProfileOption(args.profile),
+        ...(args.namespace === undefined ? {} : { defaultNamespace: args.namespace }),
       });
       return; // keep process alive; transport owns stdio
       }
+    case 'session-brief': {
+      if (args.managedBy !== undefined && args.managedBy !== MANAGED_HOOK_MARKER) {
+        throw new Error('unrecognized auto-capture hook marker');
+      }
+      try {
+        if (args.managedBy !== undefined) {
+          // Drain the SessionStart hook payload so the pipe closes cleanly; the
+          // brief itself is derived from the store, not from the payload.
+          await readStdinBounded();
+        }
+        const brief = buildSessionBrief(store, args.namespace ?? 'default');
+        if (brief !== '') console.log(brief);
+      } catch (error) {
+        if (args.managedBy === undefined) throw error;
+        // A hook failure must never break session start; report and stay quiet.
+        console.error(error instanceof Error ? error.message : String(error));
+      }
+      return;
+    }
     case 'remember': {
       if (args.batch) {
         if (args.managedBy !== undefined && args.managedBy !== MANAGED_HOOK_MARKER) {
@@ -2214,6 +2257,32 @@ async function main(): Promise<void> {
       if (result.status === 'failed') process.exitCode = 2;
       return;
     }
+    case 'backup': {
+      const [file] = args.positional;
+      if (!file) {
+        console.error('usage: remembero backup <file.json>');
+        process.exitCode = 1;
+        return;
+      }
+      const summary = backupKnowledge(store, file);
+      console.log(
+        `backed up ${summary.clauseCount} clauses across ${summary.namespaceCount} namespaces to ${file} (sha256 ${summary.sha256.slice(0, 12)})`
+      );
+      return;
+    }
+    case 'restore': {
+      const [file] = args.positional;
+      if (!file) {
+        console.error('usage: remembero restore <file.json>');
+        process.exitCode = 1;
+        return;
+      }
+      const result = restoreKnowledge(store, file);
+      console.log(
+        `restored ${result.clausesAdded} clauses into ${result.namespaces.length} namespaces from ${file} (sha256 ${result.sha256.slice(0, 12)})`
+      );
+      return;
+    }
     case 'export': {
       for (const ns of store.listNamespaces()) {
         console.log(`% namespace: ${ns}`);
@@ -2347,6 +2416,39 @@ async function main(): Promise<void> {
         );
       });
       console.log('\nPrune with: remembero review --forget <number,...>');
+      return;
+    }
+    case 'init': {
+      const result = runInit({
+        settingsPath: resolve(args.settingsPath ?? defaultClaudeSettingsPath()),
+        nodePath: process.execPath,
+        cliPath: resolve(process.argv[1]),
+        namespace: args.namespace ?? 'personal',
+        dailyCap: integerOption(
+          args.dailyCap ?? process.env.REMBERO_AUTO_CAPTURE_DAILY_CAP,
+          DEFAULT_AUTO_CAPTURE_DAILY_CAP,
+          'auto-capture daily cap'
+        ),
+        tailBytes: integerOption(
+          args.tailBytes ?? process.env.REMBERO_AUTO_CAPTURE_TAIL_BYTES,
+          DEFAULT_TRANSCRIPT_TAIL_BYTES,
+          'auto-capture tail bytes'
+        ),
+      });
+      console.log(
+        `hooks: ${result.hooks.changed ? 'installed' : 'already current'} (${result.hooks.settingsPath})`
+      );
+      console.log(`mcp registration: ${result.registration.detail}`);
+      if (!result.registration.ok) {
+        console.log(`  ${result.registration.command.join(' ')}`);
+      }
+      console.log('\nAdd this to your CLAUDE.md (or system prompt):\n');
+      console.log(result.claudeMdSnippet);
+      if ((process.env.LLM_API_KEY ?? '') === '') {
+        console.log(
+          "\nNote: LLM_API_KEY is not set; natural-language remember/recall will be unavailable until it is configured (the raw query tools work without it)."
+        );
+      }
       return;
     }
     case 'init-hooks':

@@ -5,10 +5,41 @@
 Logic-based memory for LLM chats and agents. Instead of fuzzy vector recall, Remembero stores
 memories as **Datalog facts, rules, and explicit integrity constraints** and answers
 questions by **logical inference** —
-an LLM (GPT-5.6 Luna via OpenRouter) translates natural language in and out, and a
+an LLM (Claude Sonnet 5 via OpenRouter by default; set `LLM_MODEL` for the cheaper
+`openai/gpt-5.6-luna` economy option) translates natural language in and out, and a
 built-in, zero-dependency Datalog engine does the reasoning deterministically.
 
 Release history is maintained in [CHANGELOG.md](CHANGELOG.md).
+
+## Quickstart (Claude Code, ~2 minutes)
+
+```bash
+npm install -g remembero
+export LLM_API_KEY=sk-or-...   # OpenRouter key; optional — raw query tools work without it
+remembero init                 # hooks + core-profile MCP registration + CLAUDE.md snippet
+```
+
+`remembero init` installs two Claude Code hooks (ambient capture of durable facts on Stop,
+a deterministic memory brief injected at SessionStart), registers the MCP server with the
+12-tool `core` profile, and prints a CLAUDE.md snippet to paste. Then, in chat:
+*"Remember that my dentist is Dr Chen"* → later, *"Who's my dentist?"*.
+
+Daily commands:
+
+```bash
+remembero session-brief          # what the agent sees at session start
+remembero review                 # inspect/prune ambient captures (--forget 2,5)
+remembero-web                    # browse your real memory at http://127.0.0.1:4318
+remembero backup memory.json     # verified whole-store backup (restore with `restore`)
+```
+
+Latency expectations: structured queries and briefs are local and sub-millisecond;
+natural-language `remember`/`recall` each make 1–2 model calls (seconds, ~$0.001);
+opt-in semantic search is the slow path (10–30 s) and never runs inside a turn by default.
+
+Backups, restore, and the two-machine story are covered in
+[docs/SYNC-AND-BACKUP.md](docs/SYNC-AND-BACKUP.md). Weekly hygiene: `remembero review`
+to prune anything ambient capture got wrong.
 
 The executable [agent database scorecard](docs/AGENT-DATABASE-SCORECARD.md) gates exact
 answers, proof citations, stale leakage, engine latency, a real MCP round trip, and the
@@ -135,7 +166,9 @@ Configuration is via environment variables (a `.env` file in the working directo
 | `REMBERO_LLM_ALLOWED_NAMESPACES` | no | all namespaces (comma-separated allowlist when set; empty blocks all LLM export) |
 | `REMBERO_AUTO_CAPTURE_DAILY_CAP` | no | `10` unique attempts per namespace/UTC day |
 | `REMBERO_AUTO_CAPTURE_TAIL_BYTES` | no | `24576` bytes (maximum `49152`) |
-| `REMBERO_VALID_TIME_MODE` | no | `delete`; set `archive_until` to preserve superseded facts |
+| `REMBERO_MCP_PROFILE` | no | `full`; `core` registers only the 12 daily-driver MCP tools (also `serve --profile core`) |
+| `REMBERO_WEB_DEMO` | no | `false`; the web console shows your real memory by default — `true` (or `--demo`) opens the seeded fictional sandbox |
+| `REMBERO_VALID_TIME_MODE` | no | `delete`; set `archive_until` to preserve superseded facts (`remembero init` registrations default to `archive_until`) |
 | `REMBERO_RECALL_SCHEMA_PREDICATE_LIMIT` | no | `8` detailed predicates on the first recall pass (range: 1–256) |
 | `REMBERO_RECALL_ANSWER_MODE` | no | `natural`; use `deterministic` bindings or compact `evidence` |
 | `REMBERO_INTEGRITY_MODE` | no | `off`; use `strict` or migration mode `no_new_violations` for atomic write rejection |
@@ -185,7 +218,13 @@ To make agents use memory *proactively*, add a snippet like this to your `CLAUDE
 - Never store secrets or transient details. When unsure whether to remember, ask.
 ```
 
-Tools exposed: `remember`, `propose_memory`, `apply_memory_proposal`, `recall`, `recall_explain`, `assert_facts`,
+The `core` profile (`serve --profile core`, used by `remembero init`) registers the
+12 daily-driver tools: `remember`, `recall`, `recall_explain`, `list_memories`, `forget`,
+`history`, `assert_facts`, `query`, `explain_query`, `supersede_facts`, `check_integrity`,
+and `search_knowledge`. The default `full` profile also exposes the knowledge-engineering
+surface below.
+
+Tools exposed (full profile): `remember`, `propose_memory`, `apply_memory_proposal`, `recall`, `recall_explain`, `assert_facts`,
 `assert_tentative`, `review_tentative`, `resolve_tentative`, `supersede_facts`,
 `query`, `explain_query`, `check_integrity`, `conflict_views`, `history`, `forget`,
 `what_if`, `apply_rule_change`, `why_not`, `knowledge_topology`, `diff_recorded_knowledge`,
@@ -292,6 +331,10 @@ node dist/cli.js browse mira --browse-depth 2 # explicit entity neighborhood
 node dist/cli.js connect mira rahul --path-depth 4 # shortest explicit relationships
 node dist/cli.js connect mira rahul --include-derived # rule conclusions + proofs
 node dist/cli.js bundle > knowledge.json && node dist/cli.js verify-bundle knowledge.json
+node dist/cli.js export > memories.dl                 # dump every namespace as plain Datalog
+node dist/cli.js import personal memories.dl          # load clauses into one namespace
+node dist/cli.js backup memory-backup.json            # verified whole-store backup
+node dist/cli.js restore memory-backup.json           # restore into a fresh/empty store
 node dist/cli.js test-knowledge checks.json # deterministic rule regression suite
 node dist/cli.js profile 'relevant(X, Y)' --compare-scan # deterministic work counters
 node dist/cli.js explain  'path(a, X)' --graph-result 2 # one result's complete support

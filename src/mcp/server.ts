@@ -5,6 +5,7 @@ import {
   entityIdentityFromEnv,
   integrityEnforcementFromEnv,
   knowledgeCheckEnforcementFromEnv,
+  mcpToolProfileFromEnv,
   recallAnswerModeFromEnv,
   recallSchemaPredicateLimitFromEnv,
   validTimeModeFromEnv,
@@ -498,6 +499,27 @@ function requestedRelatedKnowledge(
   };
 }
 
+/**
+ * The daily-driver tool surface: hands-free natural-language memory plus the
+ * LLM-free structured read/write path. Everything else (review gates,
+ * diagnostics, time travel, bundles, the semantic version ledger) registers
+ * only under the `full` profile.
+ */
+export const CORE_PROFILE_TOOLS: ReadonlySet<string> = new Set([
+  'remember',
+  'recall',
+  'recall_explain',
+  'list_memories',
+  'forget',
+  'history',
+  'assert_facts',
+  'query',
+  'explain_query',
+  'supersede_facts',
+  'check_integrity',
+  'search_knowledge',
+]);
+
 export function createServer(deps: PipelineDeps): McpServer {
   const entityIdentity = deps.entityIdentity ?? entityIdentityFromEnv();
   const configuredIntegrity = deps.integrityEnforcement ?? integrityEnforcementFromEnv();
@@ -527,6 +549,15 @@ export function createServer(deps: PipelineDeps): McpServer {
     new FileEmbeddingCache(resolvedDeps.store.semanticEmbeddingCacheRoot())
   );
   const server = new McpServer({ name: 'rembero', version: '0.54.0' });
+
+  const toolProfile = resolvedDeps.toolProfile ?? mcpToolProfileFromEnv();
+  if (toolProfile === 'core') {
+    const registerAll = server.registerTool.bind(server);
+    server.registerTool = ((name: string, ...rest: unknown[]) =>
+      CORE_PROFILE_TOOLS.has(name)
+        ? (registerAll as (...args: unknown[]) => unknown)(name, ...rest)
+        : undefined) as typeof server.registerTool;
+  }
 
   const semanticLedger = () => {
     if (resolvedDeps.semanticLedger === undefined) {
@@ -725,7 +756,7 @@ export function createServer(deps: PipelineDeps): McpServer {
     {
       title: 'Remember',
       description:
-        "Store a natural-language statement in long-term memory as logical facts/rules. Use proactively when the user states something durable: preferences, relationships, decisions, project facts, biography ('my dentist is Dr Chen', 'we picked Postgres', 'Mira now works at Initech' — updates supersede old facts). Do NOT store secrets (passwords, keys) or transient context (today's error message).",
+        "Store a natural-language statement in long-term memory as logical facts/rules. Use proactively when the user states something durable: preferences, relationships, decisions, project facts, biography ('my dentist is Dr Chen', 'we picked Postgres', 'Mira now works at Initech' — updates supersede old facts). Do NOT store secrets (passwords, keys) or transient context (today's error message). Needs a configured model (LLM_API_KEY); when you can express the statement as ground Datalog facts yourself, prefer assert_facts — same store, no key, no extra model call (reuse predicates from list_memories; supersede_facts for updates).",
       inputSchema: {
         text: boundedText('What to remember, in plain language'),
         namespace: namespaceField,
@@ -925,7 +956,7 @@ export function createServer(deps: PipelineDeps): McpServer {
     {
       title: 'Recall',
       description:
-        "Answer a question from current or explicitly selected recorded long-term memory using logical inference over stored facts and rules. Use when the user asks about anything previously discussed or personal ('who is my dentist?', 'what did we decide about the database?'), and at the start of tasks where remembered context would help. Returns an explicit recall status plus the query, bindings, and bounded schema diagnostics when pruning activates. Optional related knowledge is same-snapshot local discovery evidence only; it never changes the answer status or adds a model call.",
+        "Answer a question from current or explicitly selected recorded long-term memory using logical inference over stored facts and rules. Use when the user asks about anything previously discussed or personal ('who is my dentist?', 'what did we decide about the database?'), and at the start of tasks where remembered context would help. Returns an explicit recall status plus the query, bindings, and bounded schema diagnostics when pruning activates. Optional related knowledge is same-snapshot local discovery evidence only; it never changes the answer status or adds a model call. Needs a configured model (LLM_API_KEY); when you can write the Datalog yourself, prefer list_memories + query — LLM-free and faster.",
       inputSchema: {
         question: boundedText(),
         namespaces: namespacesField,
@@ -1069,6 +1100,7 @@ export function createServer(deps: PipelineDeps): McpServer {
         return asContent(
           assertFactsTool({
             store: resolvedDeps.store,
+            defaultNamespace: resolvedDeps.defaultNamespace,
             knowledgeCheckEnforcement: resolvedDeps.knowledgeCheckEnforcement,
           }, {
             clauses,
@@ -1125,6 +1157,7 @@ export function createServer(deps: PipelineDeps): McpServer {
           assertTentativeTool(
             {
               store: resolvedDeps.store,
+            defaultNamespace: resolvedDeps.defaultNamespace,
               knowledgeCheckEnforcement: resolvedDeps.knowledgeCheckEnforcement,
             },
             {
@@ -1163,6 +1196,7 @@ export function createServer(deps: PipelineDeps): McpServer {
           reviewTentativeTool(
             {
               store: resolvedDeps.store,
+            defaultNamespace: resolvedDeps.defaultNamespace,
               knowledgeCheckEnforcement: resolvedDeps.knowledgeCheckEnforcement,
             },
             { namespaces }
@@ -1210,6 +1244,7 @@ export function createServer(deps: PipelineDeps): McpServer {
           resolveTentativeTool(
             {
               store: resolvedDeps.store,
+            defaultNamespace: resolvedDeps.defaultNamespace,
               knowledgeCheckEnforcement: resolvedDeps.knowledgeCheckEnforcement,
             },
             {
@@ -1277,6 +1312,7 @@ export function createServer(deps: PipelineDeps): McpServer {
           supersedeFactsTool(
             {
               store: resolvedDeps.store,
+            defaultNamespace: resolvedDeps.defaultNamespace,
               knowledgeCheckEnforcement: resolvedDeps.knowledgeCheckEnforcement,
             },
             {
@@ -1376,6 +1412,7 @@ export function createServer(deps: PipelineDeps): McpServer {
           await semanticSearchKnowledgeTool(
             {
               store: resolvedDeps.store,
+            defaultNamespace: resolvedDeps.defaultNamespace,
               embeddings,
               semanticCache,
               llmAllowedNamespaces: resolvedDeps.llmAllowedNamespaces,
@@ -1429,6 +1466,7 @@ export function createServer(deps: PipelineDeps): McpServer {
           await prepareSemanticKnowledgeTool(
             {
               store: resolvedDeps.store,
+            defaultNamespace: resolvedDeps.defaultNamespace,
               embeddings,
               semanticCache,
               llmAllowedNamespaces: resolvedDeps.llmAllowedNamespaces,
@@ -1650,7 +1688,7 @@ export function createServer(deps: PipelineDeps): McpServer {
     {
       title: 'Query',
       description:
-        "Run a raw Datalog query and get variable bindings, e.g. 'works_at(X, acme)', 'score(X, S), S > 10 + 5', 'employee(X), \\+ suspended(X)', or 'count(*) as Count where works_at(Person, acme)'.",
+        "Run a raw Datalog query and get variable bindings, e.g. 'works_at(X, acme)', 'score(X, S), S > 10 + 5', 'employee(X), \\+ suspended(X)', or 'count(*) as Count where works_at(Person, acme)'. Preferred read path when you can write the query yourself: call list_memories to see the predicates, then query directly — deterministic, millisecond, and needs no API key (recall needs a configured model).",
       inputSchema: {
         query: boundedText(),
         namespaces: namespacesField,
@@ -2071,6 +2109,7 @@ export function createServer(deps: PipelineDeps): McpServer {
         return asContent(
           forgetTool({
             store: resolvedDeps.store,
+            defaultNamespace: resolvedDeps.defaultNamespace,
             knowledgeCheckEnforcement: resolvedDeps.knowledgeCheckEnforcement,
           }, {
             pattern,
@@ -2215,7 +2254,7 @@ export function createServer(deps: PipelineDeps): McpServer {
     async ({ namespaces, recordedSequence }) => {
       try {
         const bundle = exportKnowledgeBundleTool(
-          { store: resolvedDeps.store },
+          { store: resolvedDeps.store, defaultNamespace: resolvedDeps.defaultNamespace },
           { namespaces, recordedSequence }
         );
         return asRawContent(
@@ -2319,7 +2358,7 @@ export function createServer(deps: PipelineDeps): McpServer {
     {
       title: 'List memories',
       description:
-        'List stored facts and rules grouped by predicate, plus explicit integrity constraints when present.',
+        'List stored facts and rules grouped by predicate, plus explicit integrity constraints when present. Start here to discover the schema before writing raw query or assert_facts calls — LLM-free and instant.',
       inputSchema: {
         namespaces: namespacesField,
         predicate: z.string().optional().describe("Filter: 'name' or 'name/arity'"),

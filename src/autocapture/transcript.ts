@@ -14,7 +14,9 @@ import { assertBoundedInput } from '../safety.js';
 export const DEFAULT_TRANSCRIPT_TAIL_BYTES = 24 * 1024;
 export const MAX_TRANSCRIPT_TAIL_BYTES = 48 * 1024;
 const MAX_TRANSCRIPT_FILE_BYTES = 512 * 1024 * 1024;
-const MAX_READ_WINDOW_BYTES = 1024 * 1024;
+// Agentic transcripts bury user turns under megabytes of tool_result lines, so the
+// backward scan may widen well past the base window before it sees user text.
+const MAX_READ_WINDOW_BYTES = 16 * 1024 * 1024;
 
 export interface ClaudeStopHookInput {
   sessionId: string;
@@ -27,6 +29,12 @@ export interface ClaudeStopHookInput {
 export interface TranscriptReadOptions {
   claudeConfigDir?: string;
   tailBytes?: number;
+  /**
+   * Select only user-authored messages and ignore `lastAssistantMessage`.
+   * Assistant prose is context, never memory authority; extraction uses this
+   * so a model cannot mint "facts" from the assistant's own words.
+   */
+  userOnly?: boolean;
 }
 
 export interface ClaudeTranscriptTail {
@@ -240,19 +248,7 @@ function boundedMessages(
     .map(([, message]) => message);
 }
 
-export function readClaudeTranscriptTail(
-  input: ClaudeStopHookInput,
-  options: TranscriptReadOptions = {}
-): ClaudeTranscriptTail {
-  const tailBytes = validateTailBytes(options.tailBytes ?? DEFAULT_TRANSCRIPT_TAIL_BYTES);
-  const configDir = resolve(options.claudeConfigDir ?? defaultClaudeConfigDir());
-  const trusted = trustedTranscriptPath(input.transcriptPath, configDir);
-  const size = statSync(trusted.path).size;
-  const readBytes = Math.min(
-    size,
-    MAX_READ_WINDOW_BYTES,
-    Math.max(64 * 1024, tailBytes * 8)
-  );
+function readTranscriptWindow(trusted: TrustedTranscript, size: number, readBytes: number): string {
   const start = Math.max(0, size - readBytes);
   const buffer = Buffer.alloc(readBytes);
   const descriptor = openSync(trusted.path, 'r');
@@ -275,8 +271,39 @@ export function readClaudeTranscriptTail(
     const firstNewline = raw.indexOf('\n');
     raw = firstNewline === -1 ? '' : raw.slice(firstNewline + 1);
   }
+  return raw;
+}
 
-  const messages = parseTranscriptMessages(raw);
+export function readClaudeTranscriptTail(
+  input: ClaudeStopHookInput,
+  options: TranscriptReadOptions = {}
+): ClaudeTranscriptTail {
+  const tailBytes = validateTailBytes(options.tailBytes ?? DEFAULT_TRANSCRIPT_TAIL_BYTES);
+  const configDir = resolve(options.claudeConfigDir ?? defaultClaudeConfigDir());
+  const trusted = trustedTranscriptPath(input.transcriptPath, configDir);
+  const size = statSync(trusted.path).size;
+  let readBytes = Math.min(size, MAX_READ_WINDOW_BYTES, Math.max(64 * 1024, tailBytes * 8));
+  let messages = parseTranscriptMessages(readTranscriptWindow(trusted, size, readBytes));
+  while (
+    !messages.some((message) => message.role === 'user') &&
+    readBytes < Math.min(size, MAX_READ_WINDOW_BYTES)
+  ) {
+    readBytes = Math.min(size, MAX_READ_WINDOW_BYTES, readBytes * 4);
+    messages = parseTranscriptMessages(readTranscriptWindow(trusted, size, readBytes));
+  }
+  if (options.userOnly === true) {
+    const users = messages.filter((message) => message.role === 'user');
+    const selected = boundedMessages(users, tailBytes);
+    const text = selected
+      .map((message) => `${message.role.toUpperCase()}: ${message.text}`)
+      .join('\n\n');
+    return {
+      text,
+      bytes: Buffer.byteLength(text, 'utf8'),
+      messageCount: selected.length,
+      userMessageCount: selected.length,
+    };
+  }
   const lastAssistant = removeTranscriptNoise(input.lastAssistantMessage);
   if (
     lastAssistant !== '' &&

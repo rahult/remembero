@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadEnv } from '../env.js';
 import { lazyClientFromEnv } from '../llm/client.js';
 import { MAX_INPUT_BYTES, stringifyBoundedResult } from '../safety.js';
-import { MemoryStore } from '../store/store.js';
+import { defaultRoot, MemoryStore } from '../store/store.js';
 import { openSemanticLedger } from '../ledger/remembero-review.js';
 import { RemberoWebService, WebServiceError } from './service.js';
 
@@ -30,6 +30,32 @@ export interface StartWebServerOptions {
   root?: string;
   namespace?: string;
   seedDemo?: boolean;
+  /** Demo mode: a seeded fictional sandbox instead of the real memory root. */
+  demo?: boolean;
+}
+
+export interface ResolvedWebConfig {
+  demo: boolean;
+  root: string;
+  namespace: string | undefined;
+  seedDemo: boolean;
+}
+
+/**
+ * The console shows the user's real memory by default; the fictional demo
+ * workspace and its `.rembero-web` sandbox are explicit opt-ins.
+ */
+export function resolveWebConfig(
+  options: StartWebServerOptions = {},
+  env: NodeJS.ProcessEnv = process.env
+): ResolvedWebConfig {
+  const demo =
+    options.demo ?? (options.seedDemo === true || env.REMBERO_WEB_DEMO === 'true');
+  const root = options.root ?? env.REMBERO_WEB_ROOT ?? (demo ? resolve('.rembero-web') : defaultRoot());
+  const namespace =
+    options.namespace ?? env.REMBERO_WEB_NAMESPACE ?? (demo ? undefined : 'default');
+  const seedDemo = options.seedDemo ?? (demo && env.REMBERO_WEB_SEED_DEMO !== 'false');
+  return { demo, root, namespace, seedDemo };
 }
 
 function jsonBody(request: IncomingMessage): Promise<unknown> {
@@ -299,7 +325,7 @@ export async function startWebServer(options: StartWebServerOptions = {}) {
     throw new Error('Remembero web console supports loopback hosts only');
   }
   const port = options.port ?? portFromEnv(process.env.REMBERO_WEB_PORT);
-  const root = options.root ?? process.env.REMBERO_WEB_ROOT ?? resolve('.rembero-web');
+  const { root, namespace, seedDemo } = resolveWebConfig(options);
   const store = new MemoryStore(root);
   const semantic = await openSemanticLedger(join(root, 'semantic.sqlite'));
   const llmConfigured = Boolean(process.env.LLM_API_KEY);
@@ -308,9 +334,8 @@ export async function startWebServer(options: StartWebServerOptions = {}) {
     ledger: semantic.ledger,
     llm: lazyClientFromEnv(),
     llmConfigured,
-    namespace: options.namespace ?? process.env.REMBERO_WEB_NAMESPACE,
+    ...(namespace === undefined ? {} : { namespace }),
   });
-  const seedDemo = options.seedDemo ?? process.env.REMBERO_WEB_SEED_DEMO !== 'false';
   if (seedDemo) {
     if (service.bootstrap().empty) service.seedDemo();
     service.parseAllDocuments();
@@ -392,7 +417,10 @@ export async function startWebServer(options: StartWebServerOptions = {}) {
 
 const entry = process.argv[1];
 if (entry !== undefined && import.meta.url === pathToFileURL(entry).href) {
-  startWebServer({ dev: process.argv.includes('--dev') }).catch((error) => {
+  startWebServer({
+    dev: process.argv.includes('--dev'),
+    ...(process.argv.includes('--demo') ? { demo: true } : {}),
+  }).catch((error) => {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
     process.exitCode = 1;
   });

@@ -116,7 +116,16 @@ export interface PipelineDeps {
   trustMode?: TrustViewMode | false;
   /** Optional default final rendering mode for successful recall. */
   recallAnswerMode?: RecallAnswerMode;
+  /**
+   * MCP tool surface selection. `core` registers only the daily-driver memory
+   * tools; `full` (the default) registers the complete knowledge-engineering set.
+   */
+  toolProfile?: McpToolProfile;
+  /** Namespace used when a tool call names none (default: 'default'). */
+  defaultNamespace?: string;
 }
+
+export type McpToolProfile = 'core' | 'full';
 
 export interface RememberResult {
   added: string[];

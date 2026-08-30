@@ -80,6 +80,7 @@ export async function autoCaptureClaudeStop(
     tail = readClaudeTranscriptTail(input, {
       claudeConfigDir: options.claudeConfigDir,
       tailBytes,
+      userOnly: true,
     });
   } catch (error) {
     try {

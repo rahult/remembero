@@ -14,7 +14,7 @@ import {
   parseKnowledgeCheckSuite,
 } from './knowledge/checks.js';
 import type { EntityIdentityMode } from './knowledge/identity.js';
-import type { RecallAnswerMode } from './llm/pipeline.js';
+import type { McpToolProfile, RecallAnswerMode } from './llm/pipeline.js';
 
 /**
  * Load .env from the current directory and from the package root (so the CLI
@@ -55,6 +55,14 @@ export function recallSchemaPredicateLimitFromEnv(
     );
   }
   return parsed;
+}
+
+export function mcpToolProfileFromEnv(
+  env: NodeJS.ProcessEnv = process.env
+): McpToolProfile {
+  const configured = env.REMBERO_MCP_PROFILE ?? 'full';
+  if (configured === 'core' || configured === 'full') return configured;
+  throw new Error("REMBERO_MCP_PROFILE must be 'core' or 'full'");
 }
 
 export function recallAnswerModeFromEnv(

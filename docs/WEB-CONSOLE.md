@@ -19,10 +19,14 @@ For the production build:
 npm run web
 ```
 
-The default memory root is `.rembero-web/`, deliberately separate from existing Remembero
-memory. A sourced Personal demo workspace is seeded only when that sandbox is empty. Set
-`REMBERO_WEB_SEED_DEMO=false` for an empty workspace, or point
-`REMBERO_WEB_ROOT` at another explicit directory.
+The installed `remembero-web` binary opens your **real memory root** (`REMBERO_HOME`,
+default `~/.rembero/memory`, namespace `default`) — the same store the CLI and MCP server
+use. Demo mode is an explicit opt-in: pass `--demo` (or set `REMBERO_WEB_DEMO=true`) to
+use the `.rembero-web/` sandbox instead, where a sourced Personal demo workspace is seeded
+only when that sandbox is empty. The repo's `npm run web` and `npm run web:dev` scripts
+run in demo mode so evaluating the project never touches real memory. Set
+`REMBERO_WEB_SEED_DEMO=false` for an empty sandbox, point `REMBERO_WEB_ROOT` at another
+explicit directory, or pick a namespace with `REMBERO_WEB_NAMESPACE`.
 
 ## Real use case
 

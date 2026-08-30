@@ -9,8 +9,34 @@ const SENSITIVE_TEXT_PATTERNS = [
   /\b(?:my|your|the)\s+(?:api[_ -]?key|password|passwd|secret|access[_ -]?token|refresh[_ -]?token)\s+(?=\S*[0-9._~+/=-])\S{6,}/i,
   /\b(?:bearer\s+)[a-z0-9._~+/=-]{8,}/i,
   /\b(?:sk|gh[pousr])[-_][a-z0-9_-]{8,}/i,
-  /\b(?:\d[ -]*?){13,19}\b/,
 ];
+
+// Timestamps, build IDs, and session stamps are 13+ digit runs too; only a
+// Luhn-valid run in the card-number length range is treated as sensitive.
+const CARD_CANDIDATE_PATTERN = /\b(?:\d[ -]*?){13,19}\b/g;
+
+function luhnValid(digits: string): boolean {
+  let sum = 0;
+  let double = false;
+  for (let index = digits.length - 1; index >= 0; index -= 1) {
+    let digit = digits.charCodeAt(index) - 48;
+    if (double) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    double = !double;
+  }
+  return sum % 10 === 0;
+}
+
+function containsCardNumber(value: string): boolean {
+  for (const candidate of value.match(CARD_CANDIDATE_PATTERN) ?? []) {
+    const digits = candidate.replace(/[ -]/g, '');
+    if (digits.length >= 13 && digits.length <= 19 && luhnValid(digits)) return true;
+  }
+  return false;
+}
 
 export function assertBoundedInput(value: string, label: string): void {
   const bytes = Buffer.byteLength(value, 'utf8');
@@ -66,7 +92,10 @@ export function stringifyBoundedResult(
 }
 
 export function containsSensitiveText(value: string): boolean {
-  return SENSITIVE_TEXT_PATTERNS.some((pattern) => pattern.test(value));
+  return (
+    SENSITIVE_TEXT_PATTERNS.some((pattern) => pattern.test(value)) ||
+    containsCardNumber(value)
+  );
 }
 
 export function redactSensitiveText(value: string): { text: string; redacted: boolean } {
