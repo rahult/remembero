@@ -5,7 +5,9 @@ const raw = execFileSync('npm', ['pack', '--dry-run', '--json'], {
   encoding: 'utf8',
   stdio: ['ignore', 'pipe', 'pipe'],
 });
-const report = JSON.parse(raw)[0];
+// npm <=11 emits a one-element array; newer npm emits an object keyed by package name.
+const parsed = JSON.parse(raw);
+const report = Array.isArray(parsed) ? parsed[0] : parsed[Object.keys(parsed)[0]];
 if (report === undefined || !Array.isArray(report.files)) {
   throw new Error('npm pack did not return a file manifest');
 }
