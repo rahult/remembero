@@ -1,0 +1,270 @@
+/**
+ * Runs the agent-boundary benchmark against a local Ollama model.
+ *
+ *   node dist/evals/run-agent-boundary.js --model llama3.2:3b
+ *
+ * Same seeded SQLite database, same model, same few-shot budget; the model
+ * authors every query itself. The SQL condition executes model-written
+ * read-only SQL; the Remembero condition executes model-written Datalog via
+ * the same bridge the MCP server and browser labs use. Write-trap questions
+ * push a corrupting write through each condition's write path first: raw SQL
+ * applies it, the Remembero gate checks its integrity rules and refuses.
+ */
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import {
+  AGENT_BOUNDARY_QUESTIONS,
+  AGENT_BOUNDARY_SEED_SQL,
+  WRITE_GATE_RULES,
+  answerSystemPrompt,
+  assertReadOnlySql,
+  datalogSystemPrompt,
+  gradeAnswer,
+  sqlSystemPrompt,
+  stripFences,
+  type AgentBoundaryCondition,
+  type AgentBoundaryQuestion,
+} from './agent-boundary.js';
+import { openRememberoDatabase, type RememberoDatabase } from '../sqlite/extension.js';
+
+const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://127.0.0.1:11434';
+const MAX_RESULT_ROWS = 30;
+const MAX_ATTEMPTS = 2;
+
+interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+async function chat(model: string, messages: ChatMessage[]): Promise<string> {
+  const response = await fetch(`${OLLAMA_URL}/api/chat`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      messages,
+      stream: false,
+      options: { temperature: 0, seed: 7, num_ctx: 4096, num_predict: 400 },
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`ollama returned ${response.status}: ${await response.text()}`);
+  }
+  const payload = (await response.json()) as { message?: { content?: string } };
+  const content = payload.message?.content;
+  if (typeof content !== 'string') throw new Error('ollama returned no message content');
+  return content;
+}
+
+interface QuestionOutcome {
+  id: string;
+  category: string;
+  condition: AgentBoundaryCondition;
+  passed: boolean;
+  toolErrors: number;
+  gateRefusedTrap?: boolean;
+  query: string;
+  answer: string;
+  missing: string[];
+  forbidden: string[];
+}
+
+function executeQuery(
+  db: RememberoDatabase,
+  condition: AgentBoundaryCondition,
+  raw: string,
+): Array<Record<string, unknown>> {
+  const query = stripFences(raw);
+  if (condition === 'sql') {
+    assertReadOnlySql(query);
+    return db.prepare(query).all() as Array<Record<string, unknown>>;
+  }
+  return db.datalogQuery(query) as Array<Record<string, unknown>>;
+}
+
+function applyTrapWrite(
+  db: RememberoDatabase,
+  condition: AgentBoundaryCondition,
+  trapWriteSql: string,
+): { refused: boolean } {
+  if (condition === 'sql') {
+    db.exec(trapWriteSql);
+    return { refused: false };
+  }
+  db.exec('SAVEPOINT gate');
+  db.exec(trapWriteSql);
+  const violations = WRITE_GATE_RULES.flatMap((rule) => db.datalogQuery(rule.program));
+  if (violations.length > 0) {
+    db.exec('ROLLBACK TO gate');
+    db.exec('RELEASE gate');
+    return { refused: true };
+  }
+  db.exec('RELEASE gate');
+  return { refused: false };
+}
+
+async function runQuestion(
+  model: string,
+  condition: AgentBoundaryCondition,
+  question: AgentBoundaryQuestion,
+): Promise<QuestionOutcome> {
+  const db = await openRememberoDatabase(':memory:');
+  try {
+    db.exec(AGENT_BOUNDARY_SEED_SQL);
+    let gateRefusedTrap: boolean | undefined;
+    if (question.trapWriteSql !== undefined) {
+      gateRefusedTrap = applyTrapWrite(db, condition, question.trapWriteSql).refused;
+    }
+
+    const querySystem = condition === 'sql' ? sqlSystemPrompt() : datalogSystemPrompt();
+    const messages: ChatMessage[] = [
+      { role: 'system', content: querySystem },
+      { role: 'user', content: question.question },
+    ];
+
+    let rows: Array<Record<string, unknown>> | undefined;
+    let query = '';
+    let toolErrors = 0;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS && rows === undefined; attempt += 1) {
+      const rawQuery = await chat(model, messages);
+      query = stripFences(rawQuery);
+      try {
+        rows = executeQuery(db, condition, rawQuery);
+      } catch (error) {
+        toolErrors += 1;
+        messages.push({ role: 'assistant', content: rawQuery });
+        messages.push({
+          role: 'user',
+          content: `That query failed with: ${error instanceof Error ? error.message : String(error)}. Reply with ONLY a corrected query.`,
+        });
+      }
+    }
+
+    if (rows === undefined) {
+      return {
+        id: question.id,
+        category: question.category,
+        condition,
+        passed: false,
+        toolErrors,
+        ...(gateRefusedTrap === undefined ? {} : { gateRefusedTrap }),
+        query,
+        answer: '(no runnable query)',
+        missing: question.expect,
+        forbidden: [],
+      };
+    }
+
+    const shown = rows.slice(0, MAX_RESULT_ROWS);
+    const answer = await chat(model, [
+      { role: 'system', content: answerSystemPrompt() },
+      {
+        role: 'user',
+        content: `QUESTION: ${question.question}\nTOOL_RESULT (${rows.length} rows):\n${JSON.stringify(shown, null, 1)}`,
+      },
+    ]);
+    const grade = gradeAnswer(question, answer);
+    return {
+      id: question.id,
+      category: question.category,
+      condition,
+      passed: grade.passed,
+      toolErrors,
+      ...(gateRefusedTrap === undefined ? {} : { gateRefusedTrap }),
+      query,
+      answer: answer.trim(),
+      missing: grade.missing,
+      forbidden: grade.forbidden,
+    };
+  } finally {
+    db.close();
+  }
+}
+
+function summarize(outcomes: QuestionOutcome[]) {
+  const categories = [...new Set(outcomes.map((outcome) => outcome.category))];
+  const byCategory = categories.map((category) => {
+    const rows = outcomes.filter((outcome) => outcome.category === category);
+    const forCondition = (condition: AgentBoundaryCondition) => {
+      const subset = rows.filter((row) => row.condition === condition);
+      return {
+        passed: subset.filter((row) => row.passed).length,
+        total: subset.length,
+        toolErrors: subset.reduce((sum, row) => sum + row.toolErrors, 0),
+      };
+    };
+    return { category, sql: forCondition('sql'), remembero: forCondition('remembero') };
+  });
+  const totals = (condition: AgentBoundaryCondition) => {
+    const subset = outcomes.filter((row) => row.condition === condition);
+    return {
+      passed: subset.filter((row) => row.passed).length,
+      total: subset.length,
+      toolErrors: subset.reduce((sum, row) => sum + row.toolErrors, 0),
+    };
+  };
+  return { byCategory, sql: totals('sql'), remembero: totals('remembero') };
+}
+
+async function main(): Promise<void> {
+  const modelFlag = process.argv.indexOf('--model');
+  const model = modelFlag >= 0 ? process.argv[modelFlag + 1] : 'llama3.2:3b';
+  console.log(`agent-boundary benchmark · model ${model} · ${AGENT_BOUNDARY_QUESTIONS.length} questions × 2 conditions`);
+
+  const outcomes: QuestionOutcome[] = [];
+  for (const question of AGENT_BOUNDARY_QUESTIONS) {
+    for (const condition of ['sql', 'remembero'] as const) {
+      const outcome = await runQuestion(model, condition, question);
+      outcomes.push(outcome);
+      console.log(
+        `${outcome.passed ? 'PASS' : 'FAIL'} ${question.id} ${condition}` +
+          (outcome.toolErrors > 0 ? ` (tool errors: ${outcome.toolErrors})` : '') +
+          (outcome.gateRefusedTrap === true ? ' (gate refused trap)' : ''),
+      );
+    }
+  }
+
+  const summary = summarize(outcomes);
+  console.log('\ncategory                sql        remembero');
+  for (const row of summary.byCategory) {
+    console.log(
+      `${row.category.padEnd(22)} ${String(row.sql.passed).padStart(2)}/${row.sql.total}       ${String(row.remembero.passed).padStart(2)}/${row.remembero.total}`,
+    );
+  }
+  console.log(
+    `${'TOTAL'.padEnd(22)} ${String(summary.sql.passed).padStart(2)}/${summary.sql.total}       ${String(summary.remembero.passed).padStart(2)}/${summary.remembero.total}`,
+  );
+  console.log(
+    `tool errors            sql ${summary.sql.toolErrors} · remembero ${summary.remembero.toolErrors}`,
+  );
+
+  const projectRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const resultPath = join(
+    projectRoot,
+    'docs',
+    'research',
+    'results',
+    `agent-boundary-v1-${model.replaceAll(/[^a-z0-9.]+/gi, '-')}-summary.json`,
+  );
+  mkdirSync(dirname(resultPath), { recursive: true });
+  writeFileSync(
+    resultPath,
+    `${JSON.stringify(
+      {
+        benchmark: 'agent-boundary-v1',
+        model,
+        generatedAt: new Date().toISOString(),
+        settings: { temperature: 0, seed: 7, attempts: MAX_ATTEMPTS },
+        summary,
+        outcomes,
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  console.log(`\nresults written to ${resultPath}`);
+}
+
+await main();

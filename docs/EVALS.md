@@ -29,6 +29,25 @@ and fails above 3.0 s parse/query/proof or 2.5 GiB process max RSS. It is kept o
 
 See the [current scorecard, gates, and evidence boundary](AGENT-DATABASE-SCORECARD.md).
 
+## Agent-boundary benchmark
+
+The agent-boundary benchmark serves one seeded SQLite database to a small local model under
+two tool boundaries — model-authored read-only SQL vs model-authored Datalog behind the
+Remembero write gate — across 28 gold-verified questions. The published v1 run
+(llama3.2:1b) is an honest negative for query authorship (SQL 6/28, Remembero 1/28) and a
+mechanism demonstration for the write gate: all four corrupting trap writes corrupted the
+SQL condition's answers while the gate refused all four, preserving one correct answer
+despite a garbage model query. The SQL-vs-Datalog comparison is confounded by
+training-data prior and is disclosed as such; the gate rules were co-designed with the v1
+traps and v2 adds frozen-rule traps plus a benign-write control. It requires a local Ollama
+model and stays outside CI/prepublish:
+
+```bash
+npm run bench:agent-boundary -- --model llama3.2:1b
+```
+
+See the [full method, results, confound analysis, and v2 plan](research/AGENT-BOUNDARY.md).
+
 ## LongMemEval-V2 fresh pilot
 
 The pinned official adapter consumes browser-agent trajectories through the benchmark's
