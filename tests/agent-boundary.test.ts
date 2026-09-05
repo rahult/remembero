@@ -15,6 +15,13 @@ import {
   seedEntityLexicon,
 } from '../src/evals/agent-boundary.js';
 import {
+  applyGatedWrite,
+  collectFactClauses,
+  gateConstraintPrograms,
+} from '../src/evals/agent-boundary-gate.js';
+import { checkIntegrity } from '../src/knowledge/integrity.js';
+import { parseProgram } from '../src/engine/index.js';
+import {
   openRememberoDatabase,
   type RememberoDatabase,
 } from '../src/sqlite/extension.js';
@@ -110,18 +117,12 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
       db.exec('ROLLBACK TO raw_path');
       db.exec('RELEASE raw_path');
 
-      // Remembero gate: apply inside a savepoint, check rules, refuse.
-      db.exec('SAVEPOINT gated_path');
-      db.exec(question.trapWriteSql);
-      const violations = WRITE_GATE_RULES.flatMap((rule) =>
-        db.datalogQuery(rule.program),
-      );
+      // Remembero gate: the product enforcement path refuses the write.
+      const gated = applyGatedWrite(db, question.trapWriteSql);
       expect(
-        violations.length,
-        `${question.id}: the write gate should derive a violation`,
-      ).toBeGreaterThan(0);
-      db.exec('ROLLBACK TO gated_path');
-      db.exec('RELEASE gated_path');
+        gated.refused,
+        `${question.id}: the write gate should refuse`,
+      ).toBe(true);
 
       // After the refusal the truth is intact.
       const restored = db.prepare(question.goldSql).all() as Array<
@@ -141,17 +142,13 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
     for (const question of AGENT_BOUNDARY_QUESTIONS) {
       if (question.control !== true || question.trapWriteSql === undefined)
         continue;
-      // Gated path: no rule fires, the write commits, gold matches POST-write state.
-      db.exec('SAVEPOINT control_path');
-      db.exec(question.trapWriteSql);
-      const violations = WRITE_GATE_RULES.flatMap((rule) =>
-        db.datalogQuery(rule.program),
-      );
+      // Gated path: the product enforcement path must not refuse a benign
+      // write; it commits, and gold matches POST-write state.
+      const gated = applyGatedWrite(db, question.trapWriteSql);
       expect(
-        violations.length,
+        gated.refused,
         `${question.id}: control write violates no rule; the gate must not refuse`,
-      ).toBe(0);
-      db.exec('RELEASE control_path');
+      ).toBe(false);
       const rows = db.prepare(question.goldSql).all() as Array<
         Record<string, unknown>
       >;
@@ -180,6 +177,37 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
     }
   });
 
+  it('the clean database passes every derived constraint via the product checker', () => {
+    const clauses = [
+      ...collectFactClauses(db),
+      ...gateConstraintPrograms().flatMap((program) => parseProgram(program)),
+    ];
+    expect(checkIntegrity(clauses).status).not.toBe('violations');
+  });
+
+  it('the product enforcement path decides identically to the frozen rules', () => {
+    for (const question of AGENT_BOUNDARY_QUESTIONS) {
+      if (question.trapWriteSql === undefined) continue;
+      db.exec('SAVEPOINT equivalence');
+      // Legacy decision: frozen violation-headed rules through the query bridge.
+      db.exec('SAVEPOINT legacy');
+      db.exec(question.trapWriteSql);
+      const legacyViolations = WRITE_GATE_RULES.flatMap((rule) =>
+        db.datalogQuery(rule.program),
+      );
+      db.exec('ROLLBACK TO legacy');
+      db.exec('RELEASE legacy');
+      // Product decision: strict enforcement over fact clauses.
+      const gated = applyGatedWrite(db, question.trapWriteSql);
+      expect(
+        gated.refused,
+        `${question.id}: product gate and frozen rules must agree`,
+      ).toBe(legacyViolations.length > 0);
+      db.exec('ROLLBACK TO equivalence');
+      db.exec('RELEASE equivalence');
+    }
+  });
+
   it('the sql-gated arm shares the remembero gated write path', () => {
     expect(AGENT_BOUNDARY_CONDITIONS).toEqual([
       'sql',
@@ -189,18 +217,12 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
     for (const question of AGENT_BOUNDARY_QUESTIONS) {
       if (question.trapWriteSql === undefined || question.control === true)
         continue;
-      // Same gate the runner applies for sql-gated: savepoint, rules, refuse.
-      db.exec('SAVEPOINT gated_sql');
-      db.exec(question.trapWriteSql);
-      const violations = WRITE_GATE_RULES.flatMap((rule) =>
-        db.datalogQuery(rule.program),
-      );
+      // Same product gate the runner applies for sql-gated.
+      const gated = applyGatedWrite(db, question.trapWriteSql);
       expect(
-        violations.length,
-        `${question.id}: sql-gated should derive a violation and refuse`,
-      ).toBeGreaterThan(0);
-      db.exec('ROLLBACK TO gated_sql');
-      db.exec('RELEASE gated_sql');
+        gated.refused,
+        `${question.id}: sql-gated should refuse via the shared gate`,
+      ).toBe(true);
       const restored = db.prepare(question.goldSql).all() as Array<
         Record<string, unknown>
       >;

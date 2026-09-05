@@ -22,7 +22,6 @@ import {
   AGENT_BOUNDARY_CONDITIONS,
   AGENT_BOUNDARY_QUESTIONS,
   AGENT_BOUNDARY_SEED_SQL,
-  WRITE_GATE_RULES,
   answerSystemPrompt,
   assertReadOnlySql,
   datalogSystemPrompt,
@@ -33,6 +32,7 @@ import {
   type AgentBoundaryCondition,
   type AgentBoundaryQuestion,
 } from './agent-boundary.js';
+import { applyGatedWrite } from './agent-boundary-gate.js';
 import {
   openRememberoDatabase,
   type RememberoDatabase,
@@ -111,19 +111,9 @@ function applyTrapWrite(
     db.exec(trapWriteSql);
     return { refused: false };
   }
-  // sql-gated and remembero share the gated write path (ADR 0002).
-  db.exec('SAVEPOINT gate');
-  db.exec(trapWriteSql);
-  const violations = WRITE_GATE_RULES.flatMap((rule) =>
-    db.datalogQuery(rule.program),
-  );
-  if (violations.length > 0) {
-    db.exec('ROLLBACK TO gate');
-    db.exec('RELEASE gate');
-    return { refused: true };
-  }
-  db.exec('RELEASE gate');
-  return { refused: false };
+  // sql-gated and remembero share the product enforcement path (ADR 0002):
+  // the same enforceIntegrityCandidate the knowledge store uses on writes.
+  return applyGatedWrite(db, trapWriteSql);
 }
 
 async function runQuestion(

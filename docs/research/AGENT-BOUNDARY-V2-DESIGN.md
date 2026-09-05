@@ -33,9 +33,19 @@ interpretation stays reproducible.
 
 `AgentBoundaryCondition` gains `'sql-gated'`: the model uses the SQL system
 prompt and read-only SQL execution, but trap writes go through the same
-savepoint + `WRITE_GATE_RULES` + rollback path as `remembero`. Summaries and
+gated path as `remembero`. Summaries and
 the console table report three conditions. `WRITE_GATE_RULES` are frozen —
 do not add, rename, or reorder rules.
+
+Post-publication hardening: the shared gate no longer reimplements its own
+savepoint + violation-rule loop. `src/evals/agent-boundary-gate.ts` routes
+gated writes through the product's shipped enforcement primitive
+(`enforceIntegrityCandidate`, strict mode) over fact clauses materialized from
+the seeded tables, with headless constraints derived mechanically from the
+frozen `WRITE_GATE_RULES`. A test-enforced equivalence proof asserts the
+product path refuses exactly what the frozen violation-headed rules refuse
+for every trap and control, so gate evidence exercises the mechanism real
+memory writes go through.
 
 ## 3. Datalog cheatsheet + expanded few-shot budget
 
