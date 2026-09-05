@@ -142,9 +142,9 @@ the benign write zero times: the gate is not a reject-everything stub.
 4. **Control c1 proved gate non-vacuity, failed at the answer stage.** The
    gate correctly refused nothing; every condition then failed the question
    for query-authorship reasons (malformed SQL join; the Datalog ground-fact
-   form `prefers_meeting(maya, afternoon).` is accepted by the bridge as an
-   assertion rather than a query — a dialect hazard the cheatsheet does not
-   yet warn about).
+   form `prefers_meeting(maya, afternoon).` returns an anonymous success row
+   `[{}]` on a match — verified against the bridge — so the model receives no
+   readable value. A dialect footgun the cheatsheet does not yet warn about).
 5. **Answer-set grading is active and visible.** v2 outcomes record
    `extraEntities`; e.g. corrupted-t1 SQL answers fail with
    `extraEntities: ['active']` instead of passing on a substring.
