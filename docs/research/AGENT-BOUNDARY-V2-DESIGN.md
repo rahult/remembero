@@ -86,3 +86,65 @@ pass condition) and check gold queries post-write rather than on the clean DB.
 - `npm run bench:agent-boundary -- --model llama3.2:1b` produces a v2 JSON
   with three conditions, per-seed rows, and gate metrics.
 - v1 JSON byte-identical to the committed version.
+
+## v2 results
+
+Runs: `llama3.2:1b` and `llama3.2:3b`, seeds 7/42/123, temperature 0, 31
+questions (24 capability + 6 traps + 1 control) × 3 conditions.
+Evidence: [results/agent-boundary-v2-llama3.2-1b-summary.json](results/agent-boundary-v2-llama3.2-1b-summary.json),
+[results/agent-boundary-v2-llama3.2-3b-summary.json](results/agent-boundary-v2-llama3.2-3b-summary.json).
+Matrix gap: `llama3.2:8b` and a coder model were specified but are not
+installed locally (`ollama list` shows only 1b/3b); the matrix stops at 3b.
+
+### Write-trap integrity (headline: gate-protected passes)
+
+| model | condition | trap refusals | gate-protected passes | control refusals |
+| ----- | --------- | ------------- | --------------------- | ---------------- |
+| 1b | sql | 0/18 | 0 | 0 |
+| 1b | sql-gated | 18/18 | 3 | 0 |
+| 1b | remembero | 18/18 | 3 | 0 |
+| 3b | sql | 0/18 | 0 | 0 |
+| 3b | sql-gated | 18/18 | **18** | 0 |
+| 3b | remembero | 18/18 | 6 | 0 |
+
+At 3b the `sql-gated` arm passes all six genuine traps per seed; raw `sql`
+passes none. The frozen v1 rules caught t5/t6 — traps authored after the
+freeze, so the catches are independent evidence, not co-design. Across all 36
+control outcomes (both models, all seeds, all conditions) the gate refused
+the benign write zero times: the gate is not a reject-everything stub.
+
+### Capability (mean questions passed per seed; per-seed counts identical)
+
+| category | 1b sql | 1b sql-gated | 1b remembero | 3b sql | 3b sql-gated | 3b remembero |
+| -------- | ------ | ------------ | ------------ | ------ | ------------ | ------------ |
+| direct | 4.0/6 | 4.0/6 | 1.0/6 | 6.0/6 | 6.0/6 | 2.0/6 |
+| join | 0.0/6 | 0.0/6 | 0.0/6 | 2.0/6 | 2.0/6 | 2.0/6 |
+| multihop | 0.0/6 | 0.0/6 | 0.0/6 | 0.0/6 | 0.0/6 | 1.0/6 |
+| absence | 0.0/6 | 0.0/6 | 0.0/6 | 3.0/6 | 2.0/6 | 4.0/6 |
+| write-trap | 1.0/7 | 1.0/7 | 1.0/7 | 0.0/7 | 6.0/7 | 2.0/7 |
+| **total** | **5.0/31** | **5.0/31** | **2.0/31** | **11.0/31** | **16.0/31** | **11.0/31** |
+
+### Findings
+
+1. **The supported claim is "the gate, not the language."** The best overall
+   condition at 3b is sql-gated (16/31 vs 11/31 for both raw sql and
+   remembero). Datalog authorship shows no measured advantage over gated SQL
+   at this scale; the integrity boundary carries the value.
+2. **The v1 authorship negative is scale-dependent.** Remembero rose from
+   2/31 (1b) to 11/31 (3b), reaching parity with raw SQL and beating it on
+   absence (4 vs 3) and multihop (1 vs 0). "Small models cannot author
+   Datalog" holds at 1b even with the cheatsheet (2/31, ~54 tool errors per
+   seed) but does not survive to 3b.
+3. **Seed spread measured zero.** Per-seed pass counts are identical across
+   seeds 7/42/123 at temperature 0 — deterministic decoding dominates the
+   seed knob in Ollama. Spread is reported but no run variance was exercised;
+   variance claims would need temperature > 0.
+4. **Control c1 proved gate non-vacuity, failed at the answer stage.** The
+   gate correctly refused nothing; every condition then failed the question
+   for query-authorship reasons (malformed SQL join; the Datalog ground-fact
+   form `prefers_meeting(maya, afternoon).` is accepted by the bridge as an
+   assertion rather than a query — a dialect hazard the cheatsheet does not
+   yet warn about).
+5. **Answer-set grading is active and visible.** v2 outcomes record
+   `extraEntities`; e.g. corrupted-t1 SQL answers fail with
+   `extraEntities: ['active']` instead of passing on a substring.
