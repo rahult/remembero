@@ -4,8 +4,10 @@ import {
   AGENT_BOUNDARY_CONDITIONS,
   AGENT_BOUNDARY_QUESTIONS,
   AGENT_BOUNDARY_SEED_SQL,
+  DATALOG_FEW_SHOT,
   WRITE_GATE_RULES,
   assertReadOnlySql,
+  datalogSystemPrompt,
   entitiesFromRows,
   gradeAnswer,
   gradeAnswerV2,
@@ -221,5 +223,36 @@ describe('agent-boundary v2 answer-set grading', () => {
       gradeAnswerV2(m5, 'Yes, atlas ultimately waits on procurement freeze.', gold, lexicon)
         .passed,
     ).toBe(true);
+  });
+});
+
+describe('agent-boundary v2 Datalog prompt', () => {
+  let db: RememberoDatabase;
+
+  beforeEach(async () => {
+    db = await openRememberoDatabase(':memory:');
+    db.exec(AGENT_BOUNDARY_SEED_SQL);
+  });
+
+  afterEach(() => {
+    db.close();
+  });
+
+  it('every few-shot example runs against the seeded database', () => {
+    expect(DATALOG_FEW_SHOT.length).toBe(8);
+    for (const example of DATALOG_FEW_SHOT) {
+      expect(
+        () => db.datalogQuery(example.program),
+        `few-shot '${example.q}' must parse and run on the bridge`,
+      ).not.toThrow();
+    }
+  });
+
+  it('the system prompt embeds the cheatsheet and all examples', () => {
+    const prompt = datalogSystemPrompt();
+    expect(prompt).toContain('Dialect cheatsheet');
+    for (const example of DATALOG_FEW_SHOT) {
+      expect(prompt).toContain(example.program);
+    }
   });
 });

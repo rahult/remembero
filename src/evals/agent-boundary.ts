@@ -5,8 +5,12 @@
  * SQL but routes writes through the Remembero integrity gate (sql-gated,
  * isolating the gate from the query language); the third lets it author
  * arbitrary Datalog served by the Remembero bridge. The model writes every
- * query itself — nothing is prepared per question. Categories deliberately
- * include ground the baseline should tie on; expected answers are verified by
+ * query itself — nothing is prepared per question. Few-shot budgets are
+ * deliberately asymmetric (ADR 0002): the Datalog condition receives a
+ * syntax cheatsheet and more examples than SQL, because identical
+ * in-context budgets cannot equalize the models' training-data prior.
+ * Categories deliberately include
+ * ground the baseline should tie on; expected answers are verified by
  * gold queries in the test suite so the benchmark cannot drift into fiction.
  */
 
@@ -500,20 +504,73 @@ Q: Which projects have no review slot?
 SELECT s.project FROM status s LEFT JOIN review_slot r ON r.project = s.project WHERE r.project IS NULL`;
 }
 
+const DATALOG_CHEATSHEET = `Dialect cheatsheet (this bridge exactly; anything else errors):
+- A program is one or more rules; every rule ends with a period.
+- Rule shape: head(A, B) :- predicate(A), other_predicate(B, A).
+- The FIRST rule's head predicate is the query; its rows are the answer.
+- Variables start uppercase (Person, X). Constants are lowercase (atlas, blocked).
+- _ is a wildcard for a value you do not care about.
+- \\+ predicate(X) means "there is no such fact" (negation).
+- Comparisons come after a predicate: A != B, X > 3.
+- Recursion is allowed: a rule body may reuse its own head predicate.
+- NOT supported: cuts (!), lists ([...]), comments, prose, or a Q: line.`;
+
+/**
+ * Few-shot examples for the Datalog condition (ADR 0002 prior leveling).
+ * Exported so the test suite executes every program against the seeded
+ * database — an example that does not run is a benchmark bug.
+ */
+export const DATALOG_FEW_SHOT: ReadonlyArray<{ q: string; program: string }> = [
+  {
+    q: 'Which projects are active?',
+    program: `active_project(P) :- status(P, active).`,
+  },
+  {
+    q: "Who is maya's direct manager?",
+    program: `maya_manager(M) :- reports_to(maya, M).`,
+  },
+  {
+    q: 'Which blocked projects does maya work on?',
+    program: `maya_blocked(P) :- works_on(maya, P), status(P, blocked).`,
+  },
+  {
+    q: 'Which projects have no review slot?',
+    program: `no_slot(P) :- status(P, _), \\+ review_slot(P, _, _).`,
+  },
+  {
+    q: 'Who was promised an update but has no stored meeting preference?',
+    program: `owed_no_pref(P) :- promised_update(_, P, _), \\+ prefers_meeting(P, _).`,
+  },
+  {
+    q: 'Every manager above nora in the chain?',
+    program: `above(M) :- reports_to(nora, M).
+above(M) :- above(X), reports_to(X, M).`,
+  },
+  {
+    q: 'What is the final upstream dependency atlas waits on?',
+    program: `reach(X) :- waits_on(atlas, X).
+reach(X) :- reach(M), waits_on(M, X).
+root(R) :- reach(R), \\+ waits_on(R, _).`,
+  },
+  {
+    q: 'Which pairs of different people share a project?',
+    program: `pair(A, B) :- works_on(A, P), works_on(B, P), A != B.`,
+  },
+];
+
 export function datalogSystemPrompt(): string {
+  const examples = DATALOG_FEW_SHOT.map(
+    (example) => `Q: ${example.q}\n${example.program}`,
+  ).join('\n');
   return `${DATALOG_SCHEMA_PROMPT}
 
-Write ONE Datalog program that answers the user's question. The first rule's head is the query; variables start uppercase; constants are lowercase; \\+ means "there is no such fact"; recursion is allowed.
+Write ONE Datalog program that answers the user's question.
 Reply with ONLY the Datalog, no prose, no markdown fences.
 
+${DATALOG_CHEATSHEET}
+
 Examples:
-Q: Which projects are active?
-active_project(P) :- status(P, active).
-Q: Every manager above nora in the chain?
-above(M) :- reports_to(nora, M).
-above(M) :- above(X), reports_to(X, M).
-Q: Which projects have no review slot?
-no_slot(P) :- status(P, _), \\+ review_slot(P, _, _).`;
+${examples}`;
 }
 
 export function answerSystemPrompt(): string {
