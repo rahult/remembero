@@ -50,11 +50,15 @@ See the [full method, results, confound analysis, and v2 plan](research/AGENT-BO
 
 The v2 rerun adds answer-set grading, a `sql-gated` arm isolating the gate from the query
 language, a bridge-verified Datalog cheatsheet, frozen-rule traps t5/t6 plus a benign-write
-control, and three seeds per model. At llama3.2:3b the gated arms refuse all 18 trap-write
-outcomes while raw SQL refuses none, and `sql-gated` is the best overall condition
-(16/31 vs 11/31): the supported claim is "the gate, not the language". The v1 authorship
-negative is scale-dependent — Remembero Datalog rises from 2/31 at 1b to 11/31 (parity with
-raw SQL) at 3b. See the [v2 spec and results](research/AGENT-BOUNDARY-V2-DESIGN.md).
+control, and three seeds per model — with the gated arms routed through the shipped
+`enforceIntegrityCandidate` primitive, test-pinned to the frozen rules. Across the full
+four-model matrix (llama3.2 1b/3b, llama3.1:8b, qwen2.5-coder:7b) the gate refused 72/72
+trap writes while raw SQL refused 0/72 and the benign control 0/36, and `sql-gated` is the
+best condition at every scale (16/31 vs 11 at 3b, 21 vs 19 at 8b, 23 vs 17 at coder): the
+supported claim is "the gate, not the language". Datalog authorship is scale- and
+code-training-dependent — Remembero rises 1/31 at 1b to 22/31 at coder scale, beating raw
+SQL there (22 vs 17) — so the v1 authorship negative is a 1b-only finding. See the
+[v2 spec and results](research/AGENT-BOUNDARY-V2-DESIGN.md).
 
 ## LongMemEval-V2 fresh pilot
 
