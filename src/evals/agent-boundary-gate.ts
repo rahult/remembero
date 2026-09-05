@@ -23,7 +23,9 @@ const BARE_ATOM = /^[a-z][a-z0-9_]*$/;
 
 function seedTableNames(): string[] {
   const names: string[] = [];
-  for (const match of AGENT_BOUNDARY_SEED_SQL.matchAll(/CREATE TABLE (\w+)\(/g)) {
+  for (const match of AGENT_BOUNDARY_SEED_SQL.matchAll(
+    /CREATE TABLE (\w+)\(/g,
+  )) {
     names.push(match[1]);
   }
   return names;
@@ -38,7 +40,9 @@ export function gateConstraintPrograms(): string[] {
   return WRITE_GATE_RULES.map((rule) => {
     const separator = rule.program.indexOf(':-');
     if (separator < 0) {
-      throw new Error(`frozen gate rule '${rule.name}' lost its rule separator`);
+      throw new Error(
+        `frozen gate rule '${rule.name}' lost its rule separator`,
+      );
     }
     return `:-${rule.program.slice(separator + 2)}`;
   });

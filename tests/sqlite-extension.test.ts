@@ -25,17 +25,22 @@ const sqliteLoadProbe = spawnSync('sqlite3', [':memory:'], {
   encoding: 'utf8',
 });
 const hasSqliteCli =
-  sqliteLoadProbe.status !== null && !sqliteLoadProbe.stderr.includes('unknown command');
+  sqliteLoadProbe.status !== null &&
+  !sqliteLoadProbe.stderr.includes('unknown command');
 let extensionPath: string;
 
-function portableRows(program: string, query: string): Record<string, unknown>[] {
-  return evaluateQuerySpec(parseProgram(program), parseQuerySpec(query)).map((bindings) =>
-    Object.fromEntries(
-      Object.entries(bindings).map(([name, term]) => [
-        name,
-        term.type === 'atom' || term.type === 'num' ? term.value : undefined,
-      ])
-    )
+function portableRows(
+  program: string,
+  query: string,
+): Record<string, unknown>[] {
+  return evaluateQuerySpec(parseProgram(program), parseQuerySpec(query)).map(
+    (bindings) =>
+      Object.fromEntries(
+        Object.entries(bindings).map(([name, term]) => [
+          name,
+          term.type === 'atom' || term.type === 'num' ? term.value : undefined,
+        ]),
+      ),
   );
 }
 
@@ -93,12 +98,14 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
       database.exec(
         "CREATE TABLE prefers_meeting(person TEXT, window TEXT); INSERT INTO prefers_meeting VALUES ('maya', 'afternoon');",
       );
-      expect(() => database.datalogQuery('prefers_meeting(maya, afternoon).')).toThrow(
+      expect(() =>
+        database.datalogQuery('prefers_meeting(maya, afternoon).'),
+      ).toThrow(
         /ground fact prefers_meeting\/2 is not a query.*q\(W\) :- prefers_meeting\(_, _\)\./s,
       );
-      expect(() => database.datalogExplain('prefers_meeting(maya, afternoon).')).toThrow(
-        /is not a query/,
-      );
+      expect(() =>
+        database.datalogExplain('prefers_meeting(maya, afternoon).'),
+      ).toThrow(/is not a query/);
     } finally {
       database.close();
     }
@@ -114,7 +121,9 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         { P: 'ava' },
         { P: 'nora' },
       ]);
-      expect(() => database.datalogQuery('q(P) :- works_on(P, orchard).')).not.toThrow();
+      expect(() =>
+        database.datalogQuery('q(P) :- works_on(P, orchard).'),
+      ).not.toThrow();
       expect(() => database.datalogQuery('works_on(P, orchard)')).not.toThrow();
     } finally {
       database.close();
@@ -133,7 +142,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         INSERT INTO score(person, points) VALUES ('alice', 20);
       `);
       const plan = database.datalogPlan(
-        'high(X) :- score(X, Points, Doubled), Points >= 10.'
+        'high(X) :- score(X, Points, Doubled), Points >= 10.',
       );
       expect(plan).toMatchObject({
         mode: 'native',
@@ -200,9 +209,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         ],
       });
       expect(
-        database.datalogPlan(
-          'select X where employee(X), suspended(Helper)'
-        )
+        database.datalogPlan('select X where employee(X), suspended(Helper)'),
       ).toMatchObject({
         mode: 'portable',
         inputKind: 'relational_query',
@@ -247,13 +254,11 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         mode: 'native',
         executionBoundary: 'sqlite_scalar',
         result: { predicate: 'path', variables: ['X', 'Y'] },
-        derivedPredicates: [
-          { predicate: 'path', arity: 2, recursive: true },
-        ],
+        derivedPredicates: [{ predicate: 'path', arity: 2, recursive: true }],
       });
       expect(nativeRecursive.nativeSql).toBeUndefined();
       const aggregate = database.datalogPlan(
-        'count(*) as Count where employee(Person)'
+        'count(*) as Count where employee(Person)',
       );
       expect(aggregate).toMatchObject({
         mode: 'portable',
@@ -278,10 +283,10 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         baseRelations: [{ predicate: 'payload', arity: 1 }],
       });
       expect(() => database.datalogPlan('bad(X) :- payload(X, Y).')).toThrow(
-        /expects 1 columns but the query supplies 2/i
+        /expects 1 columns but the query supplies 2/i,
       );
       expect(() => database.datalogPlan('bad(X) :- missing(X).')).toThrow(
-        /predicate 'missing' is unavailable/i
+        /predicate 'missing' is unavailable/i,
       );
     } finally {
       database.close();
@@ -299,12 +304,11 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
           ('carol', 'other');
       `);
 
-      const rule =
-        'colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.';
+      const rule = 'colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.';
       expect(database.datalogSql(rule)).toBe(
         'SELECT DISTINCT t0."person" AS "X", t1."person" AS "Y" ' +
           'FROM "works_at" AS t0, "works_at" AS t1 ' +
-          'WHERE t1."company" = t0."company" AND t0."person" != t1."person"'
+          'WHERE t1."company" = t0."company" AND t0."person" != t1."person"',
       );
       expect(database.datalogQuery(rule)).toEqual([
         { X: 'alice', Y: 'bob' },
@@ -358,7 +362,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
           { X: 'a', Y: 'b' },
           { X: 'b', Y: 'a' },
           { X: 'b', Y: 'b' },
-        ])
+        ]),
       );
     } finally {
       database.close();
@@ -396,7 +400,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         database.datalogQuery(`
           reachable(Y) :- seed(Y).
           reachable(Y) :- reachable(X), edge(X, Y), Y != blocked.
-        `)
+        `),
       ).toEqual([{ Y: 'a' }, { Y: 'b' }, { Y: 'c' }]);
     } finally {
       database.close();
@@ -412,7 +416,9 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         INSERT INTO text_seed VALUES ('10'), ('2'), ('x');
         INSERT INTO numeric_seed VALUES (10);
       `);
-      const directComparison = database.datalogQuery('out(X) :- text_seed(X), X > 2.');
+      const directComparison = database.datalogQuery(
+        'out(X) :- text_seed(X), X > 2.',
+      );
       const recursiveComparison = database.datalogQuery(`
         out(X) :- text_seed(X), X > 2.
         out(X) :- out(X).
@@ -421,7 +427,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
       expect(recursiveComparison).toEqual([{ X: 'x' }]);
 
       const directJoin = database.datalogQuery(
-        'matches(X) :- text_seed(X), numeric_seed(X).'
+        'matches(X) :- text_seed(X), numeric_seed(X).',
       );
       const recursiveJoin = database.datalogQuery(`
         matches(X) :- text_seed(X), numeric_seed(X).
@@ -450,10 +456,10 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         low(X) :- low(X).
       `;
       expect(database.datalogQuery(high)).toEqual(
-        database.datalogQuery('high(X) :- big(X), X >= 9223372036854775808.')
+        database.datalogQuery('high(X) :- big(X), X >= 9223372036854775808.'),
       );
       expect(database.datalogQuery(low)).toEqual(
-        database.datalogQuery('low(X) :- big(X), X < 9223372036854775808.')
+        database.datalogQuery('low(X) :- big(X), X < 9223372036854775808.'),
       );
       expect(database.datalogQuery(low)).toHaveLength(1);
     } finally {
@@ -472,7 +478,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         database.datalogQuery(`
           path(X, Y) :- edge(X, Y).
           path(X, Y) :- edge(X, Z), path(Z, Y).
-        `)
+        `),
       ).toEqual([{ X: null, Y: 'b' }]);
     } finally {
       database.close();
@@ -491,7 +497,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         path(X, Y) :- edge(X, Z), path(Z, Y).
       `);
       const explanation = explanations.find(
-        ({ row }) => row.X === 'a' && row.Y === 'd'
+        ({ row }) => row.X === 'a' && row.Y === 'd',
       );
 
       expect(explanation).toEqual({
@@ -540,7 +546,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         .find(({ row }) => row.X === 'a' && row.Y === 'd')?.proof;
       const typescript = evaluateWithProof(
         parseProgram(`edge(a, b). edge(b, c). edge(c, d). ${rules}`),
-        parseQuery('path(a, Y)')
+        parseQuery('path(a, Y)'),
       ).find(({ bindings }) => serializeTerm(bindings.Y) === 'd');
 
       expect(typescript?.proofs[0]).toEqual(sqliteProof);
@@ -560,11 +566,11 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
           ('mallory', 'red'' OR 1=1 --', 99);
       `);
 
-      expect(database.datalogQuery('high_scorer(X) :- score(X, red, P), P >= 10.')).toEqual([
-        { X: 'bob' },
-      ]);
       expect(
-        database.datalogQuery("literal(X) :- score(X, 'red'' OR 1=1 --', 99).")
+        database.datalogQuery('high_scorer(X) :- score(X, red, P), P >= 10.'),
+      ).toEqual([{ X: 'bob' }]);
+      expect(
+        database.datalogQuery("literal(X) :- score(X, 'red'' OR 1=1 --', 99)."),
       ).toEqual([{ X: 'mallory' }]);
       expect(database.datalogQuery('same(X) :- score(X, X, P).')).toEqual([]);
     } finally {
@@ -586,28 +592,33 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         INSERT INTO baseline VALUES ('team', 10);
       `);
 
-      expect(sqliteDatalogExecutionMode('available(X) :- employee(X), \\+ suspended(X).'))
-        .toBe('portable');
+      expect(
+        sqliteDatalogExecutionMode(
+          'available(X) :- employee(X), \\+ suspended(X).',
+        ),
+      ).toBe('portable');
       expect(sqliteDatalogExecutionMode('employee(X)')).toBe('portable');
-      expect(sqliteDatalogExecutionMode('copy(X) :- employee(X).')).toBe('native');
+      expect(sqliteDatalogExecutionMode('copy(X) :- employee(X).')).toBe(
+        'native',
+      );
 
       expect(
-        database.datalogQuery('available(X) :- employee(X), \\+ suspended(X).')
+        database.datalogQuery('available(X) :- employee(X), \\+ suspended(X).'),
       ).toEqual([{ X: 'alice' }]);
       expect(
         database.datalogQuery(
-          'ahead(X) :- score(X, S), baseline(team, B), S > B + 5.'
-        )
+          'ahead(X) :- score(X, S), baseline(team, B), S > B + 5.',
+        ),
       ).toEqual([{ X: 'alice' }]);
       expect(database.datalogQuery('employee(X), \\+ suspended(X)')).toEqual([
         { X: 'alice' },
       ]);
       expect(
-        database.datalogQuery('count(*) as Count where employee(Person)')
+        database.datalogQuery('count(*) as Count where employee(Person)'),
       ).toEqual([{ Count: 2 }]);
 
       const explained = database.datalogExplain(
-        'available(X) :- employee(X), \\+ suspended(X).'
+        'available(X) :- employee(X), \\+ suspended(X).',
       );
       expect(explained[0]).toMatchObject({
         row: { X: 'alice' },
@@ -620,7 +631,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         },
       });
       expect(
-        database.datalogExplain('count(*) as Count where employee(Person)')[0]
+        database.datalogExplain('count(*) as Count where employee(Person)')[0],
       ).toMatchObject({
         row: { Count: 2 },
         proof: { aggregated: true, op: 'count', value: 2 },
@@ -652,7 +663,9 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         'score(X, S), baseline(team, B), S > B + 5',
         'count(*) as Count where employee(Person)',
       ]) {
-        expect(database.datalogQuery(query)).toEqual(portableRows(facts, query));
+        expect(database.datalogQuery(query)).toEqual(
+          portableRows(facts, query),
+        );
       }
     } finally {
       database.close();
@@ -693,7 +706,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         expect.objectContaining({ row: { Team: 'red', Count: 2 } }),
       ]);
       expect(() => database.datalogSql(program)).toThrow(
-        /aggregation.*cannot be compiled to one SQLite SELECT/i
+        /aggregation.*cannot be compiled to one SQLite SELECT/i,
       );
     } finally {
       database.close();
@@ -715,10 +728,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         reachable(Y) :- reachable(X), edge(X, Y).
       `;
       expect(sqliteDatalogExecutionMode(program)).toBe('portable');
-      expect(database.datalogQuery(program)).toEqual([
-        { X: 'b' },
-        { X: 'c' },
-      ]);
+      expect(database.datalogQuery(program)).toEqual([{ X: 'b' }, { X: 'c' }]);
       expect(database.datalogExplain(program)[1]).toMatchObject({
         row: { X: 'c' },
         proof: {
@@ -762,10 +772,10 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         INSERT INTO binary_value VALUES (x'00ff');
       `);
       expect(() => database.datalogQuery('nullable(X), X = X + 0')).toThrow(
-        /NULL.*portable SQLite bridge/i
+        /NULL.*portable SQLite bridge/i,
       );
       expect(() => database.datalogQuery('binary_value(X), X = X')).toThrow(
-        /BLOB.*portable SQLite bridge/i
+        /BLOB.*portable SQLite bridge/i,
       );
     } finally {
       database.close();
@@ -776,55 +786,69 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
     const database = await openDatalogDatabase(':memory:', { extensionPath });
     try {
       database.exec('CREATE TABLE edge(source TEXT, target TEXT);');
-      expect(() => database.datalogQuery('unsafe(X) :- edge(Y, Z).')).toThrow(/unbound/i);
-      expect(() => database.datalogQuery('bad(X) :- edge(X).')).toThrow(/expects 2 columns/i);
-      expect(() => database.datalogQuery('bad(X) :- missing(X).')).toThrow(/missing/i);
+      expect(() => database.datalogQuery('unsafe(X) :- edge(Y, Z).')).toThrow(
+        /unbound/i,
+      );
+      expect(() => database.datalogQuery('bad(X) :- edge(X).')).toThrow(
+        /expects 2 columns/i,
+      );
+      expect(() => database.datalogQuery('bad(X) :- missing(X).')).toThrow(
+        /missing/i,
+      );
       expect(() => database.datalogQuery('not datalog')).toThrow(/expected/i);
       expect(() =>
-        database.datalogSql('allowed(X) :- edge(X, Y), \\+ blocked(Y).')
+        database.datalogSql('allowed(X) :- edge(X, Y), \\+ blocked(Y).'),
       ).toThrow(/negation.*cannot be compiled to one SQLite SELECT/i);
       expect(() =>
-        database.datalogSql('count(*) as Count where edge(X, Y)')
+        database.datalogSql('count(*) as Count where edge(X, Y)'),
       ).toThrow(/aggregation.*cannot be compiled to one SQLite SELECT/i);
       expect(() =>
-        database.datalogSql('ahead(X) :- edge(X, Y), Y > X + 5.')
+        database.datalogSql('ahead(X) :- edge(X, Y), Y > X + 5.'),
       ).toThrow(/arithmetic.*cannot be compiled to one SQLite SELECT/i);
       expect(() =>
-        database.datalogQuery('rembero_alias(mira_patel, mira).')
-      ).toThrow(/entity identity.*portable Datalog engine, not the SQLite extension/i);
+        database.datalogQuery('rembero_alias(mira_patel, mira).'),
+      ).toThrow(
+        /entity identity.*portable Datalog engine, not the SQLite extension/i,
+      );
       expect(() =>
-        database.datalogQuery('rembero_entity_position(edge, 2, 0).')
-      ).toThrow(/entity identity.*portable Datalog engine, not the SQLite extension/i);
+        database.datalogQuery('rembero_entity_position(edge, 2, 0).'),
+      ).toThrow(
+        /entity identity.*portable Datalog engine, not the SQLite extension/i,
+      );
       expect(() =>
-        database.datalogQuery("rembero_tentative('edge(a, b).').")
+        database.datalogQuery("rembero_tentative('edge(a, b).')."),
       ).toThrow(/tentative trust declarations.*not SQLite predicates/i);
       expect(() => database.datalogQuery(':- edge(X, Y), X = Y.')).toThrow(
-        /integrity constraints.*personal knowledge store/i
+        /integrity constraints.*personal knowledge store/i,
       );
       expect(() => database.datalogQuery('missing(X), \\+ edge(X, X)')).toThrow(
-        /predicate 'missing' is unavailable/i
+        /predicate 'missing' is unavailable/i,
       );
-      expect(database.datalogQuery('safe(X) :- edge(X, Y), -1 < 0.')).toEqual([]);
+      expect(database.datalogQuery('safe(X) :- edge(X, Y), -1 < 0.')).toEqual(
+        [],
+      );
       expect(
-        database.datalogQuery("safe(X) :- edge(X, Y), X = 'count(*) as Count where'.")
+        database.datalogQuery(
+          "safe(X) :- edge(X, Y), X = 'count(*) as Count where'.",
+        ),
       ).toEqual([]);
       expect(
-        database.datalogQuery("safe(X) :- edge(X, Y), X = 'Y + 5'.")
+        database.datalogQuery("safe(X) :- edge(X, Y), X = 'Y + 5'."),
       ).toEqual([]);
-      expect(() => database.datalogQuery('bad(X) :- edge(X, Y), X > 1e999.')).toThrow(
-        /out of range/i
-      );
+      expect(() =>
+        database.datalogQuery('bad(X) :- edge(X, Y), X > 1e999.'),
+      ).toThrow(/out of range/i);
       expect(() =>
         database.datalogQuery(`
           path(X, Y) :- edge(X, Y).
           path(X, Y) :- path(X), edge(X, Y).
-        `)
+        `),
       ).toThrow(/inconsistent arity/i);
       expect(() =>
         database.datalogQuery(`
           path(X, Y) :- edge(X, Y).
           path(X, Y) :- path(X, Z), edge(Z, Y), Q != blocked.
-        `)
+        `),
       ).toThrow(/comparison variable 'Q' is unbound/i);
     } finally {
       database.close();
@@ -838,7 +862,9 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         CREATE TABLE payload(value BLOB);
         INSERT INTO payload VALUES (zeroblob(9 * 1024 * 1024));
       `);
-      expect(() => database.datalogQuery('result(X) :- payload(X).')).toThrow(/16 MiB/i);
+      expect(() => database.datalogQuery('result(X) :- payload(X).')).toThrow(
+        /16 MiB/i,
+      );
     } finally {
       database.close();
     }
@@ -861,7 +887,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         database.datalogQuery(`
           keep(X) :- seed(X).
           keep(X) :- keep(X), candidate(Y), Y != Y.
-        `)
+        `),
       ).toThrow(/tuple checks/i);
     } finally {
       database.close();
@@ -903,14 +929,24 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         ]);
 
         database.function('company_tag', (company: string) => `${company}-tag`);
-        expect(database.prepare('SELECT company_tag(?) AS tagged').get('acme')).toEqual({
+        expect(
+          database.prepare('SELECT company_tag(?) AS tagged').get('acme'),
+        ).toEqual({
           tagged: 'acme-tag',
         });
 
-        const insert = database.prepare('INSERT INTO works_at(person, company) VALUES (?, ?)');
-        const select = database.prepare('SELECT company FROM works_at WHERE person = ?');
-        const update = database.prepare('UPDATE works_at SET company = ? WHERE person = ?');
-        const remove = database.prepare('DELETE FROM works_at WHERE person = ?');
+        const insert = database.prepare(
+          'INSERT INTO works_at(person, company) VALUES (?, ?)',
+        );
+        const select = database.prepare(
+          'SELECT company FROM works_at WHERE person = ?',
+        );
+        const update = database.prepare(
+          'UPDATE works_at SET company = ? WHERE person = ?',
+        );
+        const remove = database.prepare(
+          'DELETE FROM works_at WHERE person = ?',
+        );
 
         insert.run('dina', 'acme');
         expect(select.get('dina')).toEqual({ company: 'acme' });
@@ -921,8 +957,8 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
 
         expect(
           database.datalogQuery(
-            'colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.'
-          )
+            'colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.',
+          ),
         ).toEqual([
           { X: 'alice', Y: 'bob' },
           { X: 'bob', Y: 'alice' },
@@ -931,12 +967,16 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         database.exec('BEGIN');
         expect(database.isTransaction).toBe(true);
         insert.run('mira', 'acme');
-        database.prepare('INSERT INTO suspended(person) VALUES (?)').run('alice');
+        database
+          .prepare('INSERT INTO suspended(person) VALUES (?)')
+          .run('alice');
         database.memory.assert('default', 'role(mira, engineer).', {
           opId: 'remembero-database-rollback',
         });
         expect(
-          database.datalogQuery('available(X) :- works_at(X, _), \\+ suspended(X).')
+          database.datalogQuery(
+            'available(X) :- works_at(X, _), \\+ suspended(X).',
+          ),
         ).toEqual([{ X: 'carol' }, { X: 'mira' }]);
         database.exec('ROLLBACK');
         expect(database.isTransaction).toBe(false);
@@ -945,14 +985,16 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         ]);
 
         expect(() => database.enableLoadExtension(true)).toThrow(
-          /extension loading is disabled/i
+          /extension loading is disabled/i,
         );
         expect(() => database.loadExtension(extensionPath)).toThrow(
-          /extension loading is disabled/i
+          /extension loading is disabled/i,
         );
 
         expect(
-          database.datalogQuery('available(X) :- works_at(X, _), \\+ suspended(X).')
+          database.datalogQuery(
+            'available(X) :- works_at(X, _), \\+ suspended(X).',
+          ),
         ).toEqual([{ X: 'alice' }, { X: 'carol' }]);
       } finally {
         database.close();
@@ -961,7 +1003,9 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
       const reopened = new sqlite.DatabaseSync(databasePath);
       try {
         expect(
-          reopened.prepare('SELECT person, company FROM works_at ORDER BY person').all()
+          reopened
+            .prepare('SELECT person, company FROM works_at ORDER BY person')
+            .all(),
         ).toEqual([
           { person: 'alice', company: 'acme' },
           { person: 'bob', company: 'acme' },
@@ -971,11 +1015,13 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         reopened.close();
       }
 
-      const reopenedRemembero = await openRememberoDatabase(databasePath, { extensionPath });
+      const reopenedRemembero = await openRememberoDatabase(databasePath, {
+        extensionPath,
+      });
       try {
-        expect(reopenedRemembero.memory.load('default').map(serializeClause)).toEqual([
-          'role(alice, engineer).',
-        ]);
+        expect(
+          reopenedRemembero.memory.load('default').map(serializeClause),
+        ).toEqual(['role(alice, engineer).']);
       } finally {
         reopenedRemembero.close();
       }
@@ -983,8 +1029,11 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
       if (hasSqliteCli) {
         const result = spawnSync(
           'sqlite3',
-          [databasePath, 'SELECT person || "|" || company FROM works_at ORDER BY person;'],
-          { encoding: 'utf8' }
+          [
+            databasePath,
+            'SELECT person || "|" || company FROM works_at ORDER BY person;',
+          ],
+          { encoding: 'utf8' },
         );
         expect(result.status, result.stderr).toBe(0);
         expect(result.stdout.trim().split('\n')).toEqual([
@@ -1003,7 +1052,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
       openRememberoDatabase(':memory:', {
         extensionPath,
         timeout: 25,
-      } as never)
+      } as never),
     ).rejects.toThrow("unsupported Remembero SQLite database option 'timeout'");
   });
 
@@ -1030,14 +1079,16 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
     try {
       expect(
         database.datalogQuery(
-          'colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.'
-        )
+          'colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.',
+        ),
       ).toEqual([
         { X: 'alice', Y: 'bob' },
         { X: 'bob', Y: 'alice' },
       ]);
       expect(
-        database.datalogQuery('available(X) :- works_at(X, _), \\+ suspended(X).')
+        database.datalogQuery(
+          'available(X) :- works_at(X, _), \\+ suspended(X).',
+        ),
       ).toEqual([{ X: 'alice' }, { X: 'carol' }]);
     } finally {
       database.close();
@@ -1046,14 +1097,18 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
     const reopened = new sqlite.DatabaseSync(databasePath);
     try {
       expect(
-        reopened.prepare('SELECT person, company FROM works_at ORDER BY person').all()
+        reopened
+          .prepare('SELECT person, company FROM works_at ORDER BY person')
+          .all(),
       ).toEqual([
         { person: 'alice', company: 'acme' },
         { person: 'bob', company: 'acme' },
         { person: 'carol', company: 'other' },
       ]);
       reopened.exec(`INSERT INTO works_at VALUES ('dina', 'acme');`);
-      expect(reopened.prepare('SELECT COUNT(*) AS count FROM works_at').get()).toEqual({
+      expect(
+        reopened.prepare('SELECT COUNT(*) AS count FROM works_at').get(),
+      ).toEqual({
         count: 4,
       });
     } finally {
@@ -1077,12 +1132,12 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         INSERT INTO suspended VALUES ('alice');
       `);
       expect(
-        database.datalogQuery('available(X) :- employee(X), \\+ suspended(X).')
+        database.datalogQuery('available(X) :- employee(X), \\+ suspended(X).'),
       ).toEqual([{ X: 'mira' }]);
       database.exec('ROLLBACK');
 
       expect(
-        database.datalogQuery('available(X) :- employee(X), \\+ suspended(X).')
+        database.datalogQuery('available(X) :- employee(X), \\+ suspended(X).'),
       ).toEqual([{ X: 'alice' }]);
     } finally {
       database.close();
@@ -1113,7 +1168,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
           '--extension',
           extensionPath,
         ],
-        { cwd: projectRoot, encoding: 'utf8' }
+        { cwd: projectRoot, encoding: 'utf8' },
       );
       expect(result.status, result.stderr).toBe(0);
       expect(JSON.parse(result.stdout)).toEqual([
@@ -1130,7 +1185,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
           '--extension',
           extensionPath,
         ],
-        { cwd: projectRoot, encoding: 'utf8' }
+        { cwd: projectRoot, encoding: 'utf8' },
       );
       expect(plan.status, plan.stderr).toBe(0);
       expect(JSON.parse(plan.stdout)).toMatchObject({
