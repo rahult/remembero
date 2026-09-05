@@ -42,6 +42,7 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
 
   it('every question’s gold SQL result covers its expected terms on the clean database', () => {
     for (const question of AGENT_BOUNDARY_QUESTIONS) {
+      if (question.control === true) continue; // control gold holds POST-write (ADR 0003)
       const rows = db.prepare(question.goldSql).all() as Array<Record<string, unknown>>;
       const values = valueSet(rows);
       for (const term of question.expect) {
@@ -62,6 +63,7 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
 
   it('every question’s gold Datalog agrees with the expected terms on the clean database', () => {
     for (const question of AGENT_BOUNDARY_QUESTIONS) {
+      if (question.control === true) continue; // control gold holds POST-write (ADR 0003)
       const rows = db.datalogQuery(question.goldDatalog);
       const values = valueSet(rows as Array<Record<string, unknown>>);
       for (const term of question.expect) {
@@ -77,6 +79,7 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
   it('the write gate refuses every trap write while raw SQL applies it silently', () => {
     for (const question of AGENT_BOUNDARY_QUESTIONS) {
       if (question.trapWriteSql === undefined) continue;
+      if (question.control === true) continue; // controls are covered below
       // Raw SQL path: the write goes through without complaint.
       db.exec('SAVEPOINT raw_path');
       db.exec(question.trapWriteSql);
@@ -116,6 +119,38 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
     }
   });
 
+  it('the benign-write control is refused by nobody and its gold holds post-write', () => {
+    for (const question of AGENT_BOUNDARY_QUESTIONS) {
+      if (question.control !== true || question.trapWriteSql === undefined) continue;
+      // Gated path: no rule fires, the write commits, gold matches POST-write state.
+      db.exec('SAVEPOINT control_path');
+      db.exec(question.trapWriteSql);
+      const violations = WRITE_GATE_RULES.flatMap((rule) => db.datalogQuery(rule.program));
+      expect(
+        violations.length,
+        `${question.id}: control write violates no rule; the gate must not refuse`,
+      ).toBe(0);
+      db.exec('RELEASE control_path');
+      const rows = db.prepare(question.goldSql).all() as Array<Record<string, unknown>>;
+      const values = valueSet(rows);
+      for (const term of question.expect) {
+        expect(
+          [...values].some((v) => v.includes(normalizeAnswer(term))),
+          `${question.id}: post-write gold SQL should produce '${term}'`,
+        ).toBe(true);
+      }
+      const datalogValues = valueSet(
+        db.datalogQuery(question.goldDatalog) as Array<Record<string, unknown>>,
+      );
+      for (const term of question.expect) {
+        expect(
+          [...datalogValues].some((v) => v.includes(normalizeAnswer(term))),
+          `${question.id}: post-write gold Datalog should produce '${term}'`,
+        ).toBe(true);
+      }
+    }
+  });
+
   it('the clean database passes every write-gate rule', () => {
     for (const rule of WRITE_GATE_RULES) {
       expect(db.datalogQuery(rule.program)).toEqual([]);
@@ -125,7 +160,7 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
   it('the sql-gated arm shares the remembero gated write path', () => {
     expect(AGENT_BOUNDARY_CONDITIONS).toEqual(['sql', 'sql-gated', 'remembero']);
     for (const question of AGENT_BOUNDARY_QUESTIONS) {
-      if (question.trapWriteSql === undefined) continue;
+      if (question.trapWriteSql === undefined || question.control === true) continue;
       // Same gate the runner applies for sql-gated: savepoint, rules, refuse.
       db.exec('SAVEPOINT gated_sql');
       db.exec(question.trapWriteSql);
@@ -175,7 +210,8 @@ describe('agent-boundary grading and safety helpers', () => {
     expect(byCategory.get('join')).toBe(6);
     expect(byCategory.get('multihop')).toBe(6);
     expect(byCategory.get('absence')).toBe(6);
-    expect(byCategory.get('write-trap')).toBe(4);
+    // 6 genuine traps + 1 benign-write control (ADR 0003)
+    expect(byCategory.get('write-trap')).toBe(7);
   });
 });
 

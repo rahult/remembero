@@ -170,11 +170,13 @@ async function runQuestion(
       },
     ]);
     const grade = gradeAnswer(question, answer);
+    // A control write violates no rule: a gate refusal is itself the failure.
+    const passed = question.control === true && gateRefusedTrap === true ? false : grade.passed;
     return {
       id: question.id,
       category: question.category,
       condition,
-      passed: grade.passed,
+      passed,
       toolErrors,
       ...(gateRefusedTrap === undefined ? {} : { gateRefusedTrap }),
       query,
