@@ -87,6 +87,40 @@ describe.skipIf(!hasSqliteCli)('SQLite loadable extension', () => {
 });
 
 describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
+  it('errors on fully ground fact queries with actionable guidance', async () => {
+    const database = await openRememberoDatabase(':memory:');
+    try {
+      database.exec(
+        "CREATE TABLE prefers_meeting(person TEXT, window TEXT); INSERT INTO prefers_meeting VALUES ('maya', 'afternoon');",
+      );
+      expect(() => database.datalogQuery('prefers_meeting(maya, afternoon).')).toThrow(
+        /ground fact prefers_meeting\/2 is not a query.*q\(W\) :- prefers_meeting\(_, _\)\./s,
+      );
+      expect(() => database.datalogExplain('prefers_meeting(maya, afternoon).')).toThrow(
+        /is not a query/,
+      );
+    } finally {
+      database.close();
+    }
+  });
+
+  it('keeps variable-position fact queries working', async () => {
+    const database = await openRememberoDatabase(':memory:');
+    try {
+      database.exec(
+        "CREATE TABLE works_on(person TEXT, project TEXT); INSERT INTO works_on VALUES ('nora', 'orchard'), ('ava', 'orchard');",
+      );
+      expect(database.datalogQuery('works_on(P, orchard).')).toEqual([
+        { P: 'ava' },
+        { P: 'nora' },
+      ]);
+      expect(() => database.datalogQuery('q(P) :- works_on(P, orchard).')).not.toThrow();
+      expect(() => database.datalogQuery('works_on(P, orchard)')).not.toThrow();
+    } finally {
+      database.close();
+    }
+  });
+
   it('plans native execution from schema without scanning table data', async () => {
     const database = await openDatalogDatabase(':memory:', { extensionPath });
     try {

@@ -562,7 +562,9 @@ const DATALOG_CHEATSHEET = `Dialect cheatsheet (this bridge exactly; anything el
 - \\+ predicate(X) means "there is no such fact" (negation).
 - Comparisons come after a predicate: A != B, X > 3.
 - Recursion is allowed: a rule body may reuse its own head predicate.
-- NOT supported: cuts (!), lists ([...]), comments, prose, or a Q: line.`;
+- NOT supported: cuts (!), lists ([...]), comments, prose, or a Q: line.
+- A bare fact like prefers_meeting(maya, morning). is NOT a query — it has no
+  variable to return. Give the head a variable: q(W) :- prefers_meeting(maya, W).`;
 
 /**
  * Few-shot examples for the Datalog condition (ADR 0002 prior leveling).

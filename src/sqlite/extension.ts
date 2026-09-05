@@ -489,6 +489,38 @@ function packageRoot(): string {
   return fileURLToPath(new URL('../../', import.meta.url));
 }
 
+/**
+ * A fully ground first clause (`prefers_meeting(maya, afternoon).`) parses
+ * as a fact; treated as a query it can only succeed or fail, returning
+ * `[{}]` — no readable values. Surface that as an actionable error instead
+ * so agents learn to project a variable (`q(W) :- prefers_meeting(maya, W).`).
+ * A fact with a variable in a head position (`works_on(P, orchard).`) IS a
+ * working relational query and stays allowed.
+ */
+function assertQueryableInput(input: string): void {
+  // Reserved metadata predicates keep their specific fail-closed errors.
+  assertNoIdentitySyntax(inspectSyntax(input));
+  let clauses: Clause[];
+  try {
+    clauses = parseProgram(input);
+  } catch {
+    return; // goal-list or malformed input: existing paths produce the errors
+  }
+  const first = clauses[0];
+  if (
+    first !== undefined &&
+    !isIntegrityConstraint(first) &&
+    first.body.length === 0 &&
+    !first.head.args.some((arg) => arg.type === 'var')
+  ) {
+    throw new Error(
+      `ground fact ${first.head.predicate}/${first.head.args.length} is not a query: ` +
+        `no variable to return. Write a rule head with an uppercase variable, e.g. ` +
+        `q(W) :- ${first.head.predicate}(${first.head.args.map(() => '_').join(', ')}).`,
+    );
+  }
+}
+
 export function buildSqliteExtension(): string {
   if (process.platform !== 'darwin' && process.platform !== 'linux') {
     throw new Error(`Remembero SQLite V0 does not support ${process.platform}.`);
@@ -537,6 +569,7 @@ export class DatalogDatabase {
   }
 
   datalogQuery(rule: string): DatalogRow[] {
+    assertQueryableInput(rule);
     if (sqliteDatalogExecutionMode(rule) === 'portable') {
       return this.portableQuery(rule);
     }
@@ -546,7 +579,12 @@ export class DatalogDatabase {
     if (typeof row?.result !== 'string') {
       throw new Error('SQLite datalog_query returned an invalid result');
     }
-    const result: unknown = JSON.parse(row.result);
+    let result: unknown;
+    try {
+      result = JSON.parse(row.result);
+    } catch {
+      throw new Error('SQLite datalog_query returned invalid JSON');
+    }
     if (!Array.isArray(result)) {
       throw new Error('SQLite datalog_query returned invalid JSON');
     }
@@ -554,6 +592,7 @@ export class DatalogDatabase {
   }
 
   datalogExplain(program: string): DatalogExplanation[] {
+    assertQueryableInput(program);
     if (sqliteDatalogExecutionMode(program) === 'portable') {
       return this.portableExplain(program);
     }
@@ -563,7 +602,12 @@ export class DatalogDatabase {
     if (typeof row?.result !== 'string') {
       throw new Error('SQLite datalog_explain returned an invalid result');
     }
-    const result: unknown = JSON.parse(row.result);
+    let result: unknown;
+    try {
+      result = JSON.parse(row.result);
+    } catch {
+      throw new Error('SQLite datalog_explain returned invalid JSON');
+    }
     if (!Array.isArray(result)) {
       throw new Error('SQLite datalog_explain returned invalid JSON');
     }
