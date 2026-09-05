@@ -17,7 +17,10 @@ in `docs/adr/`.
   model authors every query itself.
 - **Write gate** — the Remembero write path: a proposed write is applied inside
   a savepoint, integrity rules (Datalog) are evaluated, and the write is rolled
-  back if any rule derives a violation. Raw SQL has no equivalent step.
+  back if any rule derives a violation. Raw SQL has no equivalent step. The
+  canonical implementation is the shipped `enforceIntegrityCandidate`
+  primitive (strict mode) in `src/knowledge/enforcement.ts`; the agent-boundary
+  benchmark routes its gated conditions through it, not a local reimplementation.
 - **Trap write** — a deliberately corrupting write the benchmark harness pushes
   through each condition's write path before asking a question. Designed so raw
   SQL applies it silently while the write gate refuses it.
