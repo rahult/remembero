@@ -100,12 +100,12 @@ installed locally (`ollama list` shows only 1b/3b); the matrix stops at 3b.
 
 | model | condition | trap refusals | gate-protected passes | control refusals |
 | ----- | --------- | ------------- | --------------------- | ---------------- |
-| 1b | sql | 0/18 | 0 | 0 |
-| 1b | sql-gated | 18/18 | 3 | 0 |
-| 1b | remembero | 18/18 | 3 | 0 |
-| 3b | sql | 0/18 | 0 | 0 |
-| 3b | sql-gated | 18/18 | **18** | 0 |
-| 3b | remembero | 18/18 | 6 | 0 |
+| 1b    | sql       | 0/18          | 0                     | 0                |
+| 1b    | sql-gated | 18/18         | 3                     | 0                |
+| 1b    | remembero | 18/18         | 3                     | 0                |
+| 3b    | sql       | 0/18          | 0                     | 0                |
+| 3b    | sql-gated | 18/18         | **18**                | 0                |
+| 3b    | remembero | 18/18         | 6                     | 0                |
 
 At 3b the `sql-gated` arm passes all six genuine traps per seed; raw `sql`
 passes none. The frozen v1 rules caught t5/t6 — traps authored after the
@@ -115,14 +115,14 @@ the benign write zero times: the gate is not a reject-everything stub.
 
 ### Capability (mean questions passed per seed; per-seed counts identical)
 
-| category | 1b sql | 1b sql-gated | 1b remembero | 3b sql | 3b sql-gated | 3b remembero |
-| -------- | ------ | ------------ | ------------ | ------ | ------------ | ------------ |
-| direct | 4.0/6 | 4.0/6 | 1.0/6 | 6.0/6 | 6.0/6 | 2.0/6 |
-| join | 0.0/6 | 0.0/6 | 0.0/6 | 2.0/6 | 2.0/6 | 2.0/6 |
-| multihop | 0.0/6 | 0.0/6 | 0.0/6 | 0.0/6 | 0.0/6 | 1.0/6 |
-| absence | 0.0/6 | 0.0/6 | 0.0/6 | 3.0/6 | 2.0/6 | 4.0/6 |
-| write-trap | 1.0/7 | 1.0/7 | 1.0/7 | 0.0/7 | 6.0/7 | 2.0/7 |
-| **total** | **5.0/31** | **5.0/31** | **2.0/31** | **11.0/31** | **16.0/31** | **11.0/31** |
+| category   | 1b sql     | 1b sql-gated | 1b remembero | 3b sql      | 3b sql-gated | 3b remembero |
+| ---------- | ---------- | ------------ | ------------ | ----------- | ------------ | ------------ |
+| direct     | 4.0/6      | 4.0/6        | 1.0/6        | 6.0/6       | 6.0/6        | 2.0/6        |
+| join       | 0.0/6      | 0.0/6        | 0.0/6        | 2.0/6       | 2.0/6        | 2.0/6        |
+| multihop   | 0.0/6      | 0.0/6        | 0.0/6        | 0.0/6       | 0.0/6        | 1.0/6        |
+| absence    | 0.0/6      | 0.0/6        | 0.0/6        | 3.0/6       | 2.0/6        | 4.0/6        |
+| write-trap | 1.0/7      | 1.0/7        | 1.0/7        | 0.0/7       | 6.0/7        | 2.0/7        |
+| **total**  | **5.0/31** | **5.0/31**   | **2.0/31**   | **11.0/31** | **16.0/31**  | **11.0/31**  |
 
 ### Findings
 

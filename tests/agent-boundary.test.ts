@@ -14,7 +14,10 @@ import {
   normalizeAnswer,
   seedEntityLexicon,
 } from '../src/evals/agent-boundary.js';
-import { openRememberoDatabase, type RememberoDatabase } from '../src/sqlite/extension.js';
+import {
+  openRememberoDatabase,
+  type RememberoDatabase,
+} from '../src/sqlite/extension.js';
 
 const nodeMajor = Number(process.versions.node.split('.')[0]);
 
@@ -43,7 +46,9 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
   it('every question’s gold SQL result covers its expected terms on the clean database', () => {
     for (const question of AGENT_BOUNDARY_QUESTIONS) {
       if (question.control === true) continue; // control gold holds POST-write (ADR 0003)
-      const rows = db.prepare(question.goldSql).all() as Array<Record<string, unknown>>;
+      const rows = db.prepare(question.goldSql).all() as Array<
+        Record<string, unknown>
+      >;
       const values = valueSet(rows);
       for (const term of question.expect) {
         if (term === 'yes' || term === 'no') continue; // phrasing, not a cell value
@@ -83,11 +88,18 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
       // Raw SQL path: the write goes through without complaint.
       db.exec('SAVEPOINT raw_path');
       db.exec(question.trapWriteSql);
-      const corrupted = db.prepare(question.goldSql).all() as Array<Record<string, unknown>>;
+      const corrupted = db.prepare(question.goldSql).all() as Array<
+        Record<string, unknown>
+      >;
       const corruptedValues = valueSet(corrupted);
       const lostExpected = question.expect
         .filter((term) => term !== 'yes' && term !== 'no')
-        .some((term) => ![...corruptedValues].some((v) => v.includes(normalizeAnswer(term))));
+        .some(
+          (term) =>
+            ![...corruptedValues].some((v) =>
+              v.includes(normalizeAnswer(term)),
+            ),
+        );
       const gainedForbidden = (question.forbid ?? []).some((term) =>
         corruptedValues.has(normalizeAnswer(term)),
       );
@@ -101,7 +113,9 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
       // Remembero gate: apply inside a savepoint, check rules, refuse.
       db.exec('SAVEPOINT gated_path');
       db.exec(question.trapWriteSql);
-      const violations = WRITE_GATE_RULES.flatMap((rule) => db.datalogQuery(rule.program));
+      const violations = WRITE_GATE_RULES.flatMap((rule) =>
+        db.datalogQuery(rule.program),
+      );
       expect(
         violations.length,
         `${question.id}: the write gate should derive a violation`,
@@ -110,28 +124,37 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
       db.exec('RELEASE gated_path');
 
       // After the refusal the truth is intact.
-      const restored = db.prepare(question.goldSql).all() as Array<Record<string, unknown>>;
+      const restored = db.prepare(question.goldSql).all() as Array<
+        Record<string, unknown>
+      >;
       const restoredValues = valueSet(restored);
       for (const term of question.expect) {
         if (term === 'yes' || term === 'no') continue;
-        expect([...restoredValues].some((v) => v.includes(normalizeAnswer(term)))).toBe(true);
+        expect(
+          [...restoredValues].some((v) => v.includes(normalizeAnswer(term))),
+        ).toBe(true);
       }
     }
   });
 
   it('the benign-write control is refused by nobody and its gold holds post-write', () => {
     for (const question of AGENT_BOUNDARY_QUESTIONS) {
-      if (question.control !== true || question.trapWriteSql === undefined) continue;
+      if (question.control !== true || question.trapWriteSql === undefined)
+        continue;
       // Gated path: no rule fires, the write commits, gold matches POST-write state.
       db.exec('SAVEPOINT control_path');
       db.exec(question.trapWriteSql);
-      const violations = WRITE_GATE_RULES.flatMap((rule) => db.datalogQuery(rule.program));
+      const violations = WRITE_GATE_RULES.flatMap((rule) =>
+        db.datalogQuery(rule.program),
+      );
       expect(
         violations.length,
         `${question.id}: control write violates no rule; the gate must not refuse`,
       ).toBe(0);
       db.exec('RELEASE control_path');
-      const rows = db.prepare(question.goldSql).all() as Array<Record<string, unknown>>;
+      const rows = db.prepare(question.goldSql).all() as Array<
+        Record<string, unknown>
+      >;
       const values = valueSet(rows);
       for (const term of question.expect) {
         expect(
@@ -158,20 +181,29 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
   });
 
   it('the sql-gated arm shares the remembero gated write path', () => {
-    expect(AGENT_BOUNDARY_CONDITIONS).toEqual(['sql', 'sql-gated', 'remembero']);
+    expect(AGENT_BOUNDARY_CONDITIONS).toEqual([
+      'sql',
+      'sql-gated',
+      'remembero',
+    ]);
     for (const question of AGENT_BOUNDARY_QUESTIONS) {
-      if (question.trapWriteSql === undefined || question.control === true) continue;
+      if (question.trapWriteSql === undefined || question.control === true)
+        continue;
       // Same gate the runner applies for sql-gated: savepoint, rules, refuse.
       db.exec('SAVEPOINT gated_sql');
       db.exec(question.trapWriteSql);
-      const violations = WRITE_GATE_RULES.flatMap((rule) => db.datalogQuery(rule.program));
+      const violations = WRITE_GATE_RULES.flatMap((rule) =>
+        db.datalogQuery(rule.program),
+      );
       expect(
         violations.length,
         `${question.id}: sql-gated should derive a violation and refuse`,
       ).toBeGreaterThan(0);
       db.exec('ROLLBACK TO gated_sql');
       db.exec('RELEASE gated_sql');
-      const restored = db.prepare(question.goldSql).all() as Array<Record<string, unknown>>;
+      const restored = db.prepare(question.goldSql).all() as Array<
+        Record<string, unknown>
+      >;
       const restoredValues = valueSet(restored);
       for (const term of question.expect) {
         if (term === 'yes' || term === 'no') continue;
@@ -186,8 +218,12 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
 
 describe('agent-boundary grading and safety helpers', () => {
   it('grades required and forbidden terms after normalization', () => {
-    const question = AGENT_BOUNDARY_QUESTIONS.find((entry) => entry.id === 'a2')!;
-    expect(gradeAnswer(question, 'Beacon is blocked with no review slot.').passed).toBe(true);
+    const question = AGENT_BOUNDARY_QUESTIONS.find(
+      (entry) => entry.id === 'a2',
+    )!;
+    expect(
+      gradeAnswer(question, 'Beacon is blocked with no review slot.').passed,
+    ).toBe(true);
     expect(gradeAnswer(question, 'Atlas has no slot.').passed).toBe(false);
     const trap = AGENT_BOUNDARY_QUESTIONS.find((entry) => entry.id === 't1')!;
     expect(gradeAnswer(trap, 'Atlas is currently active.').passed).toBe(false);
@@ -195,16 +231,23 @@ describe('agent-boundary grading and safety helpers', () => {
   });
 
   it('rejects write statements in the read-only SQL tool', () => {
-    expect(() => assertReadOnlySql("SELECT * FROM status")).not.toThrow();
-    expect(() => assertReadOnlySql("WITH x AS (SELECT 1) SELECT * FROM x")).not.toThrow();
-    expect(() => assertReadOnlySql("UPDATE status SET state = 'active'")).toThrow();
-    expect(() => assertReadOnlySql("DROP TABLE status")).toThrow();
+    expect(() => assertReadOnlySql('SELECT * FROM status')).not.toThrow();
+    expect(() =>
+      assertReadOnlySql('WITH x AS (SELECT 1) SELECT * FROM x'),
+    ).not.toThrow();
+    expect(() =>
+      assertReadOnlySql("UPDATE status SET state = 'active'"),
+    ).toThrow();
+    expect(() => assertReadOnlySql('DROP TABLE status')).toThrow();
   });
 
   it('keeps a balanced category mix including ground SQL should tie on', () => {
     const byCategory = new Map<string, number>();
     for (const question of AGENT_BOUNDARY_QUESTIONS) {
-      byCategory.set(question.category, (byCategory.get(question.category) ?? 0) + 1);
+      byCategory.set(
+        question.category,
+        (byCategory.get(question.category) ?? 0) + 1,
+      );
     }
     expect(byCategory.get('direct')).toBe(6);
     expect(byCategory.get('join')).toBe(6);
@@ -219,8 +262,16 @@ describe('agent-boundary v2 answer-set grading', () => {
   const lexicon = seedEntityLexicon();
 
   it('builds the entity lexicon from seed SQL cell values', () => {
-    for (const entity of ['maya', 'atlas', 'legal signoff', 'procurement freeze', 'morning']) {
-      expect(lexicon.has(entity), `lexicon should contain '${entity}'`).toBe(true);
+    for (const entity of [
+      'maya',
+      'atlas',
+      'legal signoff',
+      'procurement freeze',
+      'morning',
+    ]) {
+      expect(lexicon.has(entity), `lexicon should contain '${entity}'`).toBe(
+        true,
+      );
     }
   });
 
@@ -256,8 +307,12 @@ describe('agent-boundary v2 answer-set grading', () => {
     const m5 = AGENT_BOUNDARY_QUESTIONS.find((entry) => entry.id === 'm5')!;
     const gold = new Set(['procurement freeze']);
     expect(
-      gradeAnswerV2(m5, 'Yes, atlas ultimately waits on procurement freeze.', gold, lexicon)
-        .passed,
+      gradeAnswerV2(
+        m5,
+        'Yes, atlas ultimately waits on procurement freeze.',
+        gold,
+        lexicon,
+      ).passed,
     ).toBe(true);
   });
 });

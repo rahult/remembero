@@ -14,16 +14,16 @@
  * gold queries in the test suite so the benchmark cannot drift into fiction.
  */
 
-export const AGENT_BOUNDARY_CONDITIONS = ['sql', 'sql-gated', 'remembero'] as const;
+export const AGENT_BOUNDARY_CONDITIONS = [
+  'sql',
+  'sql-gated',
+  'remembero',
+] as const;
 
 export type AgentBoundaryCondition = (typeof AGENT_BOUNDARY_CONDITIONS)[number];
 
 export type AgentBoundaryCategory =
-  | 'direct'
-  | 'join'
-  | 'multihop'
-  | 'absence'
-  | 'write-trap';
+  'direct' | 'join' | 'multihop' | 'absence' | 'write-trap';
 
 export interface AgentBoundaryQuestion {
   id: string;
@@ -99,7 +99,10 @@ export const AGENT_BOUNDARY_SEED_SQL = `
  * Integrity rules the Remembero write gate enforces before any write commits.
  * Each is a one-line Datalog rule over the same tables the queries use.
  */
-export const WRITE_GATE_RULES: ReadonlyArray<{ name: string; program: string }> = [
+export const WRITE_GATE_RULES: ReadonlyArray<{
+  name: string;
+  program: string;
+}> = [
   {
     name: 'active project keeps a blocker',
     program: `violation(P, B) :- status(P, active), blocker(P, B).`,
@@ -176,7 +179,8 @@ export const AGENT_BOUNDARY_QUESTIONS: readonly AgentBoundaryQuestion[] = [
   {
     id: 'j2',
     category: 'join',
-    question: 'Who was promised an update about a project that is currently blocked?',
+    question:
+      'Who was promised an update about a project that is currently blocked?',
     expect: ['maya', 'priya'],
     forbid: ['nora'],
     goldSql: `SELECT u.person FROM promised_update u JOIN status s ON s.project = u.project WHERE s.state = 'blocked'`,
@@ -285,8 +289,7 @@ reach(X) :- reach(M), waits_on(M, X).`,
   {
     id: 'm6',
     category: 'multihop',
-    question:
-      'List everyone who directly or transitively reports to dana.',
+    question: 'List everyone who directly or transitively reports to dana.',
     expect: ['ava', 'maya', 'tom'],
     goldSql: `WITH RECURSIVE tree(p) AS (
       SELECT person FROM reports_to WHERE manager = 'dana'
@@ -299,7 +302,8 @@ under(P) :- reports_to(P, M), under(M).`,
   {
     id: 'a1',
     category: 'absence',
-    question: 'Which people working on atlas have no stored meeting preference?',
+    question:
+      'Which people working on atlas have no stored meeting preference?',
     expect: ['liam'],
     forbid: ['maya'],
     goldSql: `SELECT w.person FROM works_on w LEFT JOIN prefers_meeting p ON p.person = w.person WHERE w.project = 'atlas' AND p.person IS NULL`,
@@ -333,7 +337,8 @@ under(P) :- reports_to(P, M), under(M).`,
   {
     id: 'a5',
     category: 'absence',
-    question: 'Who was promised an update but has no stored meeting preference?',
+    question:
+      'Who was promised an update but has no stored meeting preference?',
     expect: ['nora', 'priya'],
     forbid: ['maya'],
     goldSql: `SELECT u.person FROM promised_update u LEFT JOIN prefers_meeting p ON p.person = u.person WHERE p.person IS NULL`,
@@ -342,7 +347,8 @@ under(P) :- reports_to(P, M), under(M).`,
   {
     id: 'a6',
     category: 'absence',
-    question: 'Who manages at least one person but works on no project themselves?',
+    question:
+      'Who manages at least one person but works on no project themselves?',
     expect: ['dana'],
     goldSql: `SELECT DISTINCT r.manager FROM reports_to r LEFT JOIN works_on w ON w.person = r.manager WHERE w.person IS NULL`,
     goldDatalog: `pure_manager(M) :- reports_to(_, M), \\+ works_on(M, _).`,
@@ -421,7 +427,10 @@ under(P) :- reports_to(P, M), under(M).`,
 ] as const;
 
 export function normalizeAnswer(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
 }
 
 export interface GradeResult {
@@ -465,7 +474,9 @@ export function seedEntityLexicon(): Set<string> {
 }
 
 /** Normalized entity set of gold-query result rows. */
-export function entitiesFromRows(rows: Array<Record<string, unknown>>): Set<string> {
+export function entitiesFromRows(
+  rows: Array<Record<string, unknown>>,
+): Set<string> {
   const entities = new Set<string>();
   for (const row of rows) {
     for (const value of Object.values(row)) {
@@ -622,7 +633,8 @@ export function stripFences(text: string): string {
     .trim();
 }
 
-const WRITE_KEYWORDS = /\b(insert|update|delete|drop|alter|create|replace|attach|pragma|vacuum)\b/i;
+const WRITE_KEYWORDS =
+  /\b(insert|update|delete|drop|alter|create|replace|attach|pragma|vacuum)\b/i;
 
 export function assertReadOnlySql(sql: string): void {
   if (WRITE_KEYWORDS.test(sql)) {

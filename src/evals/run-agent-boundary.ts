@@ -33,7 +33,10 @@ import {
   type AgentBoundaryCondition,
   type AgentBoundaryQuestion,
 } from './agent-boundary.js';
-import { openRememberoDatabase, type RememberoDatabase } from '../sqlite/extension.js';
+import {
+  openRememberoDatabase,
+  type RememberoDatabase,
+} from '../sqlite/extension.js';
 
 const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://127.0.0.1:11434';
 const MAX_RESULT_ROWS = 30;
@@ -44,7 +47,11 @@ interface ChatMessage {
   content: string;
 }
 
-async function chat(model: string, messages: ChatMessage[], seed: number): Promise<string> {
+async function chat(
+  model: string,
+  messages: ChatMessage[],
+  seed: number,
+): Promise<string> {
   const response = await fetch(`${OLLAMA_URL}/api/chat`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -56,11 +63,14 @@ async function chat(model: string, messages: ChatMessage[], seed: number): Promi
     }),
   });
   if (!response.ok) {
-    throw new Error(`ollama returned ${response.status}: ${await response.text()}`);
+    throw new Error(
+      `ollama returned ${response.status}: ${await response.text()}`,
+    );
   }
   const payload = (await response.json()) as { message?: { content?: string } };
   const content = payload.message?.content;
-  if (typeof content !== 'string') throw new Error('ollama returned no message content');
+  if (typeof content !== 'string')
+    throw new Error('ollama returned no message content');
   return content;
 }
 
@@ -104,7 +114,9 @@ function applyTrapWrite(
   // sql-gated and remembero share the gated write path (ADR 0002).
   db.exec('SAVEPOINT gate');
   db.exec(trapWriteSql);
-  const violations = WRITE_GATE_RULES.flatMap((rule) => db.datalogQuery(rule.program));
+  const violations = WRITE_GATE_RULES.flatMap((rule) =>
+    db.datalogQuery(rule.program),
+  );
   if (violations.length > 0) {
     db.exec('ROLLBACK TO gate');
     db.exec('RELEASE gate');
@@ -128,17 +140,25 @@ async function runQuestion(
     // read before any trap write; control questions are graded against the
     // POST-write truth their benign write establishes.
     const readGoldEntities = () =>
-      entitiesFromRows(db.prepare(question.goldSql).all() as Array<Record<string, unknown>>);
-    let goldEntities = question.control === true ? new Set<string>() : readGoldEntities();
+      entitiesFromRows(
+        db.prepare(question.goldSql).all() as Array<Record<string, unknown>>,
+      );
+    let goldEntities =
+      question.control === true ? new Set<string>() : readGoldEntities();
     let gateRefusedTrap: boolean | undefined;
     if (question.trapWriteSql !== undefined) {
-      gateRefusedTrap = applyTrapWrite(db, condition, question.trapWriteSql).refused;
+      gateRefusedTrap = applyTrapWrite(
+        db,
+        condition,
+        question.trapWriteSql,
+      ).refused;
       if (question.control === true) {
         goldEntities = readGoldEntities();
       }
     }
 
-    const querySystem = condition === 'remembero' ? datalogSystemPrompt() : sqlSystemPrompt();
+    const querySystem =
+      condition === 'remembero' ? datalogSystemPrompt() : sqlSystemPrompt();
     const messages: ChatMessage[] = [
       { role: 'system', content: querySystem },
       { role: 'user', content: question.question },
@@ -147,7 +167,11 @@ async function runQuestion(
     let rows: Array<Record<string, unknown>> | undefined;
     let query = '';
     let toolErrors = 0;
-    for (let attempt = 0; attempt < MAX_ATTEMPTS && rows === undefined; attempt += 1) {
+    for (
+      let attempt = 0;
+      attempt < MAX_ATTEMPTS && rows === undefined;
+      attempt += 1
+    ) {
       const rawQuery = await chat(model, messages, seed);
       query = stripFences(rawQuery);
       try {
@@ -193,7 +217,10 @@ async function runQuestion(
     );
     const grade = gradeAnswerV2(question, answer, goldEntities);
     // A control write violates no rule: a gate refusal is itself the failure.
-    const passed = question.control === true && gateRefusedTrap === true ? false : grade.passed;
+    const passed =
+      question.control === true && gateRefusedTrap === true
+        ? false
+        : grade.passed;
     return {
       id: question.id,
       category: question.category,
@@ -256,7 +283,9 @@ function conditionStats(
   const passes = perSeed.map((row) => row.passed);
   return {
     perSeed,
-    mean: passes.reduce((sum, value) => sum + value, 0) / Math.max(passes.length, 1),
+    mean:
+      passes.reduce((sum, value) => sum + value, 0) /
+      Math.max(passes.length, 1),
     spread: passes.length > 0 ? Math.max(...passes) - Math.min(...passes) : 0,
     toolErrors: rows.reduce((sum, row) => sum + row.toolErrors, 0),
   };
@@ -277,7 +306,8 @@ function gateStats(
     gateProtectedPasses: traps.filter(
       (row) => row.gateRefusedTrap === true && row.passed,
     ).length,
-    controlRefusals: controls.filter((row) => row.gateRefusedTrap === true).length,
+    controlRefusals: controls.filter((row) => row.gateRefusedTrap === true)
+      .length,
   };
 }
 
@@ -294,11 +324,16 @@ function summarize(outcomes: QuestionOutcome[], seeds: readonly number[]) {
     ) as Record<AgentBoundaryCondition, ConditionStats>;
   const byCategory = categories.map((category) => ({
     category,
-    conditions: forConditions(outcomes.filter((row) => row.category === category)),
+    conditions: forConditions(
+      outcomes.filter((row) => row.category === category),
+    ),
   }));
   const totals = forConditions(outcomes);
   const gate = Object.fromEntries(
-    AGENT_BOUNDARY_CONDITIONS.map((condition) => [condition, gateStats(outcomes, condition)]),
+    AGENT_BOUNDARY_CONDITIONS.map((condition) => [
+      condition,
+      gateStats(outcomes, condition),
+    ]),
   ) as Record<AgentBoundaryCondition, GateStats>;
   return { byCategory, totals, gate };
 }
@@ -309,7 +344,9 @@ async function main(): Promise<void> {
   const seedsFlag = process.argv.indexOf('--seeds');
   const seeds =
     seedsFlag >= 0
-      ? process.argv[seedsFlag + 1].split(',').map((value) => Number(value.trim()))
+      ? process.argv[seedsFlag + 1]
+          .split(',')
+          .map((value) => Number(value.trim()))
       : [7, 42, 123];
   console.log(
     `agent-boundary benchmark v2 · model ${model} · ${AGENT_BOUNDARY_QUESTIONS.length} questions × ${AGENT_BOUNDARY_CONDITIONS.length} conditions × ${seeds.length} seeds`,
@@ -323,7 +360,9 @@ async function main(): Promise<void> {
         outcomes.push(outcome);
         console.log(
           `${outcome.passed ? 'PASS' : 'FAIL'} seed ${seed} ${question.id} ${condition}` +
-            (outcome.toolErrors > 0 ? ` (tool errors: ${outcome.toolErrors})` : '') +
+            (outcome.toolErrors > 0
+              ? ` (tool errors: ${outcome.toolErrors})`
+              : '') +
             (outcome.gateRefusedTrap === true ? ' (gate refused trap)' : '') +
             (outcome.extraEntities.length > 0
               ? ` (extra entities: ${outcome.extraEntities.join(', ')})`
@@ -336,7 +375,9 @@ async function main(): Promise<void> {
   const summary = summarize(outcomes, seeds);
 
   console.log('\nwrite-trap integrity (headline: gate-protected passes)');
-  console.log('condition     trap refusals   gate-protected   control refusals');
+  console.log(
+    'condition     trap refusals   gate-protected   control refusals',
+  );
   for (const condition of AGENT_BOUNDARY_CONDITIONS) {
     const stats = summary.gate[condition];
     console.log(
@@ -344,7 +385,9 @@ async function main(): Promise<void> {
     );
   }
 
-  console.log('\ncategory                mean passed per seed (per-seed counts)');
+  console.log(
+    '\ncategory                mean passed per seed (per-seed counts)',
+  );
   for (const row of summary.byCategory) {
     const cells = AGENT_BOUNDARY_CONDITIONS.map((condition) => {
       const stats = row.conditions[condition];
