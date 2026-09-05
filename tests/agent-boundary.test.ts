@@ -5,8 +5,11 @@ import {
   AGENT_BOUNDARY_SEED_SQL,
   WRITE_GATE_RULES,
   assertReadOnlySql,
+  entitiesFromRows,
   gradeAnswer,
+  gradeAnswerV2,
   normalizeAnswer,
+  seedEntityLexicon,
 } from '../src/evals/agent-boundary.js';
 import { openRememberoDatabase, type RememberoDatabase } from '../src/sqlite/extension.js';
 
@@ -144,5 +147,52 @@ describe('agent-boundary grading and safety helpers', () => {
     expect(byCategory.get('multihop')).toBe(6);
     expect(byCategory.get('absence')).toBe(6);
     expect(byCategory.get('write-trap')).toBe(4);
+  });
+});
+
+describe('agent-boundary v2 answer-set grading', () => {
+  const lexicon = seedEntityLexicon();
+
+  it('builds the entity lexicon from seed SQL cell values', () => {
+    for (const entity of ['maya', 'atlas', 'legal signoff', 'procurement freeze', 'morning']) {
+      expect(lexicon.has(entity), `lexicon should contain '${entity}'`).toBe(true);
+    }
+  });
+
+  it('collects gold entities from gold-query rows', () => {
+    const entities = entitiesFromRows([
+      { person: 'priya' },
+      { person: 'tom' },
+      { person: 'maya' },
+    ]);
+    expect(entities).toEqual(new Set(['priya', 'tom', 'maya']));
+  });
+
+  it('fails wrong-superset answers that v1 substring grading passed', () => {
+    const j5 = AGENT_BOUNDARY_QUESTIONS.find((entry) => entry.id === 'j5')!;
+    const gold = new Set(['priya', 'tom', 'maya']);
+    const v1RecordedAnswer =
+      'The concrete values are: Maya, Liam, Priya, Tom. Since there is only one person named Maya, the answer is Maya.';
+    expect(gradeAnswer(j5, v1RecordedAnswer).passed).toBe(true); // v1 behavior frozen
+    const v2 = gradeAnswerV2(j5, v1RecordedAnswer, gold, lexicon);
+    expect(v2.passed).toBe(false);
+    expect(v2.extraEntities).toEqual(['liam']);
+  });
+
+  it('passes exact-set answers and ignores echoes of the question text', () => {
+    const j5 = AGENT_BOUNDARY_QUESTIONS.find((entry) => entry.id === 'j5')!;
+    const gold = new Set(['priya', 'tom', 'maya']);
+    const answer =
+      'Priya, Tom, and Maya work on a project blocked by legal signoff.';
+    expect(gradeAnswerV2(j5, answer, gold, lexicon).passed).toBe(true);
+  });
+
+  it('does not treat yes/no phrasing as entities', () => {
+    const m5 = AGENT_BOUNDARY_QUESTIONS.find((entry) => entry.id === 'm5')!;
+    const gold = new Set(['procurement freeze']);
+    expect(
+      gradeAnswerV2(m5, 'Yes, atlas ultimately waits on procurement freeze.', gold, lexicon)
+        .passed,
+    ).toBe(true);
   });
 });

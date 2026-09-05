@@ -382,6 +382,8 @@ export interface GradeResult {
   passed: boolean;
   missing: string[];
   forbidden: string[];
+  /** v2 only: seed-DB entities mentioned that are outside the gold answer set. */
+  extraEntities: string[];
 }
 
 export function gradeAnswer(
@@ -395,7 +397,68 @@ export function gradeAnswer(
   const forbidden = (question.forbid ?? []).filter((term) =>
     normalized.includes(` ${normalizeAnswer(term)} `),
   );
-  return { passed: missing.length === 0 && forbidden.length === 0, missing, forbidden };
+  return {
+    passed: missing.length === 0 && forbidden.length === 0,
+    missing,
+    forbidden,
+    extraEntities: [],
+  };
+}
+
+/**
+ * Entity lexicon derived from the seed SQL's cell values (ADR 0003): every
+ * quoted literal in AGENT_BOUNDARY_SEED_SQL, normalized. Deterministic and
+ * hand-authoring free.
+ */
+export function seedEntityLexicon(): Set<string> {
+  const lexicon = new Set<string>();
+  for (const match of AGENT_BOUNDARY_SEED_SQL.matchAll(/'([^']+)'/g)) {
+    lexicon.add(normalizeAnswer(match[1]));
+  }
+  return lexicon;
+}
+
+/** Normalized entity set of gold-query result rows. */
+export function entitiesFromRows(rows: Array<Record<string, unknown>>): Set<string> {
+  const entities = new Set<string>();
+  for (const row of rows) {
+    for (const value of Object.values(row)) {
+      entities.add(normalizeAnswer(String(value)));
+    }
+  }
+  return entities;
+}
+
+/**
+ * v2 answer-set grading (ADR 0003): all expected terms present, no forbidden
+ * terms, and no lexicon entity outside the gold set — this fails
+ * wrong-superset answers such as v1 j5 naming four people where three were
+ * asked. Entities that only echo the question text (e.g. 'blocked' in
+ * "Which projects are currently blocked?") are excluded: restating the
+ * question is not an extra entity.
+ */
+export function gradeAnswerV2(
+  question: AgentBoundaryQuestion,
+  answer: string,
+  goldEntities: ReadonlySet<string>,
+  lexicon: ReadonlySet<string> = seedEntityLexicon(),
+): GradeResult {
+  const base = gradeAnswer(question, answer);
+  const normalized = ` ${normalizeAnswer(answer)} `;
+  const questionText = ` ${normalizeAnswer(question.question)} `;
+  const extraEntities = [...lexicon].filter(
+    (entity) =>
+      entity.length > 0 &&
+      !goldEntities.has(entity) &&
+      !questionText.includes(` ${entity} `) &&
+      normalized.includes(` ${entity} `),
+  );
+  return {
+    passed: base.passed && extraEntities.length === 0,
+    missing: base.missing,
+    forbidden: base.forbidden,
+    extraEntities,
+  };
 }
 
 const SQL_SCHEMA_PROMPT = `You query a SQLite database with these tables:
