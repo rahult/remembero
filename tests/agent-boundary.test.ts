@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
 
 import {
+  AGENT_BOUNDARY_CONDITIONS,
   AGENT_BOUNDARY_QUESTIONS,
   AGENT_BOUNDARY_SEED_SQL,
   WRITE_GATE_RULES,
@@ -116,6 +117,32 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
   it('the clean database passes every write-gate rule', () => {
     for (const rule of WRITE_GATE_RULES) {
       expect(db.datalogQuery(rule.program)).toEqual([]);
+    }
+  });
+
+  it('the sql-gated arm shares the remembero gated write path', () => {
+    expect(AGENT_BOUNDARY_CONDITIONS).toEqual(['sql', 'sql-gated', 'remembero']);
+    for (const question of AGENT_BOUNDARY_QUESTIONS) {
+      if (question.trapWriteSql === undefined) continue;
+      // Same gate the runner applies for sql-gated: savepoint, rules, refuse.
+      db.exec('SAVEPOINT gated_sql');
+      db.exec(question.trapWriteSql);
+      const violations = WRITE_GATE_RULES.flatMap((rule) => db.datalogQuery(rule.program));
+      expect(
+        violations.length,
+        `${question.id}: sql-gated should derive a violation and refuse`,
+      ).toBeGreaterThan(0);
+      db.exec('ROLLBACK TO gated_sql');
+      db.exec('RELEASE gated_sql');
+      const restored = db.prepare(question.goldSql).all() as Array<Record<string, unknown>>;
+      const restoredValues = valueSet(restored);
+      for (const term of question.expect) {
+        if (term === 'yes' || term === 'no') continue;
+        expect(
+          [...restoredValues].some((v) => v.includes(normalizeAnswer(term))),
+          `${question.id}: truth intact after sql-gated refusal`,
+        ).toBe(true);
+      }
     }
   });
 });

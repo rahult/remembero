@@ -1,15 +1,18 @@
 /**
  * Agent-boundary benchmark: same seeded SQLite database, same small model,
- * two tool boundaries. One condition lets the model author arbitrary
- * read-only SQL; the other lets it author arbitrary Datalog served by the
- * Remembero bridge. The model writes every query itself — nothing is
- * prepared per question — and both conditions receive the same number and
- * sophistication of few-shot examples. Categories deliberately include
- * ground the baseline should tie on; expected answers are verified by gold
- * queries in the test suite so the benchmark cannot drift into fiction.
+ * three tool boundaries. One condition lets the model author arbitrary
+ * read-only SQL applied without an integrity gate; a second authors the same
+ * SQL but routes writes through the Remembero integrity gate (sql-gated,
+ * isolating the gate from the query language); the third lets it author
+ * arbitrary Datalog served by the Remembero bridge. The model writes every
+ * query itself — nothing is prepared per question. Categories deliberately
+ * include ground the baseline should tie on; expected answers are verified by
+ * gold queries in the test suite so the benchmark cannot drift into fiction.
  */
 
-export type AgentBoundaryCondition = 'sql' | 'remembero';
+export const AGENT_BOUNDARY_CONDITIONS = ['sql', 'sql-gated', 'remembero'] as const;
+
+export type AgentBoundaryCondition = (typeof AGENT_BOUNDARY_CONDITIONS)[number];
 
 export type AgentBoundaryCategory =
   | 'direct'
@@ -31,8 +34,9 @@ export interface AgentBoundaryQuestion {
   goldDatalog: string;
   /**
    * write-trap only: a corrupting write the harness pushes through each
-   * condition's write path before asking. SQL applies it silently; the
-   * Remembero gate checks the integrity rules and refuses.
+   * condition's write path before asking. Raw SQL applies it silently; the
+   * gated conditions (sql-gated, remembero) check the integrity rules and
+   * refuse.
    */
   trapWriteSql?: string;
 }
