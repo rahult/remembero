@@ -1,3 +1,6 @@
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   evaluate,
@@ -8,6 +11,11 @@ import {
   parseQuery,
 } from '../src/engine/index.js';
 import { createRng } from '../src/training/rng.js';
+import {
+  createLlmParaphraser,
+  paraphraseExamples,
+  preservesConstants,
+} from '../src/training/paraphrase.js';
 import { generateCandidates } from '../src/training/templates.js';
 import {
   assertRecursionFree,
@@ -233,5 +241,68 @@ describe('training: verify', () => {
       if (example.expectEmpty) expect(example.answer).toEqual([]);
       else expect(example.answer.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('training: paraphrase', () => {
+  const example = {
+    world: 'w',
+    category: 'multihop-up' as const,
+    direction: 'anchor-first' as const,
+    template: 't',
+    question: 'List everyone above ana in the management chain.',
+    program: 'q(Y) :- manages_plus(Y, ana).',
+    expectEmpty: false,
+    requiresClosure: true,
+    answer: ['Y=bo'],
+  };
+
+  it('keeps paraphrases that preserve every entity constant and drops those that do not', () => {
+    expect(
+      preservesConstants(example, 'Who is above Ana, all the way up?'),
+    ).toBe(true);
+    expect(
+      preservesConstants(example, 'Who is above Bo, all the way up?'),
+    ).toBe(false);
+  });
+
+  it('caches results so a second call makes no client request', async () => {
+    let calls = 0;
+    const client = {
+      complete: async () => {
+        calls += 1;
+        return JSON.stringify([
+          'Who sits above ana?',
+          "Name ana's whole chain of command.",
+          'Who is above bo?',
+        ]);
+      },
+    };
+    const dir = mkdtempSync(join(tmpdir(), 'para-'));
+    const paraphraser = createLlmParaphraser(client, dir);
+    const first = await paraphraser.paraphrase(example, 3);
+    const second = await paraphraser.paraphrase(example, 3);
+    expect(first).toEqual([
+      'Who sits above ana?',
+      "Name ana's whole chain of command.",
+    ]);
+    expect(second).toEqual(first);
+    expect(calls).toBe(1);
+  });
+
+  it('falls back to the templated question when the client fails', async () => {
+    const client = {
+      complete: async () => {
+        throw new Error('boom');
+      },
+    };
+    const dir = mkdtempSync(join(tmpdir(), 'para-'));
+    const out = await paraphraseExamples(
+      [example],
+      createLlmParaphraser(client, dir),
+      2,
+    );
+    expect(out).toHaveLength(1);
+    expect(out[0].question).toBe(example.question);
   });
 });
