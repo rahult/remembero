@@ -1,0 +1,5 @@
+tinker
+tinker-cookbook @ git+https://github.com/thinking-machines-lab/tinker-cookbook.git@1f962ed
+chz
+python-dotenv
+aiohttp
