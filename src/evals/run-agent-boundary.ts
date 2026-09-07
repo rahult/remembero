@@ -2,6 +2,7 @@
  * Runs the agent-boundary benchmark against a local Ollama model.
  *
  *   node dist/evals/run-agent-boundary.js --model llama3.2:3b [--seeds 7,42,123]
+ *       [--conditions remembero-closure] [--chat-api openai]  (OLLAMA_URL = base URL)
  *
  * Same seeded SQLite database, same model; the model authors every query
  * itself. The sql condition executes model-written read-only SQL with no
@@ -24,6 +25,7 @@ import {
   AGENT_BOUNDARY_SEED_SQL,
   answerSystemPrompt,
   assertReadOnlySql,
+  datalogClosureSystemPrompt,
   datalogSystemPrompt,
   entitiesFromRows,
   gradeAnswerV2,
@@ -32,46 +34,45 @@ import {
   type AgentBoundaryCondition,
   type AgentBoundaryQuestion,
 } from './agent-boundary.js';
+import {
+  chatRequest,
+  parseChatResponse,
+  resolveChatBackend,
+  type ChatMessage,
+} from './agent-boundary-chat.js';
 import { applyGatedWrite } from './agent-boundary-gate.js';
 import {
   openRememberoDatabase,
   type RememberoDatabase,
 } from '../sqlite/extension.js';
 
-const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://127.0.0.1:11434';
+// --chat-api openai (or CHAT_API=openai) targets an OpenAI-compatible server
+// such as the tinker-cookbook capture proxy serving a fine-tuned checkpoint;
+// OLLAMA_URL names the base URL for either backend.
+const CHAT_BACKEND = resolveChatBackend(process.argv, process.env);
+const CHAT_URL =
+  process.env.OLLAMA_URL ??
+  (CHAT_BACKEND === 'openai' ? 'http://127.0.0.1:7462' : 'http://127.0.0.1:11434');
 const MAX_RESULT_ROWS = 30;
 const MAX_ATTEMPTS = 2;
-
-interface ChatMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
 
 async function chat(
   model: string,
   messages: ChatMessage[],
   seed: number,
 ): Promise<string> {
-  const response = await fetch(`${OLLAMA_URL}/api/chat`, {
+  const request = chatRequest(CHAT_BACKEND, CHAT_URL, model, messages, seed);
+  const response = await fetch(request.url, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      model,
-      messages,
-      stream: false,
-      options: { temperature: 0, seed, num_ctx: 4096, num_predict: 400 },
-    }),
+    body: JSON.stringify(request.body),
   });
   if (!response.ok) {
     throw new Error(
-      `ollama returned ${response.status}: ${await response.text()}`,
+      `${CHAT_BACKEND} returned ${response.status}: ${await response.text()}`,
     );
   }
-  const payload = (await response.json()) as { message?: { content?: string } };
-  const content = payload.message?.content;
-  if (typeof content !== 'string')
-    throw new Error('ollama returned no message content');
-  return content;
+  return parseChatResponse(CHAT_BACKEND, await response.json());
 }
 
 interface QuestionOutcome {
@@ -148,7 +149,11 @@ async function runQuestion(
     }
 
     const querySystem =
-      condition === 'remembero' ? datalogSystemPrompt() : sqlSystemPrompt();
+      condition === 'remembero'
+        ? datalogSystemPrompt()
+        : condition === 'remembero-closure'
+          ? datalogClosureSystemPrompt()
+          : sqlSystemPrompt();
     const messages: ChatMessage[] = [
       { role: 'system', content: querySystem },
       { role: 'user', content: question.question },
@@ -301,13 +306,17 @@ function gateStats(
   };
 }
 
-function summarize(outcomes: QuestionOutcome[], seeds: readonly number[]) {
+function summarize(
+  outcomes: QuestionOutcome[],
+  seeds: readonly number[],
+  conditions: readonly AgentBoundaryCondition[],
+) {
   const categories = [...new Set(outcomes.map((outcome) => outcome.category))];
   const forConditions = (
     subset: QuestionOutcome[],
   ): Record<AgentBoundaryCondition, ConditionStats> =>
     Object.fromEntries(
-      AGENT_BOUNDARY_CONDITIONS.map((condition) => [
+      conditions.map((condition) => [
         condition,
         conditionStats(subset, condition, seeds),
       ]),
@@ -320,10 +329,7 @@ function summarize(outcomes: QuestionOutcome[], seeds: readonly number[]) {
   }));
   const totals = forConditions(outcomes);
   const gate = Object.fromEntries(
-    AGENT_BOUNDARY_CONDITIONS.map((condition) => [
-      condition,
-      gateStats(outcomes, condition),
-    ]),
+    conditions.map((condition) => [condition, gateStats(outcomes, condition)]),
   ) as Record<AgentBoundaryCondition, GateStats>;
   return { byCategory, totals, gate };
 }
@@ -338,14 +344,27 @@ async function main(): Promise<void> {
           .split(',')
           .map((value) => Number(value.trim()))
       : [7, 42, 123];
+  // --conditions a,b restricts the run; a restricted run writes to its own
+  // results file so the published full-matrix files are never overwritten.
+  const conditionsFlag = process.argv.indexOf('--conditions');
+  const conditions: readonly AgentBoundaryCondition[] =
+    conditionsFlag >= 0
+      ? process.argv[conditionsFlag + 1].split(',').map((value) => {
+          const trimmed = value.trim() as AgentBoundaryCondition;
+          if (!AGENT_BOUNDARY_CONDITIONS.includes(trimmed)) {
+            throw new Error(`unknown condition '${trimmed}'`);
+          }
+          return trimmed;
+        })
+      : AGENT_BOUNDARY_CONDITIONS;
   console.log(
-    `agent-boundary benchmark v2 · model ${model} · ${AGENT_BOUNDARY_QUESTIONS.length} questions × ${AGENT_BOUNDARY_CONDITIONS.length} conditions × ${seeds.length} seeds`,
+    `agent-boundary benchmark v2 · model ${model} · ${AGENT_BOUNDARY_QUESTIONS.length} questions × ${conditions.length} conditions × ${seeds.length} seeds`,
   );
 
   const outcomes: QuestionOutcome[] = [];
   for (const seed of seeds) {
     for (const question of AGENT_BOUNDARY_QUESTIONS) {
-      for (const condition of AGENT_BOUNDARY_CONDITIONS) {
+      for (const condition of conditions) {
         const outcome = await runQuestion(model, condition, question, seed);
         outcomes.push(outcome);
         console.log(
@@ -362,13 +381,13 @@ async function main(): Promise<void> {
     }
   }
 
-  const summary = summarize(outcomes, seeds);
+  const summary = summarize(outcomes, seeds, conditions);
 
   console.log('\nwrite-trap integrity (headline: gate-protected passes)');
   console.log(
     'condition     trap refusals   gate-protected   control refusals',
   );
-  for (const condition of AGENT_BOUNDARY_CONDITIONS) {
+  for (const condition of conditions) {
     const stats = summary.gate[condition];
     console.log(
       `${condition.padEnd(14)}${`${stats.trapRefusals}/${stats.trapOutcomes}`.padStart(9)}${String(stats.gateProtectedPasses).padStart(16)}${String(stats.controlRefusals).padStart(19)}`,
@@ -379,7 +398,7 @@ async function main(): Promise<void> {
     '\ncategory                mean passed per seed (per-seed counts)',
   );
   for (const row of summary.byCategory) {
-    const cells = AGENT_BOUNDARY_CONDITIONS.map((condition) => {
+    const cells = conditions.map((condition) => {
       const stats = row.conditions[condition];
       const detail = stats.perSeed.map((seedRow) => seedRow.passed).join(',');
       const total = stats.perSeed[0]?.total ?? 0;
@@ -387,14 +406,14 @@ async function main(): Promise<void> {
     }).join('  ');
     console.log(`${row.category.padEnd(24)}${cells}`);
   }
-  const totalCells = AGENT_BOUNDARY_CONDITIONS.map((condition) => {
+  const totalCells = conditions.map((condition) => {
     const stats = summary.totals[condition];
     const detail = stats.perSeed.map((seedRow) => seedRow.passed).join(',');
     const total = stats.perSeed[0]?.total ?? 0;
     return `${condition} ${stats.mean.toFixed(1)}/${total} (${detail})`;
   }).join('  ');
   console.log(`${'TOTAL'.padEnd(24)}${totalCells}`);
-  const errorCells = AGENT_BOUNDARY_CONDITIONS.map(
+  const errorCells = conditions.map(
     (condition) => `${condition} ${summary.totals[condition].toolErrors}`,
   ).join('  ');
   console.log(`${'tool errors'.padEnd(24)}${errorCells}`);
@@ -405,7 +424,9 @@ async function main(): Promise<void> {
     'docs',
     'research',
     'results',
-    `agent-boundary-v2-${model.replaceAll(/[^a-z0-9.]+/gi, '-')}-summary.json`,
+    `agent-boundary-v2-${model.replaceAll(/[^a-z0-9.]+/gi, '-')}${
+      conditionsFlag >= 0 ? `-${conditions.join('+')}` : ''
+    }-summary.json`,
   );
   mkdirSync(dirname(resultPath), { recursive: true });
   writeFileSync(
@@ -415,7 +436,13 @@ async function main(): Promise<void> {
         benchmark: 'agent-boundary-v2',
         model,
         generatedAt: new Date().toISOString(),
-        settings: { temperature: 0, seeds, attempts: MAX_ATTEMPTS },
+        settings: {
+          temperature: 0,
+          seeds,
+          attempts: MAX_ATTEMPTS,
+          conditions,
+          chatBackend: CHAT_BACKEND,
+        },
         summary,
         outcomes,
       },

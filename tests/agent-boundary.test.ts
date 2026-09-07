@@ -4,9 +4,11 @@ import {
   AGENT_BOUNDARY_CONDITIONS,
   AGENT_BOUNDARY_QUESTIONS,
   AGENT_BOUNDARY_SEED_SQL,
+  DATALOG_CLOSURE_FEW_SHOT,
   DATALOG_FEW_SHOT,
   WRITE_GATE_RULES,
   assertReadOnlySql,
+  datalogClosureSystemPrompt,
   datalogSystemPrompt,
   entitiesFromRows,
   gradeAnswer,
@@ -19,6 +21,7 @@ import {
   collectFactClauses,
   gateConstraintPrograms,
 } from '../src/evals/agent-boundary-gate.js';
+import { chatRequest, parseChatResponse } from '../src/evals/agent-boundary-chat.js';
 import { checkIntegrity } from '../src/knowledge/integrity.js';
 import { parseProgram } from '../src/engine/index.js';
 import {
@@ -213,6 +216,7 @@ describe.skipIf(nodeMajor < 22)('agent-boundary benchmark ground truth', () => {
       'sql',
       'sql-gated',
       'remembero',
+      'remembero-closure',
     ]);
     for (const question of AGENT_BOUNDARY_QUESTIONS) {
       if (question.trapWriteSql === undefined || question.control === true)
@@ -367,5 +371,49 @@ describe('agent-boundary v2 Datalog prompt', () => {
     for (const example of DATALOG_FEW_SHOT) {
       expect(prompt).toContain(example.program);
     }
+  });
+
+  it('closure few-shot programs run on the seeded database without any recursive rule', () => {
+    expect(DATALOG_CLOSURE_FEW_SHOT.length).toBe(DATALOG_FEW_SHOT.length);
+    for (const example of DATALOG_CLOSURE_FEW_SHOT) {
+      for (const clause of parseProgram(example.program)) {
+        const body = JSON.stringify(clause.body);
+        expect(body, example.program).not.toContain(`"predicate":"${clause.head.predicate}"`);
+      }
+      expect(
+        () => db.datalogQuery(example.program),
+        `closure few-shot '${example.q}' must run on the bridge`,
+      ).not.toThrow();
+    }
+    const prompt = datalogClosureSystemPrompt();
+    expect(prompt).toContain('reports_to_plus');
+    expect(prompt).not.toContain('Recursion is allowed');
+    for (const example of DATALOG_CLOSURE_FEW_SHOT) {
+      expect(prompt).toContain(example.program);
+    }
+  });
+});
+
+describe('agent-boundary runner: chat backends', () => {
+  const messages = [
+    { role: 'system' as const, content: 's' },
+    { role: 'user' as const, content: 'u' },
+  ];
+
+  it('builds an Ollama /api/chat request by default and reads message.content', () => {
+    const request = chatRequest('ollama', 'http://127.0.0.1:11434', 'llama3.2:3b', messages, 7);
+    expect(request.url).toBe('http://127.0.0.1:11434/api/chat');
+    expect(request.body.options).toMatchObject({ temperature: 0, seed: 7 });
+    expect(parseChatResponse('ollama', { message: { content: 'q(X) :- a(X).' } })).toBe('q(X) :- a(X).');
+  });
+
+  it('builds an OpenAI-compatible /v1/chat/completions request for Tinker proxies', () => {
+    const request = chatRequest('openai', 'http://127.0.0.1:7462/', 'tinker://run/sampler_weights/final', messages, 7);
+    expect(request.url).toBe('http://127.0.0.1:7462/v1/chat/completions');
+    expect(request.body).toMatchObject({ temperature: 0, seed: 7, max_tokens: 400, messages });
+    expect(
+      parseChatResponse('openai', { choices: [{ message: { content: 'q(X) :- a(X).' } }] }),
+    ).toBe('q(X) :- a(X).');
+    expect(() => parseChatResponse('openai', { choices: [] })).toThrow(/no message content/);
   });
 });

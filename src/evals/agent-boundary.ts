@@ -18,6 +18,13 @@ export const AGENT_BOUNDARY_CONDITIONS = [
   'sql',
   'sql-gated',
   'remembero',
+  /**
+   * Same bridge and gate as `remembero`, but the prompt advertises the
+   * engine's on-demand closure predicates (reports_to_plus, waits_on_plus) and
+   * the few-shots never show recursion. Added after the closure-predicate
+   * engine change; the published `remembero` arm is untouched.
+   */
+  'remembero-closure',
 ] as const;
 
 export type AgentBoundaryCondition = (typeof AGENT_BOUNDARY_CONDITIONS)[number];
@@ -608,6 +615,60 @@ root(R) :- reach(R), \\+ waits_on(R, _).`,
     program: `pair(A, B) :- works_on(A, P), works_on(B, P), A != B.`,
   },
 ];
+
+/**
+ * Few-shots for the closure condition: the same eight-example budget as
+ * DATALOG_FEW_SHOT with the two recursive programs rewritten in the flat
+ * `_plus` dialect and the pair example swapped for a yes/no chain check.
+ */
+export const DATALOG_CLOSURE_FEW_SHOT: ReadonlyArray<{ q: string; program: string }> =
+  DATALOG_FEW_SHOT.map((example) => {
+    if (example.q === 'Every manager above nora in the chain?') {
+      return { q: example.q, program: `above(M) :- reports_to_plus(nora, M).` };
+    }
+    if (example.q === 'What is the final upstream dependency atlas waits on?') {
+      return {
+        q: example.q,
+        program: `root(R) :- waits_on_plus(atlas, R), \\+ waits_on(R, _).`,
+      };
+    }
+    if (example.q === 'Which pairs of different people share a project?') {
+      return {
+        q: 'Does priya ultimately report up to ava? Yes or no.',
+        program: `q(M) :- reports_to_plus(priya, M), M = ava.`,
+      };
+    }
+    return example;
+  });
+
+const DATALOG_CLOSURE_SCHEMA_PROMPT = `${DATALOG_SCHEMA_PROMPT}
+reports_to_plus(Person, Manager)  -- Manager is anywhere above Person: one OR MORE steps up the chain
+waits_on_plus(Item, Upstream)     -- Upstream is anywhere up the chain from Item: one OR MORE hops
+
+For any question about a chain, "ultimately", "directly or transitively", "above", "below",
+"up the chain", or "the end of the chain": use reports_to_plus or waits_on_plus.
+NEVER write recursive rules yourself — the _plus predicates already contain the whole chain.
+For a yes/no question, select the value being checked so the rows show it:
+q(X) :- waits_on_plus(atlas, X), X = legal_signoff.   (a row means yes; no rows means no)`;
+
+export function datalogClosureSystemPrompt(): string {
+  const examples = DATALOG_CLOSURE_FEW_SHOT.map(
+    (example) => `Q: ${example.q}\n${example.program}`,
+  ).join('\n');
+  const cheatsheet = DATALOG_CHEATSHEET.replace(
+    '- Recursion is allowed: a rule body may reuse its own head predicate.',
+    '- Do NOT write recursive rules; use the _plus predicates for chains.',
+  );
+  return `${DATALOG_CLOSURE_SCHEMA_PROMPT}
+
+Write ONE Datalog program that answers the user's question.
+Reply with ONLY the Datalog, no prose, no markdown fences.
+
+${cheatsheet}
+
+Examples:
+${examples}`;
+}
 
 export function datalogSystemPrompt(): string {
   const examples = DATALOG_FEW_SHOT.map(
