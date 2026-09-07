@@ -647,7 +647,9 @@ See [the stratified-negation contract](docs/STRATIFIED-NEGATION.md) for safety,
 closed-world, proof, and SQLite-boundary details, and [the scalar aggregation
 contract](docs/QUERY-AGGREGATION.md) for exact reduction and explanation semantics, and
 [the arithmetic comparison contract](docs/ARITHMETIC-COMPARISONS.md) for numeric,
-precedence, safety, and portability details. TypeScript consumers should read the
+precedence, safety, and portability details, and [the closure predicate
+contract](docs/CLOSURE-PREDICATES.md) for the on-demand `p_plus` transitive closure that
+replaces hand-written recursion. TypeScript consumers should read the
 [0.2](docs/MIGRATING-0.2.md), [0.3](docs/MIGRATING-0.3.md),
 [0.4](docs/MIGRATING-0.4.md), [0.5](docs/MIGRATING-0.5.md),
 [0.8](docs/MIGRATING-0.8.md), [0.9](docs/MIGRATING-0.9.md), and

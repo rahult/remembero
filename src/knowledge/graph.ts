@@ -11,6 +11,7 @@ import {
   type Term,
   canonicalKey,
   evaluateQuerySpecWithProof,
+  expandClosurePredicates,
   isIntegrityConstraint,
   parseQuerySpec,
   serializeClause,
@@ -717,7 +718,9 @@ export function explainKnowledge(
   });
   const result: ExplainKnowledgeResult = {
     rows,
-    rules: view.clauses
+    // Synthesized closure rules (p_plus) are numbered after the authored rules
+    // by the evaluator, so the catalog must include them for proofs to resolve.
+    rules: expandClosurePredicates(view.clauses, querySpec.goals)
       .filter(
         (clause) => clause.body.length > 0 && !isIntegrityConstraint(clause)
       )

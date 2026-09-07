@@ -21,6 +21,7 @@ import {
   canonicalKey,
   predKey,
 } from './ast.js';
+import { expandClosurePredicates } from './closure.js';
 import { stratifyProgram, type StratifiedRule } from './stratify.js';
 
 export type Bindings = Record<string, Term>;
@@ -1066,7 +1067,8 @@ function deriveAggregateRuleEntries(
 }
 
 function deriveDatabase(
-  clauses: Clause[],
+  authoredClauses: Clause[],
+  goals: readonly Goal[],
   options: EvaluateOptions,
   lookup: RelationLookupContext,
   collectAlternativeRules = false
@@ -1076,6 +1078,7 @@ function deriveDatabase(
     maxIterations = 10_000,
     maxAggregateRows = 100_000,
   } = options;
+  const clauses = expandClosurePredicates(authoredClauses, goals);
   const ordinaryClauses = clauses.filter((clause) => !isIntegrityConstraint(clause));
   for (const clause of ordinaryClauses) {
     if (isAggregateRule(clause)) assertAggregateRuleSafety(clause);
@@ -1579,7 +1582,7 @@ function evaluateRelational(
   const { maxRows = 1000 } = options;
   const lookup = relationLookupContext(options);
   assertGoalsNumericSafety(query);
-  const { db, predicateStrata } = deriveDatabase(clauses, options, lookup);
+  const { db, predicateStrata } = deriveDatabase(clauses, query, options, lookup);
   return queryBindingsWithProofRefs(
     db,
     query,
@@ -1616,6 +1619,7 @@ function evaluateRelationalWithProof(
   assertGoalsNumericSafety(query);
   const { db, predicateStrata, rulesByPredicate, ruleIdentity } = deriveDatabase(
     clauses,
+    query,
     options,
     lookup,
     alternativeOptions.maxProofsPerRow > DEFAULT_MAX_PROOFS_PER_ROW
@@ -1681,7 +1685,7 @@ export function evaluateQuerySpec(
   const lookup = relationLookupContext(options);
   if (maxRows < 1) return [];
   assertGoalsNumericSafety(query.goals);
-  const { db, predicateStrata } = deriveDatabase(clauses, options, lookup);
+  const { db, predicateStrata } = deriveDatabase(clauses, query.goals, options, lookup);
   const rows = aggregateInputRows(
     db,
     query.goals,
@@ -1721,7 +1725,7 @@ export function evaluateQuerySpecWithProof(
   const lookup = relationLookupContext(options);
   if (maxRows < 1) return [];
   assertGoalsNumericSafety(query.goals);
-  const { db, predicateStrata } = deriveDatabase(clauses, options, lookup);
+  const { db, predicateStrata } = deriveDatabase(clauses, query.goals, options, lookup);
   const rows = aggregateInputRows(
     db,
     query.goals,
@@ -1761,7 +1765,7 @@ export function materializeWithProof(
   } = options;
   assertAggregateProofRowLimit(maxAggregateProofRows);
   const lookup = relationLookupContext(options);
-  const { db } = deriveDatabase(clauses, options, lookup);
+  const { db } = deriveDatabase(clauses, [], options, lookup);
   const facts: MaterializedFactWithProof[] = [];
   const proofBudget: ProofBudget = {
     maxNodes: maxProofNodes,
@@ -1789,7 +1793,7 @@ export function materialize(
   options: EvaluateOptions = {}
 ): MaterializedFact[] {
   const lookup = relationLookupContext(options);
-  const { db } = deriveDatabase(clauses, options, lookup);
+  const { db } = deriveDatabase(clauses, [], options, lookup);
   const facts: MaterializedFact[] = [];
   for (const relation of db.values()) {
     for (const entry of relation.tuples.values()) {

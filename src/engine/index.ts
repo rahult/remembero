@@ -63,6 +63,12 @@ export {
   materializeWithProof,
   materialize,
 } from './evaluate.js';
+export {
+  CLOSURE_SUFFIX,
+  closureBasePredicate,
+  closureClauses,
+  expandClosurePredicates,
+} from './closure.js';
 export { ParseError } from './lexer.js';
 export { parseProgram, parseQuery, parseQuerySpec } from './parser.js';
 export {

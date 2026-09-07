@@ -13,6 +13,7 @@ import {
   type Term,
   evaluateQuerySpec,
   evaluateQuerySpecWithProof,
+  expandClosurePredicates,
   isArithmeticExpression,
   isComparison,
   isIntegrityConstraint,
@@ -219,9 +220,32 @@ function assertNoIdentitySyntax(inspection: SyntaxInspection): void {
   }
 }
 
+/**
+ * True when the program or query references a `p_plus/2` closure predicate the
+ * engine would synthesize. The native extension knows nothing about closures,
+ * so such input must run on the portable engine. Parse failures return false
+ * so the native parser keeps its established error contract.
+ */
+function referencesSynthesizedClosure(input: string): boolean {
+  try {
+    if (inspectSyntax(input).rule) {
+      const program = parseProgram(input);
+      return expandClosurePredicates(program) !== program;
+    }
+    return expandClosurePredicates([], parseQuerySpec(input).goals).length > 0;
+  } catch {
+    return false;
+  }
+}
+
 function assertSqlCompilable(program: string): void {
   const inspection = inspectSyntax(program);
   assertNoIdentitySyntax(inspection);
+  if (referencesSynthesizedClosure(program)) {
+    throw new Error(
+      'transitive closure predicates (p_plus) cannot be compiled to one SQLite SELECT; use datalogQuery or datalogExplain',
+    );
+  }
   if (inspection.negation) {
     throw new Error(
       'stratified negation cannot be compiled to one SQLite SELECT; use datalogQuery or datalogExplain',
@@ -262,6 +286,7 @@ export function sqliteDatalogExecutionMode(
   } catch {
     // Let the native parser retain its established error contract for ordinary rules.
   }
+  if (referencesSynthesizedClosure(program)) return 'portable';
   return 'native';
 }
 
@@ -316,6 +341,9 @@ function preparePortableRequest(input: string): PortableRequest {
     program = [];
     query = parseQuerySpec(input);
   }
+  // Synthesize p_plus closure rules here so the base predicate, not the
+  // closure, is what gets resolved to a SQLite relation below.
+  program = expandClosurePredicates(program, query.goals);
 
   const derivedByName = new Map<string, number>();
   for (const clause of program) {
