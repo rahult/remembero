@@ -14,3 +14,7 @@ __pycache__/
 
 # pi agent session artifacts
 .pi/
+
+# generated training data (manifest is committed as the run record)
+data/training/*
+!data/training/manifest.json

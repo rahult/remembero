@@ -1,0 +1,35 @@
+{
+  "seed": 7,
+  "generatedAt": "2026-09-07T23:11:01.739Z",
+  "worlds": 60,
+  "heldoutWorlds": [
+    "world-7055",
+    "world-7056",
+    "world-7057",
+    "world-7058",
+    "world-7059",
+    "world-7060"
+  ],
+  "train": 3832,
+  "heldout": 373,
+  "byCategory": {
+    "absence": 164,
+    "chain-filter": 218,
+    "count": 348,
+    "direct": 1001,
+    "join": 235,
+    "leaves": 218,
+    "multihop-down": 477,
+    "multihop-up": 611,
+    "root": 402,
+    "yes-no": 531
+  },
+  "byDirection": {
+    "anchor-first": 1458,
+    "anchor-second": 1246,
+    "none": 1501
+  },
+  "rejectionsByTemplate": {},
+  "paraphraseModel": null,
+  "paraphrasesPerExample": 0
+}

@@ -290,10 +290,16 @@ export function generateCandidates(world: World, rng: Rng): Candidate[] {
       const attr = rng.pick(attributes);
       const x = rng.pick(ups);
       const [up, upDir] = chainLiteral(edge, x, 'Y', true);
+      // values where the filtered closure answer is larger than the filtered
+      // one-hop answer, so the example still needs _plus
       const values = valuesOf(attr).filter(
         (v) =>
           evaluate(clauses, parseQuery(`${up}, ${attr.name}(Y, ${v}).`))
-            .length > 0,
+            .length >
+          evaluate(
+            clauses,
+            parseQuery(`${oneHop(edge, x, 'Y', true)}, ${attr.name}(Y, ${v}).`),
+          ).length,
       );
       if (values.length > 0) {
         const v = rng.pick(values);

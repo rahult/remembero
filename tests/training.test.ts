@@ -1,4 +1,4 @@
-import { mkdtempSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -21,6 +21,7 @@ import {
   paraphraseExamples,
   preservesConstants,
 } from '../src/training/paraphrase.js';
+import { generateTrainingData } from '../src/training/run.js';
 import { generateCandidates } from '../src/training/templates.js';
 import {
   assertRecursionFree,
@@ -371,5 +372,25 @@ describe('training: export', () => {
     expect(toConversation(world, example).messages[2].content).toBe(
       'q(V) :- tier(auth, V).',
     );
+  });
+});
+
+describe('training: run', () => {
+  it('generates at least the requested number of verified examples without paraphrasing', async () => {
+    const out = mkdtempSync(join(tmpdir(), 'train-'));
+    const manifest = await generateTrainingData({
+      examples: 200,
+      worlds: 8,
+      paraphrases: 0,
+      seed: 11,
+      out,
+      paraphrase: false,
+    });
+    expect(manifest.train + manifest.heldout).toBeGreaterThanOrEqual(200);
+    expect(existsSync(join(out, 'conversations.jsonl'))).toBe(true);
+    expect(existsSync(join(out, 'heldout.jsonl'))).toBe(true);
+    expect(
+      JSON.parse(readFileSync(join(out, 'manifest.json'), 'utf8')).seed,
+    ).toBe(11);
   });
 });

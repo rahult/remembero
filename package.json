@@ -155,6 +155,7 @@
     "pretest": "npm run build",
     "pretest:sqlite": "npm run build",
     "test": "vitest run",
+    "train:data": "npm run build:core && node dist/training/run.js",
     "test:sqlite": "vitest run tests/sqlite-extension.test.ts tests/sqlite-memory-store.test.ts tests/sqlite-memory-mcp.test.ts",
     "test:package": "npm run build && node scripts/package-smoke.mjs",
     "check:package-policy": "npm run build && node scripts/check-package-policy.mjs",
