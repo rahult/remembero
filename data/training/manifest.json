@@ -1,6 +1,6 @@
 {
   "seed": 7,
-  "generatedAt": "2026-09-07T23:11:01.739Z",
+  "generatedAt": "2026-09-07T23:31:22.017Z",
   "worlds": 60,
   "heldoutWorlds": [
     "world-7055",
@@ -10,26 +10,26 @@
     "world-7059",
     "world-7060"
   ],
-  "train": 3832,
-  "heldout": 373,
+  "train": 14967,
+  "heldout": 1463,
   "byCategory": {
-    "absence": 164,
-    "chain-filter": 218,
-    "count": 348,
-    "direct": 1001,
-    "join": 235,
-    "leaves": 218,
-    "multihop-down": 477,
-    "multihop-up": 611,
-    "root": 402,
-    "yes-no": 531
+    "absence": 641,
+    "chain-filter": 866,
+    "count": 1392,
+    "direct": 3886,
+    "join": 908,
+    "leaves": 865,
+    "multihop-down": 1884,
+    "multihop-up": 2432,
+    "root": 1441,
+    "yes-no": 2115
   },
   "byDirection": {
-    "anchor-first": 1458,
-    "anchor-second": 1246,
-    "none": 1501
+    "anchor-first": 5768,
+    "anchor-second": 4823,
+    "none": 5839
   },
   "rejectionsByTemplate": {},
-  "paraphraseModel": null,
-  "paraphrasesPerExample": 0
+  "paraphraseModel": "openai/gpt-5.6-luna",
+  "paraphrasesPerExample": 3
 }
