@@ -121,12 +121,12 @@ write **0/36** times — non-vacuity holds everywhere. The frozen v1 rules
 caught t5/t6, traps authored after the freeze, at every model. What scales
 with the model is converting a refusal into a correct answer:
 
-| model              | sql-gated gate-protected | remembero gate-protected |
-| ------------------ | ------------------------ | ------------------------ |
-| llama3.2:1b        | 3                        | 0                        |
-| llama3.2:3b        | 18                       | 6                        |
-| llama3.1:8b        | 12                       | 6                        |
-| qwen2.5-coder:7b   | 18                       | 15                       |
+| model            | sql-gated gate-protected | remembero gate-protected |
+| ---------------- | ------------------------ | ------------------------ |
+| llama3.2:1b      | 3                        | 0                        |
+| llama3.2:3b      | 18                       | 6                        |
+| llama3.1:8b      | 12                       | 6                        |
+| qwen2.5-coder:7b | 18                       | 15                       |
 
 The 8b point is below 3b: gate-protected correctness tracks the model's
 query-authorship ability per family (llama3.2 1b→3b rises within-family;
@@ -134,12 +134,12 @@ llama3.1:8b and the coder are different families), not raw parameter count.
 
 ### Capability (mean questions passed per seed; per-seed counts identical)
 
-| model              | sql      | sql-gated   | remembero  |
-| ------------------ | -------- | ----------- | ---------- |
-| llama3.2:1b        | 5.0/31   | 5.0/31      | 1.0/31     |
-| llama3.2:3b        | 11.0/31  | **16.0/31** | 10.0/31    |
-| llama3.1:8b        | 19.0/31  | **21.0/31** | 17.0/31    |
-| qwen2.5-coder:7b   | 17.0/31  | **23.0/31** | 22.0/31    |
+| model            | sql     | sql-gated   | remembero |
+| ---------------- | ------- | ----------- | --------- |
+| llama3.2:1b      | 5.0/31  | 5.0/31      | 1.0/31    |
+| llama3.2:3b      | 11.0/31 | **16.0/31** | 10.0/31   |
+| llama3.1:8b      | 19.0/31 | **21.0/31** | 17.0/31   |
+| qwen2.5-coder:7b | 17.0/31 | **23.0/31** | 22.0/31   |
 
 Category notes: absence is Datalog's clearest edge — remembero beats raw sql
 at 3b (6 vs 3) and 8b (6 vs 4) and ties at coder scale (5 vs 5), consistent
@@ -155,8 +155,7 @@ Multihop stays hardest for every condition and model (never above 2/6).
    query language and model scale.
 2. **Datalog authorship is scale- and code-training-dependent, and the prior
    advantage inverts at coder scale.** Remembero rises 1.0 (1b) → 10.0 (3b)
-   → 17.0 (8b) → 22.0 (coder 7b), where it beats raw `sql` outright (22 vs
-   17) and nearly ties `sql-gated` (22 vs 23). The v1 negative is now a
+   → 17.0 (8b) → 22.0 (coder 7b), where it beats raw `sql` outright (22 vs 17) and nearly ties `sql-gated` (22 vs 23). The v1 negative is now a
    1b-only finding: code-trained models transfer to Datalog authorship.
 3. **The ground-fact guard removed phantom passes.** Under the final harness
    1b remembero dropped from 2/31 to 1/31 and gate-protected passes from 3 to

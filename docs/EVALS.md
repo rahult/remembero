@@ -134,8 +134,7 @@ temporal runs raise that subtype from 71.4% to 79.7%, producing a composed 79.8%
 score. Runtime provider cost remains $0.000786/question and no additional model or
 embedding call is introduced.
 
-Gated semantic v5 reranks multi-session questions only when the local top score is at most
-315. It routes 115 of 133 multi-session questions, reaches 76.7% multi-session and 83.2%
+Gated semantic v5 reranks multi-session questions only when the local top score is at most 315. It routes 115 of 133 multi-session questions, reaches 76.7% multi-session and 83.2%
 overall accuracy, and raises combined retrieval Recall to 89.7%. Runtime provider cost is
 $0.000872/question; the semantic latency is a cold isolated-corpus measurement.
 
@@ -306,12 +305,12 @@ facts are held out from the sample facts included in the model-visible schema su
 
 Measured on 2026-08-17 AEST with the v0.40 extraction contract:
 
-| Model | Cases | Accuracy | Mutation precision | Mutation recall | Mutation F1 | Safety | Unexpected errors |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| `openai/gpt-5.6-luna` | 15 | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **0** |
-| `google/gemini-3.7-flash` | 15 | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **0** |
-| `anthropic/claude-sonnet-5` | 15 | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **0** |
-| `openai/gpt-5.4-mini` | 15 | 93.3% | 91.7% | 91.7% | 91.7% | **100.0%** | **0** |
+| Model                       | Cases |   Accuracy | Mutation precision | Mutation recall | Mutation F1 |     Safety | Unexpected errors |
+| --------------------------- | ----: | ---------: | -----------------: | --------------: | ----------: | ---------: | ----------------: |
+| `openai/gpt-5.6-luna`       |    15 | **100.0%** |         **100.0%** |      **100.0%** |  **100.0%** | **100.0%** |             **0** |
+| `google/gemini-3.7-flash`   |    15 | **100.0%** |         **100.0%** |      **100.0%** |  **100.0%** | **100.0%** |             **0** |
+| `anthropic/claude-sonnet-5` |    15 | **100.0%** |         **100.0%** |      **100.0%** |  **100.0%** | **100.0%** |             **0** |
+| `openai/gpt-5.4-mini`       |    15 |      93.3% |              91.7% |           91.7% |       91.7% | **100.0%** |             **0** |
 
 GPT-5.4 Mini changed `dr_chen` to `chen` in the quoted-city case. The other three
 models produced the exact expected mutations in this run.
@@ -321,9 +320,9 @@ models produced the exact expected mutations in this run.
 Measured on 2026-08-20 AEST after reducing the default detailed schema slice from 32 to 8.
 All 26 Luna cases remained exact:
 
-| Model | Cases | Accuracy | Input tokens | Output tokens | Seconds | Charged cost | Average/query |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| `openai/gpt-5.6-luna` | 26 | **100.0%** | 122,686 | 1,934 | 92.8 | $0.016735 | $0.000644 |
+| Model                 | Cases |   Accuracy | Input tokens | Output tokens | Seconds | Charged cost | Average/query |
+| --------------------- | ----: | ---------: | -----------: | ------------: | ------: | -----------: | ------------: |
+| `openai/gpt-5.6-luna` |    26 | **100.0%** |      122,686 |         1,934 |    92.8 |    $0.016735 |     $0.000644 |
 
 The previous 32-predicate run cost $0.022549. The new default reduced charged cost by
 25.8% without changing accuracy, precision, recall, or answerability.
@@ -332,12 +331,12 @@ Measured on 2026-08-17 AEST with the v0.47 grounded projection prompt and determ
 schema ranker. All 26 current cases ran among 100 distractor predicates with no schema-budget
 exhaustion or transport errors:
 
-| Model | Cases | Accuracy | Precision | Recall | F1 | Answerability | Budget exhausted |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| `openai/gpt-5.6-luna` | 26 | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **0** |
-| `google/gemini-3.7-flash` | 26 | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **0** |
-| `anthropic/claude-sonnet-5` | 26 | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **0** |
-| `openai/gpt-5.4-mini` | 26 | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **0** |
+| Model                       | Cases |   Accuracy |  Precision |     Recall |         F1 | Answerability | Budget exhausted |
+| --------------------------- | ----: | ---------: | ---------: | ---------: | ---------: | ------------: | ---------------: |
+| `openai/gpt-5.6-luna`       |    26 | **100.0%** | **100.0%** | **100.0%** | **100.0%** |    **100.0%** |            **0** |
+| `google/gemini-3.7-flash`   |    26 | **100.0%** | **100.0%** | **100.0%** | **100.0%** |    **100.0%** |            **0** |
+| `anthropic/claude-sonnet-5` |    26 | **100.0%** | **100.0%** | **100.0%** | **100.0%** |    **100.0%** |            **0** |
+| `openai/gpt-5.4-mini`       |    26 | **100.0%** | **100.0%** | **100.0%** | **100.0%** |    **100.0%** |            **0** |
 
 Explicit projection removed the prior helper-variable failures for GPT-5.4 Mini. See
 [model compatibility](MODEL-COMPATIBILITY.md) for the combined recall/extraction
@@ -345,10 +344,10 @@ recommendation, observed catalog prices, latency, and evidence boundary.
 
 The earlier pre-0.4, pre-scale baseline comparison was:
 
-| Prompt | Accuracy | Precision | Recall | F1 | Answerability |
-|---|---:|---:|---:|---:|---:|
-| baseline | 94.7% | 94.4% | 100.0% | 97.1% | 94.7% |
-| grounded (default) | **100.0%** | **100.0%** | **100.0%** | **100.0%** | **100.0%** |
+| Prompt             |   Accuracy |  Precision |     Recall |         F1 | Answerability |
+| ------------------ | ---------: | ---------: | ---------: | ---------: | ------------: |
+| baseline           |      94.7% |      94.4% |     100.0% |      97.1% |         94.7% |
+| grounded (default) | **100.0%** | **100.0%** | **100.0%** | **100.0%** |    **100.0%** |
 
 The baseline failure answered a causal “why” question with a related fact. The grounded
 prompt now treats schema examples only as syntax evidence, keeps named entities fixed,
