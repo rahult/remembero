@@ -10,6 +10,14 @@ import {
 import { createRng } from '../src/training/rng.js';
 import { generateCandidates } from '../src/training/templates.js';
 import {
+  assertRecursionFree,
+  assertRejectionRates,
+  executeProgram,
+  isRejection,
+  verifyAll,
+  verifyCandidate,
+} from '../src/training/verify.js';
+import {
   BENCHMARK_PREDICATES,
   generateWorld,
   relationsOfKind,
@@ -149,6 +157,81 @@ describe('training: templates', () => {
           constant,
         );
       }
+    }
+  });
+});
+
+describe('training: verify', () => {
+  const world = generateWorld(5);
+
+  it('executes rule programs and aggregate queries', () => {
+    const clauses = worldClauses(world);
+    const edge = [
+      ...relationsOfKind(world, 'hierarchy'),
+      ...relationsOfKind(world, 'dependency'),
+    ][0];
+    const rows = executeProgram(clauses, `q(A, B) :- ${edge.name}(A, B).`);
+    expect(rows.length).toBeGreaterThan(0);
+    const count = executeProgram(
+      clauses,
+      `count(*) as N where ${edge.name}(A, B)`,
+    );
+    expect(count).toHaveLength(1);
+  });
+
+  it('rejects recursive programs', () => {
+    expect(() =>
+      assertRecursionFree(
+        'above(M) :- edge(x, M).\nabove(M) :- above(X), edge(X, M).',
+      ),
+    ).toThrow(/recurs/i);
+    expect(() => assertRecursionFree('a(X) :- b(X).\nb(X) :- a(X).')).toThrow(
+      /recurs/i,
+    );
+    expect(() => assertRecursionFree('q(Y) :- edge_plus(x, Y).')).not.toThrow();
+  });
+
+  it('rejects a closure example whose one-hop answer is identical', () => {
+    const mini = {
+      ...world,
+      facts: ['edge(a, b).', 'edge(c, d).'],
+      entities: ['a', 'b', 'c', 'd'],
+      relations: [
+        {
+          name: 'edge',
+          kind: 'hierarchy' as const,
+          args: ['A', 'B'],
+          orientation: 'child-first' as const,
+        },
+      ],
+    };
+    const result = verifyCandidate(mini, {
+      world: mini.id,
+      category: 'multihop-up',
+      direction: 'anchor-first',
+      template: 't',
+      question: 'above a',
+      program: 'q(Y) :- edge_plus(a, Y).',
+      expectEmpty: false,
+      requiresClosure: true,
+    });
+    expect(isRejection(result) && result.reason).toMatch(/closure/i);
+  });
+
+  it('keeps most generated candidates and records rejections by template', () => {
+    const candidates = generateCandidates(world, createRng(5));
+    const { examples, rejections } = verifyAll(world, candidates);
+    expect(examples.length).toBeGreaterThan(candidates.length / 2);
+    expect(() => assertRejectionRates(candidates, rejections)).not.toThrow();
+    expect(() =>
+      assertRejectionRates(
+        candidates,
+        candidates.map((c) => ({ candidate: c, reason: 'x' })),
+      ),
+    ).toThrow(/rejection rate/i);
+    for (const example of examples) {
+      if (example.expectEmpty) expect(example.answer).toEqual([]);
+      else expect(example.answer.length).toBeGreaterThan(0);
     }
   });
 });

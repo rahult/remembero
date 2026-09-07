@@ -189,10 +189,14 @@ export function generateCandidates(world: World, rng: Rng): Candidate[] {
         program: `q(X) :- ${group.name}(X, ${g}), ${attr.name}(X, ${v}).`,
       });
     }
-    const populous = groupNames.filter(
-      (g) =>
-        evaluate(clauses, parseQuery(`${group.name}(X, ${g}).`)).length >= 2,
-    );
+    // 2..6 members keeps the ordered-pair answer within the 30-row cap
+    const populous = groupNames.filter((g) => {
+      const size = evaluate(
+        clauses,
+        parseQuery(`${group.name}(X, ${g}).`),
+      ).length;
+      return size >= 2 && size <= 6;
+    });
     if (populous.length > 0) {
       const g = rng.pick(populous);
       add({
@@ -220,8 +224,19 @@ export function generateCandidates(world: World, rng: Rng): Candidate[] {
         'Y',
       );
 
-    const ups = nodes.filter((x) => reachable(x, true).length > 0);
-    const downs = nodes.filter((x) => reachable(x, false).length > 0);
+    const oneHopOf = (x: string, upward: boolean) =>
+      atomValues(
+        evaluate(clauses, parseQuery(`${oneHop(edge, x, 'Y', upward)}.`)),
+        'Y',
+      );
+    // anchors where the closure reaches strictly more than the direct edge,
+    // so every chain example genuinely needs _plus
+    const ups = nodes.filter(
+      (x) => reachable(x, true).length > oneHopOf(x, true).length,
+    );
+    const downs = nodes.filter(
+      (x) => reachable(x, false).length > oneHopOf(x, false).length,
+    );
 
     for (const x of ups.slice(0, 3)) {
       const [up, upDir] = chainLiteral(edge, x, 'Y', true);
@@ -299,7 +314,11 @@ export function generateCandidates(world: World, rng: Rng): Candidate[] {
         nodes.filter((b) => b !== a).map((b) => [a, b] as const),
       ),
     );
-    const truePair = pairs.find(([a, b]) => reachable(a, true).includes(b));
+    // true pairs must be at least two hops apart so the closure is required
+    const truePair = pairs.find(
+      ([a, b]) =>
+        reachable(a, true).includes(b) && !oneHopOf(a, true).includes(b),
+    );
     const falsePair = pairs.find(([a, b]) => !reachable(a, true).includes(b));
     for (const [pair, truth] of [
       [truePair, true],
