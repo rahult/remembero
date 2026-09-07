@@ -53,3 +53,11 @@ synthesized `p_plus` is routed to the portable engine (`sqliteDatalogExecutionMo
 returns `'portable'`), where the base predicate resolves to its SQLite relation.
 `datalogSql` refuses such programs because a recursive closure cannot be compiled to one
 SELECT.
+
+## Training data
+
+`npm run train:data` generates execution-verified question → program pairs in this dialect
+across synthetic worlds; see the
+[design](superpowers/specs/2026-09-08-query-dialect-training-data-design.md) and
+[benchmarks/tinker/README.md](../benchmarks/tinker/README.md) for fine-tuning and
+evaluation.

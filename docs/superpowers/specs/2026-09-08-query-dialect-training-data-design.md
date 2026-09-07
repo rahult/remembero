@@ -141,9 +141,10 @@ manifest, which is committed as the record of a run.
   `Llama-3.2-1B`, `Llama-3.2-3B`, `Qwen3-4B-Instruct-2507`, `Qwen3.5-4B`. Recommendation:
   train `Llama-3.2-3B` first because it sits in the published matrix (multi-hop 0/6, total
   10/31) so before/after lands in the same table, then `Qwen3.5-4B` as the stronger target.
-- Evaluation: `benchmarks/tinker/ollama_proxy.py` exposes Tinker's `SamplingClient` behind
-  an Ollama-compatible `/api/chat` so the existing agent-boundary harness runs unchanged
-  with `OLLAMA_URL` pointed at it and `--model` naming the checkpoint. The harness's Datalog
+- Evaluation (revised during implementation): the cookbook already ships an
+  OpenAI-compatible proxy (`python -m tinker_cookbook.capture.proxy.serve --model-path
+  tinker://...`), so instead of a custom Ollama shim the harness gained `--chat-api openai`
+  and reads the base URL from `OLLAMA_URL`. Less code, maintained upstream. The harness's Datalog
   prompt gains the `_plus` line and flat few-shots as a new `remembero-closure` condition
   (the published `remembero` condition is untouched). The 31 benchmark questions never
   appear in training; the worlds share no predicate names with the benchmark.

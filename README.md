@@ -59,6 +59,8 @@ npm run bench:memory:mem0 # live OpenRouter extraction cost
 npm run bench:memory:graphiti # live OpenRouter graph formation cost
 ```
 
+`npm run train:data` generates execution-verified training data in the flat query dialect
+for fine-tuning a small model; see [benchmarks/tinker/README.md](benchmarks/tinker/README.md).
 The pinned external command runs the same hidden-label retrieval protocol against LangGraph
 and LlamaIndex without adding their Python packages to Remembero.
 The separate Mem0 OSS command requires `OPENROUTER_API_KEY` and records provider-native
