@@ -12,6 +12,11 @@ import {
 } from '../src/engine/index.js';
 import { createRng } from '../src/training/rng.js';
 import {
+  chooseHeldoutWorlds,
+  exportDataset,
+  toConversation,
+} from '../src/training/export.js';
+import {
   createLlmParaphraser,
   paraphraseExamples,
   preservesConstants,
@@ -304,5 +309,67 @@ describe('training: paraphrase', () => {
     );
     expect(out).toHaveLength(1);
     expect(out[0].question).toBe(example.question);
+  });
+});
+
+describe('training: export', () => {
+  it('emits Tinker conversation lines with system schema, user question, assistant program', () => {
+    const world = generateWorld(9);
+    const { examples, rejections } = verifyAll(
+      world,
+      generateCandidates(world, createRng(9)),
+    );
+    const worlds = [world, generateWorld(10)];
+    const heldout = chooseHeldoutWorlds(worlds, 0.5);
+    const {
+      train,
+      heldout: held,
+      manifest,
+    } = exportDataset({
+      worlds,
+      examples,
+      heldoutWorldIds: heldout,
+      rejections,
+      seed: 9,
+      paraphraseModel: null,
+      paraphrasesPerExample: 0,
+    });
+    const lines = (heldout.has(world.id) ? held : train).trim().split('\n');
+    expect(lines.length).toBe(examples.length);
+    for (const line of lines) {
+      const parsed = JSON.parse(line) as {
+        messages: Array<{ role: string; content: string }>;
+      };
+      expect(parsed.messages.map((m) => m.role)).toEqual([
+        'system',
+        'user',
+        'assistant',
+      ]);
+      expect(parsed.messages[0].content).toContain('p_plus');
+      expect(parsed.messages[0].content).toContain(world.relations[0].name);
+      expect(parsed.messages[2].content).toMatch(/^(q\(|count\()/);
+    }
+    expect(manifest.train + manifest.heldout).toBe(examples.length);
+    expect(Object.values(manifest.byCategory).reduce((a, b) => a + b, 0)).toBe(
+      examples.length,
+    );
+  });
+
+  it('serializes the assistant program canonically', () => {
+    const world = generateWorld(9);
+    const example = {
+      world: world.id,
+      category: 'direct' as const,
+      direction: 'none' as const,
+      template: 't',
+      question: 'x',
+      program: 'q(V)   :-   tier( auth ,V ).',
+      expectEmpty: false,
+      requiresClosure: false,
+      answer: [],
+    };
+    expect(toConversation(world, example).messages[2].content).toBe(
+      'q(V) :- tier(auth, V).',
+    );
   });
 });
