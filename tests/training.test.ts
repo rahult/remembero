@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { evaluate, parseQuery } from '../src/engine/index.js';
+import {
+  evaluate,
+  isComparison,
+  isIntegrityConstraint,
+  isNegation,
+  parseProgram,
+  parseQuery,
+} from '../src/engine/index.js';
 import { createRng } from '../src/training/rng.js';
+import { generateCandidates } from '../src/training/templates.js';
 import {
   BENCHMARK_PREDICATES,
   generateWorld,
@@ -74,6 +82,73 @@ describe('training: worlds', () => {
       expect(listing).toContain(
         `${relation.name}(${relation.args.join(', ')})`,
       );
+    }
+  });
+});
+
+describe('training: templates', () => {
+  it('emits every category and balances chain directions', () => {
+    const counts: Record<string, number> = {};
+    const directions: Record<string, number> = {
+      'anchor-first': 0,
+      'anchor-second': 0,
+    };
+    for (let seed = 1; seed <= 20; seed += 1) {
+      const world = generateWorld(seed);
+      for (const candidate of generateCandidates(world, createRng(seed * 31))) {
+        counts[candidate.category] = (counts[candidate.category] ?? 0) + 1;
+        if (candidate.requiresClosure && candidate.direction !== 'none') {
+          directions[candidate.direction] += 1;
+        }
+      }
+    }
+    for (const category of [
+      'direct',
+      'join',
+      'multihop-up',
+      'multihop-down',
+      'root',
+      'leaves',
+      'chain-filter',
+      'yes-no',
+      'absence',
+      'count',
+    ]) {
+      expect(counts[category], category).toBeGreaterThan(0);
+    }
+    const ratio = directions['anchor-first'] / directions['anchor-second'];
+    expect(ratio).toBeGreaterThan(0.6);
+    expect(ratio).toBeLessThan(1.7);
+  });
+
+  it('never emits a recursive rule', () => {
+    for (let seed = 1; seed <= 20; seed += 1) {
+      const world = generateWorld(seed);
+      for (const candidate of generateCandidates(world, createRng(seed))) {
+        if (!candidate.program.includes(':-')) continue;
+        for (const clause of parseProgram(candidate.program)) {
+          if (isIntegrityConstraint(clause)) continue;
+          for (const goal of clause.body) {
+            if (isComparison(goal)) continue;
+            const literal = isNegation(goal) ? goal.not : goal;
+            expect(literal.predicate).not.toBe(clause.head.predicate);
+          }
+        }
+      }
+    }
+  });
+
+  it('mentions every entity constant of the program in the question', () => {
+    const world = generateWorld(2);
+    for (const candidate of generateCandidates(world, createRng(2))) {
+      const constants = candidate.program.match(/\b[a-z][a-z0-9_]*\b/g) ?? [];
+      for (const constant of constants.filter((c) =>
+        world.entities.includes(c),
+      )) {
+        expect(candidate.question.toLowerCase(), candidate.program).toContain(
+          constant,
+        );
+      }
     }
   });
 });
