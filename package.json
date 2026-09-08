@@ -160,6 +160,7 @@
     "test:package": "npm run build && node scripts/package-smoke.mjs",
     "check:package-policy": "npm run build && node scripts/check-package-policy.mjs",
     "eval:extract": "npm run build && node dist/evals/run-extraction.js",
+    "eval:extract-bench": "npm run build:core && node dist/evals/run-extraction-bench.js",
     "eval:recall": "npm run build && node dist/evals/run-recall.js",
     "eval:documents": "npm run build:core && node dist/evals/run-document-showcase.js",
     "export:documents:memorg": "npm run build:core && node dist/evals/run-document-memorg.js --check --output docs/research/results/document-intelligence.memorg.json --public-output web/public/documents/document-intelligence.memorg.json",

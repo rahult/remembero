@@ -1,0 +1,931 @@
+{
+  "benchmark": "extraction-bench-v1",
+  "generatedAt": "2026-09-08T07:00:54.846Z",
+  "cases": 103,
+  "runs": [
+    {
+      "model": "llama3.2:3b",
+      "score": {
+        "cases": 103,
+        "accuracy": 0.24271844660194175,
+        "mutationPrecision": 0.5915492957746479,
+        "mutationRecall": 0.3559322033898305,
+        "mutationF1": 0.4444444444444444,
+        "truePositives": 42,
+        "falsePositives": 29,
+        "falseNegatives": 76,
+        "safetyAccuracy": 1,
+        "safetyCases": 0,
+        "unexpectedErrors": 48,
+        "llmCalls": 156,
+        "usageResponses": 154,
+        "costResponses": 0,
+        "promptTokens": 124656,
+        "completionTokens": 2883,
+        "totalTokens": 127539,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "durationMs": 332075.9583310001,
+        "byPhenomenon": {
+          "direct": {
+            "cases": 12,
+            "correct": 7,
+            "accuracy": 0.5833333333333334
+          },
+          "multi_fact": {
+            "cases": 8,
+            "correct": 2,
+            "accuracy": 0.25
+          },
+          "negation": {
+            "cases": 10,
+            "correct": 0,
+            "accuracy": 0
+          },
+          "coreference": {
+            "cases": 8,
+            "correct": 4,
+            "accuracy": 0.5
+          },
+          "first_person": {
+            "cases": 8,
+            "correct": 0,
+            "accuracy": 0
+          },
+          "supersession": {
+            "cases": 8,
+            "correct": 6,
+            "accuracy": 0.75
+          },
+          "distractor_prose": {
+            "cases": 8,
+            "correct": 0,
+            "accuracy": 0
+          },
+          "competitor_predicate": {
+            "cases": 8,
+            "correct": 2,
+            "accuracy": 0.25
+          },
+          "hedge": {
+            "cases": 9,
+            "correct": 0,
+            "accuracy": 0
+          },
+          "transcript": {
+            "cases": 8,
+            "correct": 2,
+            "accuracy": 0.25
+          },
+          "entity_normalization": {
+            "cases": 8,
+            "correct": 1,
+            "accuracy": 0.125
+          },
+          "date_number": {
+            "cases": 8,
+            "correct": 1,
+            "accuracy": 0.125
+          }
+        },
+        "driftRate": 0.038834951456310676,
+        "driftedPredicates": {
+          "birth_year/2": 1,
+          "works_at/2": 2,
+          "relocates_to/2": 1
+        }
+      },
+      "failures": [
+        {
+          "id": "direct_2",
+          "phenomenon": "direct",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(priya, globex).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "direct_4",
+          "phenomenon": "direct",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "works_at(ava, 'Hooli')."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(ava, hooli).",
+          "drift": []
+        },
+        {
+          "id": "direct_5",
+          "phenomenon": "direct",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(dana, vandelay).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "direct_city_2",
+          "phenomenon": "direct",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "lives_in(lisbon, 'Lisbon')."
+          ],
+          "expected": "lives_in(zed, sample_1).\nlives_in(priya, lisbon).",
+          "drift": []
+        },
+        {
+          "id": "direct_city_3",
+          "phenomenon": "direct",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "lives_in(osaka, osaka)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nlives_in(liam, osaka).",
+          "drift": []
+        },
+        {
+          "id": "multi_2",
+          "phenomenon": "multi_fact",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "prefers_language(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nprefers_language(zed, sample_1).\nworks_at(priya, globex).\nlives_in(priya, osaka).\nprefers_language(priya, go).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "multi_3",
+          "phenomenon": "multi_fact",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "prefers_language(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nprefers_language(zed, sample_1).\nworks_at(liam, umbrella).\nlives_in(liam, toronto).\nprefers_language(liam, typescript).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "multi_4",
+          "phenomenon": "multi_fact",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "prefers_language(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nprefers_language(zed, sample_1).\nworks_at(ava, hooli).\nlives_in(ava, nairobi).\nprefers_language(ava, kotlin).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "multi_5",
+          "phenomenon": "multi_fact",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "prefers_language(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nprefers_language(zed, sample_1).\nworks_at(dana, vandelay).\nlives_in(dana, melbourne).\nprefers_language(dana, elixir).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "multi_two_people",
+          "phenomenon": "multi_fact",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(mira, acme).\nworks_at(tom, acme).\nlives_in(tom, osaka).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "multi_relationship",
+          "phenomenon": "multi_fact",
+          "actual": [
+            "reports_to(zed, sample_1).",
+            "reports_to(zed, liam).",
+            "reports_to(liam, dana)."
+          ],
+          "expected": "reports_to(zed, sample_1).\nreports_to(priya, liam).\nreports_to(liam, dana).",
+          "drift": []
+        },
+        {
+          "id": "negation_absent_0",
+          "phenomenon": "negation",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "negation_absent_1",
+          "phenomenon": "negation",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "negation_absent_2",
+          "phenomenon": "negation",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "negation_retract_0",
+          "phenomenon": "negation",
+          "actual": [
+            "works_at(mira, initech)."
+          ],
+          "expected": "",
+          "drift": []
+        },
+        {
+          "id": "negation_retract_1",
+          "phenomenon": "negation",
+          "actual": [
+            "works_at(tom, initech)."
+          ],
+          "expected": "",
+          "drift": []
+        },
+        {
+          "id": "negation_retract_2",
+          "phenomenon": "negation",
+          "actual": [
+            "works_at(priya, initech)."
+          ],
+          "expected": "",
+          "drift": []
+        },
+        {
+          "id": "negation_never",
+          "phenomenon": "negation",
+          "actual": [
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "lives_in(zed, sample_1).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "negation_mixed",
+          "phenomenon": "negation",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nlives_in(dana, toronto).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 2"
+        },
+        {
+          "id": "coref_2",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(priya, globex).\nlives_in(priya, lisbon).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "coref_4",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "works_at(zed, 'Hooli').",
+            "lives_in(zed, 'Toronto').",
+            "birth_year(zed, 1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(ava, hooli).\nlives_in(ava, toronto).",
+          "drift": [
+            "birth_year/2"
+          ]
+        },
+        {
+          "id": "coref_their",
+          "phenomenon": "coreference",
+          "actual": [
+            "leads(zed, sample_1).",
+            "standup_day(zed, sample_1)."
+          ],
+          "expected": "leads(zed, sample_1).\nstandup_day(zed, sample_1).\nleads(tom, platform_team).\nstandup_day(platform_team, tuesday).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "coref_two_sentences_back",
+          "phenomenon": "coreference",
+          "actual": [
+            "reports_to(zed, sample_1)."
+          ],
+          "expected": "reports_to(zed, sample_1).\nreports_to(priya, ava).",
+          "drift": [],
+          "error": "expected '.' but found 'works_at' at line 1"
+        },
+        {
+          "id": "first_person_0",
+          "phenomenon": "first_person",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "lives_in(melbourne, melbourne)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nlives_in(user, melbourne).",
+          "drift": []
+        },
+        {
+          "id": "first_person_1",
+          "phenomenon": "first_person",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(user, acme).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "first_person_2",
+          "phenomenon": "first_person",
+          "actual": [
+            "dentist(zed, sample_1).",
+            "dentist(zed, dr_chen)."
+          ],
+          "expected": "dentist(zed, sample_1).\ndentist(user, dr_chen).",
+          "drift": []
+        },
+        {
+          "id": "first_person_3",
+          "phenomenon": "first_person",
+          "actual": [
+            "prefers(zed, sample_1)."
+          ],
+          "expected": "prefers(zed, sample_1).\nprefers(user, dark_mode).",
+          "drift": [],
+          "error": "natural-language memory extraction may not create integrity constraints"
+        },
+        {
+          "id": "first_person_4",
+          "phenomenon": "first_person",
+          "actual": [
+            "reports_to(zed, sample_1).",
+            "reports_to(zed, liam)."
+          ],
+          "expected": "reports_to(zed, sample_1).\nreports_to(user, liam).",
+          "drift": []
+        },
+        {
+          "id": "first_person_5",
+          "phenomenon": "first_person",
+          "actual": [
+            "allergic_to(zed, sample_1).",
+            "allergic_to(zed, peanuts)."
+          ],
+          "expected": "allergic_to(zed, sample_1).\nallergic_to(user, peanuts).",
+          "drift": []
+        },
+        {
+          "id": "first_person_6",
+          "phenomenon": "first_person",
+          "actual": [
+            "uses_database(zed, sample_1)."
+          ],
+          "expected": "uses_database(zed, sample_1).\nuses_database(ledger_service, postgres).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "supersede_city_moved",
+          "phenomenon": "supersession",
+          "actual": [
+            "lives_in(mira, melbourne)."
+          ],
+          "expected": "lives_in(mira, sydney).",
+          "drift": [],
+          "error": "expected '.' but found 'lives_in' at line 1"
+        },
+        {
+          "id": "supersede_manager",
+          "phenomenon": "supersession",
+          "actual": [
+            "reports_to(priya, liam).",
+            "reports_to(liam, dana).",
+            "reports_to(priya, dana)."
+          ],
+          "expected": "reports_to(priya, dana).\nreports_to(liam, dana).",
+          "drift": []
+        },
+        {
+          "id": "distractor_0",
+          "phenomenon": "distractor_prose",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(mira, acme).",
+          "drift": [],
+          "error": "expected '.' but found 'works_at' at line 1"
+        },
+        {
+          "id": "distractor_1",
+          "phenomenon": "distractor_prose",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(tom, initech).",
+          "drift": [],
+          "error": "expected '.' but found 'works_at' at line 1"
+        },
+        {
+          "id": "distractor_2",
+          "phenomenon": "distractor_prose",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(priya, globex).",
+          "drift": [],
+          "error": "The operation was aborted due to timeout"
+        },
+        {
+          "id": "distractor_3",
+          "phenomenon": "distractor_prose",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(liam, umbrella).",
+          "drift": [],
+          "error": "expected '.' but found 'works_at' at line 1"
+        },
+        {
+          "id": "distractor_4",
+          "phenomenon": "distractor_prose",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(ava, hooli).",
+          "drift": [],
+          "error": "expected '.' but found 'works_at' at line 1"
+        },
+        {
+          "id": "distractor_5",
+          "phenomenon": "distractor_prose",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(dana, vandelay).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "distractor_code",
+          "phenomenon": "distractor_prose",
+          "actual": [
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nlives_in(liam, lisbon).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "distractor_only_noise",
+          "phenomenon": "distractor_prose",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "competitor_0",
+          "phenomenon": "competitor_predicate",
+          "actual": [
+            "employer(tom, globex).",
+            "works_at(mira, acme)."
+          ],
+          "expected": "employer(tom, globex).\nemployer(mira, acme).",
+          "drift": [
+            "works_at/2"
+          ]
+        },
+        {
+          "id": "competitor_1",
+          "phenomenon": "competitor_predicate",
+          "actual": [
+            "works_for(priya, umbrella)."
+          ],
+          "expected": "works_for(priya, umbrella).\nworks_for(tom, initech).",
+          "drift": [],
+          "error": "expected '.' but found 'works_at' at line 1"
+        },
+        {
+          "id": "competitor_2",
+          "phenomenon": "competitor_predicate",
+          "actual": [
+            "employed_by(liam, hooli)."
+          ],
+          "expected": "employed_by(liam, hooli).\nemployed_by(priya, globex).",
+          "drift": []
+        },
+        {
+          "id": "competitor_3",
+          "phenomenon": "competitor_predicate",
+          "actual": [
+            "resides_in(ava, nairobi)."
+          ],
+          "expected": "resides_in(ava, nairobi).\nresides_in(liam, osaka).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "competitor_5",
+          "phenomenon": "competitor_predicate",
+          "actual": [
+            "manager_of(tom, mira)."
+          ],
+          "expected": "manager_of(tom, mira).\nmanager_of(liam, dana).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "competitor_7",
+          "phenomenon": "competitor_predicate",
+          "actual": [
+            "job_at(priya, umbrella)."
+          ],
+          "expected": "job_at(priya, umbrella).\njob_at(tom, initech).",
+          "drift": [],
+          "error": "expected '.' but found 'works_at' at line 1"
+        },
+        {
+          "id": "hedge_0",
+          "phenomenon": "hedge",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "leads(zed, sample_1).",
+            "works_at(mira, sydney)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nprefers_language(zed, sample_1).\nleads(zed, sample_1).",
+          "drift": []
+        },
+        {
+          "id": "hedge_1",
+          "phenomenon": "hedge",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "leads(zed, sample_1)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nprefers_language(zed, sample_1).\nleads(zed, sample_1).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "hedge_2",
+          "phenomenon": "hedge",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "leads(zed, sample_1)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nprefers_language(zed, sample_1).\nleads(zed, sample_1).",
+          "drift": [],
+          "error": "expected '.' but found 'works_at' at line 1"
+        },
+        {
+          "id": "hedge_3",
+          "phenomenon": "hedge",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "leads(zed, sample_1)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nprefers_language(zed, sample_1).\nleads(zed, sample_1).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "hedge_4",
+          "phenomenon": "hedge",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "leads(zed, sample_1)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nprefers_language(zed, sample_1).\nleads(zed, sample_1).",
+          "drift": [],
+          "error": "facts must be ground: 'leads' contains variable Ava at line 1"
+        },
+        {
+          "id": "hedge_5",
+          "phenomenon": "hedge",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "leads(zed, sample_1)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nprefers_language(zed, sample_1).\nleads(zed, sample_1).",
+          "drift": [],
+          "error": "facts must be ground: 'lives_in' contains variable _ at line 1"
+        },
+        {
+          "id": "transcript_user_fact",
+          "phenomenon": "transcript",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(user, acme).",
+          "drift": []
+        },
+        {
+          "id": "transcript_user_confirms_assistant",
+          "phenomenon": "transcript",
+          "actual": [
+            "runs_on(zed, sample_1)."
+          ],
+          "expected": "runs_on(zed, sample_1).\nruns_on(ledger, postgres).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "transcript_preference",
+          "phenomenon": "transcript",
+          "actual": [
+            "prefers_indentation(zed, sample_1).",
+            "prefers_indentation(zed, tabs)."
+          ],
+          "expected": "prefers_indentation(zed, sample_1).\nprefers_indentation(user, tabs).",
+          "drift": []
+        },
+        {
+          "id": "transcript_tool_output_ignored",
+          "phenomenon": "transcript",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "transcript_two_user_facts",
+          "phenomenon": "transcript",
+          "actual": [
+            "reports_to(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "deploy_day(zed, sample_1).",
+            "reports_to(dana, melbourne).",
+            "deploy_day(zed, friday)."
+          ],
+          "expected": "reports_to(zed, sample_1).\nlives_in(zed, sample_1).\ndeploy_day(zed, sample_1).\nreports_to(user, dana).\nlives_in(user, melbourne).\ndeploy_day(team, friday).",
+          "drift": []
+        },
+        {
+          "id": "normalize_0",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "dentist(zed, sample_1).",
+            "works_at(mira, initech)."
+          ],
+          "expected": "dentist(zed, sample_1).\ndentist(user, 'Mira Chen').",
+          "drift": [
+            "works_at/2"
+          ]
+        },
+        {
+          "id": "normalize_1",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(tom, 'Blue Harbour Analytics').",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "normalize_2",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "lives_in(zed, 'New York')."
+          ],
+          "expected": "lives_in(zed, sample_1).\nlives_in(priya, 'New York').",
+          "drift": []
+        },
+        {
+          "id": "normalize_3",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "codename(zed, sample_1)."
+          ],
+          "expected": "codename(zed, sample_1).\ncodename(project, orchard).",
+          "drift": [],
+          "error": "The operation was aborted due to timeout"
+        },
+        {
+          "id": "normalize_4",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(liam, 'ACME Corp').",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "normalize_5",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "speaks(zed, sample_1).",
+            "speaks(ava, mandarin_chinese)."
+          ],
+          "expected": "speaks(zed, sample_1).\nspeaks(ava, 'Mandarin Chinese').",
+          "drift": []
+        },
+        {
+          "id": "date_number_0",
+          "phenomenon": "date_number",
+          "actual": [
+            "filing_deadline(zed, sample_1)."
+          ],
+          "expected": "filing_deadline(zed, sample_1).\nfiling_deadline(filing, '2026-10-31').",
+          "drift": [],
+          "error": "expected ')' but found '-' at line 1"
+        },
+        {
+          "id": "date_number_2",
+          "phenomenon": "date_number",
+          "actual": [
+            "team_size(zed, sample_1).",
+            "team_size(zed, 7)."
+          ],
+          "expected": "team_size(zed, sample_1).\nteam_size(team, 7).",
+          "drift": []
+        },
+        {
+          "id": "date_number_3",
+          "phenomenon": "date_number",
+          "actual": [
+            "sla_uptime_percent(zed, sample_1).",
+            "sla_uptime_percent(zed, 99.9)."
+          ],
+          "expected": "sla_uptime_percent(zed, sample_1).\nsla_uptime_percent(service, 99.9).",
+          "drift": []
+        },
+        {
+          "id": "date_number_4",
+          "phenomenon": "date_number",
+          "actual": [
+            "turns_age_in(zed, sample_1, sample_2).",
+            "turns_age_in(zed, 40, 2027)."
+          ],
+          "expected": "turns_age_in(zed, sample_1, sample_2).\nturns_age_in(tom, 40, 2027).",
+          "drift": []
+        },
+        {
+          "id": "date_number_5",
+          "phenomenon": "date_number",
+          "actual": [
+            "budget_dollars(zed, sample_1)."
+          ],
+          "expected": "budget_dollars(zed, sample_1).\nbudget_dollars(project, 250000).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "hedge_more_0",
+          "phenomenon": "hedge",
+          "actual": [
+            "prefers_language(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "uses_database(zed, sample_1).",
+            "prefers_language(zed, kotlin)."
+          ],
+          "expected": "prefers_language(zed, sample_1).\nlives_in(zed, sample_1).\nuses_database(zed, sample_1).",
+          "drift": []
+        },
+        {
+          "id": "hedge_more_1",
+          "phenomenon": "hedge",
+          "actual": [
+            "prefers_language(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "uses_database(zed, sample_1).",
+            "relocates_to('Nairobi', Liam) :- offers_relocation(Liam, N), N = 'Nairobi'."
+          ],
+          "expected": "prefers_language(zed, sample_1).\nlives_in(zed, sample_1).\nuses_database(zed, sample_1).",
+          "drift": [
+            "relocates_to/2"
+          ]
+        },
+        {
+          "id": "hedge_more_2",
+          "phenomenon": "hedge",
+          "actual": [
+            "prefers_language(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "uses_database(zed, sample_1)."
+          ],
+          "expected": "prefers_language(zed, sample_1).\nlives_in(zed, sample_1).\nuses_database(zed, sample_1).",
+          "drift": [],
+          "error": "expected '.' but found 'uses_database' at line 1"
+        },
+        {
+          "id": "negation_not_anymore_manager",
+          "phenomenon": "negation",
+          "actual": [
+            "reports_to(liam, initech)."
+          ],
+          "expected": "",
+          "drift": []
+        },
+        {
+          "id": "negation_keep_other_facts",
+          "phenomenon": "negation",
+          "actual": [
+            "prefers_language(mira, rust).",
+            "lives_in(mira, melbourne)."
+          ],
+          "expected": "lives_in(mira, melbourne).",
+          "drift": [],
+          "error": "expected '.' but found 'prefers_language' at line 1"
+        },
+        {
+          "id": "transcript_code_and_fact",
+          "phenomenon": "transcript",
+          "actual": [
+            "prefers_package_manager(zed, sample_1).",
+            "prefers_package_manager(pnpm, sample_1)."
+          ],
+          "expected": "prefers_package_manager(zed, sample_1).\nprefers_package_manager(user, pnpm).",
+          "drift": []
+        },
+        {
+          "id": "date_number_version",
+          "phenomenon": "date_number",
+          "actual": [
+            "runs_node_version(zed, sample_1)."
+          ],
+          "expected": "runs_node_version(zed, sample_1).\nruns_node_version(ledger_service, 22).",
+          "drift": [],
+          "error": "expected 'atom' but found '-' at line 1"
+        },
+        {
+          "id": "date_number_time",
+          "phenomenon": "date_number",
+          "actual": [
+            "standup_time(zed, sample_1)."
+          ],
+          "expected": "standup_time(zed, sample_1).\nstandup_time(team, '9:30').",
+          "drift": [],
+          "error": "unexpected character ':' at line 1"
+        },
+        {
+          "id": "normalize_hyphen",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "works_on(zed, sample_1).",
+            "works_on(dana, check_out_service)."
+          ],
+          "expected": "works_on(zed, sample_1).\nworks_on(dana, checkout_service).",
+          "drift": []
+        },
+        {
+          "id": "first_person_possessive_team",
+          "phenomenon": "first_person",
+          "actual": [
+            "deploy_day(zed, sample_1)."
+          ],
+          "expected": "deploy_day(zed, sample_1).\ndeploy_day(team, friday).",
+          "drift": [],
+          "error": "facts must be ground: 'works_at' contains variable Person at line 1"
+        }
+      ]
+    }
+  ]
+}
