@@ -223,13 +223,13 @@
               {
                 "seed": 7,
                 "passed": 6,
-                "queryCorrect": 5,
+                "queryCorrect": 6,
                 "total": 6,
                 "toolErrors": 0
               }
             ],
             "mean": 6,
-            "queryMean": 5,
+            "queryMean": 6,
             "spread": 0,
             "toolErrors": 0
           },
@@ -238,13 +238,13 @@
               {
                 "seed": 7,
                 "passed": 6,
-                "queryCorrect": 5,
+                "queryCorrect": 6,
                 "total": 6,
                 "toolErrors": 0
               }
             ],
             "mean": 6,
-            "queryMean": 5,
+            "queryMean": 6,
             "spread": 0,
             "toolErrors": 0
           },
@@ -352,13 +352,13 @@
           {
             "seed": 7,
             "passed": 25,
-            "queryCorrect": 23,
+            "queryCorrect": 24,
             "total": 31,
             "toolErrors": 0
           }
         ],
         "mean": 25,
-        "queryMean": 23,
+        "queryMean": 24,
         "spread": 0,
         "toolErrors": 0
       },
@@ -367,13 +367,13 @@
           {
             "seed": 7,
             "passed": 31,
-            "queryCorrect": 29,
+            "queryCorrect": 30,
             "total": 31,
             "toolErrors": 0
           }
         ],
         "mean": 31,
-        "queryMean": 29,
+        "queryMean": 30,
         "spread": 0,
         "toolErrors": 0
       },
@@ -1572,7 +1572,7 @@
       "condition": "sql",
       "seed": 7,
       "passed": true,
-      "queryCorrect": false,
+      "queryCorrect": true,
       "toolErrors": 0,
       "query": "SELECT CASE WHEN EXISTS (SELECT 1 FROM prefers_meeting WHERE person = 'priya') THEN 'yes' ELSE 'no' END",
       "answer": "No — the query result shows \"no\", meaning priya has no stored meeting preference.",
@@ -1586,7 +1586,7 @@
       "condition": "sql-gated",
       "seed": 7,
       "passed": true,
-      "queryCorrect": false,
+      "queryCorrect": true,
       "toolErrors": 0,
       "query": "SELECT CASE WHEN EXISTS (SELECT 1 FROM prefers_meeting WHERE person = 'priya') THEN 'yes' ELSE 'no' END",
       "answer": "No — the query result shows \"no\", meaning priya has no stored meeting preference.",

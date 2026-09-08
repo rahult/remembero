@@ -247,7 +247,7 @@ async function runQuestion(
     const passed = controlRefused ? false : grade.passed;
     const queryCorrect = controlRefused
       ? false
-      : gradeQueryRows(question, rows).passed;
+      : gradeQueryRows(question, rows, goldEntities).passed;
     return {
       id: question.id,
       category: question.category,

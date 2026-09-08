@@ -529,38 +529,64 @@ export interface QueryGrade {
   passed: boolean;
   missing: string[];
   forbidden: string[];
+  /** Seed-lexicon entities the rows returned that are outside the gold set. */
+  extraEntities: string[];
 }
+
+const NEGATIVE_VALUES = new Set(['no', 'false', '0', 'none']);
 
 /**
  * Query-leg grading: judge the model-authored query by the rows it returned,
- * independent of any answer model. Every expected entity must appear among
- * the row values (normalized, so `procurement_freeze` matches "procurement
- * freeze"); no forbidden entity may; "yes"/"no" expectations become row
- * presence or absence. This isolates query authoring from row reading, which
- * small models get wrong in both directions.
+ * independent of any answer model. Mirrors gradeAnswerV2's answer-set
+ * discipline: every expected entity must appear among the row values, no
+ * forbidden entity may, and no seed-lexicon entity outside the gold set may
+ * (so a superset such as the whole chain for "direct manager" fails). "yes"
+ * means at least one row whose values are not a lone negative literal
+ * (`No`, `0`, `false`); "no" means no rows.
  */
 export function gradeQueryRows(
   question: AgentBoundaryQuestion,
   rows: Array<Record<string, unknown>>,
+  goldEntities: ReadonlySet<string> = new Set(),
+  lexicon: ReadonlySet<string> = seedEntityLexicon(),
 ): QueryGrade {
   const entities = entitiesFromRows(rows);
   const has = (term: string) =>
     entities.has(term) || entities.has(normalizeAnswer(term));
+  const negativeOnly =
+    rows.length > 0 &&
+    rows.every((row) =>
+      Object.values(row).every((value) =>
+        NEGATIVE_VALUES.has(normalizeAnswer(String(value))),
+      ),
+    );
   const missing: string[] = [];
   for (const term of question.expect) {
     if (term === 'yes') {
-      if (rows.length === 0) missing.push(term);
+      if (rows.length === 0 || negativeOnly) missing.push(term);
     } else if (term === 'no') {
-      if (rows.length > 0) missing.push(term);
+      if (rows.length > 0 && !negativeOnly) missing.push(term);
     } else if (!has(term)) {
       missing.push(term);
     }
   }
   const forbidden = (question.forbid ?? []).filter((term) => has(term));
+  const questionText = ` ${normalizeAnswer(question.question)} `;
+  const extraEntities = [...lexicon].filter(
+    (entity) =>
+      entity.length > 0 &&
+      entities.has(entity) &&
+      !goldEntities.has(entity) &&
+      !questionText.includes(` ${entity} `),
+  );
   return {
-    passed: missing.length === 0 && forbidden.length === 0,
+    passed:
+      missing.length === 0 &&
+      forbidden.length === 0 &&
+      extraEntities.length === 0,
     missing,
     forbidden,
+    extraEntities,
   };
 }
 

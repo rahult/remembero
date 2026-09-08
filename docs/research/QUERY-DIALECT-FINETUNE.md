@@ -38,30 +38,41 @@ fine-tuned on that data author correct queries on the benchmark's unseen schema?
 
 ## Results (out of 31; multi-hop out of 6)
 
-| model                               | condition                    | query-correct | end-to-end | multi-hop (query) |
-| ----------------------------------- | ---------------------------- | ------------: | ---------: | ----------------: |
-| llama3.2:3b instruct                | remembero (published)        |            13 |         10 |                 2 |
-| llama3.2:3b instruct                | remembero-closure            |            19 |         17 |                 4 |
-| llama3.1:8b instruct                | remembero-closure            |            20 |         20 |                 4 |
-| qwen2.5-coder:7b                    | sql-gated (best untuned arm) |            26 |         23 |                 2 |
-| qwen2.5-coder:7b                    | remembero-closure            |            26 |         25 |                 3 |
-| **Llama-3.2-3B fine-tune, round 1** | remembero-closure            |            24 |         23 |                 3 |
-| **Llama-3.2-3B fine-tune, round 2** | remembero-closure            |            27 |         21 |                 5 |
-| **Llama-3.2-3B fine-tune, round 3** | remembero-closure            |        **27** |     **25** |             **5** |
-| openai/gpt-5.6-luna (frontier)      | sql-gated                    |            29 |         31 |                 6 |
-| openai/gpt-5.6-luna (frontier)      | remembero-closure            |            29 |         29 |                 5 |
-| z-ai/glm-5.3 (frontier)             | sql-gated                    |            29 |         31 |                 6 |
-| z-ai/glm-5.3 (frontier)             | remembero-closure            |            30 |         30 |                 5 |
+Query-correct is computed by `node dist/evals/regrade-agent-boundary.js <results.json>`,
+which re-executes every stored query on a fresh seeded database and grades the rows with
+`gradeQueryRows`: every expected entity present, no forbidden entity, **no seed entity
+outside the gold set** (a superset fails), and yes/no by row presence with a lone
+`No`/`0`/`false` value counted as no. An earlier draft of this table used a grader without
+the superset and negative-value rules; it inflated several cells by one or two (the
+fine-tune rounds 2 and 3 read 27, the coder model's gated-SQL arm read 26). The numbers
+below are the corrected ones and are reproducible from the committed result files.
+
+| model                               | condition             | query-correct | end-to-end | multi-hop (query) |
+| ----------------------------------- | --------------------- | ------------: | ---------: | ----------------: |
+| llama3.2:3b instruct                | remembero (published) |            11 |         10 |                 2 |
+| llama3.2:3b instruct                | remembero-closure     |            19 |         17 |                 4 |
+| llama3.1:8b instruct                | remembero-closure     |            19 |         20 |                 4 |
+| qwen2.5-coder:7b                    | sql-gated             |            24 |         23 |                 2 |
+| qwen2.5-coder:7b                    | remembero-closure     |            26 |         25 |                 3 |
+| **Llama-3.2-3B fine-tune, round 1** | remembero-closure     |            24 |         23 |                 3 |
+| **Llama-3.2-3B fine-tune, round 2** | remembero-closure     |            26 |         21 |                 5 |
+| **Llama-3.2-3B fine-tune, round 3** | remembero-closure     |        **26** |     **25** |             **5** |
+| openai/gpt-5.6-luna (frontier)      | sql-gated             |            30 |         31 |                 6 |
+| openai/gpt-5.6-luna (frontier)      | remembero-closure     |            29 |         29 |                 5 |
+| z-ai/glm-5.3 (frontier)             | sql-gated             |            30 |         31 |                 6 |
+| z-ai/glm-5.3 (frontier)             | remembero-closure     |            30 |         30 |                 5 |
 
 Every fine-tuned round refused all six trap writes and made zero or one tool error across
 31 questions; every program parsed and ran.
 
 ## Findings
 
-1. **A 3B model fine-tuned on synthetic worlds authors better queries on an unseen schema
-   than any untuned model measured, including the 7B coder model.** 27/31 query-correct
-   against 26 for the best untuned arm. On the published metric for the same-size instruct
-   model the gap is 25 versus 10.
+1. **A 3B model fine-tuned on synthetic worlds matches the best untuned model measured on
+   an unseen schema, and more than doubles the same-size instruct model.** 26/31
+   query-correct, level with `qwen2.5-coder:7b` on the closure arm (26) and above its
+   gated-SQL arm (24). The same-size instruct model scores 11 on the published arm and 19
+   with the closure prompt. It does not beat the 7B coder model; an earlier draft of this
+   document said it did, on the basis of the inflated grader.
 
 2. **Direction was the residual error, and it was a data artefact.** Round 1 misses were
    `waits_on_plus(procurement_freeze, R)` and `reports_to_plus(dana, M)` with the anchor in
@@ -71,35 +82,54 @@ Every fine-tuned round refused all six trap writes and made zero or one tool err
 
 3. **The answer step is noise for small models in both directions.** With correct rows in
    hand, the 3B base model echoes the prompt, and the 3B instruct model says "no
-   information". Round 2 scored 27 query-correct but 21 end-to-end for this reason alone. A
+   information". Round 2 scored 26 query-correct but 21 end-to-end for this reason alone. A
    decision engine should render rows plus proof deterministically; the harness now reports
    query-correct so the two legs are never conflated again.
 
-4. **Every remaining miss names a template the generator lacks or a genuine misread.** The
-   four round-3 query misses: two join-predicate misreads (`blocker` versus `status`), a
-   question that asks for yes/no _and_ the chain (the yes/no pattern hides the chain by
-   design), and an existence pattern ("manages at least one person") no template teaches.
-   Held-out-world NLL was 0.007 or lower every round: the dialect itself is learned; what
-   is left is coverage.
+4. **The remaining misses are coverage and semantics, not syntax.** Round-3 query misses:
+   two join-predicate misreads (`blocker` versus `status`), a question that asks for yes/no
+   _and_ the chain (the yes/no pattern hides the chain by design), an existence pattern
+   ("manages at least one person") no template teaches, and "direct manager" answered with
+   the whole chain in round 2 (the superset the corrected grader now catches).
 
-5. **The frontier gap on query authoring is two to three questions.** GLM 5.3 and Luna,
+5. **The frontier gap on query authoring is three to four questions.** GLM 5.3 and Luna,
    run through the same harness via OpenRouter (`--chat-api openai`), score 30 and 29
-   query-correct on the closure arm against the fine-tune's 27. All three miss the same
-   multi-hop question, m4, which asks for yes/no _and_ the chain: the prompt's yes/no
-   pattern filters to one row, so the chain names never appear. That is a prompt-and-grading
-   interaction shared by every model, not a capability difference. Untuned, the same 3B
-   size scored 13. Frontier models still make Datalog tool errors on the published
-   `remembero` arm (GLM 5.3: 5 across 31 questions) and none on SQL, which is the
-   training-prior effect the v1 analysis predicted.
+   query-correct on the closure arm against the fine-tune's 26. All three miss m4, which
+   asks for yes/no _and_ the chain: a prompt-and-grading interaction shared by every model.
+   Frontier models still make Datalog tool errors on the published `remembero` arm (GLM 5.3:
+   5 across 31 questions) and none on SQL, the training-prior effect the v1 analysis
+   predicted.
 
 6. **Cost.** Each round trained in about seven minutes on 3 to 4.3 million tokens; the
    three rounds together were a few dollars of Tinker time plus roughly 5,000 cached Luna
    paraphrase calls.
 
+## Defects found in review after these runs (not yet retrained)
+
+- **Two vocabulary entries had their up/down phrases inverted** (`supplied_by`, `follows`),
+  so about 300 of the 11,211 round-3 training lines said the opposite of what their program
+  computes. Fixed in `src/training/worlds.ts` with a per-relation direction test; the
+  round-3 checkpoint was trained on the flawed data.
+- **The "held-out NLL" reported during training was not held out.** The recipe passed
+  `test_size=100`, which slices the training file; `heldout.jsonl` was never read. The
+  round-3 value of 0.0001 therefore measures paraphrase siblings, not generalization. The
+  benchmark numbers above are unaffected, since the 31 questions are on a foreign schema.
+- **Held-out worlds share every predicate, entity and phrase template with training**,
+  because worlds are drawn from three themes. They test new fact sets, not new vocabulary.
+- **The paraphrase filter matched constants as substrings** ("search" satisfied by
+  "searched"); seven generated lines lost their anchor entity. Fixed with whole-word
+  matching.
+- **`--examples` is a global pre-paraphrase cap**, so adding the one-hop template in round 3
+  shrank the rest of the data (16,234 to 11,211 lines). Rounds 2 and 3 are therefore not
+  a clean before/after for that template.
+
 ## Limitations
 
 - Single seed at temperature 0; no variance measured. The 31-question benchmark makes
   differences of one or two questions indistinguishable from noise.
+- The training system prompt (schema plus dialect card, no few-shots) differs from the
+  evaluation prompt (cheatsheet plus eight few-shots), and the closure prompt contains a
+  yes/no example one constant away from benchmark question m5.
 - The fine-tune starts from the base model while the Ollama baselines are instruct models,
   so the same-size comparison is same parameter count, not same weights.
 - One model family. Qwen3.5-4B is the next planned run.

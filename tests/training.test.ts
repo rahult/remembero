@@ -108,6 +108,69 @@ describe('training: worlds', () => {
   });
 });
 
+describe('training: vocabulary direction', () => {
+  // For each edge relation: the phrase fragment its UP phrase must contain,
+  // where "up" = towards the parent/upstream end (the second argument of a
+  // child-first edge, the first argument of a parent-first edge).
+  const UP_MUST_CONTAIN: Record<string, string> = {
+    manages: 'above',
+    mentors: 'mentors',
+    answers_to: 'above',
+    reports_into: 'reports to',
+    led_by: 'lead',
+    hands_off_to: 'downstream',
+    part_of: 'contains',
+    owns: 'owner above',
+    depends_on: 'depends on',
+    feeds: 'upstream',
+    calls: '{x} reaches',
+    waits_for: '{x} ultimately waits for',
+    blocks: 'blocks {x}',
+    located_in: 'region containing',
+    contains: 'region that contains',
+    ships_to: 'goods from {x}',
+    precedes: 'after {x}',
+    supplied_by: 'goods from {x}',
+    follows: 'after {x}',
+  };
+
+  it('every edge vocabulary has a checked up-phrase and its up literal returns the parent', () => {
+    const seen = new Map<string, string>();
+    for (let seed = 1; seed <= 90; seed += 1) {
+      const world = generateWorld(seed);
+      for (const edge of [
+        ...relationsOfKind(world, 'hierarchy'),
+        ...relationsOfKind(world, 'dependency'),
+      ]) {
+        if (seen.has(edge.name)) continue;
+        seen.set(edge.name, edge.upPhrase ?? '');
+        const chain =
+          edge.orientation === 'child-first'
+            ? [`${edge.name}(a, b).`, `${edge.name}(b, c).`]
+            : [`${edge.name}(b, a).`, `${edge.name}(c, b).`];
+        const clauses = parseProgram(chain.join('\n'));
+        const upLiteral =
+          edge.orientation === 'child-first'
+            ? `${edge.name}_plus(b, Y).`
+            : `${edge.name}_plus(Y, b).`;
+        const up = evaluate(clauses, parseQuery(upLiteral)).map(
+          (r) => (r.Y as { value: string }).value,
+        );
+        expect(up, `${edge.name} up literal`).toEqual(['c']);
+      }
+    }
+    for (const [name, phrase] of seen) {
+      const must = UP_MUST_CONTAIN[name];
+      expect(
+        must,
+        `no direction expectation recorded for ${name}`,
+      ).toBeDefined();
+      expect(phrase, `${name} up-phrase "${phrase}"`).toContain(must);
+    }
+    expect(seen.size).toBe(Object.keys(UP_MUST_CONTAIN).length);
+  });
+});
+
 describe('training: templates', () => {
   it('emits every category and balances chain directions', () => {
     const counts: Record<string, number> = {};
@@ -279,6 +342,28 @@ describe('training: paraphrase', () => {
     requiresClosure: true,
     answer: ['Y=bo'],
   };
+
+  it('matches constants as whole words, not substrings', () => {
+    const ex = {
+      ...example,
+      question: 'Everything under search via part_of.',
+      program: 'q(L) :- part_of_plus(L, search).',
+    };
+    expect(preservesConstants(ex, 'What is under search in part_of?')).toBe(
+      true,
+    );
+    expect(
+      preservesConstants(ex, 'Which ones are found when searched via part_of?'),
+    ).toBe(false);
+    const multi = {
+      ...example,
+      question: 'Who is in db_primary?',
+      program: 'q(X) :- in_team(X, db_primary).',
+    };
+    expect(preservesConstants(multi, 'List the members of db primary.')).toBe(
+      true,
+    );
+  });
 
   it('keeps paraphrases that preserve every entity constant and drops those that do not', () => {
     expect(

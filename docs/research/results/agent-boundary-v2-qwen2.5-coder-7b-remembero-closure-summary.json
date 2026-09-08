@@ -23,12 +23,14 @@
                 "seed": 7,
                 "passed": 6,
                 "total": 6,
-                "toolErrors": 1
+                "toolErrors": 1,
+                "queryCorrect": 6
               }
             ],
             "mean": 6,
             "spread": 0,
-            "toolErrors": 1
+            "toolErrors": 1,
+            "queryMean": 6
           }
         }
       },
@@ -41,12 +43,14 @@
                 "seed": 7,
                 "passed": 4,
                 "total": 6,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 4
               }
             ],
             "mean": 4,
             "spread": 0,
-            "toolErrors": 0
+            "toolErrors": 0,
+            "queryMean": 4
           }
         }
       },
@@ -59,12 +63,14 @@
                 "seed": 7,
                 "passed": 3,
                 "total": 6,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 3
               }
             ],
             "mean": 3,
             "spread": 0,
-            "toolErrors": 0
+            "toolErrors": 0,
+            "queryMean": 3
           }
         }
       },
@@ -77,12 +83,14 @@
                 "seed": 7,
                 "passed": 5,
                 "total": 6,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 6
               }
             ],
             "mean": 5,
             "spread": 0,
-            "toolErrors": 0
+            "toolErrors": 0,
+            "queryMean": 6
           }
         }
       },
@@ -95,12 +103,14 @@
                 "seed": 7,
                 "passed": 7,
                 "total": 7,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 7
               }
             ],
             "mean": 7,
             "spread": 0,
-            "toolErrors": 0
+            "toolErrors": 0,
+            "queryMean": 7
           }
         }
       }
@@ -112,12 +122,14 @@
             "seed": 7,
             "passed": 25,
             "total": 31,
-            "toolErrors": 1
+            "toolErrors": 1,
+            "queryCorrect": 26
           }
         ],
         "mean": 25,
         "spread": 0,
-        "toolErrors": 1
+        "toolErrors": 1,
+        "queryMean": 26
       }
     },
     "gate": {
@@ -141,7 +153,8 @@
       "answer": "The atlas project is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d2",
@@ -154,7 +167,8 @@
       "answer": "Ava and Nora work on the orchard project.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d3",
@@ -167,7 +181,8 @@
       "answer": "legal_signoff",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d4",
@@ -180,7 +195,8 @@
       "answer": "The atlas review slot is on Tuesday in the morning window.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d5",
@@ -193,7 +209,8 @@
       "answer": "Maya's direct manager is Liam.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d6",
@@ -206,7 +223,8 @@
       "answer": "The blocked projects are atlas and beacon.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j1",
@@ -219,7 +237,8 @@
       "answer": "Maya works on the atlas and beacon projects.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j2",
@@ -235,7 +254,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -248,7 +268,8 @@
       "answer": "Maya prefers morning meetings.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j4",
@@ -261,7 +282,8 @@
       "answer": "The blocked project is \"atlas\" and it has a review slot on Tuesday.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j5",
@@ -280,7 +302,8 @@
       "forbidden": [],
       "extraEntities": [
         "beacon"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "j6",
@@ -293,7 +316,8 @@
       "answer": "The orchard project has a review slot in the afternoon.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m1",
@@ -306,7 +330,8 @@
       "answer": "Liam, Ava, Dana",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m2",
@@ -319,7 +344,8 @@
       "answer": "procurement_freeze",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m3",
@@ -335,7 +361,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -351,7 +378,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -364,7 +392,8 @@
       "answer": "Yes.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m6",
@@ -381,7 +410,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -394,7 +424,8 @@
       "answer": "liam",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a2",
@@ -407,7 +438,8 @@
       "answer": "The blocked project with no review slot is beacon.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a3",
@@ -420,7 +452,8 @@
       "answer": "No.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a4",
@@ -433,7 +466,8 @@
       "answer": "The projects with a status but no recorded blocker are orchard and quasar.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a5",
@@ -448,7 +482,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a6",
@@ -461,7 +496,8 @@
       "answer": "Dana manages at least one person but works on no project themselves.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t1",
@@ -475,7 +511,8 @@
       "answer": "The current status of atlas is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t2",
@@ -489,7 +526,8 @@
       "answer": "The blocked projects are atlas and beacon.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t3",
@@ -503,7 +541,8 @@
       "answer": "The atlas project is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t4",
@@ -517,7 +556,8 @@
       "answer": "The blocker currently applying to atlas is vendor_security_review.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t5",
@@ -531,7 +571,8 @@
       "answer": "The projects with a status but no recorded blocker are orchard and quasar.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t6",
@@ -545,7 +586,8 @@
       "answer": "The beacon project is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "c1",
@@ -559,7 +601,8 @@
       "answer": "Maya prefers afternoon meetings.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     }
   ]
 }

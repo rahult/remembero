@@ -22,24 +22,28 @@
                 "seed": 7,
                 "passed": 4,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 4
               },
               {
                 "seed": 42,
                 "passed": 4,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 4
               },
               {
                 "seed": 123,
                 "passed": 4,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 4
               }
             ],
             "mean": 4,
             "spread": 0,
-            "toolErrors": 6
+            "toolErrors": 6,
+            "queryMean": 4
           },
           "sql-gated": {
             "perSeed": [
@@ -47,24 +51,28 @@
                 "seed": 7,
                 "passed": 4,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 4
               },
               {
                 "seed": 42,
                 "passed": 4,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 4
               },
               {
                 "seed": 123,
                 "passed": 4,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 4
               }
             ],
             "mean": 4,
             "spread": 0,
-            "toolErrors": 6
+            "toolErrors": 6,
+            "queryMean": 4
           },
           "remembero": {
             "perSeed": [
@@ -72,24 +80,28 @@
                 "seed": 7,
                 "passed": 1,
                 "total": 6,
-                "toolErrors": 7
+                "toolErrors": 7,
+                "queryCorrect": 1
               },
               {
                 "seed": 42,
                 "passed": 1,
                 "total": 6,
-                "toolErrors": 7
+                "toolErrors": 7,
+                "queryCorrect": 1
               },
               {
                 "seed": 123,
                 "passed": 1,
                 "total": 6,
-                "toolErrors": 7
+                "toolErrors": 7,
+                "queryCorrect": 1
               }
             ],
             "mean": 1,
             "spread": 0,
-            "toolErrors": 21
+            "toolErrors": 21,
+            "queryMean": 1
           }
         }
       },
@@ -102,24 +114,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 1
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 1
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 1
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 12
+            "toolErrors": 12,
+            "queryMean": 1
           },
           "sql-gated": {
             "perSeed": [
@@ -127,24 +143,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 1
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 1
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 1
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 12
+            "toolErrors": 12,
+            "queryMean": 1
           },
           "remembero": {
             "perSeed": [
@@ -152,24 +172,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 12
+                "toolErrors": 12,
+                "queryCorrect": 0
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 12
+                "toolErrors": 12,
+                "queryCorrect": 0
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 12
+                "toolErrors": 12,
+                "queryCorrect": 0
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 36
+            "toolErrors": 36,
+            "queryMean": 0
           }
         }
       },
@@ -182,24 +206,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 7
+                "toolErrors": 7,
+                "queryCorrect": 0
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 7
+                "toolErrors": 7,
+                "queryCorrect": 0
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 7
+                "toolErrors": 7,
+                "queryCorrect": 0
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 21
+            "toolErrors": 21,
+            "queryMean": 0
           },
           "sql-gated": {
             "perSeed": [
@@ -207,24 +235,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 7
+                "toolErrors": 7,
+                "queryCorrect": 0
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 7
+                "toolErrors": 7,
+                "queryCorrect": 0
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 7
+                "toolErrors": 7,
+                "queryCorrect": 0
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 21
+            "toolErrors": 21,
+            "queryMean": 0
           },
           "remembero": {
             "perSeed": [
@@ -232,24 +264,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 12
+                "toolErrors": 12,
+                "queryCorrect": 0
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 12
+                "toolErrors": 12,
+                "queryCorrect": 0
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 12
+                "toolErrors": 12,
+                "queryCorrect": 0
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 36
+            "toolErrors": 36,
+            "queryMean": 0
           }
         }
       },
@@ -262,24 +298,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 5
+                "toolErrors": 5,
+                "queryCorrect": 0
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 5
+                "toolErrors": 5,
+                "queryCorrect": 0
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 5
+                "toolErrors": 5,
+                "queryCorrect": 0
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 15
+            "toolErrors": 15,
+            "queryMean": 0
           },
           "sql-gated": {
             "perSeed": [
@@ -287,24 +327,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 5
+                "toolErrors": 5,
+                "queryCorrect": 0
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 5
+                "toolErrors": 5,
+                "queryCorrect": 0
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 5
+                "toolErrors": 5,
+                "queryCorrect": 0
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 15
+            "toolErrors": 15,
+            "queryMean": 0
           },
           "remembero": {
             "perSeed": [
@@ -312,24 +356,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 12
+                "toolErrors": 12,
+                "queryCorrect": 0
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 12
+                "toolErrors": 12,
+                "queryCorrect": 0
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 12
+                "toolErrors": 12,
+                "queryCorrect": 0
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 36
+            "toolErrors": 36,
+            "queryMean": 0
           }
         }
       },
@@ -342,24 +390,28 @@
                 "seed": 7,
                 "passed": 1,
                 "total": 7,
-                "toolErrors": 6
+                "toolErrors": 6,
+                "queryCorrect": 0
               },
               {
                 "seed": 42,
                 "passed": 1,
                 "total": 7,
-                "toolErrors": 6
+                "toolErrors": 6,
+                "queryCorrect": 0
               },
               {
                 "seed": 123,
                 "passed": 1,
                 "total": 7,
-                "toolErrors": 6
+                "toolErrors": 6,
+                "queryCorrect": 0
               }
             ],
             "mean": 1,
             "spread": 0,
-            "toolErrors": 18
+            "toolErrors": 18,
+            "queryMean": 0
           },
           "sql-gated": {
             "perSeed": [
@@ -367,24 +419,28 @@
                 "seed": 7,
                 "passed": 1,
                 "total": 7,
-                "toolErrors": 6
+                "toolErrors": 6,
+                "queryCorrect": 3
               },
               {
                 "seed": 42,
                 "passed": 1,
                 "total": 7,
-                "toolErrors": 6
+                "toolErrors": 6,
+                "queryCorrect": 3
               },
               {
                 "seed": 123,
                 "passed": 1,
                 "total": 7,
-                "toolErrors": 6
+                "toolErrors": 6,
+                "queryCorrect": 3
               }
             ],
             "mean": 1,
             "spread": 0,
-            "toolErrors": 18
+            "toolErrors": 18,
+            "queryMean": 3
           },
           "remembero": {
             "perSeed": [
@@ -392,24 +448,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 7,
-                "toolErrors": 12
+                "toolErrors": 12,
+                "queryCorrect": 0
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 7,
-                "toolErrors": 12
+                "toolErrors": 12,
+                "queryCorrect": 0
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 7,
-                "toolErrors": 12
+                "toolErrors": 12,
+                "queryCorrect": 0
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 36
+            "toolErrors": 36,
+            "queryMean": 0
           }
         }
       }
@@ -421,24 +481,28 @@
             "seed": 7,
             "passed": 5,
             "total": 31,
-            "toolErrors": 24
+            "toolErrors": 24,
+            "queryCorrect": 5
           },
           {
             "seed": 42,
             "passed": 5,
             "total": 31,
-            "toolErrors": 24
+            "toolErrors": 24,
+            "queryCorrect": 5
           },
           {
             "seed": 123,
             "passed": 5,
             "total": 31,
-            "toolErrors": 24
+            "toolErrors": 24,
+            "queryCorrect": 5
           }
         ],
         "mean": 5,
         "spread": 0,
-        "toolErrors": 72
+        "toolErrors": 72,
+        "queryMean": 5
       },
       "sql-gated": {
         "perSeed": [
@@ -446,24 +510,28 @@
             "seed": 7,
             "passed": 5,
             "total": 31,
-            "toolErrors": 24
+            "toolErrors": 24,
+            "queryCorrect": 8
           },
           {
             "seed": 42,
             "passed": 5,
             "total": 31,
-            "toolErrors": 24
+            "toolErrors": 24,
+            "queryCorrect": 8
           },
           {
             "seed": 123,
             "passed": 5,
             "total": 31,
-            "toolErrors": 24
+            "toolErrors": 24,
+            "queryCorrect": 8
           }
         ],
         "mean": 5,
         "spread": 0,
-        "toolErrors": 72
+        "toolErrors": 72,
+        "queryMean": 8
       },
       "remembero": {
         "perSeed": [
@@ -471,24 +539,28 @@
             "seed": 7,
             "passed": 1,
             "total": 31,
-            "toolErrors": 55
+            "toolErrors": 55,
+            "queryCorrect": 1
           },
           {
             "seed": 42,
             "passed": 1,
             "total": 31,
-            "toolErrors": 55
+            "toolErrors": 55,
+            "queryCorrect": 1
           },
           {
             "seed": 123,
             "passed": 1,
             "total": 31,
-            "toolErrors": 55
+            "toolErrors": 55,
+            "queryCorrect": 1
           }
         ],
         "mean": 1,
         "spread": 0,
-        "toolErrors": 165
+        "toolErrors": 165,
+        "queryMean": 1
       }
     },
     "gate": {
@@ -524,7 +596,8 @@
       "answer": "The status of the atlas project is blocked.\n\nThe tool result indicates that the atlas project is currently in a blocked state.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d1",
@@ -537,7 +610,8 @@
       "answer": "The status of the atlas project is blocked.\n\nThe tool result indicates that the atlas project is currently in a blocked state.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d1",
@@ -552,7 +626,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d2",
@@ -565,7 +640,8 @@
       "answer": "The concrete values are: Nora and Ava.\n\nSince there are two rows, both values are present.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d2",
@@ -578,7 +654,8 @@
       "answer": "The concrete values are: Nora and Ava.\n\nSince there are two rows, both values are present.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d2",
@@ -594,7 +671,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d3",
@@ -607,7 +685,8 @@
       "answer": "The concrete value is: \"legal_signoff\"\n\nThe row is not empty.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d3",
@@ -620,7 +699,8 @@
       "answer": "The concrete value is: \"legal_signoff\"\n\nThe row is not empty.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d3",
@@ -635,7 +715,8 @@
         "legal signoff"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d4",
@@ -648,7 +729,8 @@
       "answer": "The values are: \n- day: Tuesday\n- window: morning",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d4",
@@ -661,7 +743,8 @@
       "answer": "The values are: \n- day: Tuesday\n- window: morning",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d4",
@@ -677,7 +760,8 @@
         "morning"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d5",
@@ -692,7 +776,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d5",
@@ -707,7 +792,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d5",
@@ -720,7 +806,8 @@
       "answer": "Concrete value: Liam\n\nAbsent: None",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d6",
@@ -738,7 +825,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "d6",
@@ -756,7 +844,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "d6",
@@ -772,7 +861,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -788,7 +878,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -804,7 +895,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -820,7 +912,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j2",
@@ -836,7 +929,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j2",
@@ -852,7 +946,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j2",
@@ -868,7 +963,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -883,7 +979,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -898,7 +995,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -913,7 +1011,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j4",
@@ -929,7 +1028,8 @@
         "tuesday"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j4",
@@ -945,7 +1045,8 @@
         "tuesday"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j4",
@@ -961,7 +1062,8 @@
         "tuesday"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -976,7 +1078,8 @@
       "forbidden": [],
       "extraEntities": [
         "liam"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -991,7 +1094,8 @@
       "forbidden": [],
       "extraEntities": [
         "liam"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -1008,7 +1112,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j6",
@@ -1023,7 +1128,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j6",
@@ -1038,7 +1144,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j6",
@@ -1053,7 +1160,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -1070,7 +1178,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -1087,7 +1196,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -1104,7 +1214,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -1121,7 +1232,8 @@
       "forbidden": [],
       "extraEntities": [
         "legal signoff"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -1138,7 +1250,8 @@
       "forbidden": [],
       "extraEntities": [
         "legal signoff"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -1153,7 +1266,8 @@
         "procurement freeze"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -1169,7 +1283,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -1185,7 +1300,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -1201,7 +1317,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -1217,7 +1334,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -1233,7 +1351,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -1250,7 +1369,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -1265,7 +1385,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -1280,7 +1401,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -1295,7 +1417,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m6",
@@ -1312,7 +1435,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m6",
@@ -1329,7 +1453,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m6",
@@ -1346,7 +1471,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -1363,7 +1489,8 @@
       "forbidden": [],
       "extraEntities": [
         "ava"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -1380,7 +1507,8 @@
       "forbidden": [],
       "extraEntities": [
         "ava"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -1395,7 +1523,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -1410,7 +1539,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -1425,7 +1555,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -1440,7 +1571,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a3",
@@ -1455,7 +1587,8 @@
         "no"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a3",
@@ -1470,7 +1603,8 @@
         "no"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a3",
@@ -1485,7 +1619,8 @@
         "no"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a4",
@@ -1501,7 +1636,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a4",
@@ -1517,7 +1653,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a4",
@@ -1533,7 +1670,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -1549,7 +1687,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -1565,7 +1704,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -1581,7 +1721,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -1603,7 +1744,8 @@
         "ava",
         "priya",
         "tom"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -1625,7 +1767,8 @@
         "ava",
         "priya",
         "tom"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -1640,7 +1783,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -1656,7 +1800,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -1672,7 +1817,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -1688,7 +1834,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t2",
@@ -1707,7 +1854,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t2",
@@ -1726,7 +1874,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t2",
@@ -1743,7 +1892,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t3",
@@ -1763,7 +1913,8 @@
       ],
       "extraEntities": [
         "active"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t3",
@@ -1779,7 +1930,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t3",
@@ -1797,7 +1949,8 @@
       "forbidden": [],
       "extraEntities": [
         "orchard"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t4",
@@ -1813,7 +1966,8 @@
         "vendor security review"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t4",
@@ -1827,7 +1981,8 @@
       "answer": "The concrete value is: \"vendor_security_review\"\n\nThe blocker currently applies to Atlas is: \"vendor_security_review\"",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t4",
@@ -1843,7 +1998,8 @@
         "vendor security review"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -1860,7 +2016,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -1877,7 +2034,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -1894,7 +2052,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t6",
@@ -1908,7 +2067,8 @@
       "answer": "The single state is \"blocked\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t6",
@@ -1924,7 +2084,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t6",
@@ -1940,7 +2101,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -1956,7 +2118,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -1972,7 +2135,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -1988,7 +2152,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d1",
@@ -2001,7 +2166,8 @@
       "answer": "The status of the atlas project is blocked.\n\nThe tool result indicates that the atlas project is currently in a blocked state.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d1",
@@ -2014,7 +2180,8 @@
       "answer": "The status of the atlas project is blocked.\n\nThe tool result indicates that the atlas project is currently in a blocked state.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d1",
@@ -2029,7 +2196,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d2",
@@ -2042,7 +2210,8 @@
       "answer": "The concrete values are: Nora and Ava.\n\nSince there are two rows, both values are present.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d2",
@@ -2055,7 +2224,8 @@
       "answer": "The concrete values are: Nora and Ava.\n\nSince there are two rows, both values are present.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d2",
@@ -2071,7 +2241,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d3",
@@ -2084,7 +2255,8 @@
       "answer": "The concrete value is: \"legal_signoff\"\n\nThe row is not empty.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d3",
@@ -2097,7 +2269,8 @@
       "answer": "The concrete value is: \"legal_signoff\"\n\nThe row is not empty.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d3",
@@ -2112,7 +2285,8 @@
         "legal signoff"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d4",
@@ -2125,7 +2299,8 @@
       "answer": "The values are: \n- day: Tuesday\n- window: morning",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d4",
@@ -2138,7 +2313,8 @@
       "answer": "The values are: \n- day: Tuesday\n- window: morning",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d4",
@@ -2154,7 +2330,8 @@
         "morning"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d5",
@@ -2169,7 +2346,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d5",
@@ -2184,7 +2362,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d5",
@@ -2197,7 +2376,8 @@
       "answer": "Concrete value: Liam\n\nAbsent: None",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d6",
@@ -2215,7 +2395,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "d6",
@@ -2233,7 +2414,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "d6",
@@ -2249,7 +2431,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -2265,7 +2448,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -2281,7 +2465,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -2297,7 +2482,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j2",
@@ -2313,7 +2499,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j2",
@@ -2329,7 +2516,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j2",
@@ -2345,7 +2533,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -2360,7 +2549,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -2375,7 +2565,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -2390,7 +2581,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j4",
@@ -2406,7 +2598,8 @@
         "tuesday"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j4",
@@ -2422,7 +2615,8 @@
         "tuesday"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j4",
@@ -2438,7 +2632,8 @@
         "tuesday"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -2453,7 +2648,8 @@
       "forbidden": [],
       "extraEntities": [
         "liam"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -2468,7 +2664,8 @@
       "forbidden": [],
       "extraEntities": [
         "liam"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -2485,7 +2682,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j6",
@@ -2500,7 +2698,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j6",
@@ -2515,7 +2714,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j6",
@@ -2530,7 +2730,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -2547,7 +2748,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -2564,7 +2766,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -2581,7 +2784,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -2598,7 +2802,8 @@
       "forbidden": [],
       "extraEntities": [
         "legal signoff"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -2615,7 +2820,8 @@
       "forbidden": [],
       "extraEntities": [
         "legal signoff"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -2630,7 +2836,8 @@
         "procurement freeze"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -2646,7 +2853,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -2662,7 +2870,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -2678,7 +2887,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -2694,7 +2904,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -2710,7 +2921,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -2727,7 +2939,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -2742,7 +2955,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -2757,7 +2971,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -2772,7 +2987,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m6",
@@ -2789,7 +3005,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m6",
@@ -2806,7 +3023,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m6",
@@ -2823,7 +3041,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -2840,7 +3059,8 @@
       "forbidden": [],
       "extraEntities": [
         "ava"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -2857,7 +3077,8 @@
       "forbidden": [],
       "extraEntities": [
         "ava"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -2872,7 +3093,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -2887,7 +3109,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -2902,7 +3125,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -2917,7 +3141,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a3",
@@ -2932,7 +3157,8 @@
         "no"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a3",
@@ -2947,7 +3173,8 @@
         "no"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a3",
@@ -2962,7 +3189,8 @@
         "no"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a4",
@@ -2978,7 +3206,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a4",
@@ -2994,7 +3223,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a4",
@@ -3010,7 +3240,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -3026,7 +3257,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -3042,7 +3274,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -3058,7 +3291,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -3080,7 +3314,8 @@
         "ava",
         "priya",
         "tom"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -3102,7 +3337,8 @@
         "ava",
         "priya",
         "tom"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -3117,7 +3353,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -3133,7 +3370,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -3149,7 +3387,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -3165,7 +3404,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t2",
@@ -3184,7 +3424,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t2",
@@ -3203,7 +3444,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t2",
@@ -3220,7 +3462,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t3",
@@ -3240,7 +3483,8 @@
       ],
       "extraEntities": [
         "active"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t3",
@@ -3256,7 +3500,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t3",
@@ -3274,7 +3519,8 @@
       "forbidden": [],
       "extraEntities": [
         "orchard"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t4",
@@ -3290,7 +3536,8 @@
         "vendor security review"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t4",
@@ -3304,7 +3551,8 @@
       "answer": "The concrete value is: \"vendor_security_review\"\n\nThe blocker currently applies to Atlas is: \"vendor_security_review\"",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t4",
@@ -3320,7 +3568,8 @@
         "vendor security review"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -3337,7 +3586,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -3354,7 +3604,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -3371,7 +3622,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t6",
@@ -3385,7 +3637,8 @@
       "answer": "The single state is \"blocked\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t6",
@@ -3401,7 +3654,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t6",
@@ -3417,7 +3671,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -3433,7 +3688,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -3449,7 +3705,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -3465,7 +3722,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d1",
@@ -3478,7 +3736,8 @@
       "answer": "The status of the atlas project is blocked.\n\nThe tool result indicates that the atlas project is currently in a blocked state.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d1",
@@ -3491,7 +3750,8 @@
       "answer": "The status of the atlas project is blocked.\n\nThe tool result indicates that the atlas project is currently in a blocked state.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d1",
@@ -3506,7 +3766,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d2",
@@ -3519,7 +3780,8 @@
       "answer": "The concrete values are: Nora and Ava.\n\nSince there are two rows, both values are present.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d2",
@@ -3532,7 +3794,8 @@
       "answer": "The concrete values are: Nora and Ava.\n\nSince there are two rows, both values are present.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d2",
@@ -3548,7 +3811,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d3",
@@ -3561,7 +3825,8 @@
       "answer": "The concrete value is: \"legal_signoff\"\n\nThe row is not empty.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d3",
@@ -3574,7 +3839,8 @@
       "answer": "The concrete value is: \"legal_signoff\"\n\nThe row is not empty.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d3",
@@ -3589,7 +3855,8 @@
         "legal signoff"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d4",
@@ -3602,7 +3869,8 @@
       "answer": "The values are: \n- day: Tuesday\n- window: morning",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d4",
@@ -3615,7 +3883,8 @@
       "answer": "The values are: \n- day: Tuesday\n- window: morning",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d4",
@@ -3631,7 +3900,8 @@
         "morning"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d5",
@@ -3646,7 +3916,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d5",
@@ -3661,7 +3932,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d5",
@@ -3674,7 +3946,8 @@
       "answer": "Concrete value: Liam\n\nAbsent: None",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d6",
@@ -3692,7 +3965,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "d6",
@@ -3710,7 +3984,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "d6",
@@ -3726,7 +4001,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -3742,7 +4018,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -3758,7 +4035,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -3774,7 +4052,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j2",
@@ -3790,7 +4069,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j2",
@@ -3806,7 +4086,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j2",
@@ -3822,7 +4103,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -3837,7 +4119,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -3852,7 +4135,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -3867,7 +4151,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j4",
@@ -3883,7 +4168,8 @@
         "tuesday"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j4",
@@ -3899,7 +4185,8 @@
         "tuesday"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j4",
@@ -3915,7 +4202,8 @@
         "tuesday"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -3930,7 +4218,8 @@
       "forbidden": [],
       "extraEntities": [
         "liam"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -3945,7 +4234,8 @@
       "forbidden": [],
       "extraEntities": [
         "liam"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -3962,7 +4252,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j6",
@@ -3977,7 +4268,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j6",
@@ -3992,7 +4284,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j6",
@@ -4007,7 +4300,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -4024,7 +4318,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -4041,7 +4336,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -4058,7 +4354,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -4075,7 +4372,8 @@
       "forbidden": [],
       "extraEntities": [
         "legal signoff"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -4092,7 +4390,8 @@
       "forbidden": [],
       "extraEntities": [
         "legal signoff"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -4107,7 +4406,8 @@
         "procurement freeze"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -4123,7 +4423,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -4139,7 +4440,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -4155,7 +4457,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -4171,7 +4474,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -4187,7 +4491,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -4204,7 +4509,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -4219,7 +4525,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -4234,7 +4541,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -4249,7 +4557,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m6",
@@ -4266,7 +4575,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m6",
@@ -4283,7 +4593,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m6",
@@ -4300,7 +4611,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -4317,7 +4629,8 @@
       "forbidden": [],
       "extraEntities": [
         "ava"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -4334,7 +4647,8 @@
       "forbidden": [],
       "extraEntities": [
         "ava"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -4349,7 +4663,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -4364,7 +4679,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -4379,7 +4695,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -4394,7 +4711,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a3",
@@ -4409,7 +4727,8 @@
         "no"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a3",
@@ -4424,7 +4743,8 @@
         "no"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a3",
@@ -4439,7 +4759,8 @@
         "no"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a4",
@@ -4455,7 +4776,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a4",
@@ -4471,7 +4793,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a4",
@@ -4487,7 +4810,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -4503,7 +4827,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -4519,7 +4844,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -4535,7 +4861,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -4557,7 +4884,8 @@
         "ava",
         "priya",
         "tom"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -4579,7 +4907,8 @@
         "ava",
         "priya",
         "tom"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -4594,7 +4923,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -4610,7 +4940,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -4626,7 +4957,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -4642,7 +4974,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t2",
@@ -4661,7 +4994,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t2",
@@ -4680,7 +5014,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t2",
@@ -4697,7 +5032,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t3",
@@ -4717,7 +5053,8 @@
       ],
       "extraEntities": [
         "active"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t3",
@@ -4733,7 +5070,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t3",
@@ -4751,7 +5089,8 @@
       "forbidden": [],
       "extraEntities": [
         "orchard"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t4",
@@ -4767,7 +5106,8 @@
         "vendor security review"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t4",
@@ -4781,7 +5121,8 @@
       "answer": "The concrete value is: \"vendor_security_review\"\n\nThe blocker currently applies to Atlas is: \"vendor_security_review\"",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t4",
@@ -4797,7 +5138,8 @@
         "vendor security review"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -4814,7 +5156,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -4831,7 +5174,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -4848,7 +5192,8 @@
         "quasar"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t6",
@@ -4862,7 +5207,8 @@
       "answer": "The single state is \"blocked\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t6",
@@ -4878,7 +5224,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t6",
@@ -4894,7 +5241,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -4910,7 +5258,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -4926,7 +5275,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -4942,7 +5292,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     }
   ]
 }

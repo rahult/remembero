@@ -22,24 +22,28 @@
                 "seed": 7,
                 "passed": 6,
                 "total": 6,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 6
               },
               {
                 "seed": 42,
                 "passed": 6,
                 "total": 6,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 6
               },
               {
                 "seed": 123,
                 "passed": 6,
                 "total": 6,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 6
               }
             ],
             "mean": 6,
             "spread": 0,
-            "toolErrors": 0
+            "toolErrors": 0,
+            "queryMean": 6
           },
           "sql-gated": {
             "perSeed": [
@@ -47,24 +51,28 @@
                 "seed": 7,
                 "passed": 6,
                 "total": 6,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 6
               },
               {
                 "seed": 42,
                 "passed": 6,
                 "total": 6,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 6
               },
               {
                 "seed": 123,
                 "passed": 6,
                 "total": 6,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 6
               }
             ],
             "mean": 6,
             "spread": 0,
-            "toolErrors": 0
+            "toolErrors": 0,
+            "queryMean": 6
           },
           "remembero": {
             "perSeed": [
@@ -72,24 +80,28 @@
                 "seed": 7,
                 "passed": 4,
                 "total": 6,
-                "toolErrors": 3
+                "toolErrors": 3,
+                "queryCorrect": 3
               },
               {
                 "seed": 42,
                 "passed": 4,
                 "total": 6,
-                "toolErrors": 3
+                "toolErrors": 3,
+                "queryCorrect": 3
               },
               {
                 "seed": 123,
                 "passed": 4,
                 "total": 6,
-                "toolErrors": 3
+                "toolErrors": 3,
+                "queryCorrect": 3
               }
             ],
             "mean": 4,
             "spread": 0,
-            "toolErrors": 9
+            "toolErrors": 9,
+            "queryMean": 3
           }
         }
       },
@@ -102,24 +114,28 @@
                 "seed": 7,
                 "passed": 2,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 2
               },
               {
                 "seed": 42,
                 "passed": 2,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 2
               },
               {
                 "seed": 123,
                 "passed": 2,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 2
               }
             ],
             "mean": 2,
             "spread": 0,
-            "toolErrors": 12
+            "toolErrors": 12,
+            "queryMean": 2
           },
           "sql-gated": {
             "perSeed": [
@@ -127,24 +143,28 @@
                 "seed": 7,
                 "passed": 2,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 2
               },
               {
                 "seed": 42,
                 "passed": 2,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 2
               },
               {
                 "seed": 123,
                 "passed": 2,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 2
               }
             ],
             "mean": 2,
             "spread": 0,
-            "toolErrors": 12
+            "toolErrors": 12,
+            "queryMean": 2
           },
           "remembero": {
             "perSeed": [
@@ -152,24 +172,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 5
+                "toolErrors": 5,
+                "queryCorrect": 1
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 5
+                "toolErrors": 5,
+                "queryCorrect": 1
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 5
+                "toolErrors": 5,
+                "queryCorrect": 1
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 15
+            "toolErrors": 15,
+            "queryMean": 1
           }
         }
       },
@@ -182,24 +206,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 1
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 1
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 1
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 6
+            "toolErrors": 6,
+            "queryMean": 1
           },
           "sql-gated": {
             "perSeed": [
@@ -207,24 +235,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 1
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 1
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 1
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 6
+            "toolErrors": 6,
+            "queryMean": 1
           },
           "remembero": {
             "perSeed": [
@@ -232,24 +264,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 6
+                "toolErrors": 6,
+                "queryCorrect": 1
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 6
+                "toolErrors": 6,
+                "queryCorrect": 1
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 6,
-                "toolErrors": 6
+                "toolErrors": 6,
+                "queryCorrect": 1
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 18
+            "toolErrors": 18,
+            "queryMean": 1
           }
         }
       },
@@ -262,24 +298,28 @@
                 "seed": 7,
                 "passed": 3,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 3
               },
               {
                 "seed": 42,
                 "passed": 3,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 3
               },
               {
                 "seed": 123,
                 "passed": 3,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 3
               }
             ],
             "mean": 3,
             "spread": 0,
-            "toolErrors": 12
+            "toolErrors": 12,
+            "queryMean": 3
           },
           "sql-gated": {
             "perSeed": [
@@ -287,24 +327,28 @@
                 "seed": 7,
                 "passed": 2,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 2
               },
               {
                 "seed": 42,
                 "passed": 2,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 2
               },
               {
                 "seed": 123,
                 "passed": 2,
                 "total": 6,
-                "toolErrors": 4
+                "toolErrors": 4,
+                "queryCorrect": 2
               }
             ],
             "mean": 2,
             "spread": 0,
-            "toolErrors": 12
+            "toolErrors": 12,
+            "queryMean": 2
           },
           "remembero": {
             "perSeed": [
@@ -312,24 +356,28 @@
                 "seed": 7,
                 "passed": 3,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 3
               },
               {
                 "seed": 42,
                 "passed": 3,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 3
               },
               {
                 "seed": 123,
                 "passed": 3,
                 "total": 6,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 3
               }
             ],
             "mean": 3,
             "spread": 0,
-            "toolErrors": 6
+            "toolErrors": 6,
+            "queryMean": 3
           }
         }
       },
@@ -342,24 +390,28 @@
                 "seed": 7,
                 "passed": 0,
                 "total": 7,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 0
               },
               {
                 "seed": 42,
                 "passed": 0,
                 "total": 7,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 0
               },
               {
                 "seed": 123,
                 "passed": 0,
                 "total": 7,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 0
               }
             ],
             "mean": 0,
             "spread": 0,
-            "toolErrors": 6
+            "toolErrors": 6,
+            "queryMean": 0
           },
           "sql-gated": {
             "perSeed": [
@@ -367,24 +419,28 @@
                 "seed": 7,
                 "passed": 6,
                 "total": 7,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 6
               },
               {
                 "seed": 42,
                 "passed": 6,
                 "total": 7,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 6
               },
               {
                 "seed": 123,
                 "passed": 6,
                 "total": 7,
-                "toolErrors": 2
+                "toolErrors": 2,
+                "queryCorrect": 6
               }
             ],
             "mean": 6,
             "spread": 0,
-            "toolErrors": 6
+            "toolErrors": 6,
+            "queryMean": 6
           },
           "remembero": {
             "perSeed": [
@@ -392,24 +448,28 @@
                 "seed": 7,
                 "passed": 3,
                 "total": 7,
-                "toolErrors": 6
+                "toolErrors": 6,
+                "queryCorrect": 3
               },
               {
                 "seed": 42,
                 "passed": 3,
                 "total": 7,
-                "toolErrors": 6
+                "toolErrors": 6,
+                "queryCorrect": 3
               },
               {
                 "seed": 123,
                 "passed": 3,
                 "total": 7,
-                "toolErrors": 6
+                "toolErrors": 6,
+                "queryCorrect": 3
               }
             ],
             "mean": 3,
             "spread": 0,
-            "toolErrors": 18
+            "toolErrors": 18,
+            "queryMean": 3
           }
         }
       }
@@ -421,24 +481,28 @@
             "seed": 7,
             "passed": 11,
             "total": 31,
-            "toolErrors": 12
+            "toolErrors": 12,
+            "queryCorrect": 12
           },
           {
             "seed": 42,
             "passed": 11,
             "total": 31,
-            "toolErrors": 12
+            "toolErrors": 12,
+            "queryCorrect": 12
           },
           {
             "seed": 123,
             "passed": 11,
             "total": 31,
-            "toolErrors": 12
+            "toolErrors": 12,
+            "queryCorrect": 12
           }
         ],
         "mean": 11,
         "spread": 0,
-        "toolErrors": 36
+        "toolErrors": 36,
+        "queryMean": 12
       },
       "sql-gated": {
         "perSeed": [
@@ -446,24 +510,28 @@
             "seed": 7,
             "passed": 16,
             "total": 31,
-            "toolErrors": 12
+            "toolErrors": 12,
+            "queryCorrect": 17
           },
           {
             "seed": 42,
             "passed": 16,
             "total": 31,
-            "toolErrors": 12
+            "toolErrors": 12,
+            "queryCorrect": 17
           },
           {
             "seed": 123,
             "passed": 16,
             "total": 31,
-            "toolErrors": 12
+            "toolErrors": 12,
+            "queryCorrect": 17
           }
         ],
         "mean": 16,
         "spread": 0,
-        "toolErrors": 36
+        "toolErrors": 36,
+        "queryMean": 17
       },
       "remembero": {
         "perSeed": [
@@ -471,24 +539,28 @@
             "seed": 7,
             "passed": 10,
             "total": 31,
-            "toolErrors": 22
+            "toolErrors": 22,
+            "queryCorrect": 11
           },
           {
             "seed": 42,
             "passed": 10,
             "total": 31,
-            "toolErrors": 22
+            "toolErrors": 22,
+            "queryCorrect": 11
           },
           {
             "seed": 123,
             "passed": 10,
             "total": 31,
-            "toolErrors": 22
+            "toolErrors": 22,
+            "queryCorrect": 11
           }
         ],
         "mean": 10,
         "spread": 0,
-        "toolErrors": 66
+        "toolErrors": 66,
+        "queryMean": 11
       }
     },
     "gate": {
@@ -524,7 +596,8 @@
       "answer": "The atlas project is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d1",
@@ -537,7 +610,8 @@
       "answer": "The atlas project is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d1",
@@ -550,7 +624,8 @@
       "answer": "The atlas project is currently blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d2",
@@ -563,7 +638,8 @@
       "answer": "Nora and Ava work on the orchard project.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d2",
@@ -576,7 +652,8 @@
       "answer": "Nora and Ava work on the orchard project.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d2",
@@ -592,7 +669,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d3",
@@ -605,7 +683,8 @@
       "answer": "The blocker recorded for the beacon project is \"legal_signoff\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d3",
@@ -618,7 +697,8 @@
       "answer": "The blocker recorded for the beacon project is \"legal_signoff\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d3",
@@ -633,7 +713,8 @@
         "legal signoff"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d4",
@@ -646,7 +727,8 @@
       "answer": "The atlas review slot is on Tuesday in the morning window.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d4",
@@ -659,7 +741,8 @@
       "answer": "The atlas review slot is on Tuesday in the morning window.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d4",
@@ -672,7 +755,8 @@
       "answer": "The atlas review slot is on Tuesday in the morning window.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d5",
@@ -685,7 +769,8 @@
       "answer": "Maya's direct manager is Liam.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d5",
@@ -698,7 +783,8 @@
       "answer": "Maya's direct manager is Liam.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d5",
@@ -711,7 +797,8 @@
       "answer": "Maya's direct manager is Liam.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d6",
@@ -724,7 +811,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d6",
@@ -737,7 +825,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d6",
@@ -750,7 +839,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j1",
@@ -766,7 +856,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -782,7 +873,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -798,7 +890,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j2",
@@ -811,7 +904,8 @@
       "answer": "Maya and Priya were promised an update about the blocked project.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j2",
@@ -824,7 +918,8 @@
       "answer": "Maya and Priya were promised an update about the blocked project.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j2",
@@ -840,7 +935,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -855,7 +951,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -870,7 +967,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -885,7 +983,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j4",
@@ -898,7 +997,8 @@
       "answer": "The blocked project \"atlas\" has a review slot on Tuesday.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j4",
@@ -911,7 +1011,8 @@
       "answer": "The blocked project \"atlas\" has a review slot on Tuesday.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j4",
@@ -927,7 +1028,8 @@
         "tuesday"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -944,7 +1046,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -961,7 +1064,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -978,7 +1082,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j6",
@@ -993,7 +1098,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j6",
@@ -1008,7 +1114,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j6",
@@ -1023,7 +1130,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m1",
@@ -1040,7 +1148,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -1057,7 +1166,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -1074,7 +1184,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m2",
@@ -1089,7 +1200,8 @@
         "procurement freeze"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -1104,7 +1216,8 @@
         "procurement freeze"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -1121,7 +1234,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -1137,7 +1251,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -1153,7 +1268,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -1169,7 +1285,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -1186,7 +1303,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -1203,7 +1321,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -1220,7 +1339,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -1235,7 +1355,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -1250,7 +1371,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -1265,7 +1387,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m6",
@@ -1282,7 +1405,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m6",
@@ -1299,7 +1423,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m6",
@@ -1316,7 +1441,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -1331,7 +1457,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -1346,7 +1473,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -1361,7 +1489,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -1374,7 +1503,8 @@
       "answer": "There is one blocked project with no review slot: \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a2",
@@ -1389,7 +1519,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -1402,7 +1533,8 @@
       "answer": "There is one blocked project with no review slot: \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a3",
@@ -1415,7 +1547,8 @@
       "answer": "No.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a3",
@@ -1428,7 +1561,8 @@
       "answer": "No.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a3",
@@ -1441,7 +1575,8 @@
       "answer": "No, there is no stored meeting preference for Priya.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a4",
@@ -1454,7 +1589,8 @@
       "answer": "The projects \"orchard\" and \"quasar\" have a status but no recorded blocker.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a4",
@@ -1467,7 +1603,8 @@
       "answer": "The projects \"orchard\" and \"quasar\" have a status but no recorded blocker.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a4",
@@ -1486,7 +1623,8 @@
       "extraEntities": [
         "atlas",
         "beacon"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -1502,7 +1640,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -1518,7 +1657,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -1531,7 +1671,8 @@
       "answer": "Nora and Priya are absent.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a6",
@@ -1546,7 +1687,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -1561,7 +1703,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -1576,7 +1719,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -1596,7 +1740,8 @@
       ],
       "extraEntities": [
         "active"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -1610,7 +1755,8 @@
       "answer": "The current status of Atlas is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t1",
@@ -1624,7 +1770,8 @@
       "answer": "The current status of Atlas is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t2",
@@ -1640,7 +1787,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t2",
@@ -1654,7 +1802,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t2",
@@ -1668,7 +1817,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t3",
@@ -1688,7 +1838,8 @@
       ],
       "extraEntities": [
         "active"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t3",
@@ -1702,7 +1853,8 @@
       "answer": "The atlas project is in the state of \"blocked\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t3",
@@ -1718,7 +1870,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t4",
@@ -1734,7 +1887,8 @@
         "vendor security review"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t4",
@@ -1748,7 +1902,8 @@
       "answer": "The \"vendor_security_review\" blocker currently applies to Atlas.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t4",
@@ -1764,7 +1919,8 @@
         "vendor security review"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -1780,7 +1936,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -1794,7 +1951,8 @@
       "answer": "The projects \"orchard\" and \"quasar\" have a status but no recorded blocker.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t5",
@@ -1814,7 +1972,8 @@
       "extraEntities": [
         "atlas",
         "beacon"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t6",
@@ -1830,7 +1989,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t6",
@@ -1844,7 +2004,8 @@
       "answer": "The beacon project is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t6",
@@ -1860,7 +2021,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -1876,7 +2038,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -1892,7 +2055,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -1906,7 +2070,8 @@
       "answer": "Maya prefers a meeting in the afternoon.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d1",
@@ -1919,7 +2084,8 @@
       "answer": "The atlas project is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d1",
@@ -1932,7 +2098,8 @@
       "answer": "The atlas project is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d1",
@@ -1945,7 +2112,8 @@
       "answer": "The atlas project is currently blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d2",
@@ -1958,7 +2126,8 @@
       "answer": "Nora and Ava work on the orchard project.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d2",
@@ -1971,7 +2140,8 @@
       "answer": "Nora and Ava work on the orchard project.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d2",
@@ -1987,7 +2157,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d3",
@@ -2000,7 +2171,8 @@
       "answer": "The blocker recorded for the beacon project is \"legal_signoff\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d3",
@@ -2013,7 +2185,8 @@
       "answer": "The blocker recorded for the beacon project is \"legal_signoff\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d3",
@@ -2028,7 +2201,8 @@
         "legal signoff"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d4",
@@ -2041,7 +2215,8 @@
       "answer": "The atlas review slot is on Tuesday in the morning window.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d4",
@@ -2054,7 +2229,8 @@
       "answer": "The atlas review slot is on Tuesday in the morning window.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d4",
@@ -2067,7 +2243,8 @@
       "answer": "The atlas review slot is on Tuesday in the morning window.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d5",
@@ -2080,7 +2257,8 @@
       "answer": "Maya's direct manager is Liam.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d5",
@@ -2093,7 +2271,8 @@
       "answer": "Maya's direct manager is Liam.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d5",
@@ -2106,7 +2285,8 @@
       "answer": "Maya's direct manager is Liam.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d6",
@@ -2119,7 +2299,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d6",
@@ -2132,7 +2313,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d6",
@@ -2145,7 +2327,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j1",
@@ -2161,7 +2344,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -2177,7 +2361,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -2193,7 +2378,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j2",
@@ -2206,7 +2392,8 @@
       "answer": "Maya and Priya were promised an update about the blocked project.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j2",
@@ -2219,7 +2406,8 @@
       "answer": "Maya and Priya were promised an update about the blocked project.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j2",
@@ -2235,7 +2423,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -2250,7 +2439,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -2265,7 +2455,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -2280,7 +2471,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j4",
@@ -2293,7 +2485,8 @@
       "answer": "The blocked project \"atlas\" has a review slot on Tuesday.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j4",
@@ -2306,7 +2499,8 @@
       "answer": "The blocked project \"atlas\" has a review slot on Tuesday.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j4",
@@ -2322,7 +2516,8 @@
         "tuesday"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -2339,7 +2534,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -2356,7 +2552,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -2373,7 +2570,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j6",
@@ -2388,7 +2586,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j6",
@@ -2403,7 +2602,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j6",
@@ -2418,7 +2618,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m1",
@@ -2435,7 +2636,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -2452,7 +2654,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -2469,7 +2672,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m2",
@@ -2484,7 +2688,8 @@
         "procurement freeze"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -2499,7 +2704,8 @@
         "procurement freeze"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -2516,7 +2722,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -2532,7 +2739,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -2548,7 +2756,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -2564,7 +2773,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -2581,7 +2791,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -2598,7 +2809,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -2615,7 +2827,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -2630,7 +2843,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -2645,7 +2859,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -2660,7 +2875,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m6",
@@ -2677,7 +2893,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m6",
@@ -2694,7 +2911,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m6",
@@ -2711,7 +2929,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -2726,7 +2945,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -2741,7 +2961,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -2756,7 +2977,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -2769,7 +2991,8 @@
       "answer": "There is one blocked project with no review slot: \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a2",
@@ -2784,7 +3007,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -2797,7 +3021,8 @@
       "answer": "There is one blocked project with no review slot: \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a3",
@@ -2810,7 +3035,8 @@
       "answer": "No.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a3",
@@ -2823,7 +3049,8 @@
       "answer": "No.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a3",
@@ -2836,7 +3063,8 @@
       "answer": "No, there is no stored meeting preference for Priya.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a4",
@@ -2849,7 +3077,8 @@
       "answer": "The projects \"orchard\" and \"quasar\" have a status but no recorded blocker.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a4",
@@ -2862,7 +3091,8 @@
       "answer": "The projects \"orchard\" and \"quasar\" have a status but no recorded blocker.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a4",
@@ -2881,7 +3111,8 @@
       "extraEntities": [
         "atlas",
         "beacon"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -2897,7 +3128,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -2913,7 +3145,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -2926,7 +3159,8 @@
       "answer": "Nora and Priya are absent.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a6",
@@ -2941,7 +3175,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -2956,7 +3191,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -2971,7 +3207,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -2991,7 +3228,8 @@
       ],
       "extraEntities": [
         "active"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -3005,7 +3243,8 @@
       "answer": "The current status of Atlas is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t1",
@@ -3019,7 +3258,8 @@
       "answer": "The current status of Atlas is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t2",
@@ -3035,7 +3275,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t2",
@@ -3049,7 +3290,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t2",
@@ -3063,7 +3305,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t3",
@@ -3083,7 +3326,8 @@
       ],
       "extraEntities": [
         "active"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t3",
@@ -3097,7 +3341,8 @@
       "answer": "The atlas project is in the state of \"blocked\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t3",
@@ -3113,7 +3358,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t4",
@@ -3129,7 +3375,8 @@
         "vendor security review"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t4",
@@ -3143,7 +3390,8 @@
       "answer": "The \"vendor_security_review\" blocker currently applies to Atlas.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t4",
@@ -3159,7 +3407,8 @@
         "vendor security review"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -3175,7 +3424,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -3189,7 +3439,8 @@
       "answer": "The projects \"orchard\" and \"quasar\" have a status but no recorded blocker.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t5",
@@ -3209,7 +3460,8 @@
       "extraEntities": [
         "atlas",
         "beacon"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t6",
@@ -3225,7 +3477,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t6",
@@ -3239,7 +3492,8 @@
       "answer": "The beacon project is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t6",
@@ -3255,7 +3509,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -3271,7 +3526,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -3287,7 +3543,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -3301,7 +3558,8 @@
       "answer": "Maya prefers a meeting in the afternoon.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d1",
@@ -3314,7 +3572,8 @@
       "answer": "The atlas project is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d1",
@@ -3327,7 +3586,8 @@
       "answer": "The atlas project is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d1",
@@ -3340,7 +3600,8 @@
       "answer": "The atlas project is currently blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d2",
@@ -3353,7 +3614,8 @@
       "answer": "Nora and Ava work on the orchard project.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d2",
@@ -3366,7 +3628,8 @@
       "answer": "Nora and Ava work on the orchard project.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d2",
@@ -3382,7 +3645,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d3",
@@ -3395,7 +3659,8 @@
       "answer": "The blocker recorded for the beacon project is \"legal_signoff\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d3",
@@ -3408,7 +3673,8 @@
       "answer": "The blocker recorded for the beacon project is \"legal_signoff\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d3",
@@ -3423,7 +3689,8 @@
         "legal signoff"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "d4",
@@ -3436,7 +3703,8 @@
       "answer": "The atlas review slot is on Tuesday in the morning window.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d4",
@@ -3449,7 +3717,8 @@
       "answer": "The atlas review slot is on Tuesday in the morning window.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d4",
@@ -3462,7 +3731,8 @@
       "answer": "The atlas review slot is on Tuesday in the morning window.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d5",
@@ -3475,7 +3745,8 @@
       "answer": "Maya's direct manager is Liam.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d5",
@@ -3488,7 +3759,8 @@
       "answer": "Maya's direct manager is Liam.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d5",
@@ -3501,7 +3773,8 @@
       "answer": "Maya's direct manager is Liam.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d6",
@@ -3514,7 +3787,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d6",
@@ -3527,7 +3801,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d6",
@@ -3540,7 +3815,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j1",
@@ -3556,7 +3832,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -3572,7 +3849,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j1",
@@ -3588,7 +3866,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j2",
@@ -3601,7 +3880,8 @@
       "answer": "Maya and Priya were promised an update about the blocked project.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j2",
@@ -3614,7 +3894,8 @@
       "answer": "Maya and Priya were promised an update about the blocked project.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j2",
@@ -3630,7 +3911,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -3645,7 +3927,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -3660,7 +3943,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -3675,7 +3959,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j4",
@@ -3688,7 +3973,8 @@
       "answer": "The blocked project \"atlas\" has a review slot on Tuesday.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j4",
@@ -3701,7 +3987,8 @@
       "answer": "The blocked project \"atlas\" has a review slot on Tuesday.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j4",
@@ -3717,7 +4004,8 @@
         "tuesday"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -3734,7 +4022,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -3751,7 +4040,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j5",
@@ -3768,7 +4058,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j6",
@@ -3783,7 +4074,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j6",
@@ -3798,7 +4090,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j6",
@@ -3813,7 +4106,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m1",
@@ -3830,7 +4124,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -3847,7 +4142,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m1",
@@ -3864,7 +4160,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m2",
@@ -3879,7 +4176,8 @@
         "procurement freeze"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -3894,7 +4192,8 @@
         "procurement freeze"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m2",
@@ -3911,7 +4210,8 @@
       "forbidden": [],
       "extraEntities": [
         "vendor security review"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -3927,7 +4227,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -3943,7 +4244,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m3",
@@ -3959,7 +4261,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -3976,7 +4279,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -3993,7 +4297,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m4",
@@ -4010,7 +4315,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -4025,7 +4331,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -4040,7 +4347,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -4055,7 +4363,8 @@
         "yes"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m6",
@@ -4072,7 +4381,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m6",
@@ -4089,7 +4399,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m6",
@@ -4106,7 +4417,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -4121,7 +4433,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -4136,7 +4449,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a1",
@@ -4151,7 +4465,8 @@
         "liam"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -4164,7 +4479,8 @@
       "answer": "There is one blocked project with no review slot: \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a2",
@@ -4179,7 +4495,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a2",
@@ -4192,7 +4509,8 @@
       "answer": "There is one blocked project with no review slot: \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a3",
@@ -4205,7 +4523,8 @@
       "answer": "No.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a3",
@@ -4218,7 +4537,8 @@
       "answer": "No.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a3",
@@ -4231,7 +4551,8 @@
       "answer": "No, there is no stored meeting preference for Priya.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a4",
@@ -4244,7 +4565,8 @@
       "answer": "The projects \"orchard\" and \"quasar\" have a status but no recorded blocker.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a4",
@@ -4257,7 +4579,8 @@
       "answer": "The projects \"orchard\" and \"quasar\" have a status but no recorded blocker.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a4",
@@ -4276,7 +4599,8 @@
       "extraEntities": [
         "atlas",
         "beacon"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -4292,7 +4616,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -4308,7 +4633,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a5",
@@ -4321,7 +4647,8 @@
       "answer": "Nora and Priya are absent.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a6",
@@ -4336,7 +4663,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -4351,7 +4679,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "a6",
@@ -4366,7 +4695,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -4386,7 +4716,8 @@
       ],
       "extraEntities": [
         "active"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -4400,7 +4731,8 @@
       "answer": "The current status of Atlas is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t1",
@@ -4414,7 +4746,8 @@
       "answer": "The current status of Atlas is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t2",
@@ -4430,7 +4763,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t2",
@@ -4444,7 +4778,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t2",
@@ -4458,7 +4793,8 @@
       "answer": "The projects currently blocked are \"atlas\" and \"beacon\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t3",
@@ -4478,7 +4814,8 @@
       ],
       "extraEntities": [
         "active"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t3",
@@ -4492,7 +4829,8 @@
       "answer": "The atlas project is in the state of \"blocked\".",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t3",
@@ -4508,7 +4846,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t4",
@@ -4524,7 +4863,8 @@
         "vendor security review"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t4",
@@ -4538,7 +4878,8 @@
       "answer": "The \"vendor_security_review\" blocker currently applies to Atlas.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t4",
@@ -4554,7 +4895,8 @@
         "vendor security review"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -4570,7 +4912,8 @@
         "orchard"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t5",
@@ -4584,7 +4927,8 @@
       "answer": "The projects \"orchard\" and \"quasar\" have a status but no recorded blocker.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t5",
@@ -4604,7 +4948,8 @@
       "extraEntities": [
         "atlas",
         "beacon"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "t6",
@@ -4620,7 +4965,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t6",
@@ -4634,7 +4980,8 @@
       "answer": "The beacon project is blocked.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t6",
@@ -4650,7 +4997,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -4666,7 +5014,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -4682,7 +5031,8 @@
         "afternoon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "c1",
@@ -4696,7 +5046,8 @@
       "answer": "Maya prefers a meeting in the afternoon.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     }
   ]
 }

@@ -45,13 +45,13 @@
               {
                 "seed": 7,
                 "passed": 3,
-                "queryCorrect": 4,
+                "queryCorrect": 3,
                 "total": 6,
                 "toolErrors": 0
               }
             ],
             "mean": 3,
-            "queryMean": 4,
+            "queryMean": 3,
             "spread": 0,
             "toolErrors": 0
           }
@@ -124,13 +124,13 @@
           {
             "seed": 7,
             "passed": 25,
-            "queryCorrect": 27,
+            "queryCorrect": 26,
             "total": 31,
             "toolErrors": 1
           }
         ],
         "mean": 25,
-        "queryMean": 27,
+        "queryMean": 26,
         "spread": 0,
         "toolErrors": 1
       }
@@ -280,7 +280,7 @@
       "condition": "remembero-closure",
       "seed": 7,
       "passed": false,
-      "queryCorrect": true,
+      "queryCorrect": false,
       "toolErrors": 0,
       "query": "q(V, D, W) :- status(V, blocked), review_slot(V, D, W).",
       "answer": "QUESTION: Which blocked project has a review slot, and on which day?\nTOOL_RESULT (1 rows):\n[\n {\n  \"V\": \"atlas\",\n  \"D\": \"tuesday\",\n  \"W\": \"morning\"\n }\n]",

@@ -494,13 +494,42 @@ describe('agent-boundary: query-leg grading', () => {
     ...over,
   });
 
-  it('passes when the rows cover every expected entity and no forbidden one', () => {
+  it('fails a superset that returns seed entities outside the gold set', () => {
+    // "Who is maya's direct manager?" answered with the whole chain
+    const gold = new Set(['liam']);
     expect(
-      gradeQueryRows(q({ expect: ['liam', 'ava'] }), [
-        { M: 'liam' },
-        { M: 'ava' },
-        { M: 'dana' },
-      ]).passed,
+      gradeQueryRows(
+        q({ expect: ['liam'] }),
+        [{ M: 'liam' }, { M: 'ava' }, { M: 'dana' }],
+        gold,
+      ).passed,
+    ).toBe(false);
+    expect(
+      gradeQueryRows(q({ expect: ['liam'] }), [{ M: 'liam' }], gold).passed,
+    ).toBe(true);
+  });
+
+  it('does not count a single negative value as yes', () => {
+    const gold = new Set(['procurement freeze']);
+    expect(
+      gradeQueryRows(q({ expect: ['yes'] }), [{ answer: 'No' }], gold).passed,
+    ).toBe(false);
+    expect(
+      gradeQueryRows(q({ expect: ['yes'] }), [{ n: 0 }], gold).passed,
+    ).toBe(false);
+    expect(
+      gradeQueryRows(q({ expect: ['yes'] }), [{ answer: 'Yes' }], gold).passed,
+    ).toBe(true);
+  });
+
+  it('passes when the rows cover every expected entity and no forbidden one', () => {
+    const gold = new Set(['liam', 'ava', 'dana']);
+    expect(
+      gradeQueryRows(
+        q({ expect: ['liam', 'ava', 'dana'] }),
+        [{ M: 'liam' }, { M: 'ava' }, { M: 'dana' }],
+        gold,
+      ).passed,
     ).toBe(true);
     expect(
       gradeQueryRows(q({ expect: ['liam', 'ava'] }), [{ M: 'liam' }]).passed,
@@ -514,16 +543,22 @@ describe('agent-boundary: query-leg grading', () => {
   });
 
   it('treats yes/no expectations as row presence and matches underscored entities', () => {
+    const gold = new Set(['procurement freeze']);
     expect(
-      gradeQueryRows(q({ expect: ['yes'] }), [{ X: 'procurement_freeze' }])
-        .passed,
+      gradeQueryRows(
+        q({ expect: ['yes'] }),
+        [{ X: 'procurement_freeze' }],
+        gold,
+      ).passed,
     ).toBe(true);
-    expect(gradeQueryRows(q({ expect: ['yes'] }), []).passed).toBe(false);
-    expect(gradeQueryRows(q({ expect: ['no'] }), []).passed).toBe(true);
+    expect(gradeQueryRows(q({ expect: ['yes'] }), [], gold).passed).toBe(false);
+    expect(gradeQueryRows(q({ expect: ['no'] }), [], gold).passed).toBe(true);
     expect(
-      gradeQueryRows(q({ expect: ['procurement freeze'] }), [
-        { R: 'procurement_freeze' },
-      ]).passed,
+      gradeQueryRows(
+        q({ expect: ['procurement freeze'] }),
+        [{ R: 'procurement_freeze' }],
+        gold,
+      ).passed,
     ).toBe(true);
   });
 });

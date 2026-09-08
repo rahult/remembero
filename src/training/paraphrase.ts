@@ -31,9 +31,14 @@ export function preservesConstants(
   paraphrase: string,
 ): boolean {
   const text = paraphrase.toLowerCase();
-  return anchoredConstants(example).every(
-    (c) => text.includes(c) || text.includes(c.replaceAll('_', ' ')),
-  );
+  // whole-word match: "search" must not be satisfied by "searched"; an
+  // underscore may be rendered as a space or kept.
+  return anchoredConstants(example).every((c) => {
+    const escaped = c
+      .replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replaceAll('_', '[_ ]');
+    return new RegExp(`(^|[^a-z0-9])${escaped}($|[^a-z0-9])`).test(text);
+  });
 }
 
 const SYSTEM = `You rewrite questions about a small knowledge base. Return ONLY a JSON array of strings.

@@ -26,12 +26,14 @@
                 "seed": 7,
                 "passed": 4,
                 "total": 6,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 5
               }
             ],
             "mean": 4,
             "spread": 0,
-            "toolErrors": 0
+            "toolErrors": 0,
+            "queryMean": 5
           }
         }
       },
@@ -44,12 +46,14 @@
                 "seed": 7,
                 "passed": 4,
                 "total": 6,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 4
               }
             ],
             "mean": 4,
             "spread": 0,
-            "toolErrors": 0
+            "toolErrors": 0,
+            "queryMean": 4
           }
         }
       },
@@ -62,12 +66,14 @@
                 "seed": 7,
                 "passed": 4,
                 "total": 6,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 5
               }
             ],
             "mean": 4,
             "spread": 0,
-            "toolErrors": 0
+            "toolErrors": 0,
+            "queryMean": 5
           }
         }
       },
@@ -80,12 +86,14 @@
                 "seed": 7,
                 "passed": 3,
                 "total": 6,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 5
               }
             ],
             "mean": 3,
             "spread": 0,
-            "toolErrors": 0
+            "toolErrors": 0,
+            "queryMean": 5
           }
         }
       },
@@ -98,12 +106,14 @@
                 "seed": 7,
                 "passed": 6,
                 "total": 7,
-                "toolErrors": 0
+                "toolErrors": 0,
+                "queryCorrect": 7
               }
             ],
             "mean": 6,
             "spread": 0,
-            "toolErrors": 0
+            "toolErrors": 0,
+            "queryMean": 7
           }
         }
       }
@@ -115,12 +125,14 @@
             "seed": 7,
             "passed": 21,
             "total": 31,
-            "toolErrors": 0
+            "toolErrors": 0,
+            "queryCorrect": 26
           }
         ],
         "mean": 21,
         "spread": 0,
-        "toolErrors": 0
+        "toolErrors": 0,
+        "queryMean": 26
       }
     },
     "gate": {
@@ -144,7 +156,8 @@
       "answer": "QUESTION: What is the status of the atlas project?\nTOOL_RESULT (1 rows):\n[\n {\n  \"V\": \"blocked\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d2",
@@ -160,7 +173,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d3",
@@ -173,7 +187,8 @@
       "answer": "QUESTION: What blocker is recorded for the beacon project?\nTOOL_RESULT (1 rows):\n[\n {\n  \"V\": \"legal_signoff\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d4",
@@ -186,7 +201,8 @@
       "answer": "On tuesday in the morning, the atlas review slot is.",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "d5",
@@ -202,7 +218,8 @@
       "extraEntities": [
         "ava",
         "dana"
-      ]
+      ],
+      "queryCorrect": false
     },
     {
       "id": "d6",
@@ -215,7 +232,8 @@
       "answer": "QUESTION: Which projects are currently blocked?\nTOOL_RESULT (2 rows):\n[\n {\n  \"P\": \"atlas\"\n },\n {\n  \"P\": \"beacon\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j1",
@@ -228,7 +246,8 @@
       "answer": "QUESTION: Which blocked projects does maya work on?\nTOOL_RESULT (2 rows):\n[\n {\n  \"P\": \"atlas\"\n },\n {\n  \"P\": \"beacon\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j2",
@@ -244,7 +263,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j3",
@@ -257,7 +277,8 @@
       "answer": "QUESTION: Which people working on atlas prefer morning meetings?\nTOOL_RESULT (1 rows):\n[\n {\n  \"X\": \"maya\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j4",
@@ -270,7 +291,8 @@
       "answer": "QUESTION: Which blocked project has a review slot, and on which day?\nTOOL_RESULT (1 rows):\n[\n {\n  \"P\": \"atlas\",\n  \"D\": \"tuesday\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "j5",
@@ -287,7 +309,8 @@
         "maya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "j6",
@@ -300,7 +323,8 @@
       "answer": "QUESTION: Which project has a review slot in the afternoon?\nTOOL_RESULT (1 rows):\n[\n {\n  \"P\": \"orchard\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m1",
@@ -313,7 +337,8 @@
       "answer": "QUESTION: List every person above liam in the reporting chain (his manager, that manager’s manager, and so on).\nTOOL_RESULT (3 rows):\n[\n {\n  \"M\": \"dana\"\n },\n {\n  \"M\": \"ava\"\n },\n {\n  \"M\": \"liam\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m2",
@@ -326,7 +351,8 @@
       "answer": "QUESTION: Follow the waits_on chain from atlas to the end: what is the final upstream dependency that waits on nothing else?\nTOOL_RESULT (1 rows):\n[\n {\n  \"R\": \"procurement_freeze\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m3",
@@ -339,7 +365,8 @@
       "answer": "QUESTION: Which projects directly or transitively wait on procurement_freeze? Consider the whole waits_on chain.\nTOOL_RESULT (4 rows):\n[\n {\n  \"R\": \"legal_signoff\"\n },\n {\n  \"R\": \"beacon\"\n },\n {\n  \"R\": \"vendor_security_review\"\n },\n {\n  \"R\": \"atlas\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m4",
@@ -355,7 +382,8 @@
         "ava"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "m5",
@@ -368,7 +396,8 @@
       "answer": "QUESTION: Through the dependency chain, is atlas ultimately waiting on procurement_freeze? Answer yes or no.\nTOOL_RESULT (1 rows):\n[\n {\n  \"R\": \"procurement_freeze\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "m6",
@@ -385,7 +414,8 @@
         "tom"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a1",
@@ -398,7 +428,8 @@
       "answer": "QUESTION: Which people working on atlas have no stored meeting preference?\nTOOL_RESULT (1 rows):\n[\n {\n  \"E\": \"liam\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a2",
@@ -413,7 +444,8 @@
         "beacon"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a3",
@@ -426,7 +458,8 @@
       "answer": "QUESTION: Does priya have a stored meeting preference? Answer yes or no.\nTOOL_RESULT (0 rows):\n[]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a4",
@@ -439,7 +472,8 @@
       "answer": "QUESTION: Which projects have a status but no recorded blocker?\nTOOL_RESULT (2 rows):\n[\n {\n  \"P\": \"orchard\"\n },\n {\n  \"P\": \"quasar\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a5",
@@ -455,7 +489,8 @@
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "a6",
@@ -470,7 +505,8 @@
         "dana"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": false
     },
     {
       "id": "t1",
@@ -486,7 +522,8 @@
         "blocked"
       ],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t2",
@@ -500,7 +537,8 @@
       "answer": "QUESTION: Which projects are currently blocked?\nTOOL_RESULT (2 rows):\n[\n {\n  \"P\": \"atlas\"\n },\n {\n  \"P\": \"beacon\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t3",
@@ -514,7 +552,8 @@
       "answer": "QUESTION: What single state is the atlas project in?\nTOOL_RESULT (1 rows):\n[\n {\n  \"V\": \"blocked\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t4",
@@ -528,7 +567,8 @@
       "answer": "QUESTION: What blocker currently applies to atlas?\nTOOL_RESULT (1 rows):\n[\n {\n  \"V\": \"vendor_security_review\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t5",
@@ -542,7 +582,8 @@
       "answer": "QUESTION: Which projects have a status but no recorded blocker?\nTOOL_RESULT (2 rows):\n[\n {\n  \"P\": \"orchard\"\n },\n {\n  \"P\": \"quasar\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "t6",
@@ -556,7 +597,8 @@
       "answer": "QUESTION: What single state is the beacon project in?\nTOOL_RESULT (1 rows):\n[\n {\n  \"V\": \"blocked\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     },
     {
       "id": "c1",
@@ -570,7 +612,8 @@
       "answer": "QUESTION: What meeting window does maya prefer?\nTOOL_RESULT (1 rows):\n[\n {\n  \"V\": \"afternoon\"\n }\n]",
       "missing": [],
       "forbidden": [],
-      "extraEntities": []
+      "extraEntities": [],
+      "queryCorrect": true
     }
   ]
 }
