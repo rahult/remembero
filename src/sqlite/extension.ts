@@ -11,6 +11,7 @@ import {
   type QuerySpec,
   type ScalarExpression,
   type Term,
+  diagnoseQuery,
   evaluateQuerySpec,
   evaluateQuerySpecWithProof,
   expandClosurePredicates,
@@ -22,6 +23,7 @@ import {
   parseQueryProgram,
   parseQuerySpec,
   predKey,
+  type QueryProgram,
   serializeClause,
 } from '../engine/index.js';
 import {
@@ -557,6 +559,48 @@ function packageRoot(): string {
   return fileURLToPath(new URL('../../', import.meta.url));
 }
 
+/**
+ * Query-leg diagnostics (unknown predicate, capitalized constant, bad closure
+ * reference) are errors on the bridge too, so a model's retry loop gets a fix
+ * instead of an empty result.
+ */
+function assertNoQueryErrors(
+  clauses: Clause[],
+  request: PortableRequest,
+): void {
+  const errors = diagnoseQuery(clauses, request.query, {
+    authored: request.program,
+    // tables that exist but hold no rows are still known relations
+    knownPredicates: request.basePredicates.map(
+      ({ predicate, arity }) => `${predicate}/${arity}`,
+    ),
+  }).filter((d) => d.severity === 'error');
+  if (errors.length > 0) {
+    throw new Error(errors.map((d) => d.message).join(' '));
+  }
+}
+
+/**
+ * On the native path no facts are loaded, so only the data-free diagnostics
+ * run: a closure reference with the wrong arity or a doubled suffix.
+ */
+function assertClosureReferencesWellFormed(input: string): void {
+  let normalized: QueryProgram;
+  try {
+    normalized = parseQueryProgram(input);
+  } catch {
+    return; // the native parser keeps its own error contract
+  }
+  const errors = diagnoseQuery([], normalized.query, {
+    authored: normalized.clauses,
+  }).filter(
+    (d) => d.code === 'closure_arity' || d.code === 'closure_double_suffix',
+  );
+  if (errors.length > 0) {
+    throw new Error(errors.map((d) => d.message).join(' '));
+  }
+}
+
 /** Reserved metadata predicates keep their specific fail-closed errors. */
 function assertQueryableInput(input: string): void {
   assertNoIdentitySyntax(inspectSyntax(input));
@@ -620,6 +664,7 @@ export class DatalogDatabase {
     if (sqliteDatalogExecutionMode(rule) === 'portable') {
       return this.portableQuery(rule);
     }
+    assertClosureReferencesWellFormed(rule);
     const row = this.database
       .prepare('SELECT datalog_query(?) AS result')
       .get(rule) as { result: unknown } | undefined;
@@ -643,6 +688,7 @@ export class DatalogDatabase {
     if (sqliteDatalogExecutionMode(program) === 'portable') {
       return this.portableExplain(program);
     }
+    assertClosureReferencesWellFormed(program);
     const row = this.database
       .prepare('SELECT datalog_explain(?) AS result')
       .get(program) as { result: unknown } | undefined;
@@ -843,6 +889,7 @@ export class DatalogDatabase {
     return this.withPortableSnapshot(() => {
       const request = preparePortableRequest(input);
       const clauses = this.portableClauses(request);
+      assertNoQueryErrors(clauses, request);
       const bindings = evaluateQuerySpec(clauses, request.query, {
         maxFacts: MAX_BASE_ROWS + MAX_DERIVED_FACTS,
         maxIterations: 1_000,
@@ -864,6 +911,7 @@ export class DatalogDatabase {
     return this.withPortableSnapshot(() => {
       const request = preparePortableRequest(input);
       const clauses = this.portableClauses(request);
+      assertNoQueryErrors(clauses, request);
       const explained = evaluateQuerySpecWithProof(clauses, request.query, {
         maxFacts: MAX_BASE_ROWS + MAX_DERIVED_FACTS,
         maxIterations: 1_000,

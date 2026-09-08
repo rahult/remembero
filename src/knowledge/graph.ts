@@ -7,9 +7,11 @@ import {
   type DerivationProof,
   type EvaluateOptions,
   type ProofStep,
+  type QueryDiagnostic,
   type QueryProof,
   type Term,
   canonicalKey,
+  diagnoseQuery,
   evaluateQuerySpecWithProof,
   expandClosurePredicates,
   isIntegrityConstraint,
@@ -179,6 +181,8 @@ export interface ExplainKnowledgeResult {
   graph: ExplanationGraph;
   graphSelection?: ExplanationGraphSelection;
   trustMode?: TrustViewMode;
+  /** Present only when an empty result has a likely cause (unknown predicate, reversed arguments). */
+  diagnostics?: QueryDiagnostic[];
 }
 
 export interface ExplainKnowledgeOptions extends EvaluateOptions {
@@ -769,6 +773,14 @@ export function explainKnowledge(
       ? view.resolver.canonicalizeQuery(program.query).query
       : program.query;
   const viewClauses = [...view.clauses, ...program.clauses];
+  // Same actionable errors as the query tool (unknown predicate, capitalized
+  // constant, bad closure reference) instead of an empty explanation.
+  const errors = diagnoseQuery(viewClauses, querySpec, {
+    authored: program.clauses,
+  }).filter((d) => d.severity === 'error');
+  if (errors.length > 0) {
+    throw new Error(errors.map((d) => d.message).join(' '));
+  }
   const explained = evaluateQuerySpecWithProof(
     viewClauses,
     querySpec,
@@ -807,8 +819,16 @@ export function explainKnowledge(
           }),
     };
   });
+  const diagnostics =
+    rows.length === 0
+      ? diagnoseQuery(viewClauses, querySpec, {
+          emptyResult: true,
+          authored: program.clauses,
+        }).filter((d) => d.severity === 'warning')
+      : [];
   const result: ExplainKnowledgeResult = {
     rows,
+    ...(diagnostics.length > 0 ? { diagnostics } : {}),
     // Synthesized closure rules (p_plus) are numbered after the authored rules
     // by the evaluator, so the catalog must include them for proofs to resolve.
     rules: expandClosurePredicates(viewClauses, querySpec.goals)

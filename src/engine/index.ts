@@ -73,6 +73,11 @@ export { ParseError } from './lexer.js';
 export { parseProgram, parseQuery, parseQuerySpec } from './parser.js';
 export { parseQueryProgram, type QueryProgram } from './query-program.js';
 export {
+  diagnoseQuery,
+  type DiagnoseOptions,
+  type QueryDiagnostic,
+} from './diagnostics.js';
+export {
   StratificationError,
   stratifyProgram,
   type StratifiedProgram,

@@ -1,4 +1,5 @@
 import {
+  diagnoseQuery,
   evaluateQuerySpec,
   isComparison,
   isIntegrityConstraint,
@@ -8,6 +9,7 @@ import {
   predKey,
   serializeClause,
   serializeTerm,
+  type QueryDiagnostic,
 } from '../engine/index.js';
 import {
   type RecallResult,
@@ -599,6 +601,8 @@ export function queryTool(
   },
 ): {
   bindings: Record<string, string>[];
+  /** Present only when an empty result has a likely cause (e.g. reversed arguments). */
+  diagnostics?: QueryDiagnostic[];
   trustMode?: TrustViewMode;
   recordedSnapshot?: RecordedSnapshotMetadata;
 } {
@@ -621,7 +625,16 @@ export function queryTool(
     entityIdentity === 'canonical'
       ? view.resolver.canonicalizeQuery(program.query).query
       : program.query;
-  const rows = evaluateQuerySpec([...view.clauses, ...program.clauses], query);
+  const knowledge = [...view.clauses, ...program.clauses];
+  // Errors (unknown predicate, capitalized constant, bad closure reference) are
+  // thrown so the caller's retry loop gets a fix, not a silent empty.
+  const errors = diagnoseQuery(knowledge, query, {
+    authored: program.clauses,
+  }).filter((d) => d.severity === 'error');
+  if (errors.length > 0) {
+    throw new Error(errors.map((d) => d.message).join(' '));
+  }
+  const rows = evaluateQuerySpec(knowledge, query);
   // A ground query answers as one boolean row rather than [{}] / [].
   const bindings = program.ground
     ? [{ yes: rows.length > 0 ? 'true' : 'false' }]
@@ -630,8 +643,17 @@ export function queryTool(
           Object.entries(b).map(([name, term]) => [name, serializeTerm(term)]),
         ),
       );
+  // Warnings (argument direction) are only meaningful when nothing came back.
+  const diagnostics =
+    rows.length === 0
+      ? diagnoseQuery(knowledge, query, {
+          emptyResult: true,
+          authored: program.clauses,
+        }).filter((d) => d.severity === 'warning')
+      : [];
   return {
     bindings,
+    ...(diagnostics.length > 0 ? { diagnostics } : {}),
     ...(trustMode === 'accepted' ? {} : { trustMode }),
     ...(recorded.recordedSnapshot === undefined
       ? {}

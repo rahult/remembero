@@ -1688,7 +1688,7 @@ export function createServer(deps: PipelineDeps): McpServer {
     {
       title: 'Query',
       description:
-        "Run a raw Datalog query and get variable bindings, e.g. 'works_at(X, acme)', 'score(X, S), S > 10 + 5', 'employee(X), \\+ suspended(X)', or 'count(*) as Count where works_at(Person, acme)'. Any binary predicate p also answers p_plus(X, Y) — Y reachable from X in one or more hops — so chains never need recursive rules: 'reports_to_plus(maya, M)'. Preferred read path when you can write the query yourself: call list_memories to see the predicates, then query directly — deterministic, millisecond, and needs no API key (recall needs a configured model).",
+        "Run a raw Datalog query and get variable bindings, e.g. 'works_at(X, acme)', 'score(X, S), S > 10 + 5', 'employee(X), \\+ suspended(X)', or 'count(*) as Count where works_at(Person, acme)'. Any binary predicate p also answers p_plus(X, Y) — Y reachable from X in one or more hops — so chains never need recursive rules: 'reports_to_plus(maya, M)'. Rule programs are accepted too (the rule no other rule uses is the answer; add a final '?- q(X).' line to choose). A goal with no variables answers yes/no as one row {yes: true|false}. Errors name the fix (unknown or misspelled predicate, an uppercase name that should be a lowercase constant); an empty result may carry diagnostics such as a reversed argument order. Preferred read path when you can write the query yourself: call list_memories to see the predicates, then query directly — deterministic, millisecond, and needs no API key (recall needs a configured model).",
       inputSchema: {
         query: boundedText(),
         namespaces: namespacesField,
