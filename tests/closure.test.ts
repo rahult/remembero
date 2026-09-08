@@ -96,9 +96,10 @@ describe('closure predicates: on-demand transitive closure', () => {
     )
       .filter((clause) => clause.head.predicate === 'reports_to_plus')
       .map(serializeClause);
+    // anchored at maya: seeded rules keep the predicate name but fix the anchor
     expect(synthesized).toEqual([
-      'reports_to_plus(X, Y) :- reports_to(X, Y).',
-      'reports_to_plus(X, Y) :- reports_to(X, Z), reports_to_plus(Z, Y).',
+      'reports_to_plus(maya, Y) :- reports_to(maya, Y).',
+      'reports_to_plus(maya, Y) :- reports_to_plus(maya, Z), reports_to(Z, Y).',
     ]);
   });
 
@@ -130,7 +131,7 @@ describe('closure predicates: knowledge explain catalog', () => {
       result.rules.map((rule) => [rule.number, rule.clause]),
     );
     for (const number of ruleNumbers) {
-      expect(catalog.get(number)).toMatch(/^reports_to_plus\(X, Y\) :- /);
+      expect(catalog.get(number)).toMatch(/^reports_to_plus\(maya, Y\) :- /);
     }
   });
 });
@@ -166,5 +167,67 @@ describe('closure predicates: SQLite bridge', () => {
     expect(
       sqliteDatalogExecutionMode('reports_to_plus(X, Y) :- reports_to(X, Y).'),
     ).toBe('native');
+  });
+});
+
+describe('closure predicates: anchored goals derive only the reachable slice', () => {
+  function chain(n: number): string {
+    return Array.from(
+      { length: n - 1 },
+      (_, i) => `edge(n${i}, n${i + 1}).`,
+    ).join('\n');
+  }
+
+  it('answers an anchored closure on a 600-node chain under a fact budget the full closure would exceed', () => {
+    const program = parseProgram(chain(600));
+    // full closure would derive ~180k tuples; the seeded slice is 599
+    const result = evaluate(program, parseQuery('edge_plus(n0, X).'), {
+      maxFacts: 5_000,
+    });
+    expect(result).toHaveLength(599);
+    const reverse = evaluate(program, parseQuery('edge_plus(X, n599).'), {
+      maxFacts: 5_000,
+    });
+    expect(reverse).toHaveLength(599);
+  });
+
+  it('seeds through an authored rule body and keeps proofs on the same predicate name', () => {
+    const program = parseProgram(
+      `${chain(50)}\nabove(Y) :- edge_plus(n10, Y).`,
+    );
+    const rows = evaluate(program, parseQuery('above(Y).'), { maxFacts: 500 });
+    expect(rows).toHaveLength(39);
+    const explained = evaluateWithProof(
+      parseProgram(chain(6)),
+      parseQuery('edge_plus(n0, n5).'),
+    );
+    expect(JSON.stringify(explained[0].proofs)).toContain(
+      '"predicate":"edge_plus"',
+    );
+    expect(JSON.stringify(explained[0].proofs)).not.toContain('$');
+  });
+
+  it('still answers the unanchored closure when both ends are variables', () => {
+    const program = parseProgram(chain(5));
+    expect(evaluate(program, parseQuery('edge_plus(X, Y).'))).toHaveLength(10);
+    // mixed: one anchored and one unanchored reference in the same program
+    const mixed = parseProgram(
+      `${chain(5)}\nq(A, B) :- edge_plus(A, B), edge_plus(n0, B).`,
+    );
+    expect(evaluate(mixed, parseQuery('q(A, B).'))).toHaveLength(10);
+  });
+
+  it('a yes/no ground goal seeds from the first argument', () => {
+    const program = parseProgram(chain(400));
+    expect(
+      evaluate(program, parseQuery('edge_plus(n0, n399).'), {
+        maxFacts: 2_000,
+      }),
+    ).toHaveLength(1);
+    expect(
+      evaluate(program, parseQuery('edge_plus(n399, n0).'), {
+        maxFacts: 2_000,
+      }),
+    ).toHaveLength(0);
   });
 });

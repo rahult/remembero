@@ -40,6 +40,14 @@ model has to learn to predicate choice, argument order, and negation.
   any unknown predicate. In the SQLite bridge the base table must exist, so a typo'd base
   fails with the ordinary missing-relation error.
 
+## Cost
+
+A reference anchored at one end, `p_plus(c, Y)` or `p_plus(X, c)`, is synthesized as
+seeded rules with the constant in the head, so the engine derives only the slice reachable
+from `c` (linear in that slice) instead of the whole closure (quadratic in the graph). A
+reference with two variables derives the full closure. The head keeps the predicate name, so
+proofs and the rule catalog read the same either way.
+
 ## Proofs and explanation
 
 Synthesized rules are ordinary rules to the evaluator. They appear in proof ladders as
