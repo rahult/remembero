@@ -56,7 +56,9 @@ below are the corrected ones and are reproducible from the committed result file
 | qwen2.5-coder:7b                    | remembero-closure     |            26 |         25 |                 3 |
 | **Llama-3.2-3B fine-tune, round 1** | remembero-closure     |            24 |         23 |                 3 |
 | **Llama-3.2-3B fine-tune, round 2** | remembero-closure     |            26 |         21 |                 5 |
-| **Llama-3.2-3B fine-tune, round 3** | remembero-closure     |        **26** |     **25** |             **5** |
+| Llama-3.2-3B fine-tune, round 3     | remembero-closure     |            26 |         25 |                 5 |
+| Llama-3.2-3B fine-tune, round 3     | closure, v2 prompt    |            24 |         23 |                 4 |
+| **Llama-3.2-3B fine-tune, round 4** | closure, v2 prompt    |        **26** |     **26** |             **5** |
 | openai/gpt-5.6-luna (frontier)      | sql-gated             |            30 |         31 |                 6 |
 | openai/gpt-5.6-luna (frontier)      | remembero-closure     |            29 |         29 |                 5 |
 | z-ai/glm-5.3 (frontier)             | sql-gated             |            30 |         31 |                 6 |
@@ -104,7 +106,27 @@ Every fine-tuned round refused all six trap writes and made zero or one tool err
    three rounds together were a few dollars of Tinker time plus roughly 5,000 cached Luna
    paraphrase calls.
 
-## Defects found in review after these runs (not yet retrained)
+## Round 4 (after the review)
+
+Round 4 was trained after the adversarial review with every data defect below fixed and
+three product changes that also changed the evaluation prompt ("v2 prompt"): the query
+target is the sink rule rather than the first rule, a ground goal answers with one boolean
+row (`?- p_plus(a, b).` → `yes = true|false`) instead of the `q(Y) :- …, Y = b.` idiom, and
+the engine reports diagnostics instead of silent empties. Data: 2 fixed rounds per world
+(19,598 train, 1,698 held-out lines), yes/no as ground goals, ternary schedule templates,
+mirrored vocabulary, whole-word paraphrase filter. **True held-out NLL on unseen worlds:
+0.0043**, the first honest held-out number in this series.
+
+Result: 26/31 query-correct and 26/31 end-to-end, multi-hop 5/6, direct 6/6, all trap
+writes refused. The round-3 checkpoint under the same v2 prompt scores 24 with five tool
+errors, because it was trained on the old yes/no idiom: the retrain was needed to keep pace
+with the dialect change, and it recovers the previous best while the product moved under
+it. Remaining misses are unchanged in kind: two `blocker`/`status` join misreads, "manages
+at least one person", the yes/no-plus-chain question m4, and one new failure where the
+model used a helper name from the few-shot examples (`no_slot`) as if it were a stored
+predicate.
+
+## Defects found in review after these runs (fixed before round 4)
 
 - **Two vocabulary entries had their up/down phrases inverted** (`supplied_by`, `follows`),
   so about 300 of the 11,211 round-3 training lines said the opposite of what their program
@@ -147,5 +169,5 @@ npm run train:data -- --examples 3000 --worlds 60 --paraphrases 3 --seed 7 --out
 # then serve and evaluate per benchmarks/tinker/README.md
 ```
 
-Checkpoints (Tinker, 7-day TTL): round 2 `tinker://4208a773-116d-5356-8fa9-754d07ca2f24:train:0/sampler_weights/final`,
-round 3 `tinker://4488229d-504c-5294-a3dc-d0274d214c9d:train:0/sampler_weights/final`.
+Checkpoints (Tinker, 7-day TTL): round 3 `tinker://4488229d-504c-5294-a3dc-d0274d214c9d:train:0/sampler_weights/final`,
+round 4 `tinker://f428ffcf-055e-523b-9a19-297897eeaf7b:train:0/sampler_weights/final`.
