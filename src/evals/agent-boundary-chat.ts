@@ -84,7 +84,14 @@ export function parseChatResponse(
     const first = Array.isArray(choices)
       ? (choices[0] as Record<string, unknown>)
       : undefined;
-    content = (first?.message as Record<string, unknown> | undefined)?.content;
+    const message = first?.message as Record<string, unknown> | undefined;
+    content = message?.content;
+    // A reasoning model that exhausted its budget returns a choice whose
+    // content is null. Treat it as an empty (failed) attempt so the harness
+    // records a tool error and retries instead of aborting the run.
+    if (message !== undefined && (content === null || content === undefined)) {
+      content = '';
+    }
   } else {
     content = (record?.message as Record<string, unknown> | undefined)?.content;
   }

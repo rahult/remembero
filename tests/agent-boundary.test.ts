@@ -446,6 +446,13 @@ describe('agent-boundary runner: chat backends', () => {
     expect(() => parseChatResponse('openai', { choices: [] })).toThrow(
       /no message content/,
     );
+    // a reasoning model that spent its budget thinking returns a choice with
+    // null content: a failed attempt for the harness to retry, not a crash
+    expect(
+      parseChatResponse('openai', {
+        choices: [{ message: { content: null, reasoning: '...' } }],
+      }),
+    ).toBe('');
   });
 });
 
