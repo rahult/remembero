@@ -98,6 +98,44 @@ const FRESH_NAMES = {
   person: ['Mira Chen', 'Tom Okafor', 'Priya Nair', 'Liam Brandt'],
 };
 
+/** Attribute values that are common nouns, written lowercase in English. */
+const LOWERCASE_VALUES = new Set([
+  'early',
+  'late',
+  'midday',
+  'junior',
+  'senior',
+  'staff',
+  'gold',
+  'silver',
+  'bronze',
+  'arid',
+  'temperate',
+  'tropical',
+  'morning',
+  'evening',
+  'dawn',
+  'dusk',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+  'node',
+  'go',
+  'rust',
+  'python',
+  'euro',
+  'dollar',
+  'yen',
+  'dirham',
+  'public',
+  'internal',
+  'pci',
+]);
+
 const NOISE = [
   'Long week, mostly meetings and a flaky CI pipeline that kept timing out.',
   'Quick note before I forget the rest of the day.',
@@ -284,11 +322,14 @@ export async function generateExtractionExamples(
     if (renderRequest.display === undefined && rng.next() < 0.75) {
       for (const clause of facts) {
         for (const term of clause.head.args) {
+          // any single-word atom: subjects and values alike (companies, cities and
+          // languages are proper nouns in English), but not multi-word atoms,
+          // numbers, the self atom, or lowercase enumerations like "early"/"late"
           if (
             term.type === 'atom' &&
-            world.entities.includes(term.value) &&
             !term.value.includes('_') &&
-            term.value !== options.selfAtom
+            term.value !== options.selfAtom &&
+            !LOWERCASE_VALUES.has(term.value)
           ) {
             display[term.value] =
               term.value.charAt(0).toUpperCase() + term.value.slice(1);

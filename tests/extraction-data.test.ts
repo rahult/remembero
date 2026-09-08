@@ -123,6 +123,31 @@ describe('extraction training data', () => {
     }
   });
 
+  it('capitalizes single-word attribute values too, since companies and cities are proper nouns in English', async () => {
+    let valueCapitalized = false;
+    for (let seed = 1; seed <= 8 && !valueCapitalized; seed += 1) {
+      const world = generateWorld(seed);
+      const examples = await generateExtractionExamples(
+        world,
+        createRng(seed),
+        fakeRenderer,
+        { selfAtom: 'rahul' },
+      );
+      // some state example shows a capitalized value that is not a world entity (an attribute value)
+      valueCapitalized = examples
+        .filter((e) => e.kind === 'state')
+        .some((e) => {
+          const caps = e.input.match(/\b[A-Z][a-z]+\b/g) ?? [];
+          return caps.some(
+            (w) =>
+              !world.entities.includes(w.toLowerCase()) &&
+              !/^(She|He|They|I)$/.test(w),
+          );
+        });
+    }
+    expect(valueCapitalized).toBe(true);
+  });
+
   it('shows single-word entity names capitalized in most ordinary examples while the fact keeps the lowercase atom', async () => {
     const world = generateWorld(3);
     const examples = await generateExtractionExamples(
