@@ -35,6 +35,7 @@ export interface QueryDiagnostic {
     | 'closure_arity'
     | 'closure_double_suffix'
     | 'capitalized_constant'
+    | 'wildcard_only'
     | 'direction';
   message: string;
 }
@@ -219,6 +220,36 @@ export function diagnoseQuery(
     seen.add(key);
     out.push(diagnostic);
   };
+
+  // A relational query whose only variables are wildcards answers with rows
+  // that carry no values: neither a readable answer nor a yes/no question.
+  if (query.kind === 'relational') {
+    const goals = literalsOf(query.goals);
+    const hasNamed = goals.some(({ literal }) =>
+      literal.args.some((t) => t.type === 'var'),
+    );
+    const wildcardOnly =
+      !hasNamed &&
+      goals.some(({ literal }) =>
+        literal.args.some((t) => t.type === 'wildcard'),
+      );
+    if (wildcardOnly) {
+      const first = goals.find(({ literal }) =>
+        literal.args.some((t) => t.type === 'wildcard'),
+      )!.literal;
+      let n = 0;
+      const fixed = `${first.predicate}(${first.args
+        .map((t) =>
+          t.type === 'wildcard' ? (n++ === 0 ? 'X' : `X${n}`) : termText(t),
+        )
+        .join(', ')})`;
+      push({
+        severity: 'error',
+        code: 'wildcard_only',
+        message: `the query has no named variable to return; _ discards the value. Use a named variable, e.g. ${fixed}`,
+      });
+    }
+  }
 
   // The query goals are one scope; each authored rule body is another, with the
   // rule's head variables counted so a head-and-body variable is not a singleton.

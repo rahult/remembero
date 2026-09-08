@@ -77,6 +77,37 @@ input", which pushed Luna toward verbatim surface forms (`tuesdays`, `'ledger se
 and cost five points; the deterministic guard already enforces grounding, so the sentence
 now only forbids inference. Prompt text is not where these fixes live.
 
+## A unified 3B model (query + extraction), first result
+
+`npm run train:data -- --tasks query,extraction` renders facts from the synthetic worlds into
+text with Luna and keeps a rendering only when it mentions every constant and no other
+world entity, so the extraction gold is exact by construction (720 examples across six
+kinds: state, first person, supersession, negation with and without a stored fact, hedge,
+distractor). Merged with the query data (20,246 train lines) and trained as one LoRA on
+`Llama-3.2-3B` base (round 5; held-out NLL 0.003 on unseen worlds).
+
+| model                                   | extraction (closed) |   query-correct /31 |
+| --------------------------------------- | ------------------: | ------------------: |
+| llama3.2:3b instruct, untuned           |               24.3% |  11 (published arm) |
+| llama3.2:3b instruct, guards            |               34.0% | 19 (closure prompt) |
+| **Llama-3.2-3B unified fine-tune (r5)** |           **70.9%** |                  24 |
+| Llama-3.2-3B query-only fine-tune (r4)  |                   — |                  26 |
+| qwen2.5-coder:7b, guards                |               81.6% |                  26 |
+| openai/gpt-5.6-luna                     |               84.5% |                  29 |
+
+Per phenomenon for the unified 3B: direct 12/12, multi_fact 8/8, supersession 8/8,
+distractor 8/8, hedge 8/9, negation 8/10, competitor 6/8, transcript 5/8, first_person 5/8,
+coreference 4/8, entity_normalization 1/8, date_number 0/8. The three weak phenomena are
+exactly the kinds the generator does not produce: no pronoun coreference, no multi-word or
+capitalized constants, no dates or numbers. Pipeline errors fell from 22 to 9.
+
+On the read side the unified checkpoint scores 24 query-correct against 26 for the
+query-only round 4, with multi-hop 3/6 against 5/6. Two questions on a 31-question set is
+within noise, and the misses are the familiar semantic ones plus one new dialect slip (a
+goal with only a wildcard, `waits_on_plus(_, procurement_freeze)`, which the engine now
+rejects with a fix). Whether the extraction data interferes with query authoring needs more
+than one seed to answer.
+
 ## What the failures are (first run, before guards)
 
 - **First person has no name.** Luna wrote `the_user`, `me`, `you` and `user` for "I" across

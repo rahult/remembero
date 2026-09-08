@@ -108,6 +108,14 @@ describe('diagnoseQuery: the model gets told what went wrong', () => {
     ).toEqual([]);
   });
 
+  it('rejects a query whose only variables are wildcards, since its rows carry no values', () => {
+    const [d] = diagnose('waits_on(_, atlas)', false);
+    expect(d).toMatchObject({ severity: 'error', code: 'wildcard_only' });
+    expect(d.message).toMatch(/named variable.*waits_on\(X, atlas\)/s);
+    // a fully ground goal is a yes/no question and is fine
+    expect(diagnose('waits_on(vendor, atlas)', false)).toEqual([]);
+  });
+
   it('stays quiet for a well-formed query with an honestly empty answer', () => {
     // both constants have been seen in exactly these positions; the answer is simply no
     expect(diagnose('status(atlas, active)')).toEqual([]);
