@@ -174,6 +174,25 @@ only the first, so the model writes `blue_harbour_analytics` and truncates to `c
 sometimes dropped. Next data change: a kind with a multi-word entity that is _not_ in the
 schema, expected quoted, and quoted ISO dates in more than one relation.
 
+### Rounds 8 and 9: the other half of the quoting convention
+
+Round 8 added a kind that stores a multi-word name the schema does not know as a quoted
+constant (`'Blue Harbour Analytics'`) and group-keyed ISO dates. Extraction fell to 49.5%
+(query side 28/31, unchanged): the model began quoting **every** capitalized name,
+`lives_in(user, 'Melbourne')`, `reports_to(user, 'Liam')`. The data had shown "multi-word
+capitalized → quoted" but never "single capitalized word → lowercase atom", because Luna
+renders world atoms in lowercase and English capitalizes names. Round 9 displays single-word
+entity names capitalized in three quarters of ordinary examples with the fact unchanged
+(1,393 extraction examples). Its training run aborted at about 40 percent when the Tinker
+balance ran out for the second time; the data is generated and committed, the checkpoint does
+not exist.
+
+Two lessons from rounds 6–9 worth keeping. A rendering convention that is right for one class
+of constants and silent about its neighbour teaches the wrong generalization; every
+convention in the product prompt needs both its positive and its contrasting case in the
+data. And a generator bug that a test double papers over (the distractor field) costs a whole
+round; test doubles must be at least as ignorant as the real dependency.
+
 ## What the failures are (first run, before guards)
 
 - **First person has no name.** Luna wrote `the_user`, `me`, `you` and `user` for "I" across
