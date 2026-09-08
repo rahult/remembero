@@ -110,6 +110,32 @@ describe('extraction training data', () => {
     }
   });
 
+  it('prepends distractor prose itself, so the renderer cannot drop it', async () => {
+    const world = generateWorld(3);
+    // a renderer that ignores request.distractor, like the real one
+    const bare: Renderer = async (request) =>
+      request.facts
+        .map(
+          (f) =>
+            `${f.args[0]} ${f.predicate.replaceAll('_', ' ')} ${f.args.slice(1).join(' ')}.`,
+        )
+        .join(' ');
+    const examples = await generateExtractionExamples(
+      world,
+      createRng(3),
+      bare,
+      { selfAtom: 'rahul' },
+    );
+    const distractors = examples.filter((e) => e.kind === 'distractor');
+    expect(distractors.length).toBeGreaterThan(0);
+    for (const example of distractors) {
+      expect(example.input).toMatch(
+        /meetings|Quick note|vendor call|office is closed/,
+      );
+      expect(example.expectedAdded.length).toBe(1);
+    }
+  });
+
   it('exports a conversation with the product extraction prompt and clause lines as the answer', () => {
     const world = generateWorld(3);
     const conversation = toExtractionConversation(

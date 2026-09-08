@@ -254,12 +254,18 @@ export async function generateExtractionExamples(
     request: Omit<RenderRequest, 'facts' | 'argNames' | 'selfAtom'>,
     expected: { added: string[]; retract: string[]; initial: string[] },
   ) => {
-    const text = await render({
+    const { distractor, ...renderRequest } = request;
+    const rendered = await render({
       facts: facts.map(factSpec),
       argNames: relation.args,
       selfAtom: options.selfAtom,
-      ...request,
+      ...renderRequest,
     });
+    // Distractor prose is prepended here, deterministically, rather than asked of
+    // the renderer: an earlier version passed it as a request field the real
+    // renderer never used, and 120 "distractor" examples were plain facts.
+    const text =
+      distractor === undefined ? rendered : `${distractor}${rendered}`;
     if (!verifyRendering(text, facts, world, options.selfAtom)) return;
     out.push({
       world: world.id,
