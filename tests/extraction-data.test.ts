@@ -12,12 +12,16 @@ import { generateWorld } from '../src/training/worlds.js';
 
 /** Fake renderer: states each fact as "<subj> <pred words> <obj>." and honours first person. */
 const fakeRenderer: Renderer = async (request) => {
-  const sentences = request.facts.map((fact) => {
+  const display = (value: string) => request.display?.[value] ?? value;
+  const sentences = request.facts.map((fact, i) => {
     const [subject, ...rest] = fact.args;
     const words = fact.predicate.replaceAll('_', ' ');
-    const subj =
-      request.firstPerson && subject === request.selfAtom ? 'I' : subject;
-    return `${subj} ${words} ${rest.join(' ')}.`;
+    let subj =
+      request.firstPerson && subject === request.selfAtom
+        ? 'I'
+        : display(subject);
+    if (request.pronoun && i > 0) subj = 'She';
+    return `${subj} ${words} ${rest.map(display).join(' ')}.`;
   });
   if (request.negated)
     return sentences
@@ -66,6 +70,9 @@ describe('extraction training data', () => {
       'negation',
       'hedge',
       'distractor',
+      'coreference',
+      'normalization',
+      'date_number',
     ]) {
       expect(kinds.has(kind as never), kind).toBe(true);
     }
@@ -81,6 +88,20 @@ describe('extraction training data', () => {
       if (example.kind === 'supersession') {
         expect(example.expectedRetract.length).toBe(1);
         expect(example.initialProgram).not.toBe('');
+      }
+      if (example.kind === 'coreference') {
+        expect(example.expectedAdded.length).toBe(2);
+        expect(example.input).toMatch(/\b(she|he|they)\b/i);
+      }
+      if (example.kind === 'normalization') {
+        expect(example.input).toMatch(/[A-Z]/);
+        expect(example.expectedAdded.join(' ')).toMatch(
+          /^[a-z_]+\([a-z0-9_, ]+\)\.$/,
+        );
+      }
+      if (example.kind === 'date_number') {
+        expect(example.expectedAdded.join(' ')).toMatch(/\d/);
+        expect(example.initialProgram).toMatch(/headcount|started_on/);
       }
       if (example.kind === 'first_person') {
         expect(example.expectedAdded.join(' ')).toContain('(rahul,');

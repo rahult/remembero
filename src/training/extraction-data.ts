@@ -37,7 +37,10 @@ export type ExtractionKind =
   | 'supersession'
   | 'negation'
   | 'hedge'
-  | 'distractor';
+  | 'distractor'
+  | 'coreference'
+  | 'normalization'
+  | 'date_number';
 
 export interface FactSpec {
   predicate: string;
@@ -53,6 +56,10 @@ export interface RenderRequest {
   negated: boolean;
   hedged: boolean;
   distractor?: string;
+  /** Name the shared subject once, then refer to it only with a pronoun. */
+  pronoun?: boolean;
+  /** How to write particular constants in the text (atom -> display form). */
+  display?: Record<string, string>;
 }
 
 export type Renderer = (request: RenderRequest) => Promise<string>;
@@ -80,9 +87,9 @@ const NOISE = [
 export function renderRequestText(request: RenderRequest): string {
   const lines = request.facts.map((fact) => {
     const named = fact.args.map(
-      (value, i) => `${request.argNames[i] ?? `arg${i + 1}`}=${value}`,
+      (value, i) => `${request.argNames[i] ?? `argument ${i + 1}`} is ${value}`,
     );
-    return `- ${fact.predicate}(${named.join(', ')})`;
+    return `- relation "${fact.predicate.replaceAll('_', ' ')}": ${named.join(', ')}`;
   });
   const voice = request.firstPerson
     ? `Write in the first person: the entity "${request.selfAtom}" is the speaker, so refer to it as I / me / my and never by name.`
@@ -92,12 +99,22 @@ export function renderRequestText(request: RenderRequest): string {
     : request.hedged
       ? 'State these as uncertain possibilities ("might", "maybe", "is considering"), so a careful reader would store nothing.'
       : 'State them as settled facts.';
+  const pronoun = request.pronoun
+    ? 'Name the shared subject once in the first sentence, then refer to it only with a pronoun (she, he or they) in the rest.'
+    : '';
+  const display =
+    request.display && Object.keys(request.display).length > 0
+      ? `Write these constants as shown: ${Object.entries(request.display)
+          .map(([atom, shown]) => `${atom} -> "${shown}"`)
+          .join('; ')}.`
+      : '';
   return `Write one or two short natural sentences, as a person telling an assistant something worth remembering, that convey exactly these facts and nothing else:
 ${lines.join('\n')}
 
 ${voice}
 ${polarity}
-Use every constant exactly as written (lowercase, underscores may become spaces). Do not add any other names, numbers, or facts. Reply with the sentences only.`;
+${[pronoun, display].filter(Boolean).join('\n')}
+Use every constant exactly as written (lowercase, underscores may become spaces) unless told how to write it above. Never copy the field labels or the relation name literally; say it the way a person would. Do not add any other names, numbers, or facts. Reply with the sentences only.`;
 }
 
 function looseTokens(text: string): Set<string> {
@@ -193,6 +210,19 @@ function schemaSeed(
       return !inside.split(',').some((arg) => exclude.has(arg.trim()));
     })
     .slice(0, 6);
+}
+
+/** A capitalized, spaced or hyphenated surface form for an atom: db_primary -> "DB Primary". */
+export function displayForm(atom: string, rng: Rng): string {
+  const words = atom.split('_');
+  const styles: Array<(w: string[]) => string> = [
+    (w) => w.map((x) => x.charAt(0).toUpperCase() + x.slice(1)).join(' '),
+    (w) => w.map((x) => x.toUpperCase()).join(' '),
+    (w) => w.join('-'),
+    (w) => w.map((x) => x.charAt(0).toUpperCase() + x.slice(1)).join('-'),
+  ];
+  const style = words.length > 1 ? rng.pick(styles) : styles[0];
+  return style(words);
 }
 
 export interface GenerateOptions {
@@ -363,6 +393,139 @@ export async function generateExtractionExamples(
             [attr.name],
             new Set([String((sample.head.args[0] as { value: string }).value)]),
           ),
+        },
+      );
+    }
+
+    // coreference: two facts about one subject, the second sentence pronominal
+    if (attr && pool.length > 1) {
+      const first = rng.pick(factsOf(attr));
+      const subject = String((first.head.args[0] as { value: string }).value);
+      const others = rng.shuffle(pool.filter((r) => r !== attr));
+      let second: Clause | undefined;
+      let other: Relation | undefined;
+      for (const candidate of others) {
+        second = factsOf(candidate).find(
+          (c) =>
+            String((c.head.args[0] as { value: string }).value) === subject,
+        );
+        if (second) {
+          other = candidate;
+          break;
+        }
+      }
+      if (second && other) {
+        await attempt(
+          'coreference',
+          [first, second],
+          attr,
+          { firstPerson: false, negated: false, hedged: false, pronoun: true },
+          {
+            added: [serializeClause(first), serializeClause(second)],
+            retract: [],
+            initial: schemaSeed(
+              world,
+              [attr.name, other.name],
+              new Set([subject]),
+            ),
+          },
+        );
+      }
+    }
+
+    // normalization: the text shows "DB Primary" / "check-out"; the fact keeps db_primary
+    {
+      const rel = rng.pick(pool);
+      const all = factsOf(rel);
+      // prefer facts with multi-word atoms ("db_primary" -> "DB Primary"); otherwise
+      // capitalize a single-word atom ("dev" -> "Dev"), which still teaches lowercasing
+      const multi = all.filter((c) =>
+        c.head.args.some((t) => t.type === 'atom' && t.value.includes('_')),
+      );
+      const source = multi.length > 0 ? multi : all;
+      if (source.length > 0) {
+        const fact = rng.pick(source);
+        const display: Record<string, string> = {};
+        for (const t of fact.head.args) {
+          if (t.type !== 'atom') continue;
+          if (t.value.includes('_') || multi.length === 0)
+            display[t.value] = displayForm(t.value, rng);
+        }
+        await attempt(
+          'normalization',
+          [fact],
+          rel,
+          { firstPerson: false, negated: false, hedged: false, display },
+          {
+            added: [serializeClause(fact)],
+            retract: [],
+            initial: schemaSeed(
+              world,
+              [rel.name],
+              new Set([String((fact.head.args[0] as { value: string }).value)]),
+            ),
+          },
+        );
+      }
+    }
+
+    // date_number: numeric and date-valued relations seeded into the schema
+    {
+      const groups = relationsOfKind(world, 'membership');
+      const group = groups[0];
+      const groupNames = group
+        ? [
+            ...new Set(
+              factsOf(group).map((c) =>
+                String((c.head.args[1] as { value: string }).value),
+              ),
+            ),
+          ]
+        : [];
+      if (groupNames.length > 1) {
+        const [target, ...others] = rng.shuffle(groupNames);
+        const count = 3 + rng.int(40);
+        const fact = parseProgram(`headcount(${target}, ${count}).`)[0];
+        const relation: Relation = {
+          name: 'headcount',
+          kind: 'attribute',
+          args: [group.args[1], 'NumberOfPeople'],
+        };
+        await attempt(
+          'date_number',
+          [fact],
+          relation,
+          { firstPerson: false, negated: false, hedged: false },
+          {
+            added: [serializeClause(fact)],
+            retract: [],
+            initial: others
+              .slice(0, 2)
+              .map((g, k) => `headcount(${g}, ${5 + k * 7}).`),
+          },
+        );
+      }
+      const person = rng.pick(world.entities);
+      const year = 2019 + rng.int(7);
+      const month = String(1 + rng.int(12)).padStart(2, '0');
+      const day = String(1 + rng.int(28)).padStart(2, '0');
+      const date = `'${year}-${month}-${day}'`;
+      const fact = parseProgram(`started_on(${person}, ${date}).`)[0];
+      const relation: Relation = {
+        name: 'started_on',
+        kind: 'attribute',
+        args: [world.relations[0].args[0], 'Date'],
+      };
+      const otherPerson = world.entities.find((e) => e !== person) ?? person;
+      await attempt(
+        'date_number',
+        [fact],
+        relation,
+        { firstPerson: false, negated: false, hedged: false },
+        {
+          added: [serializeClause(fact)],
+          retract: [],
+          initial: [`started_on(${otherPerson}, '2018-05-14').`],
         },
       );
     }

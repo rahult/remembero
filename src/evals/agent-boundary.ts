@@ -717,7 +717,7 @@ For any question about a chain, "ultimately", "directly or transitively", "above
 "up the chain", or "the end of the chain": use reports_to_plus or waits_on_plus.
 NEVER write recursive rules yourself — the _plus predicates already contain the whole chain.
 For a yes/no question, ask the ground goal directly and read the yes column:
-?- waits_on_plus(atlas, legal_signoff).   (returns yes = true or yes = false)`;
+?- prefers_meeting(maya, morning).   (returns yes = true or yes = false)`;
 
 export function datalogClosureSystemPrompt(): string {
   const examples = DATALOG_CLOSURE_FEW_SHOT.map(
