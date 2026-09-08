@@ -62,6 +62,7 @@ below are the corrected ones and are reproducible from the committed result file
 | Llama-3.2-3B unified r6 (query+extraction)   | closure, v2 prompt    |            27 |         27 |                 5 |
 | Qwen3.5-4B unified r6 (query+extraction)     | closure, v2 prompt    |            28 |         27 |                 6 |
 | **Qwen3.5-4B unified r7 (query+extraction)** | closure, v2 prompt    |        **29** |         26 |                 5 |
+| Qwen3.5-4B unified r10 (query+extraction)    | closure, v2 prompt    |            27 |         27 |                 5 |
 | openai/gpt-5.6-luna (frontier)               | sql-gated             |            30 |         31 |                 6 |
 | openai/gpt-5.6-luna (frontier)               | remembero-closure     |            29 |         29 |                 5 |
 | z-ai/glm-5.3 (frontier)                      | sql-gated             |            30 |         31 |                 6 |

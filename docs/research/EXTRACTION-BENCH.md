@@ -193,6 +193,34 @@ convention in the product prompt needs both its positive and its contrasting cas
 data. And a generator bug that a test double papers over (the distractor field) costs a whole
 round; test doubles must be at least as ignorant as the real dependency.
 
+### Round 10 and what the series says
+
+Round 10 (single-word attribute values shown capitalized, quoted multi-word names, both
+halves of the quoting convention present): **extraction 74.8%, query-correct 27/31**, the
+best held-out loss in the series (0.0022). Entity normalization rose from 1/8 to 5/8, so the
+convention landed; a few capitalized single words are still quoted (`'Globex'`, `'Liam'`) and
+first person slipped to 3/8.
+
+| Qwen3.5-4B checkpoint | extraction (closed) | query-correct /31 |
+| --------------------- | ------------------: | ----------------: |
+| r6 (generator bug)    |               67.0% |                28 |
+| r7                    |           **77.7%** |            **29** |
+| r8                    |               49.5% |                28 |
+| r9                    |               64.1% |                26 |
+| r10                   |               74.8% |                27 |
+
+Rounds 7 and 10 are the two coherent data sets and land within three points of each other on
+extraction and two on queries. Data rounds have reached diminishing returns on this
+benchmark; the gap to the untuned 7B coder (81.6%) and Luna (84.5%) is now first-person
+naming, transcript mode, and dates, each a handful of cases.
+
+**Seeds.** Three evaluation seeds (7, 42, 123) on the query benchmark gave identical results
+for both checkpoints (r7: 29, 29, 29; r10: 27, 27, 27) because the served model samples
+greedily at temperature 0. Evaluation variance is therefore nil; the variance that matters is
+between _training_ runs, and each sample of it costs a training run (~$5 on Tinker, ~$1
+self-managed per [the provider matrix](FINETUNE-PROVIDER-MATRIX.md)). No such repeat has
+been done, so every number in this document is one training run.
+
 ## What the failures are (first run, before guards)
 
 - **First person has no name.** Luna wrote `the_user`, `me`, `you` and `user` for "I" across
