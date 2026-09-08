@@ -16,10 +16,14 @@ describe('CLI ingress limits', () => {
   it('exposes the remembero command name through successful help', () => {
     const root = mkdtempSync(join(tmpdir(), 'remembero-cli-help-'));
     const home = join(root, 'home');
-    const result = spawnSync(process.execPath, [resolve('dist/cli.js'), '--help'], {
-      encoding: 'utf8',
-      env: { ...process.env, REMBERO_HOME: home },
-    });
+    const result = spawnSync(
+      process.execPath,
+      [resolve('dist/cli.js'), '--help'],
+      {
+        encoding: 'utf8',
+        env: { ...process.env, REMBERO_HOME: home },
+      },
+    );
 
     expect(result.status).toBe(0);
     expect(result.stdout).toMatch(/^remembero — logic-based memory/);
@@ -28,24 +32,27 @@ describe('CLI ingress limits', () => {
   });
 
   it('fails closed before returning an oversized JSON result', () => {
-    expect(() => stringifyBoundedResult({ value: 'oversized' }, 'test result', 8)).toThrow(
-      /test result exceeds 8 bytes/i
-    );
+    expect(() =>
+      stringifyBoundedResult({ value: 'oversized' }, 'test result', 8),
+    ).toThrow(/test result exceeds 8 bytes/i);
   });
 
   it('rejects non-finite numbers instead of silently serializing them as null', () => {
-    expect(() => stringifyBoundedResult({ value: Number.NaN }, 'test result')).toThrow(
-      /non-finite/i
-    );
     expect(() =>
-      stringifyBoundedResult({ value: Number.POSITIVE_INFINITY }, 'test result')
+      stringifyBoundedResult({ value: Number.NaN }, 'test result'),
+    ).toThrow(/non-finite/i);
+    expect(() =>
+      stringifyBoundedResult(
+        { value: Number.POSITIVE_INFINITY },
+        'test result',
+      ),
     ).toThrow(/non-finite/i);
   });
 
   it('fails closed before printing an oversized plain-text recall answer', () => {
-    expect(() => assertBoundedOutput('oversized', 'CLI recall answer', 8)).toThrow(
-      /CLI recall answer exceeds 8 bytes/i
-    );
+    expect(() =>
+      assertBoundedOutput('oversized', 'CLI recall answer', 8),
+    ).toThrow(/CLI recall answer exceeds 8 bytes/i);
   });
   it('rejects an oversized import before reading or mutating the store', () => {
     const root = mkdtempSync(join(tmpdir(), 'rembero-cli-limit-'));
@@ -59,7 +66,7 @@ describe('CLI ingress limits', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
 
     expect(result.status).toBe(1);
@@ -86,11 +93,13 @@ describe('CLI ingress limits', () => {
           LLM_API_KEY: 'test-only-key',
           REMBERO_RECALL_SCHEMA_PREDICATE_LIMIT: '32',
         },
-      }
+      },
     );
 
     expect(result.status).toBe(1);
-    expect(result.stderr).toMatch(/schema predicate limit must be from 1 to 256/i);
+    expect(result.stderr).toMatch(
+      /schema predicate limit must be from 1 to 256/i,
+    );
   });
 
   it('prints the explicit recall status when memory is empty', () => {
@@ -113,13 +122,13 @@ describe('CLI ingress limits', () => {
           LLM_API_KEY: 'test-only-key',
           REMBERO_RECALL_SCHEMA_PREDICATE_LIMIT: '32',
         },
-      }
+      },
     );
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('status: unanswerable');
     expect(result.stdout).toContain(
-      'Related knowledge (discovery only; not an answer or proof):'
+      'Related knowledge (discovery only; not an answer or proof):',
     );
     expect(result.stdout).toContain('No local lexical matches.');
   });
@@ -141,7 +150,7 @@ describe('CLI ingress limits', () => {
           REMBERO_HOME: home,
           LLM_API_KEY: 'unused-test-key',
         },
-      }
+      },
     );
 
     expect(result.status).toBe(1);
@@ -157,7 +166,7 @@ describe('CLI ingress limits', () => {
       version: 1 as const,
       baselineDigest: knowledgeProgramDigest(
         ['default'],
-        new Map([['default', []]])
+        new Map([['default', []]]),
       ),
       namespace: 'default',
       namespaces: ['default'],
@@ -171,7 +180,7 @@ describe('CLI ingress limits', () => {
       JSON.stringify({
         ...payload,
         proposalDigest: computeMemoryProposalDigest(payload),
-      })
+      }),
     );
     const apply = () =>
       spawnSync(
@@ -183,7 +192,7 @@ describe('CLI ingress limits', () => {
           '--op-id',
           'cli-reviewed-memory',
         ],
-        { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+        { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
       );
 
     const first = apply();
@@ -198,7 +207,7 @@ describe('CLI ingress limits', () => {
     const queried = spawnSync(
       process.execPath,
       [resolve('dist/cli.js'), 'query', 'pet(rahul, Name)'],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
     expect(JSON.parse(queried.stdout)).toEqual([{ Name: 'luna' }]);
   });
@@ -211,7 +220,7 @@ describe('CLI ingress limits', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: join(root, 'home') },
-      }
+      },
     );
 
     expect(result.status).toBe(1);
@@ -224,13 +233,13 @@ describe('CLI ingress limits', () => {
     const store = new MemoryStore(join(home, 'memory'));
     store.assert(
       'default',
-      'left(a). right(a). answer(X) :- left(X). answer(X) :- right(X).'
+      'left(a). right(a). answer(X) :- left(X). answer(X) :- right(X).',
     );
 
     const result = spawnSync(
       process.execPath,
       [resolve('dist/cli.js'), 'explain', 'answer(a)', '--proof-limit', '2'],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
 
     expect(result.status).toBe(0);
@@ -247,8 +256,14 @@ describe('CLI ingress limits', () => {
     const runAssert = (clause: string) =>
       spawnSync(
         process.execPath,
-        [resolve('dist/cli.js'), 'assert', clause, '--op-id', 'cli-assert-retry'],
-        { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+        [
+          resolve('dist/cli.js'),
+          'assert',
+          clause,
+          '--op-id',
+          'cli-assert-retry',
+        ],
+        { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
       );
 
     const first = runAssert('retry_fact(alpha).');
@@ -261,7 +276,8 @@ describe('CLI ingress limits', () => {
     expect(conflict.status).toBe(4);
     expect(JSON.parse(conflict.stderr)).toEqual({
       error: 'operation_conflict',
-      message: "assert operation 'cli-assert-retry' was already used for another mutation",
+      message:
+        "assert operation 'cli-assert-retry' was already used for another mutation",
       operation: 'assert',
       namespace: 'default',
       opId: 'cli-assert-retry',
@@ -276,7 +292,7 @@ describe('CLI ingress limits', () => {
         '--op-id',
         'cli-forget-retry',
       ],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
     const replayForget = spawnSync(
       process.execPath,
@@ -287,7 +303,7 @@ describe('CLI ingress limits', () => {
         '--op-id',
         'cli-forget-retry',
       ],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
     expect(firstForget.status).toBe(0);
     expect(replayForget.status).toBe(0);
@@ -336,7 +352,9 @@ describe('CLI ingress limits', () => {
     ]);
     expect(JSON.parse(included.stdout)).toMatchObject({
       trustMode: 'include_tentative',
-      rows: [{ bindings: { State: 'active' }, proofs: [{ trust: 'tentative' }] }],
+      rows: [
+        { bindings: { State: 'active' }, proofs: [{ trust: 'tentative' }] },
+      ],
     });
     const claims = run(['claims', '--namespaces', 'personal']);
     expect(JSON.parse(claims.stdout)).toMatchObject({
@@ -374,7 +392,7 @@ describe('CLI ingress limits', () => {
         'personal',
         '--trust',
         'tentative',
-      ]).status
+      ]).status,
     ).toBe(0);
     const rejected = run([
       'reject',
@@ -389,7 +407,9 @@ describe('CLI ingress limits', () => {
       resolved: 1,
       added: [],
     });
-    expect(JSON.parse(run(['claims', '--namespaces', 'personal']).stdout)).toMatchObject({
+    expect(
+      JSON.parse(run(['claims', '--namespaces', 'personal']).stdout),
+    ).toMatchObject({
       count: 0,
     });
   });
@@ -438,9 +458,7 @@ describe('CLI ingress limits', () => {
       checkpoints: [{ sequence: 2 }],
     });
     expect(
-      JSON.parse(
-        run(['query', 'item(Value)', '--as-of-sequence', '1']).stdout
-      )
+      JSON.parse(run(['query', 'item(Value)', '--as-of-sequence', '1']).stdout),
     ).toMatchObject({
       bindings: [{ Value: 'a' }],
       recordedSnapshot: { sequence: 1, journalEntries: 2 },
@@ -454,9 +472,12 @@ describe('CLI ingress limits', () => {
     store.assert(
       'default',
       'status(mira, active). :- status(Person, active), status(Person, paused).',
-      { opId: 'baseline' }
+      { opId: 'baseline' },
     );
-    const journalBefore = readFileSync(join(home, 'memory', 'journal.log'), 'utf8');
+    const journalBefore = readFileSync(
+      join(home, 'memory', 'journal.log'),
+      'utf8',
+    );
 
     const result = spawnSync(
       process.execPath,
@@ -470,13 +491,18 @@ describe('CLI ingress limits', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
 
     expect(result.status).toBe(0);
     expect(JSON.parse(result.stdout)).toMatchObject({
       changed: true,
-      candidate: { rows: [{ bindings: { State: 'active' } }, { bindings: { State: 'paused' } }] },
+      candidate: {
+        rows: [
+          { bindings: { State: 'active' } },
+          { bindings: { State: 'paused' } },
+        ],
+      },
       resultDelta: { added: [{ bindings: { State: 'paused' } }] },
       integrityDelta: {
         candidate: { status: 'violations', violationCount: 1 },
@@ -484,7 +510,7 @@ describe('CLI ingress limits', () => {
       },
     });
     expect(readFileSync(join(home, 'memory', 'journal.log'), 'utf8')).toBe(
-      journalBefore
+      journalBefore,
     );
     expect(store.load('default').map(serializeClause)).toEqual([
       'status(mira, active).',
@@ -510,9 +536,12 @@ describe('CLI ingress limits', () => {
             expect: { kind: 'nonempty' },
           },
         ],
-      })
+      }),
     );
-    const journalBefore = readFileSync(join(home, 'memory', 'journal.log'), 'utf8');
+    const journalBefore = readFileSync(
+      join(home, 'memory', 'journal.log'),
+      'utf8',
+    );
 
     const result = spawnSync(
       process.execPath,
@@ -530,7 +559,7 @@ describe('CLI ingress limits', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
 
     expect(result.status).toBe(0);
@@ -550,7 +579,7 @@ describe('CLI ingress limits', () => {
       },
     });
     expect(readFileSync(join(home, 'memory', 'journal.log'), 'utf8')).toBe(
-      journalBefore
+      journalBefore,
     );
     expect(store.clausesFor(['default'])).toHaveLength(1);
   });
@@ -571,7 +600,7 @@ describe('CLI ingress limits', () => {
         '--assume-rule',
         'derived(X) :- base(X).',
       ],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
     expect(preview.status).toBe(0);
     writeFileSync(proposalFile, preview.stdout);
@@ -586,7 +615,7 @@ describe('CLI ingress limits', () => {
           '--op-id',
           'cli-reviewed-rule',
         ],
-        { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+        { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
       );
     const first = apply();
     expect(first.status).toBe(0);
@@ -603,7 +632,7 @@ describe('CLI ingress limits', () => {
     const queried = spawnSync(
       process.execPath,
       [resolve('dist/cli.js'), 'query', 'derived(X)'],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
     expect(JSON.parse(queried.stdout)).toEqual([{ X: 'a' }]);
   });
@@ -615,7 +644,7 @@ describe('CLI ingress limits', () => {
     store.assert(
       'default',
       'works_at(mira, initech). colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.',
-      { opId: 'employment-source' }
+      { opId: 'employment-source' },
     );
 
     const result = spawnSync(
@@ -632,7 +661,7 @@ describe('CLI ingress limits', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
 
     expect(result.status).toBe(0);
@@ -651,7 +680,13 @@ describe('CLI ingress limits', () => {
                     {
                       fact: 'works_at(mira, initech).',
                       explanation: {
-                        rows: [{ proofs: [{ sources: [{ opId: 'employment-source' }] }] }],
+                        rows: [
+                          {
+                            proofs: [
+                              { sources: [{ opId: 'employment-source' }] },
+                            ],
+                          },
+                        ],
                       },
                     },
                   ],
@@ -678,22 +713,16 @@ describe('CLI ingress limits', () => {
       `employee(alice).
        eligible(X) :- employee(X), \\+ suspended(X).
        :- eligible(X), blocked(X).`,
-      { opId: 'topology-source' }
+      { opId: 'topology-source' },
     );
 
     const result = spawnSync(
       process.execPath,
-      [
-        resolve('dist/cli.js'),
-        'topology',
-        'eligible',
-        '--direction',
-        'both',
-      ],
+      [resolve('dist/cli.js'), 'topology', 'eligible', '--direction', 'both'],
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
 
     expect(result.status).toBe(0);
@@ -720,18 +749,11 @@ describe('CLI ingress limits', () => {
 
     const result = spawnSync(
       process.execPath,
-      [
-        resolve('dist/cli.js'),
-        'diff',
-        '1',
-        '2',
-        '--query',
-        'item(Value)',
-      ],
+      [resolve('dist/cli.js'), 'diff', '1', '2', '--query', 'item(Value)'],
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
 
     expect(result.status).toBe(0);
@@ -753,7 +775,7 @@ describe('CLI ingress limits', () => {
     store.assert(
       'default',
       'employee(bob). ready(X) :- employee(X), badge(X), trained(X).',
-      { opId: 'baseline' }
+      { opId: 'baseline' },
     );
 
     const result = spawnSync(
@@ -770,7 +792,7 @@ describe('CLI ingress limits', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
 
     expect(result.status).toBe(0);
@@ -796,16 +818,22 @@ describe('CLI ingress limits', () => {
     store.assert(
       'default',
       'employee(bob). eligible(X) :- employee(X), \\+ blocked(X).',
-      { opId: 'baseline' }
+      { opId: 'baseline' },
     );
 
     const result = spawnSync(
       process.execPath,
-      [resolve('dist/cli.js'), 'audit-rules', 'eligible', '--direction', 'upstream'],
+      [
+        resolve('dist/cli.js'),
+        'audit-rules',
+        'eligible',
+        '--direction',
+        'upstream',
+      ],
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
 
     expect(result.status).toBe(2);
@@ -822,7 +850,10 @@ describe('CLI ingress limits', () => {
       topology: { selection: { focus: 'eligible/1', direction: 'upstream' } },
       graph: {
         nodes: expect.arrayContaining([
-          expect.objectContaining({ kind: 'finding', code: 'open_negated_input' }),
+          expect.objectContaining({
+            kind: 'finding',
+            code: 'open_negated_input',
+          }),
         ]),
       },
     });
@@ -855,7 +886,7 @@ describe('CLI ingress limits', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
 
     expect(result.status).toBe(0);
@@ -899,7 +930,7 @@ describe('CLI ingress limits', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
 
     expect(result.status).toBe(0);
@@ -926,7 +957,7 @@ describe('CLI ingress limits', () => {
       'default',
       `works_at(mira, acme). works_at(rahul, acme). lives_in(rahul, melbourne).
        colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.`,
-      { opId: 'connection-source' }
+      { opId: 'connection-source' },
     );
 
     const result = spawnSync(
@@ -945,7 +976,7 @@ describe('CLI ingress limits', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
 
     expect(result.status).toBe(0);
@@ -993,7 +1024,7 @@ describe('CLI ingress limits', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
     expect(exported.status).toBe(0);
     const bundle = JSON.parse(exported.stdout);
@@ -1016,7 +1047,7 @@ describe('CLI ingress limits', () => {
     const verified = spawnSync(
       process.execPath,
       [resolve('dist/cli.js'), 'verify-bundle', file],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
     expect(verified.status).toBe(0);
     expect(JSON.parse(verified.stdout)).toMatchObject({
@@ -1037,7 +1068,7 @@ describe('CLI ingress limits', () => {
     const exported = spawnSync(
       process.execPath,
       [resolve('dist/cli.js'), 'document-memorg'],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
 
     expect(exported.status).toBe(0);
@@ -1047,7 +1078,8 @@ describe('CLI ingress limits', () => {
       format: 'remembero-memorg-import',
       version: 1,
       target: { package: 'memorg', version: '0.1.2' },
-      sha256: '5890e2945a534d0b871f0fa70fdd54b918704bbd8e753544a2dacef8a09ca531',
+      sha256:
+        '5890e2945a534d0b871f0fa70fdd54b918704bbd8e753544a2dacef8a09ca531',
     });
     expect(artifact.items).toHaveLength(66);
 
@@ -1055,7 +1087,7 @@ describe('CLI ingress limits', () => {
     const verified = spawnSync(
       process.execPath,
       [resolve('dist/cli.js'), 'verify-document-memorg', file],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
     expect(verified.status).toBe(0);
     expect(JSON.parse(verified.stdout)).toMatchObject({
@@ -1075,7 +1107,9 @@ describe('CLI ingress limits', () => {
     const failingFile = join(root, 'failing.json');
     const coverageFile = join(root, 'coverage.json');
     const store = new MemoryStore(join(home, 'memory'));
-    store.assert('default', 'item(a). item(b). copy(X) :- item(X).', { opId: 'items' });
+    store.assert('default', 'item(a). item(b). copy(X) :- item(X).', {
+      opId: 'items',
+    });
     writeFileSync(
       passingFile,
       JSON.stringify({
@@ -1091,7 +1125,7 @@ describe('CLI ingress limits', () => {
             },
           },
         ],
-      })
+      }),
     );
     writeFileSync(
       failingFile,
@@ -1104,7 +1138,7 @@ describe('CLI ingress limits', () => {
             expect: { kind: 'nonempty' },
           },
         ],
-      })
+      }),
     );
     writeFileSync(
       coverageFile,
@@ -1122,13 +1156,17 @@ describe('CLI ingress limits', () => {
             },
           },
         ],
-      })
+      }),
     );
     const run = (file: string) =>
-      spawnSync(process.execPath, [resolve('dist/cli.js'), 'test-knowledge', file], {
-        encoding: 'utf8',
-        env: { ...process.env, REMBERO_HOME: home },
-      });
+      spawnSync(
+        process.execPath,
+        [resolve('dist/cli.js'), 'test-knowledge', file],
+        {
+          encoding: 'utf8',
+          env: { ...process.env, REMBERO_HOME: home },
+        },
+      );
     const passing = run(passingFile);
     expect(passing.status).toBe(0);
     expect(JSON.parse(passing.stdout)).toMatchObject({
@@ -1173,21 +1211,16 @@ describe('CLI ingress limits', () => {
       'default',
       `${Array.from(
         { length: 200 },
-        (_, index) => `related(person_${index}, topic_${index % 5}).`
+        (_, index) => `related(person_${index}, topic_${index % 5}).`,
       ).join('\n')}
        selected(person_199).
        relevant(X, Y) :- selected(X), related(X, Y).`,
-      { opId: 'profile-program' }
+      { opId: 'profile-program' },
     );
     const result = spawnSync(
       process.execPath,
-      [
-        resolve('dist/cli.js'),
-        'profile',
-        'relevant(X, Y)',
-        '--compare-scan',
-      ],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      [resolve('dist/cli.js'), 'profile', 'relevant(X, Y)', '--compare-scan'],
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
     expect(result.status).toBe(0);
     const payload = JSON.parse(result.stdout);
@@ -1198,7 +1231,9 @@ describe('CLI ingress limits', () => {
       },
       workReduction: { candidateFactsAvoided: expect.any(Number) },
     });
-    expect(JSON.stringify(payload)).not.toMatch(/duration|elapsed|millisecond/i);
+    expect(JSON.stringify(payload)).not.toMatch(
+      /duration|elapsed|millisecond/i,
+    );
   });
 
   it('supersedes multiple fact patterns with exact valid-time archives and safe retries', () => {
@@ -1226,7 +1261,7 @@ describe('CLI ingress limits', () => {
           '--op-id',
           'cli-employment-correction',
         ],
-        { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+        { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
       );
 
     const first = run('works_at(mira, initech). title(mira, lead).');
@@ -1253,17 +1288,23 @@ describe('CLI ingress limits', () => {
       namespace: 'personal',
       opId: 'cli-employment-correction',
     });
-    expect(new MemoryStore(join(home, 'memory')).load('personal').map(serializeClause).sort())
-      .toEqual([
+    expect(
+      new MemoryStore(join(home, 'memory'))
+        .load('personal')
+        .map(serializeClause)
+        .sort(),
+    ).toEqual(
+      [
         'title(mira, lead).',
         "title_until(mira, engineer, '2026-08-16T16:59:00.000Z').",
         'works_at(mira, initech).',
         "works_at_until(mira, acme, '2026-08-16T16:59:00.000Z').",
-      ].sort());
+      ].sort(),
+    );
 
     new MemoryStore(join(home, 'memory')).assert(
       'personal',
-      'temporary_assignment(mira, atlas).'
+      'temporary_assignment(mira, atlas).',
     );
     const ended = spawnSync(
       process.execPath,
@@ -1279,7 +1320,7 @@ describe('CLI ingress limits', () => {
         '--op-id',
         'cli-assignment-ended',
       ],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
     expect(ended.status).toBe(0);
     expect(JSON.parse(ended.stdout)).toEqual({
@@ -1296,12 +1337,20 @@ describe('CLI ingress limits', () => {
   it('requires supersede patterns and a canonical UTC timestamp', () => {
     const root = mkdtempSync(join(tmpdir(), 'rembero-cli-supersede-invalid-'));
     const home = join(root, 'home');
-    new MemoryStore(join(home, 'memory')).assert('default', 'status(mira, active).');
+    new MemoryStore(join(home, 'memory')).assert(
+      'default',
+      'status(mira, active).',
+    );
     const run = (extra: string[]) =>
       spawnSync(
         process.execPath,
-        [resolve('dist/cli.js'), 'supersede', 'status(mira, paused).', ...extra],
-        { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+        [
+          resolve('dist/cli.js'),
+          'supersede',
+          'status(mira, paused).',
+          ...extra,
+        ],
+        { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
       );
 
     const noPattern = run([]);
@@ -1323,9 +1372,11 @@ describe('CLI ingress limits', () => {
     ]);
     expect(destructiveMode.status).toBe(1);
     expect(destructiveMode.stderr).toMatch(/always preserves _until history/i);
-    expect(new MemoryStore(join(home, 'memory')).load('default').map(serializeClause)).toEqual([
-      'status(mira, active).',
-    ]);
+    expect(
+      new MemoryStore(join(home, 'memory'))
+        .load('default')
+        .map(serializeClause),
+    ).toEqual(['status(mira, active).']);
   });
 
   it('rejects operation ids on commands without idempotent write semantics', () => {
@@ -1336,12 +1387,12 @@ describe('CLI ingress limits', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: join(root, 'home') },
-      }
+      },
     );
 
     expect(result.status).toBe(1);
     expect(result.stderr).toMatch(
-      /--op-id is available for assert, accept, reject, supersede, forget, import, checkpoint, apply-rule-change, and apply-memory/i
+      /--op-id is available for assert, accept, reject, supersede, forget, import, checkpoint, apply-rule-change, and apply-memory/i,
     );
   });
 
@@ -1359,10 +1410,12 @@ describe('CLI ingress limits', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: join(root, 'home') },
-      }
+      },
     );
     expect(result.status).toBe(1);
-    expect(result.stderr).toMatch(/available only for serve, recall, or recall-explain/i);
+    expect(result.stderr).toMatch(
+      /available only for serve, recall, or recall-explain/i,
+    );
   });
 
   it('queries an exact recorded snapshot without changing current knowledge', () => {
@@ -1383,7 +1436,7 @@ describe('CLI ingress limits', () => {
         '--as-of-sequence',
         '1',
       ],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
 
     expect(result.status).toBe(0);
@@ -1395,7 +1448,9 @@ describe('CLI ingress limits', () => {
         namespaces: ['default'],
       },
     });
-    expect(store.load('default').map(serializeClause)).toEqual(['status(mira, paused).']);
+    expect(store.load('default').map(serializeClause)).toEqual([
+      'status(mira, paused).',
+    ]);
   });
 
   it('exports one complete result support graph without changing query rows', () => {
@@ -1406,7 +1461,7 @@ describe('CLI ingress limits', () => {
       'default',
       `parent(alice, bob). parent(bob, carol). parent(carol, dan).
        ancestor(X, Y) :- parent(X, Y).
-       ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y).`
+       ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y).`,
     );
 
     const result = spawnSync(
@@ -1418,12 +1473,16 @@ describe('CLI ingress limits', () => {
         '--graph-result',
         '2',
       ],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
 
     expect(result.status).toBe(0);
     const payload = JSON.parse(result.stdout);
-    expect(payload.rows.map((row: { bindings: Record<string, string> }) => row.bindings)).toEqual([
+    expect(
+      payload.rows.map(
+        (row: { bindings: Record<string, string> }) => row.bindings,
+      ),
+    ).toEqual([
       { Descendant: 'bob' },
       { Descendant: 'carol' },
       { Descendant: 'dan' },
@@ -1433,13 +1492,21 @@ describe('CLI ingress limits', () => {
     });
     expect(payload.graph.nodes).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ kind: 'claim', predicate: 'parent', values: ['bob', 'carol'] }),
-      ])
+        expect.objectContaining({
+          kind: 'claim',
+          predicate: 'parent',
+          values: ['bob', 'carol'],
+        }),
+      ]),
     );
     expect(payload.graph.nodes).not.toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ kind: 'claim', predicate: 'parent', values: ['carol', 'dan'] }),
-      ])
+        expect.objectContaining({
+          kind: 'claim',
+          predicate: 'parent',
+          values: ['carol', 'dan'],
+        }),
+      ]),
     );
   });
 
@@ -1459,7 +1526,7 @@ describe('CLI ingress limits', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: join(root, 'home') },
-      }
+      },
     );
 
     expect(result.status).toBe(1);
@@ -1474,13 +1541,13 @@ describe('CLI ingress limits', () => {
       'default',
       `rembero_alias('Mira Patel', mira).
        rembero_entity_position(works_at, 2, 0).
-       works_at('Mira Patel', acme).`
+       works_at('Mira Patel', acme).`,
     );
 
     const literal = spawnSync(
       process.execPath,
       [resolve('dist/cli.js'), 'query', 'works_at(mira, Company)'],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
     const canonical = spawnSync(
       process.execPath,
@@ -1491,7 +1558,7 @@ describe('CLI ingress limits', () => {
         '--entity-identity',
         'canonical',
       ],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
 
     expect(literal.status).toBe(0);
@@ -1510,7 +1577,15 @@ describe('CLI ingress limits', () => {
         'assert',
         'status(mira, active). status(mira, terminated). :- status(Person, active), status(Person, terminated).',
       ],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      // seeding a violating store requires opting out of the default gate
+      {
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          REMBERO_HOME: home,
+          REMBERO_INTEGRITY_MODE: 'off',
+        },
+      },
     );
     expect(asserted.status).toBe(0);
     expect(JSON.parse(asserted.stdout).added).toHaveLength(3);
@@ -1518,7 +1593,7 @@ describe('CLI ingress limits', () => {
     const result = spawnSync(
       process.execPath,
       [resolve('dist/cli.js'), 'check', '--max-violations', '10'],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
 
     expect(result.status).toBe(2);
@@ -1534,17 +1609,15 @@ describe('CLI ingress limits', () => {
     const root = mkdtempSync(join(tmpdir(), 'rembero-cli-health-'));
     const home = join(root, 'home');
     const store = new MemoryStore(join(home, 'memory'));
-    store.assert(
-      'default',
-      'employee(alice). :- employee(X), suspended(X).',
-      { opId: 'health-baseline' }
-    );
+    store.assert('default', 'employee(alice). :- employee(X), suspended(X).', {
+      opId: 'health-baseline',
+    });
     store.assert('default', 'suspended(alice).', { opId: 'health-violation' });
     const runHealth = (extra: string[] = []) =>
       spawnSync(
         process.execPath,
         [resolve('dist/cli.js'), 'health', '--namespaces', 'default', ...extra],
-        { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+        { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
       );
 
     const current = runHealth();
@@ -1577,7 +1650,7 @@ describe('CLI ingress limits', () => {
             expect: { kind: 'empty' },
           },
         ],
-      })
+      }),
     );
     const env = {
       ...process.env,
@@ -1588,8 +1661,14 @@ describe('CLI ingress limits', () => {
     };
     const safe = spawnSync(
       process.execPath,
-      [resolve('dist/cli.js'), 'assert', 'safe(a).', '--op-id', 'safe-check-write'],
-      { encoding: 'utf8', env }
+      [
+        resolve('dist/cli.js'),
+        'assert',
+        'safe(a).',
+        '--op-id',
+        'safe-check-write',
+      ],
+      { encoding: 'utf8', env },
     );
     expect(safe.status).toBe(0);
 
@@ -1602,7 +1681,7 @@ describe('CLI ingress limits', () => {
         '--op-id',
         'blocked-check-write',
       ],
-      { encoding: 'utf8', env }
+      { encoding: 'utf8', env },
     );
     expect(blocked.status).toBe(8);
     expect(JSON.parse(blocked.stderr)).toMatchObject({
@@ -1611,7 +1690,9 @@ describe('CLI ingress limits', () => {
       candidate: { status: 'failed' },
     });
     expect(
-      new MemoryStore(join(home, 'memory')).load('default').map(serializeClause)
+      new MemoryStore(join(home, 'memory'))
+        .load('default')
+        .map(serializeClause),
     ).toEqual(['safe(a).']);
   });
 
@@ -1622,14 +1703,14 @@ describe('CLI ingress limits', () => {
     store.assert(
       'default',
       'status(mira, active). :- status(Person, active), status(Person, terminated).',
-      { opId: 'baseline' }
+      { opId: 'baseline' },
     );
     store.assert('default', 'status(mira, terminated).', { opId: 'later' });
 
     const current = spawnSync(
       process.execPath,
       [resolve('dist/cli.js'), 'conflicts', 'mira'],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
     expect(current.status).toBe(2);
     expect(JSON.parse(current.stdout)).toMatchObject({
@@ -1642,14 +1723,8 @@ describe('CLI ingress limits', () => {
 
     const recorded = spawnSync(
       process.execPath,
-      [
-        resolve('dist/cli.js'),
-        'conflicts',
-        'mira',
-        '--as-of-sequence',
-        '1',
-      ],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      [resolve('dist/cli.js'), 'conflicts', 'mira', '--as-of-sequence', '1'],
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
     expect(recorded.status).toBe(0);
     expect(JSON.parse(recorded.stdout)).toMatchObject({
@@ -1667,13 +1742,13 @@ describe('CLI ingress limits', () => {
     const store = new MemoryStore(join(home, 'memory'));
     store.assert(
       'default',
-      'status(mira, active). :- status(Person, active), status(Person, terminated).'
+      'status(mira, active). :- status(Person, active), status(Person, terminated).',
     );
 
     const result = spawnSync(
       process.execPath,
       [resolve('dist/cli.js'), 'check'],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
 
     expect(result.status).toBe(0);
@@ -1689,7 +1764,7 @@ describe('CLI ingress limits', () => {
     const store = new MemoryStore(join(home, 'memory'));
     store.assert(
       'default',
-      'active(mira). :- active(Person), suspended(Person).'
+      'active(mira). :- active(Person), suspended(Person).',
     );
     const before = readFileSync(join(home, 'memory', 'default.dl'), 'utf8');
 
@@ -1702,7 +1777,7 @@ describe('CLI ingress limits', () => {
         '--integrity-mode',
         'strict',
       ],
-      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } }
+      { encoding: 'utf8', env: { ...process.env, REMBERO_HOME: home } },
     );
 
     expect(result.status).toBe(3);
@@ -1715,17 +1790,21 @@ describe('CLI ingress limits', () => {
         checks: [{ rows: [{ bindings: { Person: 'mira' } }] }],
       },
     });
-    expect(readFileSync(join(home, 'memory', 'default.dl'), 'utf8')).toBe(before);
+    expect(readFileSync(join(home, 'memory', 'default.dl'), 'utf8')).toBe(
+      before,
+    );
   });
 
   it('supports migration-friendly no-new-violations enforcement from the environment', () => {
-    const root = mkdtempSync(join(tmpdir(), 'rembero-cli-enforcement-migrate-'));
+    const root = mkdtempSync(
+      join(tmpdir(), 'rembero-cli-enforcement-migrate-'),
+    );
     const home = join(root, 'home');
     const store = new MemoryStore(join(home, 'memory'));
     store.assert(
       'default',
       `active(mira). suspended(mira).
-       :- active(Person), suspended(Person).`
+       :- active(Person), suspended(Person).`,
     );
     const env = {
       ...process.env,
@@ -1736,14 +1815,14 @@ describe('CLI ingress limits', () => {
     const unrelated = spawnSync(
       process.execPath,
       [resolve('dist/cli.js'), 'assert', 'project(atlas).'],
-      { encoding: 'utf8', env }
+      { encoding: 'utf8', env },
     );
     expect(unrelated.status).toBe(0);
 
     const newViolation = spawnSync(
       process.execPath,
       [resolve('dist/cli.js'), 'assert', 'active(alex). suspended(alex).'],
-      { encoding: 'utf8', env }
+      { encoding: 'utf8', env },
     );
     expect(newViolation.status).toBe(3);
     expect(JSON.parse(newViolation.stderr)).toMatchObject({
@@ -1763,7 +1842,7 @@ describe('auto-capture CLI', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, CLAUDE_CONFIG_DIR: root },
-      }
+      },
     );
 
     expect(result.status).toBe(1);
@@ -1776,8 +1855,12 @@ describe('auto-capture CLI', () => {
     const settingsPath = join(root, 'settings.json');
     writeFileSync(
       settingsPath,
-      JSON.stringify({ hooks: { Stop: [{ hooks: [{ type: 'command', command: 'existing' }] }] } }),
-      'utf8'
+      JSON.stringify({
+        hooks: {
+          Stop: [{ hooks: [{ type: 'command', command: 'existing' }] }],
+        },
+      }),
+      'utf8',
     );
 
     const install = spawnSync(
@@ -1794,13 +1877,13 @@ describe('auto-capture CLI', () => {
         '--tail-bytes',
         '8192',
       ],
-      { encoding: 'utf8', env: { ...process.env } }
+      { encoding: 'utf8', env: { ...process.env } },
     );
     expect(install.status).toBe(0);
     expect(install.stdout).toContain('installed Remembero Claude hook');
     const installed = JSON.parse(readFileSync(settingsPath, 'utf8'));
     const handlers = installed.hooks.Stop.flatMap(
-      (group: { hooks: Record<string, unknown>[] }) => group.hooks
+      (group: { hooks: Record<string, unknown>[] }) => group.hooks,
     );
     expect(handlers).toEqual(
       expect.arrayContaining([
@@ -1810,13 +1893,19 @@ describe('auto-capture CLI', () => {
           async: true,
           args: expect.arrayContaining(['remember', '--batch', 'personal']),
         }),
-      ])
+      ]),
     );
 
     const remove = spawnSync(
       process.execPath,
-      [resolve('dist/cli.js'), 'init-hooks', '--remove', '--settings', settingsPath],
-      { encoding: 'utf8', env: { ...process.env } }
+      [
+        resolve('dist/cli.js'),
+        'init-hooks',
+        '--remove',
+        '--settings',
+        settingsPath,
+      ],
+      { encoding: 'utf8', env: { ...process.env } },
     );
     expect(remove.status).toBe(0);
     const removed = JSON.parse(readFileSync(settingsPath, 'utf8'));
@@ -1832,12 +1921,17 @@ describe('auto-capture CLI', () => {
     const captureId = 'capture-review-cli';
     const opId = 'operation-review-cli';
     const now = new Date();
-    store.note('personal', 'auto_capture', {
-      captureId,
-      status: 'started',
-      source: 'claude-stop',
-      sessionId: 'session-review-cli',
-    }, now);
+    store.note(
+      'personal',
+      'auto_capture',
+      {
+        captureId,
+        status: 'started',
+        source: 'claude-stop',
+        sessionId: 'session-review-cli',
+      },
+      now,
+    );
     store.assert('personal', 'prefers_theme(user, dark).', {
       captureId,
       opId,
@@ -1845,7 +1939,13 @@ describe('auto-capture CLI', () => {
       sourceText: 'Auto-captured from a Claude Code Stop hook',
       at: now,
     });
-    store.finishAutoCapture('personal', captureId, 'captured', { added: 1 }, now);
+    store.finishAutoCapture(
+      'personal',
+      captureId,
+      'captured',
+      { added: 1 },
+      now,
+    );
 
     const review = spawnSync(
       process.execPath,
@@ -1853,7 +1953,7 @@ describe('auto-capture CLI', () => {
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
     expect(review.status).toBe(0);
     expect(JSON.parse(review.stdout).facts).toEqual([
@@ -1865,11 +1965,18 @@ describe('auto-capture CLI', () => {
 
     const prune = spawnSync(
       process.execPath,
-      [resolve('dist/cli.js'), 'review', '--namespace', 'personal', '--forget', '1'],
+      [
+        resolve('dist/cli.js'),
+        'review',
+        '--namespace',
+        'personal',
+        '--forget',
+        '1',
+      ],
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
     expect(prune.status).toBe(0);
     expect(prune.stdout).toContain('removed 1 auto-captured fact');
@@ -1884,7 +1991,7 @@ describe('auto-capture CLI', () => {
         namespace: string,
         patterns: string[],
         replacements: string,
-        context?: Record<string, unknown>
+        context?: Record<string, unknown>,
       ) => unknown;
     };
 
@@ -1893,19 +2000,31 @@ describe('auto-capture CLI', () => {
       sourceText: 'Mira works at Acme.',
       at: new Date('2026-08-10T09:00:00.000Z'),
     });
-    store.supersede('personal', ['works_at(mira, _)'], 'works_at(mira, initech).', {
-      opId: 'source-2',
-      sourceText: 'Mira now works at Initech.',
-      at: new Date('2026-08-16T16:59:00.000Z'),
-    });
+    store.supersede(
+      'personal',
+      ['works_at(mira, _)'],
+      'works_at(mira, initech).',
+      {
+        opId: 'source-2',
+        sourceText: 'Mira now works at Initech.',
+        at: new Date('2026-08-16T16:59:00.000Z'),
+      },
+    );
 
     const result = spawnSync(
       process.execPath,
-      [resolve('dist/cli.js'), 'history', 'works_at(mira, _)', '--namespace', 'personal', '--json'],
+      [
+        resolve('dist/cli.js'),
+        'history',
+        'works_at(mira, _)',
+        '--namespace',
+        'personal',
+        '--json',
+      ],
       {
         encoding: 'utf8',
         env: { ...process.env, REMBERO_HOME: home },
-      }
+      },
     );
 
     expect(result.status).toBe(0);

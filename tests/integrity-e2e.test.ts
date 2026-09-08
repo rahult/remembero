@@ -20,7 +20,13 @@ describe('v0.9 integrity end to end', () => {
   it('is byte-stable across CLI, reload, MCP, and a resolving mutation', async () => {
     const root = mkdtempSync(join(tmpdir(), 'rembero-integrity-e2e-'));
     const home = join(root, 'home');
-    const env = { ...process.env, REMBERO_HOME: home };
+    // The gate is on by default; this test deliberately seeds a violating store
+    // to exercise `check`, so it opts out explicitly for the seed write.
+    const env = {
+      ...process.env,
+      REMBERO_HOME: home,
+      REMBERO_INTEGRITY_MODE: 'off',
+    };
     const cli = resolve('dist/cli.js');
     const program = [
       'status(mira, active).',
@@ -44,21 +50,23 @@ describe('v0.9 integrity end to end', () => {
     expect(second.status).toBe(2);
     expect(second.stdout).toBe(first.stdout);
     const cliPayload = JSON.parse(first.stdout);
-    expect(cliPayload.checks[0].rows.map((row: { bindings: unknown }) => row.bindings)).toEqual([
-      { Person: 'mira' },
-      { Person: 'zoe' },
-    ]);
+    expect(
+      cliPayload.checks[0].rows.map(
+        (row: { bindings: unknown }) => row.bindings,
+      ),
+    ).toEqual([{ Person: 'mira' }, { Person: 'zoe' }]);
 
     const store = new MemoryStore(join(home, 'memory'));
     const direct = checkIntegrity(
       store.clausesFor(['default']),
-      store.sourcesFor(['default'])
+      store.sourcesFor(['default']),
     );
     expect(direct).toEqual(cliPayload);
 
     const server = createServer({ store, llm: new ForbiddenLlm() });
     const client = new Client({ name: 'integrity-e2e', version: '1.0.0' });
-    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
     await server.connect(serverTransport);
     await client.connect(clientTransport);
     try {
@@ -73,7 +81,7 @@ describe('v0.9 integrity end to end', () => {
       const forgotten = spawnSync(
         process.execPath,
         [cli, 'forget', 'status(mira, terminated)'],
-        { encoding: 'utf8', env }
+        { encoding: 'utf8', env },
       );
       expect(forgotten.status).toBe(0);
 
@@ -91,10 +99,12 @@ describe('v0.9 integrity end to end', () => {
         name: 'check_integrity',
         arguments: {},
       });
-      const againText = checkedAgain.content.find((item) => item.type === 'text');
-      expect(JSON.parse(againText?.type === 'text' ? againText.text : '')).toEqual(
-        resolvedPayload
+      const againText = checkedAgain.content.find(
+        (item) => item.type === 'text',
       );
+      expect(
+        JSON.parse(againText?.type === 'text' ? againText.text : ''),
+      ).toEqual(resolvedPayload);
     } finally {
       await client.close();
       await server.close();
