@@ -30,8 +30,10 @@ import {
 import { generateWorld } from './worlds.js';
 
 export interface RunOptions {
-  /** Target number of verified templated examples before paraphrasing. */
+  /** Target number of verified templated examples before paraphrasing (ignored when rounds is set). */
   examples: number;
+  /** Draw exactly this many candidate rounds per world; keeps data size comparable across runs. */
+  rounds?: number;
   worlds: number;
   paraphrases: number;
   seed: number;
@@ -53,11 +55,15 @@ export async function generateTrainingData(
   const seen = new Set<string>();
   // Draw candidates with a fresh rng each round (new anchors and phrasings)
   // until the target is met; identical (world, question, program) triples are dropped.
+  const roundLimit = options.rounds ?? MAX_ROUNDS;
+  let roundsDrawn = 0;
   for (
     let round = 0;
-    round < MAX_ROUNDS && examples.length < options.examples;
+    round < roundLimit &&
+    (options.rounds !== undefined || examples.length < options.examples);
     round += 1
   ) {
+    roundsDrawn = round + 1;
     let added = 0;
     const roundCandidates = [];
     const roundRejections: Rejection[] = [];
@@ -80,7 +86,7 @@ export async function generateTrainingData(
     }
     // judged across all worlds: one world's single rejected candidate is not a template bug
     if (round === 0) assertRejectionRates(roundCandidates, roundRejections);
-    if (added === 0) break; // templates exhausted for these worlds
+    if (added === 0 && options.rounds === undefined) break; // templates exhausted
   }
 
   const heldout = chooseHeldoutWorlds(worlds);
@@ -110,6 +116,7 @@ export async function generateTrainingData(
     seed: options.seed,
     paraphraseModel: model,
     paraphrasesPerExample: model ? options.paraphrases : 0,
+    rounds: roundsDrawn,
   });
   mkdirSync(options.out, { recursive: true });
   writeFileSync(join(options.out, 'conversations.jsonl'), train);
@@ -135,6 +142,9 @@ const invokedDirectly =
 if (invokedDirectly) {
   const manifest = await generateTrainingData({
     examples: Number(flag('--examples', '3000')),
+    ...(process.argv.includes('--rounds')
+      ? { rounds: Number(flag('--rounds', '4')) }
+      : {}),
     worlds: Number(flag('--worlds', '60')),
     paraphrases: Number(flag('--paraphrases', '3')),
     seed: Number(flag('--seed', '7')),

@@ -8,7 +8,9 @@ Manual and paid. Confirm before running.
         --log-path runs/tinker/llama-3.2-3b-dialect
 
 Reads TINKER_API_KEY from .env at the repository root. Field names follow
-tinker_cookbook.supervised.train.Config at cookbook commit 1f962ed.
+tinker_cookbook.supervised.train.Config at cookbook commit 1f962ed. Held-out
+loss ("heldout/nll") is computed on heldout.jsonl — whole worlds never seen in
+training — not on a slice of the training file.
 """
 
 from __future__ import annotations
@@ -24,6 +26,8 @@ from tinker_cookbook import cli_utils, model_info
 from tinker_cookbook.renderers import TrainOnWhat
 from tinker_cookbook.supervised import train
 from tinker_cookbook.supervised.data import FromConversationFileBuilder
+from tinker_cookbook.supervised.nll_evaluator import NLLEvaluator
+from tinker_cookbook.tokenizer_utils import get_tokenizer
 from tinker_cookbook.supervised.types import ChatDatasetBuilderCommonConfig
 
 # Smallest models Tinker lists (model_info.py at 1f962ed). No Qwen 3.5 2B exists there.
@@ -48,8 +52,15 @@ def main() -> None:
     parser.add_argument("--lr", type=float, default=2e-4)
     parser.add_argument("--lora-rank", type=int, default=32)
     parser.add_argument("--batch-size", type=int, default=64)
-    parser.add_argument("--test-size", type=int, default=100)
+    parser.add_argument(
+        "--heldout",
+        default=None,
+        help="heldout.jsonl (whole held-out worlds); defaults to the file next to --data",
+    )
     args = parser.parse_args()
+    heldout_path = Path(args.heldout) if args.heldout else Path(args.data).with_name("heldout.jsonl")
+    if not heldout_path.exists():
+        raise SystemExit(f"held-out file not found: {heldout_path}")
 
     model_name = f"{ORG[args.model]}/{args.model}"
     renderer_name = model_info.get_recommended_renderer_name(model_name)
@@ -60,9 +71,18 @@ def main() -> None:
         batch_size=args.batch_size,
         train_on_what=TrainOnWhat.ALL_ASSISTANT_MESSAGES,
     )
-    dataset = FromConversationFileBuilder(
-        common_config=common, file_path=args.data, test_size=args.test_size
+    # test_size=0: never slice the training file for evaluation. Held-out loss
+    # comes from heldout.jsonl, whose worlds are absent from training.
+    dataset = FromConversationFileBuilder(common_config=common, file_path=args.data, test_size=0)
+    heldout_builder = FromConversationFileBuilder(
+        common_config=common, file_path=str(heldout_path), test_size=0
     )
+
+    def heldout_evaluator() -> NLLEvaluator:
+        heldout_dataset, _ = heldout_builder()
+        return NLLEvaluator.from_dataset(
+            heldout_dataset, name="heldout", tokenizer=get_tokenizer(model_name)
+        )
     config = (
         chz.Blueprint(train.Config)
         .apply(
@@ -76,6 +96,7 @@ def main() -> None:
                 "lr_schedule": "linear",
                 "num_epochs": args.epochs,
                 "lora_rank": args.lora_rank,
+                "evaluator_builders": [heldout_evaluator],
                 "eval_every": 20,
                 "save_every": 50,
             }

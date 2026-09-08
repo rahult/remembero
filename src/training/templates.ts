@@ -396,6 +396,48 @@ export function generateCandidates(world: World, rng: Rng): Candidate[] {
     }
   }
 
+  // ---- schedules (ternary) ------------------------------------------------
+  for (const schedule of relationsOfKind(world, 'schedule')) {
+    const groupsWithSlots = atomValues(
+      evaluate(clauses, parseQuery(`${schedule.name}(G, _, _).`)),
+      'G',
+    );
+    for (const g of rng.shuffle(groupsWithSlots).slice(0, 2)) {
+      add({
+        category: 'direct',
+        direction: 'none',
+        template: 'schedule-lookup',
+        expectEmpty: false,
+        requiresClosure: false,
+        question: rng.pick([
+          `When is the ${schedule.name} for ${g}? Give the ${lower(schedule.args[1])} and ${lower(schedule.args[2])}.`,
+          `What ${lower(schedule.args[1])} and ${lower(schedule.args[2])} does ${g} have for ${schedule.name}?`,
+        ]),
+        program: `q(D, W) :- ${schedule.name}(${g}, D, W).`,
+      });
+    }
+    for (const group of groups) {
+      if (group.args[1] !== schedule.args[0]) continue; // schedule is keyed by this group kind
+      const missing = evaluate(
+        clauses,
+        parseQuery(`${group.name}(_, G), \\+ ${schedule.name}(G, _, _).`),
+      );
+      if (missing.length === 0) continue;
+      add({
+        category: 'absence',
+        direction: 'none',
+        template: 'schedule-absence',
+        expectEmpty: false,
+        requiresClosure: false,
+        question: rng.pick([
+          `Which ${lower(group.args[1])} has no ${schedule.name} scheduled?`,
+          `List every ${lower(group.args[1])} without a ${schedule.name}.`,
+        ]),
+        program: `q(G) :- ${group.name}(_, G), \\+ ${schedule.name}(G, _, _).`,
+      });
+    }
+  }
+
   // ---- absence ------------------------------------------------------------
   for (const group of groups) {
     for (const attr of attributes) {

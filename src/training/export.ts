@@ -53,6 +53,8 @@ export interface Manifest {
   rejectionsByTemplate: Record<string, number>;
   paraphraseModel: string | null;
   paraphrasesPerExample: number;
+  /** Candidate rounds drawn per world. */
+  rounds: number;
 }
 
 /** Deterministic holdout: the highest-seeded worlds. */
@@ -88,6 +90,7 @@ export function exportDataset(input: {
   seed: number;
   paraphraseModel: string | null;
   paraphrasesPerExample: number;
+  rounds?: number;
 }): { train: string; heldout: string; manifest: Manifest } {
   const byId = new Map(input.worlds.map((w) => [w.id, w]));
   const train: string[] = [];
@@ -116,6 +119,7 @@ export function exportDataset(input: {
       ),
       paraphraseModel: input.paraphraseModel,
       paraphrasesPerExample: input.paraphrasesPerExample,
+      rounds: input.rounds ?? 0,
     },
   };
 }

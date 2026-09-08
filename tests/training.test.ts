@@ -238,6 +238,32 @@ describe('training: templates', () => {
     expect(seen).toBeGreaterThan(10);
   });
 
+  it('queries ternary schedule relations, including absence over them', () => {
+    let lookups = 0;
+    let absences = 0;
+    for (let seed = 1; seed <= 40; seed += 1) {
+      const world = generateWorld(seed);
+      const schedule = relationsOfKind(world, 'schedule')[0];
+      if (!schedule) continue;
+      for (const candidate of generateCandidates(world, createRng(seed))) {
+        if (candidate.template === 'schedule-lookup') {
+          lookups += 1;
+          expect(candidate.program).toMatch(
+            new RegExp(
+              `^q\\(D, W\\) :- ${schedule.name}\\([a-z_]+, D, W\\)\\.$`,
+            ),
+          );
+        }
+        if (candidate.template === 'schedule-absence') {
+          absences += 1;
+          expect(candidate.program).toContain(`\\+ ${schedule.name}(G, _, _)`);
+        }
+      }
+    }
+    expect(lookups).toBeGreaterThan(5);
+    expect(absences).toBeGreaterThan(5);
+  });
+
   it('never emits a recursive rule', () => {
     for (let seed = 1; seed <= 20; seed += 1) {
       const world = generateWorld(seed);
@@ -493,6 +519,30 @@ describe('training: export', () => {
 });
 
 describe('training: run', () => {
+  it('draws exactly the requested number of rounds when --rounds is given', async () => {
+    const out = mkdtempSync(join(tmpdir(), 'train-rounds-'));
+    const one = await generateTrainingData({
+      examples: 0,
+      rounds: 1,
+      worlds: 4,
+      paraphrases: 0,
+      seed: 11,
+      out,
+      paraphrase: false,
+    });
+    const two = await generateTrainingData({
+      examples: 0,
+      rounds: 2,
+      worlds: 4,
+      paraphrases: 0,
+      seed: 11,
+      out,
+      paraphrase: false,
+    });
+    expect(two.train + two.heldout).toBeGreaterThan(one.train + one.heldout);
+    expect(two.rounds).toBe(2);
+  });
+
   it('generates at least the requested number of verified examples without paraphrasing', async () => {
     const out = mkdtempSync(join(tmpdir(), 'train-'));
     const manifest = await generateTrainingData({
