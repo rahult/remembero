@@ -3,6 +3,7 @@
  *
  *   node dist/evals/run-agent-boundary.js --model llama3.2:3b [--seeds 7,42,123]
  *       [--conditions remembero-closure] [--chat-api openai]  (OLLAMA_URL = base URL)
+ *       [--answer-model llama3.2:3b --answer-chat-api ollama]  (ANSWER_URL = its base URL)
  *
  * Same seeded SQLite database, same model; the model authors every query
  * itself. The sql condition executes model-written read-only SQL with no
@@ -37,7 +38,9 @@ import {
 import {
   chatRequest,
   parseChatResponse,
+  resolveAnswerLeg,
   resolveChatBackend,
+  type ChatBackend,
   type ChatMessage,
 } from './agent-boundary-chat.js';
 import { applyGatedWrite } from './agent-boundary-gate.js';
@@ -60,8 +63,9 @@ async function chat(
   model: string,
   messages: ChatMessage[],
   seed: number,
+  leg: { backend: ChatBackend; url: string } = { backend: CHAT_BACKEND, url: CHAT_URL },
 ): Promise<string> {
-  const request = chatRequest(CHAT_BACKEND, CHAT_URL, model, messages, seed);
+  const request = chatRequest(leg.backend, leg.url, model, messages, seed);
   const response = await fetch(request.url, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -69,11 +73,14 @@ async function chat(
   });
   if (!response.ok) {
     throw new Error(
-      `${CHAT_BACKEND} returned ${response.status}: ${await response.text()}`,
+      `${leg.backend} returned ${response.status}: ${await response.text()}`,
     );
   }
-  return parseChatResponse(CHAT_BACKEND, await response.json());
+  return parseChatResponse(leg.backend, await response.json());
 }
+
+// Answer leg: defaults to the query model; --answer-model overrides (see resolveAnswerLeg).
+let ANSWER_LEG: { model: string; backend: ChatBackend; url: string } | undefined;
 
 interface QuestionOutcome {
   id: string;
@@ -199,8 +206,9 @@ async function runQuestion(
     }
 
     const shown = rows.slice(0, MAX_RESULT_ROWS);
+    const answerLeg = ANSWER_LEG ?? { model, backend: CHAT_BACKEND, url: CHAT_URL };
     const answer = await chat(
-      model,
+      answerLeg.model,
       [
         { role: 'system', content: answerSystemPrompt() },
         {
@@ -209,6 +217,7 @@ async function runQuestion(
         },
       ],
       seed,
+      answerLeg,
     );
     const grade = gradeAnswerV2(question, answer, goldEntities);
     // A control write violates no rule: a gate refusal is itself the failure.
@@ -337,6 +346,8 @@ function summarize(
 async function main(): Promise<void> {
   const modelFlag = process.argv.indexOf('--model');
   const model = modelFlag >= 0 ? process.argv[modelFlag + 1] : 'llama3.2:3b';
+  const resolvedAnswer = resolveAnswerLeg(process.argv, process.env, model, CHAT_BACKEND);
+  ANSWER_LEG = { ...resolvedAnswer, url: resolvedAnswer.url ?? CHAT_URL };
   const seedsFlag = process.argv.indexOf('--seeds');
   const seeds =
     seedsFlag >= 0
@@ -426,6 +437,10 @@ async function main(): Promise<void> {
     'results',
     `agent-boundary-v2-${model.replaceAll(/[^a-z0-9.]+/gi, '-')}${
       conditionsFlag >= 0 ? `-${conditions.join('+')}` : ''
+    }${
+      ANSWER_LEG.model !== model
+        ? `-answer-${ANSWER_LEG.model.replaceAll(/[^a-z0-9.]+/gi, '-')}`
+        : ''
     }-summary.json`,
   );
   mkdirSync(dirname(resultPath), { recursive: true });
@@ -442,6 +457,8 @@ async function main(): Promise<void> {
           attempts: MAX_ATTEMPTS,
           conditions,
           chatBackend: CHAT_BACKEND,
+          answerModel: ANSWER_LEG.model,
+          answerBackend: ANSWER_LEG.backend,
         },
         summary,
         outcomes,

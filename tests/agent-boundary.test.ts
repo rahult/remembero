@@ -21,7 +21,11 @@ import {
   collectFactClauses,
   gateConstraintPrograms,
 } from '../src/evals/agent-boundary-gate.js';
-import { chatRequest, parseChatResponse } from '../src/evals/agent-boundary-chat.js';
+import {
+  chatRequest,
+  parseChatResponse,
+  resolveAnswerLeg,
+} from '../src/evals/agent-boundary-chat.js';
 import { checkIntegrity } from '../src/knowledge/integrity.js';
 import { parseProgram } from '../src/engine/index.js';
 import {
@@ -415,5 +419,21 @@ describe('agent-boundary runner: chat backends', () => {
       parseChatResponse('openai', { choices: [{ message: { content: 'q(X) :- a(X).' } }] }),
     ).toBe('q(X) :- a(X).');
     expect(() => parseChatResponse('openai', { choices: [] })).toThrow(/no message content/);
+  });
+});
+
+describe('agent-boundary runner: separate answer model', () => {
+  it('resolves an answer-leg override from --answer-model, defaulting to the query model', () => {
+    const argv = ['node', 'run.js', '--model', 'tinker://x', '--answer-model', 'llama3.2:3b', '--answer-chat-api', 'ollama'];
+    expect(resolveAnswerLeg(argv, {}, 'tinker://x', 'openai')).toEqual({
+      model: 'llama3.2:3b',
+      backend: 'ollama',
+      url: 'http://127.0.0.1:11434',
+    });
+    expect(resolveAnswerLeg(['node', 'run.js'], {}, 'tinker://x', 'openai')).toEqual({
+      model: 'tinker://x',
+      backend: 'openai',
+      url: undefined,
+    });
   });
 });

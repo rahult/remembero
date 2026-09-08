@@ -18,3 +18,7 @@ __pycache__/
 # generated training data (manifest is committed as the run record)
 data/training/*
 !data/training/manifest.json
+
+# python env and Tinker run logs
+.venv/
+runs/
