@@ -1,6 +1,6 @@
 {
   "seed": 7,
-  "generatedAt": "2026-09-08T04:09:11.064Z",
+  "generatedAt": "2026-09-08T07:45:55.558Z",
   "worlds": 60,
   "heldoutWorlds": [
     "world-7055",
@@ -10,8 +10,8 @@
     "world-7059",
     "world-7060"
   ],
-  "train": 19598,
-  "heldout": 1698,
+  "train": 20246,
+  "heldout": 1770,
   "byCategory": {
     "absence": 675,
     "chain-filter": 945,
@@ -32,5 +32,20 @@
   "rejectionsByTemplate": {},
   "paraphraseModel": "openai/gpt-5.6-luna",
   "paraphrasesPerExample": 3,
-  "rounds": 2
+  "rounds": 2,
+  "tasks": [
+    "query",
+    "extraction"
+  ],
+  "extraction": {
+    "count": 720,
+    "byKind": {
+      "state": 120,
+      "first_person": 120,
+      "supersession": 120,
+      "negation": 120,
+      "hedge": 120,
+      "distractor": 120
+    }
+  }
 }
