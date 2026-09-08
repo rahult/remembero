@@ -123,6 +123,30 @@ describe('extraction training data', () => {
     }
   });
 
+  it('shows single-word entity names capitalized in most ordinary examples while the fact keeps the lowercase atom', async () => {
+    const world = generateWorld(3);
+    const examples = await generateExtractionExamples(
+      world,
+      createRng(3),
+      fakeRenderer,
+      { selfAtom: 'rahul' },
+    );
+    const states = examples.filter(
+      (e) =>
+        e.kind === 'state' ||
+        e.kind === 'distractor' ||
+        e.kind === 'supersession',
+    );
+    const capitalized = states.filter((e) => /\b[A-Z][a-z]+\b/.test(e.input));
+    expect(capitalized.length).toBeGreaterThan(states.length / 2);
+    for (const e of states) {
+      for (const fact of e.expectedAdded)
+        expect(fact).toMatch(
+          /^[a-z_]+\((?:'[^']+'|[a-z0-9_.-]+)(?:, (?:'[^']+'|[a-z0-9_.-]+))*\)\.$/,
+        );
+    }
+  });
+
   it('prepends distractor prose itself, so the renderer cannot drop it', async () => {
     const world = generateWorld(3);
     // a renderer that ignores request.distractor, like the real one

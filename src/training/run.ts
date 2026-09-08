@@ -96,21 +96,31 @@ async function extractionLines(
   const held: string[] = [];
   const byKind: Record<string, number> = {};
   if (renderer === undefined) return { train, heldout: held, count: 0, byKind };
-  for (const world of worlds) {
-    const examples: ExtractionExample[] = await generateExtractionExamples(
-      world,
-      createRng(options.seed * 104729 + world.seed),
-      renderer,
-      { selfAtom, perKind: 2 },
+  // Render worlds eight at a time; within a world rendering stays sequential
+  // (each example is one call) and output order is fixed by world order.
+  const perWorld: ExtractionExample[][] = new Array(worlds.length);
+  const batch = 8;
+  for (let start = 0; start < worlds.length; start += batch) {
+    await Promise.all(
+      worlds.slice(start, start + batch).map(async (world, offset) => {
+        perWorld[start + offset] = await generateExtractionExamples(
+          world,
+          createRng(options.seed * 104729 + world.seed),
+          renderer,
+          { selfAtom, perKind: 2 },
+        );
+      }),
     );
-    for (const example of examples) {
+  }
+  worlds.forEach((world, index) => {
+    for (const example of perWorld[index] ?? []) {
       byKind[example.kind] = (byKind[example.kind] ?? 0) + 1;
       const line = JSON.stringify(
         toExtractionConversation(world, example, selfAtom),
       );
       (heldout.has(world.id) ? held : train).push(line);
     }
-  }
+  });
   return { train, heldout: held, count: train.length + held.length, byKind };
 }
 

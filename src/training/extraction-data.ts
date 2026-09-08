@@ -277,11 +277,31 @@ export async function generateExtractionExamples(
     expected: { added: string[]; retract: string[]; initial: string[] },
   ) => {
     const { distractor, ...renderRequest } = request;
+    // English capitalizes names. Unless the request already fixes display forms,
+    // show single-word entity atoms capitalized most of the time so the model
+    // learns "Mira" -> mira alongside "'Blue Harbour Analytics'" -> quoted.
+    const display = { ...(renderRequest.display ?? {}) };
+    if (renderRequest.display === undefined && rng.next() < 0.75) {
+      for (const clause of facts) {
+        for (const term of clause.head.args) {
+          if (
+            term.type === 'atom' &&
+            world.entities.includes(term.value) &&
+            !term.value.includes('_') &&
+            term.value !== options.selfAtom
+          ) {
+            display[term.value] =
+              term.value.charAt(0).toUpperCase() + term.value.slice(1);
+          }
+        }
+      }
+    }
     const rendered = await render({
       facts: facts.map(factSpec),
       argNames: relation.args,
       selfAtom: options.selfAtom,
       ...renderRequest,
+      ...(Object.keys(display).length > 0 ? { display } : {}),
     });
     // Distractor prose is prepended here, deterministically, rather than asked of
     // the renderer: an earlier version passed it as a request field the real
