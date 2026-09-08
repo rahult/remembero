@@ -134,6 +134,23 @@ const THEMES: Theme[] = [
         up: 'every lead above {x}',
         down: 'everyone under {x}, at any depth',
       },
+      // Same verbs as `manages` but the opposite argument order, so the data
+      // decorrelates phrasing from argument position and forces the model to
+      // read the schema's argument names.
+      {
+        name: 'reports_into',
+        args: ['Person', 'Manager'],
+        orientation: 'child-first',
+        up: 'everyone {x} reports to, all the way up the management chain',
+        down: 'everyone who directly or transitively reports to {x}',
+      },
+      {
+        name: 'led_by',
+        args: ['Person', 'Lead'],
+        orientation: 'child-first',
+        up: "{x}'s lead, that lead's lead, and so on",
+        down: 'everyone {x} leads, directly or indirectly',
+      },
     ],
     dependency: [
       {
@@ -251,6 +268,21 @@ const THEMES: Theme[] = [
         up: 'every service {x} reaches through calls',
         down: 'every service that reaches {x} through calls',
       },
+      // Opposite orientations for the same "waits on / blocks" vocabulary.
+      {
+        name: 'waits_for',
+        args: ['Item', 'Upstream'],
+        orientation: 'child-first',
+        up: 'everything {x} ultimately waits for, following the whole chain',
+        down: 'everything that directly or transitively waits for {x}',
+      },
+      {
+        name: 'blocks',
+        args: ['Blocker', 'Blocked'],
+        orientation: 'parent-first',
+        up: 'everything that ultimately blocks {x}, up the whole chain',
+        down: 'everything {x} blocks, directly or transitively',
+      },
     ],
     attributes: [
       {
@@ -350,6 +382,20 @@ const THEMES: Theme[] = [
         up: 'every stop after {x} on the route',
         down: 'every stop before {x} on the route',
       },
+      {
+        name: 'supplied_by',
+        args: ['Destination', 'Origin'],
+        orientation: 'parent-first',
+        up: 'every place whose goods eventually reach {x}',
+        down: 'every place goods from {x} eventually reach',
+      },
+      {
+        name: 'follows',
+        args: ['NextStop', 'Stop'],
+        orientation: 'parent-first',
+        up: 'every stop before {x} on the route',
+        down: 'every stop after {x} on the route',
+      },
     ],
     attributes: [
       {
@@ -418,8 +464,9 @@ export function generateWorld(seed: number): World {
     .shuffle(theme.hierarchy)
     .slice(0, hierarchyCount)
     .map((vocab) => ({ vocab, kind: 'hierarchy' as const }));
-  if (rng.next() < 0.7) {
-    edgeVocab.push({ vocab: rng.pick(theme.dependency), kind: 'dependency' });
+  const dependencyCount = rng.next() < 0.7 ? 1 + rng.int(2) : 0;
+  for (const vocab of rng.shuffle(theme.dependency).slice(0, dependencyCount)) {
+    edgeVocab.push({ vocab, kind: 'dependency' });
   }
   for (const { vocab, kind } of edgeVocab) {
     relations.push({
