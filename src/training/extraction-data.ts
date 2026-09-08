@@ -40,7 +40,8 @@ export type ExtractionKind =
   | 'distractor'
   | 'coreference'
   | 'normalization'
-  | 'date_number';
+  | 'date_number'
+  | 'quoted_name';
 
 export interface FactSpec {
   predicate: string;
@@ -75,6 +76,27 @@ export interface ExtractionExample {
   expectedRetract: string[];
   mode: 'text';
 }
+
+/** Multi-word names that exist in no world: stored quoted, capitals kept. */
+const FRESH_NAMES = {
+  company: [
+    'Blue Harbour Analytics',
+    'North Star Logistics',
+    'Kestrel Data Labs',
+    'Ironwood Capital',
+    'Silver Fern Studios',
+    'Red Kite Robotics',
+  ],
+  place: [
+    'New York',
+    'San Jose',
+    'Cape Town',
+    'Rio de Janeiro',
+    'Hong Kong',
+    'Tel Aviv',
+  ],
+  person: ['Mira Chen', 'Tom Okafor', 'Priya Nair', 'Liam Brandt'],
+};
 
 const NOISE = [
   'Long week, mostly meetings and a flaky CI pipeline that kept timing out.',
@@ -532,6 +554,71 @@ export async function generateExtractionExamples(
           added: [serializeClause(fact)],
           retract: [],
           initial: [`started_on(${otherPerson}, '2018-05-14').`],
+        },
+      );
+      // a deadline keyed on a group, so dates are not only about people
+      if (groupNames.length > 1) {
+        const [target, other] = rng.shuffle(groupNames);
+        const y = 2025 + rng.int(3);
+        const m = String(1 + rng.int(12)).padStart(2, '0');
+        const d = String(1 + rng.int(28)).padStart(2, '0');
+        const dl = parseProgram(`deadline(${target}, '${y}-${m}-${d}').`)[0];
+        const dlRelation: Relation = {
+          name: 'deadline',
+          kind: 'attribute',
+          args: [group!.args[1], 'Date'],
+        };
+        await attempt(
+          'date_number',
+          [dl],
+          dlRelation,
+          { firstPerson: false, negated: false, hedged: false },
+          {
+            added: [serializeClause(dl)],
+            retract: [],
+            initial: [`deadline(${other}, '2024-11-30').`],
+          },
+        );
+      }
+    }
+
+    // quoted_name: a multi-word entity the schema does not know, stored quoted
+    {
+      const person = rng.pick(world.entities);
+      const other = world.entities.find((e) => e !== person) ?? person;
+      const variant = rng.pick(['company', 'place', 'person'] as const);
+      const fresh = rng.pick(FRESH_NAMES[variant]);
+      const relation: Relation =
+        variant === 'company'
+          ? { name: 'works_at', kind: 'attribute', args: ['Person', 'Company'] }
+          : variant === 'place'
+            ? { name: 'lives_in', kind: 'attribute', args: ['Person', 'City'] }
+            : {
+                name: 'dentist',
+                kind: 'attribute',
+                args: ['Person', 'Dentist'],
+              };
+      const fact = parseProgram(`${relation.name}(${person}, '${fresh}').`)[0];
+      const seedValue =
+        variant === 'company'
+          ? 'acme'
+          : variant === 'place'
+            ? 'osaka'
+            : 'dr_lee';
+      await attempt(
+        'quoted_name',
+        [fact],
+        relation,
+        {
+          firstPerson: false,
+          negated: false,
+          hedged: false,
+          display: { [fresh]: fresh },
+        },
+        {
+          added: [serializeClause(fact)],
+          retract: [],
+          initial: [`${relation.name}(${other}, ${seedValue}).`],
         },
       );
     }

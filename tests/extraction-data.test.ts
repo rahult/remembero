@@ -73,6 +73,7 @@ describe('extraction training data', () => {
       'coreference',
       'normalization',
       'date_number',
+      'quoted_name',
     ]) {
       expect(kinds.has(kind as never), kind).toBe(true);
     }
@@ -99,9 +100,21 @@ describe('extraction training data', () => {
           /^[a-z_]+\([a-z0-9_, ]+\)\.$/,
         );
       }
+      if (example.kind === 'quoted_name') {
+        // a multi-word name not in the schema is stored quoted, capitals kept
+        expect(example.expectedAdded.join(' ')).toMatch(
+          /'[A-Z][A-Za-z]+( [A-Z][A-Za-z]+)+'/,
+        );
+        expect(example.input).toMatch(/[A-Z][a-z]+ [A-Z][a-z]+/);
+      }
       if (example.kind === 'date_number') {
         expect(example.expectedAdded.join(' ')).toMatch(/\d/);
-        expect(example.initialProgram).toMatch(/headcount|started_on/);
+        expect(example.initialProgram).toMatch(/headcount|started_on|deadline/);
+        if (/started_on|deadline/.test(example.expectedAdded.join(' '))) {
+          expect(example.expectedAdded.join(' ')).toMatch(
+            /'\d{4}-\d{2}-\d{2}'/,
+          );
+        }
       }
       if (example.kind === 'first_person') {
         expect(example.expectedAdded.join(' ')).toContain('(rahul,');
