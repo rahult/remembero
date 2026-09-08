@@ -173,6 +173,8 @@ Configuration is via environment variables (a `.env` file in the working directo
 | `REMBERO_VALID_TIME_MODE` | no | `delete`; set `archive_until` to preserve superseded facts (`remembero init` registrations default to `archive_until`) |
 | `REMBERO_RECALL_SCHEMA_PREDICATE_LIMIT` | no | `8` detailed predicates on the first recall pass (range: 1–256) |
 | `REMBERO_RECALL_ANSWER_MODE` | no | `natural`; use `deterministic` bindings or compact `evidence` |
+| `REMBERO_SELF` | no | constant naming you in remembered text (`user` by default): "I live in Osaka" becomes `lives_in(<self>, osaka)` |
+| `REMBERO_EXTRACTION_VOCABULARY` | no | `open` (default) or `closed`: only predicates already in the schema (or aliased via `rembero_predicate_alias(from, to).`) may be added by extraction |
 | `REMBERO_INTEGRITY_MODE` | no | `no_new_violations` (default; writes that add a violation are refused); `strict` refuses any violating write and is what `remembero init` registers; `off` disables the gate |
 | `REMBERO_INTEGRITY_NAMESPACES` | no | target namespace only; `*` or a comma-separated governed view when enforcement is active |
 | `REMBERO_CHECK_MODE` | no | `off`; use `strict` or migration mode `no_regressions` |

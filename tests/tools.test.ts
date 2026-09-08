@@ -61,16 +61,23 @@ beforeEach(() => {
 
 describe('MCP tool handlers', () => {
   it('remember extracts via LLM and stores', async () => {
-    const llm = new ScriptedLlm(['pet(rahul, luna_the_cat).']);
-    const result = await rememberTool({ store, llm }, { text: 'My cat is called Luna' });
-    expect(result.added).toEqual(['pet(rahul, luna_the_cat).']);
+    // constants must be grounded in the input: "luna" is, "luna_the_cat" is not
+    const llm = new ScriptedLlm(['pet(rahul, luna).']);
+    const result = await rememberTool(
+      { store, llm, selfAtom: 'rahul' },
+      { text: 'My cat is called Luna' },
+    );
+    expect(result.added).toEqual(['pet(rahul, luna).']);
     expect(result.opId).toMatch(/^[0-9a-f-]{36}$/);
   });
 
   it('recall answers from memory', async () => {
     store.assert('default', 'pet(rahul, luna).');
     const llm = new ScriptedLlm(['?- pet(rahul, X).', 'Your cat is Luna.']);
-    const result = await recallTool({ store, llm }, { question: 'What is my cat called?' });
+    const result = await recallTool(
+      { store, llm },
+      { question: 'What is my cat called?' },
+    );
     expect(result.answer).toBe('Your cat is Luna.');
     expect(result.bindings).toEqual([{ X: 'luna' }]);
   });
@@ -80,7 +87,7 @@ describe('MCP tool handlers', () => {
     const llm = new ScriptedLlm(['?- pet(rahul, Name).']);
     const result = await recallTool(
       { store, llm },
-      { question: 'What is my cat called?', answerMode: 'deterministic' }
+      { question: 'What is my cat called?', answerMode: 'deterministic' },
     );
     expect(result).toMatchObject({
       status: 'answered',
@@ -94,20 +101,29 @@ describe('MCP tool handlers', () => {
     store.replace('default', ['status(mira, _)'], 'status(mira, paused).', {
       opId: 'current',
     });
-    const llm = new ScriptedLlm(['?- status(mira, State).', 'Mira was active.']);
+    const llm = new ScriptedLlm([
+      '?- status(mira, State).',
+      'Mira was active.',
+    ]);
 
     const result = await recallTool(
       { store, llm },
-      { question: 'What was Mira status?', recordedSequence: 1 }
+      { question: 'What was Mira status?', recordedSequence: 1 },
     );
 
     expect(result.answer).toBe('Mira was active.');
     expect(result.bindings).toEqual([{ State: 'active' }]);
-    expect(result.recordedSnapshot).toMatchObject({ sequence: 1, journalEntries: 2 });
+    expect(result.recordedSnapshot).toMatchObject({
+      sequence: 1,
+      journalEntries: 2,
+    });
   });
 
   it('assert_facts takes raw Datalog without any LLM', async () => {
-    const result = assertFactsTool({ store }, { clauses: 'f(a). g(X) :- f(X).' });
+    const result = assertFactsTool(
+      { store },
+      { clauses: 'f(a). g(X) :- f(X).' },
+    );
     expect(result.added).toEqual(['f(a).', 'g(X) :- f(X).']);
     expect(result.duplicates).toBe(0);
     expect(result.opId).toMatch(/^[0-9a-f-]{36}$/);
@@ -116,21 +132,24 @@ describe('MCP tool handlers', () => {
   it('assert_facts and forget forward caller operation ids for safe retries', () => {
     const asserted = assertFactsTool(
       { store },
-      { clauses: 'f(a). f(b).', opId: 'tool-assert' }
+      { clauses: 'f(a). f(b).', opId: 'tool-assert' },
     );
     expect(
-      assertFactsTool({ store }, { clauses: 'f(a). f(b).', opId: 'tool-assert' })
+      assertFactsTool(
+        { store },
+        { clauses: 'f(a). f(b).', opId: 'tool-assert' },
+      ),
     ).toEqual(asserted);
     expect(() =>
-      assertFactsTool({ store }, { clauses: 'g(a).', opId: 'tool-assert' })
+      assertFactsTool({ store }, { clauses: 'g(a).', opId: 'tool-assert' }),
     ).toThrow(OperationConflictError);
 
     const forgotten = forgetTool(
       { store },
-      { pattern: 'f(_)', opId: 'tool-forget' }
+      { pattern: 'f(_)', opId: 'tool-forget' },
     );
     expect(
-      forgetTool({ store }, { pattern: 'f( _ )', opId: 'tool-forget' })
+      forgetTool({ store }, { pattern: 'f( _ )', opId: 'tool-forget' }),
     ).toEqual(forgotten);
     expect(forgotten).toEqual({ removed: 2, opId: 'tool-forget' });
   });
@@ -139,8 +158,8 @@ describe('MCP tool handlers', () => {
     expect(() =>
       assertFactsTool(
         { store },
-        { clauses: "rembero_tentative('status(mira, active).')." }
-      )
+        { clauses: "rembero_tentative('status(mira, active).')." },
+      ),
     ).toThrow(/use assert_tentative/i);
     expect(
       assertTentativeTool(
@@ -149,8 +168,8 @@ describe('MCP tool handlers', () => {
           namespace: 'personal',
           clauses: 'status(mira, active).',
           opId: 'tentative-status',
-        }
-      )
+        },
+      ),
     ).toEqual({
       added: ['status(mira, active).'],
       duplicates: 0,
@@ -159,8 +178,8 @@ describe('MCP tool handlers', () => {
     expect(
       queryTool(
         { store },
-        { namespaces: ['personal'], query: 'status(mira, State)' }
-      ).bindings
+        { namespaces: ['personal'], query: 'status(mira, State)' },
+      ).bindings,
     ).toEqual([]);
     expect(
       explainQueryTool(
@@ -169,8 +188,8 @@ describe('MCP tool handlers', () => {
           namespaces: ['personal'],
           query: 'status(mira, State)',
           trustMode: 'include_tentative',
-        }
-      )
+        },
+      ),
     ).toMatchObject({
       trustMode: 'include_tentative',
       rows: [
@@ -180,7 +199,9 @@ describe('MCP tool handlers', () => {
         },
       ],
     });
-    expect(reviewTentativeTool({ store }, { namespaces: ['personal'] })).toMatchObject({
+    expect(
+      reviewTentativeTool({ store }, { namespaces: ['personal'] }),
+    ).toMatchObject({
       count: 1,
       claims: [
         {
@@ -194,8 +215,8 @@ describe('MCP tool handlers', () => {
     expect(() =>
       forgetTool(
         { store },
-        { namespace: 'personal', pattern: declarationPattern }
-      )
+        { namespace: 'personal', pattern: declarationPattern },
+      ),
     ).toThrow(/use resolveTentative/i);
     expect(() =>
       supersedeFactsTool(
@@ -204,8 +225,8 @@ describe('MCP tool handlers', () => {
           namespace: 'personal',
           patterns: [declarationPattern],
           replacements: 'status(mira, paused).',
-        }
-      )
+        },
+      ),
     ).toThrow(/use resolveTentative/i);
     expect(
       resolveTentativeTool(
@@ -215,8 +236,8 @@ describe('MCP tool handlers', () => {
           clauses: 'status(mira, active).',
           action: 'accept',
           opId: 'accept-status',
-        }
-      )
+        },
+      ),
     ).toEqual({
       action: 'accept',
       resolved: 1,
@@ -227,10 +248,12 @@ describe('MCP tool handlers', () => {
     expect(
       queryTool(
         { store },
-        { namespaces: ['personal'], query: 'status(mira, State)' }
-      ).bindings
+        { namespaces: ['personal'], query: 'status(mira, State)' },
+      ).bindings,
     ).toEqual([{ State: 'active' }]);
-    expect(reviewTentativeTool({ store }, { namespaces: ['personal'] })).toEqual({
+    expect(
+      reviewTentativeTool({ store }, { namespaces: ['personal'] }),
+    ).toEqual({
       claims: [],
       count: 0,
     });
@@ -242,8 +265,8 @@ describe('MCP tool handlers', () => {
           query: 'status(mira, State)',
           trustMode: 'include_tentative',
           recordedSequence: 1,
-        }
-      )
+        },
+      ),
     ).toMatchObject({
       bindings: [{ State: 'active' }],
       trustMode: 'include_tentative',
@@ -254,18 +277,18 @@ describe('MCP tool handlers', () => {
   it('keeps tentative claims outside policy unless an audit explicitly includes them', () => {
     store.assert(
       'personal',
-      'active(mira). :- active(Person), suspended(Person).'
+      'active(mira). :- active(Person), suspended(Person).',
     );
     store.assertTentative('personal', 'suspended(mira).');
 
     expect(
-      checkIntegrityTool({ store }, { namespaces: ['personal'] }).status
+      checkIntegrityTool({ store }, { namespaces: ['personal'] }).status,
     ).toBe('consistent');
     expect(
       checkIntegrityTool(
         { store },
-        { namespaces: ['personal'], trustMode: 'include_tentative' }
-      )
+        { namespaces: ['personal'], trustMode: 'include_tentative' },
+      ),
     ).toMatchObject({
       status: 'violations',
       trustMode: 'include_tentative',
@@ -275,7 +298,10 @@ describe('MCP tool handlers', () => {
             {
               proofs: [
                 expect.objectContaining({ predicate: 'active' }),
-                expect.objectContaining({ predicate: 'suspended', trust: 'tentative' }),
+                expect.objectContaining({
+                  predicate: 'suspended',
+                  trust: 'tentative',
+                }),
               ],
             },
           ],
@@ -289,24 +315,23 @@ describe('MCP tool handlers', () => {
           namespaces: ['personal'],
           focus: 'mira',
           trustMode: 'include_tentative',
-        }
-      )
+        },
+      ),
     ).toMatchObject({
       trustMode: 'include_tentative',
       matchingViolationCount: 1,
       clusters: [{ focus: 'mira' }],
     });
     expect(
-      listMemoriesTool(
-        { store },
-        { namespaces: ['personal'] }
-      ).predicates.map((group) => group.predicate)
+      listMemoriesTool({ store }, { namespaces: ['personal'] }).predicates.map(
+        (group) => group.predicate,
+      ),
     ).not.toContain('suspended/1');
     expect(
       listMemoriesTool(
         { store },
-        { namespaces: ['personal'], trustMode: 'include_tentative' }
-      )
+        { namespaces: ['personal'], trustMode: 'include_tentative' },
+      ),
     ).toMatchObject({
       trustMode: 'include_tentative',
       predicates: expect.arrayContaining([
@@ -316,11 +341,9 @@ describe('MCP tool handlers', () => {
   });
 
   it('supersedes explicit facts atomically with exact archives and retry safety', () => {
-    store.assert(
-      'personal',
-      'works_at(mira, acme). title(mira, engineer).',
-      { opId: 'prior-employment' }
-    );
+    store.assert('personal', 'works_at(mira, acme). title(mira, engineer).', {
+      opId: 'prior-employment',
+    });
     const request = {
       patterns: ['works_at(mira, _)', 'title(mira, _)'],
       replacements: 'works_at(mira, initech). title(mira, lead).',
@@ -343,23 +366,30 @@ describe('MCP tool handlers', () => {
       ],
       opId: 'employment-correction',
     });
-    expect(store.load('personal').map(serializeClause).sort()).toEqual([
-      'title(mira, lead).',
-      "title_until(mira, engineer, '2026-08-16T16:59:00.000Z').",
-      'works_at(mira, initech).',
-      "works_at_until(mira, acme, '2026-08-16T16:59:00.000Z').",
-    ].sort());
+    expect(store.load('personal').map(serializeClause).sort()).toEqual(
+      [
+        'title(mira, lead).',
+        "title_until(mira, engineer, '2026-08-16T16:59:00.000Z').",
+        'works_at(mira, initech).',
+        "works_at_until(mira, acme, '2026-08-16T16:59:00.000Z').",
+      ].sort(),
+    );
     expect(() =>
-      supersedeFactsTool({ store }, { ...request, replacements: 'works_at(mira, other).' })
+      supersedeFactsTool(
+        { store },
+        { ...request, replacements: 'works_at(mira, other).' },
+      ),
     ).toThrow(OperationConflictError);
     expect(() =>
       supersedeFactsTool(
         { store },
-        { ...request, at: '2026-08-16T17:00:00.000Z' }
-      )
+        { ...request, at: '2026-08-16T17:00:00.000Z' },
+      ),
     ).toThrow(OperationConflictError);
     const { at: _at, ...withoutAt } = request;
-    expect(() => supersedeFactsTool({ store }, withoutAt)).toThrow(OperationConflictError);
+    expect(() => supersedeFactsTool({ store }, withoutAt)).toThrow(
+      OperationConflictError,
+    );
 
     store.assert('personal', 'status(mira, active).');
     const implicitTime = {
@@ -369,7 +399,7 @@ describe('MCP tool handlers', () => {
       opId: 'implicit-time-correction',
     };
     expect(supersedeFactsTool({ store }, implicitTime)).toEqual(
-      supersedeFactsTool({ store }, implicitTime)
+      supersedeFactsTool({ store }, implicitTime),
     );
 
     store.assert('personal', 'temporary_assignment(mira, atlas).');
@@ -381,8 +411,8 @@ describe('MCP tool handlers', () => {
           namespace: 'personal',
           at: '2026-08-17T00:00:00.000Z',
           opId: 'assignment-ended',
-        }
-      )
+        },
+      ),
     ).toEqual({
       added: [],
       duplicates: 0,
@@ -401,7 +431,7 @@ describe('MCP tool handlers', () => {
         replacements: 'stable(value).',
         namespace: 'personal',
         opId: 'no-op-correction',
-      }
+      },
     );
     expect(noOp).toMatchObject({ retracted: 0, added: [], duplicates: 1 });
     store.assert('personal', 'arrived(later).');
@@ -413,14 +443,17 @@ describe('MCP tool handlers', () => {
           replacements: 'stable(value).',
           namespace: 'personal',
           opId: 'no-op-correction',
-        }
-      )
+        },
+      ),
     ).toEqual(noOp);
-    expect(store.load('personal').map(serializeClause)).toContain('arrived(later).');
+    expect(store.load('personal').map(serializeClause)).toContain(
+      'arrived(later).',
+    );
     expect(
-      store.load('personal').map(serializeClause).some((clause) =>
-        clause.startsWith('arrived_until(')
-      )
+      store
+        .load('personal')
+        .map(serializeClause)
+        .some((clause) => clause.startsWith('arrived_until(')),
     ).toBe(false);
   });
 
@@ -433,22 +466,21 @@ describe('MCP tool handlers', () => {
           patterns: ['status(mira, _)'],
           replacements: 'status(mira, paused).',
           at: '2026-08-16 16:59:00',
-        }
-      )
+        },
+      ),
     ).toThrow(/canonical UTC timestamp/i);
-    expect(store.load('default').map(serializeClause)).toEqual(['status(mira, active).']);
+    expect(store.load('default').map(serializeClause)).toEqual([
+      'status(mira, active).',
+    ]);
   });
 
   it('write tools share atomic integrity enforcement and structured rejection', () => {
-    store.assert(
-      'default',
-      'active(mira). :- active(X), suspended(X).'
-    );
+    store.assert('default', 'active(mira). :- active(X), suspended(X).');
     expect(() =>
       assertFactsTool(
         { store, integrityEnforcement: { mode: 'strict' } },
-        { clauses: 'suspended(mira).' }
-      )
+        { clauses: 'suspended(mira).' },
+      ),
     ).toThrow(IntegrityViolationError);
     expect(store.load('default').map(serializeClause)).toEqual([
       'active(mira).',
@@ -456,15 +488,12 @@ describe('MCP tool handlers', () => {
     ]);
 
     store.assert('default', 'manager(mira, rahul).');
-    store.assert(
-      'default',
-      ':- active(Person), \\+ manager(Person, _).'
-    );
+    store.assert('default', ':- active(Person), \\+ manager(Person, _).');
     expect(() =>
       forgetTool(
         { store, integrityEnforcement: { mode: 'strict' } },
-        { pattern: 'manager(mira, _)' }
-      )
+        { pattern: 'manager(mira, _)' },
+      ),
     ).toThrow(IntegrityViolationError);
 
     store.assert('default', 'status(mira, active). :- status(X, suspended).');
@@ -475,12 +504,14 @@ describe('MCP tool handlers', () => {
           patterns: ['status(mira, _)'],
           replacements: 'status(mira, suspended).',
           at: '2026-08-16T16:59:00.000Z',
-        }
-      )
+        },
+      ),
     ).toThrow(IntegrityViolationError);
-    expect(store.load('default').map(serializeClause)).toContain('status(mira, active).');
+    expect(store.load('default').map(serializeClause)).toContain(
+      'status(mira, active).',
+    );
     expect(store.load('default').map(serializeClause)).not.toContain(
-      "status_until(mira, active, '2026-08-16T16:59:00.000Z')."
+      "status_until(mira, active, '2026-08-16T16:59:00.000Z').",
     );
   });
 
@@ -492,8 +523,8 @@ describe('MCP tool handlers', () => {
     expect(
       queryTool(
         { store },
-        { query: 'select End where edge(a, Mid), edge(Mid, End)' }
-      ).bindings
+        { query: 'select End where edge(a, Mid), edge(Mid, End)' },
+      ).bindings,
     ).toEqual([{ End: 'c' }]);
   });
 
@@ -509,7 +540,7 @@ describe('MCP tool handlers', () => {
       {
         text: 'Mira now works at Initech.',
         namespace: 'default',
-      }
+      },
     );
 
     expect(result).toMatchObject({
@@ -527,7 +558,7 @@ describe('MCP tool handlers', () => {
       {
         proposal: JSON.stringify(result.proposal),
         opId: 'tool-reviewed-memory',
-      }
+      },
     );
     expect(applied).toMatchObject({
       opId: 'tool-reviewed-memory',
@@ -543,14 +574,14 @@ describe('MCP tool handlers', () => {
     store.assert(
       'default',
       'status(mira, active). :- status(Person, active), status(Person, paused).',
-      { opId: 'what-if-baseline' }
+      { opId: 'what-if-baseline' },
     );
     const result = whatIfTool(
       { store },
       {
         query: 'status(mira, State)',
         assume: 'status(mira, paused).',
-      }
+      },
     );
     expect(result).toMatchObject({
       changed: true,
@@ -586,7 +617,7 @@ describe('MCP tool handlers', () => {
             },
           ],
         }),
-      }
+      },
     );
 
     expect(result).toMatchObject({
@@ -612,14 +643,14 @@ describe('MCP tool handlers', () => {
       {
         query: 'derived(X)',
         assumeRules: 'derived(X) :- base(X).',
-      }
+      },
     );
     const applied = applyRuleChangeProposalTool(
       { store },
       {
         proposal: JSON.stringify(preview.ruleProposal),
         opId: 'tool-reviewed-rule',
-      }
+      },
     );
 
     expect(applied).toMatchObject({
@@ -639,7 +670,9 @@ describe('MCP tool handlers', () => {
     });
     store.assert('default', 'later(b).', { opId: 'health-later' });
 
-    expect(knowledgeHealthTool({ store }, { namespaces: ['default'] })).toMatchObject({
+    expect(
+      knowledgeHealthTool({ store }, { namespaces: ['default'] }),
+    ).toMatchObject({
       status: 'healthy',
       clauseCount: 3,
       rules: { topology: { ruleCount: 1 } },
@@ -648,8 +681,8 @@ describe('MCP tool handlers', () => {
     expect(
       knowledgeHealthTool(
         { store },
-        { namespaces: ['default'], recordedSequence: 1 }
-      )
+        { namespaces: ['default'], recordedSequence: 1 },
+      ),
     ).toMatchObject({
       status: 'healthy',
       clauseCount: 2,
@@ -664,7 +697,7 @@ describe('MCP tool handlers', () => {
     });
 
     expect(
-      whyNotTool({ store }, { query: 'status(mira, active)' })
+      whyNotTool({ store }, { query: 'status(mira, active)' }),
     ).toMatchObject({
       status: 'blocked',
       failures: [
@@ -673,7 +706,9 @@ describe('MCP tool handlers', () => {
           nearby: [
             {
               fact: 'status(mira, paused).',
-              explanation: { rows: [{ proofs: [{ sources: [{ opId: 'after' }] }] }] },
+              explanation: {
+                rows: [{ proofs: [{ sources: [{ opId: 'after' }] }] }],
+              },
             },
           ],
         },
@@ -682,8 +717,8 @@ describe('MCP tool handlers', () => {
     expect(
       whyNotTool(
         { store },
-        { query: 'status(mira, active)', recordedSequence: 1 }
-      )
+        { query: 'status(mira, active)', recordedSequence: 1 },
+      ),
     ).toMatchObject({
       status: 'satisfied',
       recordedSnapshot: { sequence: 1, journalEntries: 2 },
@@ -692,29 +727,22 @@ describe('MCP tool handlers', () => {
   });
 
   it('maps focused current topology and exact recorded rule history', () => {
-    store.assert(
-      'default',
-      'base(a). middle(X) :- base(X).',
-      { opId: 'topology-before' }
-    );
+    store.assert('default', 'base(a). middle(X) :- base(X).', {
+      opId: 'topology-before',
+    });
     store.assert('default', 'output(X) :- middle(X).', {
       opId: 'topology-after',
     });
 
     expect(
-      topologyTool(
-        { store },
-        { focus: 'output', direction: 'upstream' }
-      )
+      topologyTool({ store }, { focus: 'output', direction: 'upstream' }),
     ).toMatchObject({
       predicateCount: 3,
       ruleCount: 2,
       predicates: [{ key: 'base/1' }, { key: 'middle/1' }, { key: 'output/1' }],
       selection: { focus: 'output/1', direction: 'upstream' },
     });
-    expect(
-      topologyTool({ store }, { recordedSequence: 1 })
-    ).toMatchObject({
+    expect(topologyTool({ store }, { recordedSequence: 1 })).toMatchObject({
       predicateCount: 2,
       ruleCount: 1,
       recordedSnapshot: { sequence: 1, journalEntries: 2 },
@@ -729,8 +757,8 @@ describe('MCP tool handlers', () => {
     expect(
       recordedDiffTool(
         { store },
-        { fromSequence: 1, toSequence: 2, query: 'item(Value)' }
-      )
+        { fromSequence: 1, toSequence: 2, query: 'item(Value)' },
+      ),
     ).toMatchObject({
       changed: true,
       clauses: {
@@ -756,14 +784,14 @@ describe('MCP tool handlers', () => {
     store.assert(
       'default',
       'employee(bob). eligible(X) :- employee(X), badge(X).',
-      { opId: 'repair-baseline' }
+      { opId: 'repair-baseline' },
     );
 
     expect(
       repairPlanTool(
         { store },
-        { query: 'eligible(bob)', maxPlans: 4, maxSteps: 3 }
-      )
+        { query: 'eligible(bob)', maxPlans: 4, maxSteps: 3 },
+      ),
     ).toMatchObject({
       status: 'repairable',
       plans: [
@@ -781,7 +809,7 @@ describe('MCP tool handlers', () => {
     store.assert(
       'default',
       'employee(bob). eligible(X) :- employee(X), \\+ blocked(X).',
-      { opId: 'audit-before' }
+      { opId: 'audit-before' },
     );
     store.assert('default', 'blocked(bob).', { opId: 'audit-after' });
 
@@ -795,9 +823,7 @@ describe('MCP tool handlers', () => {
         }),
       ],
     });
-    expect(
-      auditRulesTool({ store }, { recordedSequence: 1 })
-    ).toMatchObject({
+    expect(auditRulesTool({ store }, { recordedSequence: 1 })).toMatchObject({
       status: 'review',
       warningCount: 1,
       findings: [
@@ -823,8 +849,8 @@ describe('MCP tool handlers', () => {
     expect(
       searchKnowledgeTool(
         { store },
-        { text: 'cat Luna', kinds: ['fact'], limit: 5 }
-      )
+        { text: 'cat Luna', kinds: ['fact'], limit: 5 },
+      ),
     ).toMatchObject({
       status: 'matches',
       results: [
@@ -835,10 +861,7 @@ describe('MCP tool handlers', () => {
       ],
     });
     expect(
-      searchKnowledgeTool(
-        { store },
-        { text: 'cat Luna', recordedSequence: 1 }
-      )
+      searchKnowledgeTool({ store }, { text: 'cat Luna', recordedSequence: 1 }),
     ).toMatchObject({
       status: 'no_match',
       results: [],
@@ -855,10 +878,7 @@ describe('MCP tool handlers', () => {
     });
 
     expect(
-      browseKnowledgeGraphTool(
-        { store },
-        { focus: 'acme', depth: 1 }
-      )
+      browseKnowledgeGraphTool({ store }, { focus: 'acme', depth: 1 }),
     ).toMatchObject({
       status: 'matches',
       selection: { selectedClaims: 2, totalGroundFacts: 2 },
@@ -878,8 +898,8 @@ describe('MCP tool handlers', () => {
     expect(
       browseKnowledgeGraphTool(
         { store },
-        { focus: 'acme', recordedSequence: 1 }
-      )
+        { focus: 'acme', recordedSequence: 1 },
+      ),
     ).toMatchObject({
       selection: { selectedClaims: 1, totalGroundFacts: 1 },
       recordedSnapshot: { sequence: 1, journalEntries: 2 },
@@ -892,14 +912,14 @@ describe('MCP tool handlers', () => {
     store.assert(
       'default',
       'colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.',
-      { opId: 'colleague-rule' }
+      { opId: 'colleague-rule' },
     );
 
     expect(
       connectKnowledgeGraphTool(
         { store },
-        { from: 'mira', to: 'rahul', maxDepth: 2, includeDerived: true }
-      )
+        { from: 'mira', to: 'rahul', maxDepth: 2, includeDerived: true },
+      ),
     ).toMatchObject({
       status: 'connected',
       shortestHops: 1,
@@ -907,7 +927,9 @@ describe('MCP tool handlers', () => {
       paths: expect.arrayContaining([
         expect.objectContaining({
           entities: ['mira', 'rahul'],
-          segments: [expect.objectContaining({ predicate: 'colleague', derived: true })],
+          segments: [
+            expect.objectContaining({ predicate: 'colleague', derived: true }),
+          ],
         }),
       ]),
     });
@@ -920,8 +942,8 @@ describe('MCP tool handlers', () => {
           maxDepth: 2,
           includeDerived: true,
           recordedSequence: 3,
-        }
-      )
+        },
+      ),
     ).toMatchObject({
       status: 'connected',
       shortestHops: 1,
@@ -937,8 +959,8 @@ describe('MCP tool handlers', () => {
           maxDepth: 2,
           includeDerived: true,
           recordedSequence: 1,
-        }
-      )
+        },
+      ),
     ).toMatchObject({
       status: 'no_path',
       searchComplete: true,
@@ -955,7 +977,7 @@ describe('MCP tool handlers', () => {
       'second',
     ]);
     expect(
-      verifyKnowledgeBundleTool({ bundle: serializeKnowledgeBundle(current) })
+      verifyKnowledgeBundleTool({ bundle: serializeKnowledgeBundle(current) }),
     ).toMatchObject({
       valid: true,
       namespaceCount: 2,
@@ -965,7 +987,7 @@ describe('MCP tool handlers', () => {
 
     const recorded = exportKnowledgeBundleTool(
       { store },
-      { namespaces: ['first', 'second'], recordedSequence: 1 }
+      { namespaces: ['first', 'second'], recordedSequence: 1 },
     );
     expect(recorded).toMatchObject({
       view: { kind: 'recorded', sequence: 1, journalEntries: 2 },
@@ -999,10 +1021,7 @@ describe('MCP tool handlers', () => {
       checks: [{ unexpectedRows: [{ X: 'b' }] }],
     });
     expect(
-      runKnowledgeChecksTool(
-        { store },
-        { suite, recordedSequence: 1 }
-      )
+      runKnowledgeChecksTool({ store }, { suite, recordedSequence: 1 }),
     ).toMatchObject({
       status: 'passed',
       passedCount: 1,
@@ -1028,7 +1047,7 @@ describe('MCP tool handlers', () => {
             },
           ],
         }),
-      }
+      },
     );
     expect(result).toMatchObject({
       status: 'failed',
@@ -1049,15 +1068,15 @@ describe('MCP tool handlers', () => {
       'default',
       `${Array.from(
         { length: 200 },
-        (_, index) => `related(person_${index}, topic_${index % 5}).`
+        (_, index) => `related(person_${index}, topic_${index % 5}).`,
       ).join('\n')}
        selected(person_199).
        relevant(X, Y) :- selected(X), related(X, Y).`,
-      { opId: 'profile-program' }
+      { opId: 'profile-program' },
     );
     const result = profileKnowledgeTool(
       { store },
-      { query: 'relevant(X, Y)', compareFullScan: true, recordedSequence: 1 }
+      { query: 'relevant(X, Y)', compareFullScan: true, recordedSequence: 1 },
     );
     expect(result).toMatchObject({
       equivalent: true,
@@ -1076,19 +1095,26 @@ describe('MCP tool handlers', () => {
     store.assert(
       'default',
       'works_at(mira, acme). coworker(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.',
-      { opId: 'past-source', sourceText: 'Mira worked at Acme.' }
+      { opId: 'past-source', sourceText: 'Mira worked at Acme.' },
     );
-    store.assert('default', 'works_at(rahul, acme).', { opId: 'second-source' });
-    store.replace('default', ['works_at(mira, _)'], 'works_at(mira, initech).', {
-      opId: 'current-source',
+    store.assert('default', 'works_at(rahul, acme).', {
+      opId: 'second-source',
     });
+    store.replace(
+      'default',
+      ['works_at(mira, _)'],
+      'works_at(mira, initech).',
+      {
+        opId: 'current-source',
+      },
+    );
 
     expect(queryTool({ store }, { query: 'works_at(mira, C)' })).toEqual({
       bindings: [{ C: 'initech' }],
     });
     const past = queryTool(
       { store },
-      { query: 'coworker(mira, Who)', recordedSequence: 2 }
+      { query: 'coworker(mira, Who)', recordedSequence: 2 },
     );
     expect(past).toEqual({
       bindings: [{ Who: 'rahul' }],
@@ -1100,11 +1126,13 @@ describe('MCP tool handlers', () => {
     });
     const explained = explainQueryTool(
       { store },
-      { query: 'works_at(mira, Company)', recordedSequence: 1 }
+      { query: 'works_at(mira, Company)', recordedSequence: 1 },
     );
     expect(explained.rows[0]).toMatchObject({
       bindings: { Company: 'acme' },
-      proofs: [{ sources: [{ opId: 'past-source', text: 'Mira worked at Acme.' }] }],
+      proofs: [
+        { sources: [{ opId: 'past-source', text: 'Mira worked at Acme.' }] },
+      ],
     });
     expect(explained.recordedSnapshot?.sequence).toBe(1);
   });
@@ -1119,15 +1147,15 @@ describe('MCP tool handlers', () => {
           opId: 'tool-checkpoint',
           at: '2026-08-17T02:00:00.000Z',
           dryRun: true,
-        }
-      )
+        },
+      ),
     ).toMatchObject({ rotated: true, sequence: 2, segmentCount: 1 });
     const checkpoint = checkpointJournalTool(
       { store },
       {
         opId: 'tool-checkpoint',
         at: '2026-08-17T02:00:00.000Z',
-      }
+      },
     );
     expect(checkpoint).toMatchObject({
       rotated: true,
@@ -1139,10 +1167,7 @@ describe('MCP tool handlers', () => {
       checkpoints: [{ sequence: 2 }],
     });
     expect(
-      queryTool(
-        { store },
-        { query: 'item(Value)', recordedSequence: 1 }
-      )
+      queryTool({ store }, { query: 'item(Value)', recordedSequence: 1 }),
     ).toMatchObject({
       bindings: [{ Value: 'a' }],
       recordedSnapshot: { sequence: 1, journalEntries: 2 },
@@ -1154,18 +1179,18 @@ describe('MCP tool handlers', () => {
       'default',
       `member(red, alice).
        team_size(Team, Count) :- count(*) as Count where member(Team, Person).`,
-      { opId: 'aggregate-baseline' }
+      { opId: 'aggregate-baseline' },
     );
     store.assert('default', 'member(red, bob).', { opId: 'aggregate-later' });
 
-    expect(queryTool({ store }, { query: 'team_size(red, Count)' }).bindings).toEqual([
-      { Count: '2' },
-    ]);
+    expect(
+      queryTool({ store }, { query: 'team_size(red, Count)' }).bindings,
+    ).toEqual([{ Count: '2' }]);
     expect(
       explainQueryTool(
         { store },
-        { query: 'team_size(red, Count)', recordedSequence: 1 }
-      )
+        { query: 'team_size(red, Count)', recordedSequence: 1 },
+      ),
     ).toMatchObject({
       rows: [
         {
@@ -1190,24 +1215,27 @@ describe('MCP tool handlers', () => {
     store.assert(
       'default',
       "rembero_alias('Mira Patel', mira). rembero_entity_position(active, 1, 0). active('Mira Patel'). :- active(Person), suspended(Person).",
-      { opId: 'baseline' }
+      { opId: 'baseline' },
     );
     store.assert('default', 'suspended(mira).', { opId: 'later' });
 
     expect(
-      checkIntegrityTool({ store }, { recordedSequence: 1, entityIdentity: 'canonical' })
+      checkIntegrityTool(
+        { store },
+        { recordedSequence: 1, entityIdentity: 'canonical' },
+      ),
     ).toMatchObject({
       status: 'consistent',
       recordedSnapshot: { sequence: 1, journalEntries: 2 },
     });
-    expect(checkIntegrityTool({ store }, { entityIdentity: 'canonical' }).status).toBe(
-      'violations'
-    );
+    expect(
+      checkIntegrityTool({ store }, { entityIdentity: 'canonical' }).status,
+    ).toBe('violations');
     expect(
       conflictViewsTool(
         { store },
-        { recordedSequence: 1, entityIdentity: 'canonical' }
-      )
+        { recordedSequence: 1, entityIdentity: 'canonical' },
+      ),
     ).toMatchObject({
       status: 'consistent',
       matchingViolationCount: 0,
@@ -1216,8 +1244,8 @@ describe('MCP tool handlers', () => {
     expect(
       conflictViewsTool(
         { store },
-        { focus: "'Mira Patel'", entityIdentity: 'canonical' }
-      )
+        { focus: "'Mira Patel'", entityIdentity: 'canonical' },
+      ),
     ).toMatchObject({
       status: 'violations',
       focus: 'mira',
@@ -1225,26 +1253,33 @@ describe('MCP tool handlers', () => {
       clusters: [{ focus: 'mira', rows: [{ focusBinding: 'Person' }] }],
     });
     const listed = listMemoriesTool({ store }, { recordedSequence: 1 });
-    expect(listed.predicates.some((group) => group.predicate === 'suspended/1')).toBe(false);
+    expect(
+      listed.predicates.some((group) => group.predicate === 'suspended/1'),
+    ).toBe(false);
     expect(listed.recordedSnapshot?.sequence).toBe(1);
     expect(
       queryTool(
         { store },
-        { query: 'active(mira)', recordedSequence: 1, entityIdentity: 'canonical' }
-      ).bindings
+        {
+          query: 'active(mira)',
+          recordedSequence: 1,
+          entityIdentity: 'canonical',
+        },
+      ).bindings,
     ).toEqual([{ yes: 'true' }]); // ground goal: one boolean row
   });
 
   it('query and explain_query accept arithmetic comparison filters', () => {
     store.assert(
       'default',
-      'score(alice, 20). score(bob, 14). baseline(team, 10). ahead(X) :- score(X, S), baseline(team, B), S > B + 5.'
+      'score(alice, 20). score(bob, 14). baseline(team, 10). ahead(X) :- score(X, S), baseline(team, B), S > B + 5.',
     );
     expect(queryTool({ store }, { query: 'ahead(Person)' })).toEqual({
       bindings: [{ Person: 'alice' }],
     });
     expect(
-      explainQueryTool({ store }, { query: 'score(Person, S), S / 2 >= 10' }).rows
+      explainQueryTool({ store }, { query: 'score(Person, S), S / 2 >= 10' })
+        .rows,
     ).toHaveLength(1);
   });
 
@@ -1254,7 +1289,9 @@ describe('MCP tool handlers', () => {
     });
     const query = 'count(*) as Count where works_at(Person, acme)';
 
-    expect(queryTool({ store }, { query })).toEqual({ bindings: [{ Count: '2' }] });
+    expect(queryTool({ store }, { query })).toEqual({
+      bindings: [{ Count: '2' }],
+    });
     const explained = explainQueryTool({ store }, { query });
     expect(explained.rows[0]).toMatchObject({
       bindings: { Count: '2' },
@@ -1271,19 +1308,26 @@ describe('MCP tool handlers', () => {
       ],
     });
     expect(explained.graph.nodes).toEqual(
-      expect.arrayContaining([expect.objectContaining({ kind: 'aggregate', value: 2 })])
+      expect.arrayContaining([
+        expect.objectContaining({ kind: 'aggregate', value: 2 }),
+      ]),
     );
   });
 
   it('rejects oversized inputs and namespace fan-out before evaluation', () => {
     expect(() =>
-      queryTool({ store }, { query: 'x'.repeat(MAX_INPUT_BYTES + 1) })
+      queryTool({ store }, { query: 'x'.repeat(MAX_INPUT_BYTES + 1) }),
     ).toThrow(/query exceeds/i);
     expect(() =>
       listMemoriesTool(
         { store },
-        { namespaces: Array.from({ length: MAX_NAMESPACE_COUNT + 1 }, (_, i) => `ns${i}`) }
-      )
+        {
+          namespaces: Array.from(
+            { length: MAX_NAMESPACE_COUNT + 1 },
+            (_, i) => `ns${i}`,
+          ),
+        },
+      ),
     ).toThrow(/namespace list exceeds/i);
   });
 
@@ -1291,9 +1335,12 @@ describe('MCP tool handlers', () => {
     store.assert(
       'default',
       'works_at(rahul, acme). works_at(mira, acme). colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.',
-      { opId: 'source-1', sourceText: 'Rahul and Mira work at Acme.' }
+      { opId: 'source-1', sourceText: 'Rahul and Mira work at Acme.' },
     );
-    const result = explainQueryTool({ store }, { query: 'colleague(rahul, Who)' });
+    const result = explainQueryTool(
+      { store },
+      { query: 'colleague(rahul, Who)' },
+    );
     expect(result.rows[0].bindings).toEqual({ Who: 'mira' });
     expect(result.rows[0].proofs[0]).toMatchObject({
       predicate: 'colleague',
@@ -1303,19 +1350,21 @@ describe('MCP tool handlers', () => {
         { predicate: 'works_at', sources: [{ opId: 'source-1' }] },
       ],
     });
-    expect(result.graph.nodes.some((node) => node.kind === 'result')).toBe(true);
+    expect(result.graph.nodes.some((node) => node.kind === 'result')).toBe(
+      true,
+    );
   });
 
   it('explain_query returns bounded alternative proofs only when requested', () => {
     store.assert(
       'default',
-      'left(a). right(a). answer(X) :- left(X). answer(X) :- right(X).'
+      'left(a). right(a). answer(X) :- left(X). answer(X) :- right(X).',
     );
 
     const primary = explainQueryTool({ store }, { query: 'answer(a)' });
     const expanded = explainQueryTool(
       { store },
-      { query: 'answer(a)', proofLimit: 2 }
+      { query: 'answer(a)', proofLimit: 2 },
     );
 
     expect(primary.rows[0]).not.toHaveProperty('alternativeProofs');
@@ -1323,21 +1372,20 @@ describe('MCP tool handlers', () => {
     expect(expanded.rows[0].alternativeProofs).toEqual([
       [expect.objectContaining({ rule: 2 })],
     ]);
-    expect(expanded.graph.nodes.some((node) => node.kind === 'proof')).toBe(true);
+    expect(expanded.graph.nodes.some((node) => node.kind === 'proof')).toBe(
+      true,
+    );
   });
 
   it('check_integrity returns proof-bearing violations without mutating memory', () => {
     store.assert(
       'default',
       'active(mira). suspended(mira). :- active(X), suspended(X).',
-      { opId: 'integrity-input' }
+      { opId: 'integrity-input' },
     );
     const before = store.load('default');
 
-    const result = checkIntegrityTool(
-      { store },
-      { maxViolations: 10 }
-    );
+    const result = checkIntegrityTool({ store }, { maxViolations: 10 });
 
     expect(result).toMatchObject({
       status: 'violations',
@@ -1356,7 +1404,7 @@ describe('MCP tool handlers', () => {
     const llm = new ScriptedLlm(['?- pet(rahul, Name).', 'Your cat is Luna.']);
     const result = await recallExplainTool(
       { store, llm },
-      { question: 'What is my cat called?' }
+      { question: 'What is my cat called?' },
     );
     expect(result.answer).toBe('Your cat is Luna.');
     expect(result.bindings).toEqual([{ Name: 'luna' }]);
@@ -1369,13 +1417,16 @@ describe('MCP tool handlers', () => {
   it('recall_explain threads the proof limit through generated-query evaluation', async () => {
     store.assert(
       'default',
-      'left(a). right(a). answer(X) :- left(X). answer(X) :- right(X).'
+      'left(a). right(a). answer(X) :- left(X). answer(X) :- right(X).',
     );
-    const llm = new ScriptedLlm(['?- answer(a).', 'The answer is supported twice.']);
+    const llm = new ScriptedLlm([
+      '?- answer(a).',
+      'The answer is supported twice.',
+    ]);
 
     const result = await recallExplainTool(
       { store, llm },
-      { question: 'Is a an answer?', proofLimit: 2 }
+      { question: 'Is a an answer?', proofLimit: 2 },
     );
 
     expect(result.explanation?.rows[0].proofs[0]).toMatchObject({ rule: 1 });
@@ -1389,7 +1440,7 @@ describe('MCP tool handlers', () => {
     store.assert('home', 'lives_in(rahul, sydney).');
     const result = queryTool(
       { store },
-      { query: 'works_at(P, _), lives_in(P, C)', namespaces: '*' }
+      { query: 'works_at(P, _), lives_in(P, C)', namespaces: '*' },
     );
     expect(result.bindings).toEqual([{ P: 'rahul', C: 'sydney' }]);
   });
@@ -1421,7 +1472,7 @@ describe('MCP tool handlers', () => {
   it('list_memories filters by predicate name', () => {
     store.assert(
       'default',
-      'f(a). g(b). :- f(X), blocked(X). :- g(X), hidden(X).'
+      'f(a). g(b). :- f(X), blocked(X). :- g(X), hidden(X).',
     );
     const result = listMemoriesTool({ store }, { predicate: 'f' });
     expect(result).toEqual({

@@ -70,6 +70,27 @@ export function mcpToolProfileFromEnv(
   throw new Error("REMBERO_MCP_PROFILE must be 'core' or 'full'");
 }
 
+/** REMBERO_SELF: the constant that names the speaker in remembered text (default 'user'). */
+export function selfAtomFromEnv(env: NodeJS.ProcessEnv = process.env): string {
+  const configured = env.REMBERO_SELF?.trim();
+  if (configured === undefined || configured === '') return 'user';
+  if (!/^[a-z][a-z0-9_]*$/.test(configured)) {
+    throw new Error(
+      'REMBERO_SELF must be a lowercase snake_case constant, e.g. rahul',
+    );
+  }
+  return configured;
+}
+
+/** REMBERO_EXTRACTION_VOCABULARY: 'open' (default) or 'closed' (only schema predicates may be added). */
+export function extractionVocabularyFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): 'open' | 'closed' {
+  const configured = env.REMBERO_EXTRACTION_VOCABULARY ?? 'open';
+  if (configured === 'open' || configured === 'closed') return configured;
+  throw new Error("REMBERO_EXTRACTION_VOCABULARY must be 'open' or 'closed'");
+}
+
 export function recallAnswerModeFromEnv(
   env: NodeJS.ProcessEnv = process.env,
 ): RecallAnswerMode {

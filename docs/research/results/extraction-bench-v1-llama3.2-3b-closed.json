@@ -1,0 +1,821 @@
+{
+  "benchmark": "extraction-bench-v1",
+  "vocabulary": "closed",
+  "generatedAt": "2026-09-08T07:36:20.346Z",
+  "cases": 103,
+  "runs": [
+    {
+      "model": "llama3.2:3b",
+      "score": {
+        "cases": 103,
+        "accuracy": 0.33980582524271846,
+        "mutationPrecision": 0.5283018867924528,
+        "mutationRecall": 0.4745762711864407,
+        "mutationF1": 0.5,
+        "truePositives": 56,
+        "falsePositives": 50,
+        "falseNegatives": 62,
+        "safetyAccuracy": 1,
+        "safetyCases": 0,
+        "unexpectedErrors": 22,
+        "llmCalls": 135,
+        "usageResponses": 134,
+        "costResponses": 0,
+        "promptTokens": 114329,
+        "completionTokens": 2302,
+        "totalTokens": 116631,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "durationMs": 190711.6276249999,
+        "byPhenomenon": {
+          "direct": {
+            "cases": 12,
+            "correct": 5,
+            "accuracy": 0.4166666666666667
+          },
+          "multi_fact": {
+            "cases": 8,
+            "correct": 5,
+            "accuracy": 0.625
+          },
+          "negation": {
+            "cases": 10,
+            "correct": 0,
+            "accuracy": 0
+          },
+          "coreference": {
+            "cases": 8,
+            "correct": 5,
+            "accuracy": 0.625
+          },
+          "first_person": {
+            "cases": 8,
+            "correct": 3,
+            "accuracy": 0.375
+          },
+          "supersession": {
+            "cases": 8,
+            "correct": 7,
+            "accuracy": 0.875
+          },
+          "distractor_prose": {
+            "cases": 8,
+            "correct": 4,
+            "accuracy": 0.5
+          },
+          "competitor_predicate": {
+            "cases": 8,
+            "correct": 1,
+            "accuracy": 0.125
+          },
+          "hedge": {
+            "cases": 9,
+            "correct": 0,
+            "accuracy": 0
+          },
+          "transcript": {
+            "cases": 8,
+            "correct": 3,
+            "accuracy": 0.375
+          },
+          "entity_normalization": {
+            "cases": 8,
+            "correct": 0,
+            "accuracy": 0
+          },
+          "date_number": {
+            "cases": 8,
+            "correct": 2,
+            "accuracy": 0.25
+          }
+        },
+        "driftRate": 0,
+        "driftedPredicates": {}
+      },
+      "failures": [
+        {
+          "id": "direct_2",
+          "phenomenon": "direct",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "works_at(user, priya)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(priya, globex).",
+          "drift": []
+        },
+        {
+          "id": "direct_4",
+          "phenomenon": "direct",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "works_at(user, hooli)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(ava, hooli).",
+          "drift": []
+        },
+        {
+          "id": "direct_city_0",
+          "phenomenon": "direct",
+          "actual": [
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nlives_in(mira, melbourne).",
+          "drift": [],
+          "error": "expected '.' but found 'lives_in' at line 1"
+        },
+        {
+          "id": "direct_city_1",
+          "phenomenon": "direct",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "lives_in(user, sydney)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nlives_in(tom, sydney).",
+          "drift": []
+        },
+        {
+          "id": "direct_city_2",
+          "phenomenon": "direct",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "lives_in(user, lisbon)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nlives_in(priya, lisbon).",
+          "drift": []
+        },
+        {
+          "id": "direct_city_3",
+          "phenomenon": "direct",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "lives_in(user, osaka)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nlives_in(liam, osaka).",
+          "drift": []
+        },
+        {
+          "id": "direct_city_4",
+          "phenomenon": "direct",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "lives_in(user, toronto)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nlives_in(ava, toronto).",
+          "drift": []
+        },
+        {
+          "id": "multi_2",
+          "phenomenon": "multi_fact",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "works_at(user, priya).",
+            "lives_in(osaka, priya).",
+            "prefers_language(go, priya)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nprefers_language(zed, sample_1).\nworks_at(priya, globex).\nlives_in(priya, osaka).\nprefers_language(priya, go).",
+          "drift": []
+        },
+        {
+          "id": "multi_3",
+          "phenomenon": "multi_fact",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "works_at(user, 'Umbrella').",
+            "lives_in(user, 'Toronto').",
+            "prefers_language(user, typescript)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nprefers_language(zed, sample_1).\nworks_at(liam, umbrella).\nlives_in(liam, toronto).\nprefers_language(liam, typescript).",
+          "drift": []
+        },
+        {
+          "id": "multi_4",
+          "phenomenon": "multi_fact",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "works_at(user, hooli).",
+            "lives_in(user, nairobi).",
+            "prefers_language(user, kotlin)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nprefers_language(zed, sample_1).\nworks_at(ava, hooli).\nlives_in(ava, nairobi).\nprefers_language(ava, kotlin).",
+          "drift": []
+        },
+        {
+          "id": "negation_absent_0",
+          "phenomenon": "negation",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).",
+          "drift": [],
+          "error": "constant 'initech' is not in the input; store only values the text states, do not infer or rename them"
+        },
+        {
+          "id": "negation_absent_1",
+          "phenomenon": "negation",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "works_at(initech, tom)."
+          ],
+          "expected": "works_at(zed, sample_1).",
+          "drift": []
+        },
+        {
+          "id": "negation_absent_2",
+          "phenomenon": "negation",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).",
+          "drift": []
+        },
+        {
+          "id": "negation_retract_0",
+          "phenomenon": "negation",
+          "actual": [
+            "works_at(mira, acme)."
+          ],
+          "expected": "",
+          "drift": [],
+          "error": "constant 'initech' is not in the input; store only values the text states, do not infer or rename them"
+        },
+        {
+          "id": "negation_retract_1",
+          "phenomenon": "negation",
+          "actual": [
+            "works_at(tom, initech)."
+          ],
+          "expected": "",
+          "drift": []
+        },
+        {
+          "id": "negation_retract_2",
+          "phenomenon": "negation",
+          "actual": [
+            "works_at(priya, globex)."
+          ],
+          "expected": "",
+          "drift": [],
+          "error": "constant 'initech' is not in the input; store only values the text states, do not infer or rename them"
+        },
+        {
+          "id": "negation_never",
+          "phenomenon": "negation",
+          "actual": [
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "lives_in(zed, sample_1).",
+          "drift": [],
+          "error": "facts must be ground: 'lives_in' contains variable Ava at line 1"
+        },
+        {
+          "id": "negation_mixed",
+          "phenomenon": "negation",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nlives_in(dana, toronto).",
+          "drift": [],
+          "error": "expected 'atom' but found '\\+' at line 3"
+        },
+        {
+          "id": "coref_4",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(ava, hooli).\nlives_in(ava, toronto).",
+          "drift": [],
+          "error": "constant '2023' is not in the input; store only values the text states, do not infer or rename them"
+        },
+        {
+          "id": "coref_their",
+          "phenomenon": "coreference",
+          "actual": [
+            "leads(zed, sample_1).",
+            "standup_day(zed, sample_1).",
+            "leads(platform_team, tom).",
+            "standup_day(platform_team, tuesday)."
+          ],
+          "expected": "leads(zed, sample_1).\nstandup_day(zed, sample_1).\nleads(tom, platform_team).\nstandup_day(platform_team, tuesday).",
+          "drift": []
+        },
+        {
+          "id": "coref_two_sentences_back",
+          "phenomenon": "coreference",
+          "actual": [
+            "reports_to(zed, sample_1)."
+          ],
+          "expected": "reports_to(zed, sample_1).\nreports_to(priya, ava).",
+          "drift": [],
+          "error": "expected '.' but found 'reports_to' at line 1"
+        },
+        {
+          "id": "first_person_2",
+          "phenomenon": "first_person",
+          "actual": [
+            "dentist(zed, sample_1).",
+            "dentist(zed, dr_chen)."
+          ],
+          "expected": "dentist(zed, sample_1).\ndentist(user, dr_chen).",
+          "drift": []
+        },
+        {
+          "id": "first_person_4",
+          "phenomenon": "first_person",
+          "actual": [
+            "reports_to(zed, sample_1).",
+            "reports_to(liam, manager)."
+          ],
+          "expected": "reports_to(zed, sample_1).\nreports_to(user, liam).",
+          "drift": []
+        },
+        {
+          "id": "first_person_5",
+          "phenomenon": "first_person",
+          "actual": [
+            "allergic_to(zed, sample_1).",
+            "allergic_to(zed, peanuts)."
+          ],
+          "expected": "allergic_to(zed, sample_1).\nallergic_to(user, peanuts).",
+          "drift": []
+        },
+        {
+          "id": "first_person_6",
+          "phenomenon": "first_person",
+          "actual": [
+            "uses_database(zed, sample_1)."
+          ],
+          "expected": "uses_database(zed, sample_1).\nuses_database(ledger_service, postgres).",
+          "drift": []
+        },
+        {
+          "id": "supersede_manager",
+          "phenomenon": "supersession",
+          "actual": [
+            "reports_to(priya, liam).",
+            "reports_to(liam, dana)."
+          ],
+          "expected": "reports_to(priya, dana).\nreports_to(liam, dana).",
+          "drift": [],
+          "error": "expected '.' but found 'reports_to' at line 1"
+        },
+        {
+          "id": "distractor_2",
+          "phenomenon": "distractor_prose",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(priya, globex).",
+          "drift": [],
+          "error": "The operation was aborted due to timeout"
+        },
+        {
+          "id": "distractor_5",
+          "phenomenon": "distractor_prose",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(dana, vandelay).",
+          "drift": [],
+          "error": "constant 'osaka' is not in the input; store only values the text states, do not infer or rename them"
+        },
+        {
+          "id": "distractor_code",
+          "phenomenon": "distractor_prose",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "lives_in(user, lisbon)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nlives_in(liam, lisbon).",
+          "drift": []
+        },
+        {
+          "id": "distractor_only_noise",
+          "phenomenon": "distractor_prose",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).",
+          "drift": [],
+          "error": "constants 'initech', 'osaka' are not in the input; store only values the text states, do not infer or rename them"
+        },
+        {
+          "id": "competitor_1",
+          "phenomenon": "competitor_predicate",
+          "actual": [
+            "works_for(tom, initech)."
+          ],
+          "expected": "works_for(priya, umbrella).\nworks_for(tom, initech).",
+          "drift": []
+        },
+        {
+          "id": "competitor_2",
+          "phenomenon": "competitor_predicate",
+          "actual": [
+            "employed_by(liam, hooli).",
+            "employed_by(user, priya)."
+          ],
+          "expected": "employed_by(liam, hooli).\nemployed_by(priya, globex).",
+          "drift": []
+        },
+        {
+          "id": "competitor_3",
+          "phenomenon": "competitor_predicate",
+          "actual": [
+            "resides_in(ava, nairobi).",
+            "resides_in(osaka, ava)."
+          ],
+          "expected": "resides_in(ava, nairobi).\nresides_in(liam, osaka).",
+          "drift": []
+        },
+        {
+          "id": "competitor_4",
+          "phenomenon": "competitor_predicate",
+          "actual": [
+            "home_city(dana, melbourne).",
+            "home_city(user, toronto)."
+          ],
+          "expected": "home_city(dana, melbourne).\nhome_city(ava, toronto).",
+          "drift": []
+        },
+        {
+          "id": "competitor_5",
+          "phenomenon": "competitor_predicate",
+          "actual": [
+            "manager_of(tom, mira)."
+          ],
+          "expected": "manager_of(tom, mira).\nmanager_of(liam, dana).",
+          "drift": []
+        },
+        {
+          "id": "competitor_6",
+          "phenomenon": "competitor_predicate",
+          "actual": [
+            "based_in(tom, lisbon).",
+            "based_in(user, melbourne)."
+          ],
+          "expected": "based_in(tom, lisbon).\nbased_in(mira, melbourne).",
+          "drift": []
+        },
+        {
+          "id": "competitor_7",
+          "phenomenon": "competitor_predicate",
+          "actual": [
+            "job_at(priya, umbrella).",
+            "job_at(user, initech)."
+          ],
+          "expected": "job_at(priya, umbrella).\njob_at(tom, initech).",
+          "drift": []
+        },
+        {
+          "id": "hedge_0",
+          "phenomenon": "hedge",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "leads(zed, sample_1).",
+            "works_at(mira, sydney)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nprefers_language(zed, sample_1).\nleads(zed, sample_1).",
+          "drift": []
+        },
+        {
+          "id": "hedge_1",
+          "phenomenon": "hedge",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "leads(zed, sample_1).",
+            "works_at(user, rust).",
+            "prefers_language(user, rust).",
+            "leads(user, rust)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nprefers_language(zed, sample_1).\nleads(zed, sample_1).",
+          "drift": []
+        },
+        {
+          "id": "hedge_2",
+          "phenomenon": "hedge",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "leads(zed, sample_1).",
+            "works_at(priya, globex)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nprefers_language(zed, sample_1).\nleads(zed, sample_1).",
+          "drift": []
+        },
+        {
+          "id": "hedge_3",
+          "phenomenon": "hedge",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "leads(zed, sample_1).",
+            "works_at(liam, 'Hooli')."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nprefers_language(zed, sample_1).\nleads(zed, sample_1).",
+          "drift": []
+        },
+        {
+          "id": "hedge_4",
+          "phenomenon": "hedge",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "leads(zed, sample_1)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nprefers_language(zed, sample_1).\nleads(zed, sample_1).",
+          "drift": [],
+          "error": "facts must be ground: 'leads' contains variable Ava at line 1"
+        },
+        {
+          "id": "hedge_5",
+          "phenomenon": "hedge",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1).",
+            "prefers_language(zed, sample_1).",
+            "leads(zed, sample_1)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nprefers_language(zed, sample_1).\nleads(zed, sample_1).",
+          "drift": [],
+          "error": "facts must be ground: 'lives_near' contains variable Dana at line 1"
+        },
+        {
+          "id": "transcript_user_fact",
+          "phenomenon": "transcript",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "works_at(acme, ledger)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(user, acme).",
+          "drift": []
+        },
+        {
+          "id": "transcript_user_confirms_assistant",
+          "phenomenon": "transcript",
+          "actual": [
+            "runs_on(zed, sample_1)."
+          ],
+          "expected": "runs_on(zed, sample_1).\nruns_on(ledger, postgres).",
+          "drift": []
+        },
+        {
+          "id": "transcript_preference",
+          "phenomenon": "transcript",
+          "actual": [
+            "prefers_indentation(zed, sample_1)."
+          ],
+          "expected": "prefers_indentation(zed, sample_1).\nprefers_indentation(user, tabs).",
+          "drift": [],
+          "error": "unexpected character ':' at line 1"
+        },
+        {
+          "id": "transcript_two_user_facts",
+          "phenomenon": "transcript",
+          "actual": [
+            "reports_to(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "deploy_day(zed, sample_1).",
+            "reports_to(dana, melbourne).",
+            "lives_in(user, melbourne).",
+            "deploy_day(dana, friday)."
+          ],
+          "expected": "reports_to(zed, sample_1).\nlives_in(zed, sample_1).\ndeploy_day(zed, sample_1).\nreports_to(user, dana).\nlives_in(user, melbourne).\ndeploy_day(team, friday).",
+          "drift": []
+        },
+        {
+          "id": "normalize_0",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "dentist(zed, sample_1).",
+            "dentist(zed, dr_mira_chen)."
+          ],
+          "expected": "dentist(zed, sample_1).\ndentist(user, 'Mira Chen').",
+          "drift": []
+        },
+        {
+          "id": "normalize_1",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "works_at(user, blue_harbour_analytics)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(tom, 'Blue Harbour Analytics').",
+          "drift": []
+        },
+        {
+          "id": "normalize_2",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "lives_in(user, 'New York')."
+          ],
+          "expected": "lives_in(zed, sample_1).\nlives_in(priya, 'New York').",
+          "drift": []
+        },
+        {
+          "id": "normalize_3",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "codename(zed, sample_1)."
+          ],
+          "expected": "codename(zed, sample_1).\ncodename(project, orchard).",
+          "drift": []
+        },
+        {
+          "id": "normalize_4",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "works_at(liam, acme)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(liam, 'ACME Corp').",
+          "drift": []
+        },
+        {
+          "id": "normalize_5",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "speaks(zed, sample_1).",
+            "speaks(zed, mandarin_chinese)."
+          ],
+          "expected": "speaks(zed, sample_1).\nspeaks(ava, 'Mandarin Chinese').",
+          "drift": []
+        },
+        {
+          "id": "date_number_0",
+          "phenomenon": "date_number",
+          "actual": [
+            "filing_deadline(zed, sample_1)."
+          ],
+          "expected": "filing_deadline(zed, sample_1).\nfiling_deadline(filing, '2026-10-31').",
+          "drift": [],
+          "error": "expected ')' but found '-' at line 1"
+        },
+        {
+          "id": "date_number_2",
+          "phenomenon": "date_number",
+          "actual": [
+            "team_size(zed, sample_1).",
+            "team_size(zed, 7)."
+          ],
+          "expected": "team_size(zed, sample_1).\nteam_size(team, 7).",
+          "drift": []
+        },
+        {
+          "id": "date_number_3",
+          "phenomenon": "date_number",
+          "actual": [
+            "sla_uptime_percent(zed, sample_1).",
+            "sla_uptime_percent(zed, 99.9)."
+          ],
+          "expected": "sla_uptime_percent(zed, sample_1).\nsla_uptime_percent(service, 99.9).",
+          "drift": []
+        },
+        {
+          "id": "date_number_5",
+          "phenomenon": "date_number",
+          "actual": [
+            "budget_dollars(zed, sample_1).",
+            "budget_dollars(zed, 250000)."
+          ],
+          "expected": "budget_dollars(zed, sample_1).\nbudget_dollars(project, 250000).",
+          "drift": []
+        },
+        {
+          "id": "hedge_more_0",
+          "phenomenon": "hedge",
+          "actual": [
+            "prefers_language(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "uses_database(zed, sample_1).",
+            "prefers_language(zed, kotlin)."
+          ],
+          "expected": "prefers_language(zed, sample_1).\nlives_in(zed, sample_1).\nuses_database(zed, sample_1).",
+          "drift": []
+        },
+        {
+          "id": "hedge_more_1",
+          "phenomenon": "hedge",
+          "actual": [
+            "prefers_language(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "uses_database(zed, sample_1)."
+          ],
+          "expected": "prefers_language(zed, sample_1).\nlives_in(zed, sample_1).\nuses_database(zed, sample_1).",
+          "drift": [],
+          "error": "facts must be ground: 'offer' contains variable Liam at line 1"
+        },
+        {
+          "id": "hedge_more_2",
+          "phenomenon": "hedge",
+          "actual": [
+            "prefers_language(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "uses_database(zed, mysql)."
+          ],
+          "expected": "prefers_language(zed, sample_1).\nlives_in(zed, sample_1).\nuses_database(zed, sample_1).",
+          "drift": []
+        },
+        {
+          "id": "negation_not_anymore_manager",
+          "phenomenon": "negation",
+          "actual": [
+            "reports_to(liam, dana)."
+          ],
+          "expected": "",
+          "drift": [],
+          "error": "constant 'new york' is not in the input; store only values the text states, do not infer or rename them"
+        },
+        {
+          "id": "negation_keep_other_facts",
+          "phenomenon": "negation",
+          "actual": [
+            "prefers_language(mira, rust).",
+            "lives_in(mira, melbourne)."
+          ],
+          "expected": "lives_in(mira, melbourne).",
+          "drift": [],
+          "error": "constant 'python' is not in the input; store only values the text states, do not infer or rename them"
+        },
+        {
+          "id": "transcript_code_and_fact",
+          "phenomenon": "transcript",
+          "actual": [
+            "prefers_package_manager(zed, sample_1)."
+          ],
+          "expected": "prefers_package_manager(zed, sample_1).\nprefers_package_manager(user, pnpm).",
+          "drift": [],
+          "error": "constant 'undefined' is not in the input; store only values the text states, do not infer or rename them"
+        },
+        {
+          "id": "date_number_version",
+          "phenomenon": "date_number",
+          "actual": [
+            "runs_node_version(zed, sample_1).",
+            "runs_node_version(user, 22)."
+          ],
+          "expected": "runs_node_version(zed, sample_1).\nruns_node_version(ledger_service, 22).",
+          "drift": []
+        },
+        {
+          "id": "date_number_time",
+          "phenomenon": "date_number",
+          "actual": [
+            "standup_time(zed, sample_1)."
+          ],
+          "expected": "standup_time(zed, sample_1).\nstandup_time(team, '9:30').",
+          "drift": [],
+          "error": "unexpected character ':' at line 1"
+        },
+        {
+          "id": "normalize_hyphen",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "works_on(zed, sample_1).",
+            "works_on(dana, check_out)."
+          ],
+          "expected": "works_on(zed, sample_1).\nworks_on(dana, checkout_service).",
+          "drift": []
+        },
+        {
+          "id": "normalize_acronym",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "on_call_for(zed, sample_1).",
+            "on_call_for(user, tom)."
+          ],
+          "expected": "on_call_for(zed, sample_1).\non_call_for(tom, api_gateway).",
+          "drift": []
+        },
+        {
+          "id": "first_person_possessive_team",
+          "phenomenon": "first_person",
+          "actual": [
+            "deploy_day(zed, sample_1)."
+          ],
+          "expected": "deploy_day(zed, sample_1).\ndeploy_day(team, friday).",
+          "drift": [],
+          "error": "facts must be ground: 'deploy_day' contains variable _ at line 1"
+        }
+      ]
+    }
+  ]
+}

@@ -3,11 +3,13 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import {
   entityIdentityFromEnv,
+  extractionVocabularyFromEnv,
   integrityEnforcementFromEnv,
   knowledgeCheckEnforcementFromEnv,
   mcpToolProfileFromEnv,
   recallAnswerModeFromEnv,
   recallSchemaPredicateLimitFromEnv,
+  selfAtomFromEnv,
   validTimeModeFromEnv,
 } from '../env.js';
 import type {
@@ -613,6 +615,9 @@ export function createServer(deps: PipelineDeps): McpServer {
     deps.knowledgeCheckEnforcement ?? knowledgeCheckEnforcementFromEnv();
   const resolvedDeps: PipelineDeps = {
     ...deps,
+    selfAtom: deps.selfAtom ?? selfAtomFromEnv(),
+    extractionVocabulary:
+      deps.extractionVocabulary ?? extractionVocabularyFromEnv(),
     validTimeMode: deps.validTimeMode ?? validTimeModeFromEnv(),
     recallSchemaPredicateLimit:
       deps.recallSchemaPredicateLimit ?? recallSchemaPredicateLimitFromEnv(),

@@ -21,12 +21,14 @@ import {
 import { MAX_PROOFS_PER_ROW, serializeClause } from './engine/index.js';
 import {
   entityIdentityFromEnv,
+  extractionVocabularyFromEnv,
   integrityEnforcementFromEnv,
   knowledgeCheckEnforcementFromEnv,
   loadEnv,
   mcpToolProfileFromEnv,
   recallAnswerModeFromEnv,
   recallSchemaPredicateLimitFromEnv,
+  selfAtomFromEnv,
   validTimeModeFromEnv,
 } from './env.js';
 import { clientFromEnv, lazyClientFromEnv } from './llm/client.js';
@@ -161,7 +163,10 @@ import {
   llmNamespaceAllowlistFromEnv,
   stringifyBoundedResult,
 } from './safety.js';
-import { buildSqliteExtension, openDatalogDatabase } from './sqlite/extension.js';
+import {
+  buildSqliteExtension,
+  openDatalogDatabase,
+} from './sqlite/extension.js';
 
 const USAGE = `remembero — logic-based memory for chats and agents
 
@@ -567,11 +572,16 @@ function parseArgs(argv: string[]): ParsedArgs {
   return parsed;
 }
 
-function integerOption(value: string | undefined, fallback: number, label: string): number {
+function integerOption(
+  value: string | undefined,
+  fallback: number,
+  label: string,
+): number {
   if (value === undefined) return fallback;
   if (!/^\d+$/.test(value)) throw new Error(`${label} must be an integer`);
   const parsed = Number(value);
-  if (!Number.isSafeInteger(parsed)) throw new Error(`${label} must be a safe integer`);
+  if (!Number.isSafeInteger(parsed))
+    throw new Error(`${label} must be a safe integer`);
   return parsed;
 }
 
@@ -586,7 +596,7 @@ function recallSchemaPredicateLimitOption(value: string | undefined): number {
   const parsed = integerOption(value, 0, 'recall schema predicate limit');
   if (parsed < 1 || parsed > MAX_RECALL_SCHEMA_PREDICATES) {
     throw new Error(
-      `recall schema predicate limit must be from 1 to ${MAX_RECALL_SCHEMA_PREDICATES}`
+      `recall schema predicate limit must be from 1 to ${MAX_RECALL_SCHEMA_PREDICATES}`,
     );
   }
   return parsed;
@@ -606,25 +616,27 @@ function maxViolationsOption(value: string | undefined): number | undefined {
   const parsed = integerOption(value, 0, 'maximum integrity violations');
   if (parsed < 1 || parsed > MAX_INTEGRITY_VIOLATIONS) {
     throw new Error(
-      `maximum integrity violations must be from 1 to ${MAX_INTEGRITY_VIOLATIONS}`
+      `maximum integrity violations must be from 1 to ${MAX_INTEGRITY_VIOLATIONS}`,
     );
   }
   return parsed;
 }
 
 function topologyDirectionOption(
-  value: string | undefined
+  value: string | undefined,
 ): TopologyDirection | undefined {
   if (value === undefined) return undefined;
   if (value === 'upstream' || value === 'downstream' || value === 'both') {
     return value;
   }
-  throw new Error("topology direction must be 'upstream', 'downstream', or 'both'");
+  throw new Error(
+    "topology direction must be 'upstream', 'downstream', or 'both'",
+  );
 }
 
 function searchKindsOption(
   values: string[],
-  flag = '--kind'
+  flag = '--kind',
 ): KnowledgeSearchClauseKind[] | undefined {
   if (values.length === 0) return undefined;
   const kinds = [...new Set(values)];
@@ -637,9 +649,13 @@ function searchKindsOption(
 }
 
 function relatedKnowledgeOption(
-  args: ParsedArgs
+  args: ParsedArgs,
 ): boolean | RecallRelatedKnowledgeOptions | undefined {
-  if (!args.related && args.relatedLimit === undefined && args.relatedKinds.length === 0) {
+  if (
+    !args.related &&
+    args.relatedLimit === undefined &&
+    args.relatedKinds.length === 0
+  ) {
     return undefined;
   }
   const kinds = searchKindsOption(args.relatedKinds, '--related-kind');
@@ -648,7 +664,7 @@ function relatedKnowledgeOption(
     limit = integerOption(args.relatedLimit, 0, 'related knowledge limit');
     if (limit < 1 || limit > MAX_KNOWLEDGE_SEARCH_LIMIT) {
       throw new Error(
-        `related knowledge limit must be from 1 to ${MAX_KNOWLEDGE_SEARCH_LIMIT}`
+        `related knowledge limit must be from 1 to ${MAX_KNOWLEDGE_SEARCH_LIMIT}`,
       );
     }
   }
@@ -668,7 +684,9 @@ function relatedKnowledgeText(result: KnowledgeSearchResult): string {
       lines.push(`  ${item.rank}. ${item.clause} (score ${item.score})`);
     }
     if (result.truncated) {
-      lines.push(`  ... ${result.matchCount - result.returnedCount} more matches`);
+      lines.push(
+        `  ... ${result.matchCount - result.returnedCount} more matches`,
+      );
     }
   }
   const text = lines.join('\n');
@@ -677,7 +695,7 @@ function relatedKnowledgeText(result: KnowledgeSearchResult): string {
 }
 
 function entityIdentityOption(
-  value: string | undefined
+  value: string | undefined,
 ): EntityIdentityMode | false | undefined {
   if (value === undefined) return entityIdentityFromEnv();
   if (value === 'off') return false;
@@ -697,14 +715,18 @@ function trustViewOption(value: string | undefined): TrustViewMode {
   throw new Error("read --trust must be 'accepted' or 'include_tentative'");
 }
 
-function recallAnswerModeOption(
-  value: string | undefined
-): RecallAnswerMode {
+function recallAnswerModeOption(value: string | undefined): RecallAnswerMode {
   if (value === undefined) return recallAnswerModeFromEnv();
-  if (value === 'natural' || value === 'deterministic' || value === 'evidence') {
+  if (
+    value === 'natural' ||
+    value === 'deterministic' ||
+    value === 'evidence'
+  ) {
     return value;
   }
-  throw new Error("--answer-mode must be 'natural', 'deterministic', or 'evidence'");
+  throw new Error(
+    "--answer-mode must be 'natural', 'deterministic', or 'evidence'",
+  );
 }
 
 function toolProfileOption(value: string | undefined): McpToolProfile {
@@ -730,13 +752,17 @@ function operationIdOption(value: string | undefined): string | undefined {
   return value;
 }
 
-function graphSelectorOption(args: ParsedArgs): ExplanationGraphSelector | undefined {
-  const selected = [args.graphResult, args.graphSupport, args.graphNeighbors].filter(
-    (value) => value !== undefined
-  );
+function graphSelectorOption(
+  args: ParsedArgs,
+): ExplanationGraphSelector | undefined {
+  const selected = [
+    args.graphResult,
+    args.graphSupport,
+    args.graphNeighbors,
+  ].filter((value) => value !== undefined);
   if (selected.length > 1) {
     throw new Error(
-      '--graph-result, --graph-support, and --graph-neighbors are mutually exclusive'
+      '--graph-result, --graph-support, and --graph-neighbors are mutually exclusive',
     );
   }
   if (args.graphDepth !== undefined && args.graphNeighbors === undefined) {
@@ -745,7 +771,9 @@ function graphSelectorOption(args: ParsedArgs): ExplanationGraphSelector | undef
   if (args.graphResult !== undefined) {
     const row = integerOption(args.graphResult, 0, 'graph result row');
     if (row < 1 || row > MAX_GRAPH_RESULT_ROW) {
-      throw new Error(`graph result row must be from 1 to ${MAX_GRAPH_RESULT_ROW}`);
+      throw new Error(
+        `graph result row must be from 1 to ${MAX_GRAPH_RESULT_ROW}`,
+      );
     }
     return { kind: 'result', row };
   }
@@ -758,7 +786,9 @@ function graphSelectorOption(args: ParsedArgs): ExplanationGraphSelector | undef
   if (args.graphNeighbors !== undefined) {
     const depth = integerOption(args.graphDepth, 1, 'graph neighbor depth');
     if (depth < 1 || depth > MAX_GRAPH_NEIGHBOR_DEPTH) {
-      throw new Error(`graph neighbor depth must be from 1 to ${MAX_GRAPH_NEIGHBOR_DEPTH}`);
+      throw new Error(
+        `graph neighbor depth must be from 1 to ${MAX_GRAPH_NEIGHBOR_DEPTH}`,
+      );
     }
     return {
       kind: 'neighbors',
@@ -775,7 +805,7 @@ function integrityEnforcementOption(
   fallback: IntegrityEnforcementOptions | undefined,
   proofLimit: string | undefined,
   maxViolations: string | undefined,
-  graphSelector: ExplanationGraphSelector | undefined
+  graphSelector: ExplanationGraphSelector | undefined,
 ): IntegrityEnforcementOptions | false | undefined {
   const proofLimitValue = proofLimitOption(proofLimit);
   const maxViolationsValue = maxViolationsOption(maxViolations);
@@ -788,7 +818,7 @@ function integrityEnforcementOption(
       fallback === undefined
     ) {
       throw new Error(
-        'integrity write options require --integrity-mode or REMBERO_INTEGRITY_MODE'
+        'integrity write options require --integrity-mode or REMBERO_INTEGRITY_MODE',
       );
     }
     return fallback === undefined
@@ -799,7 +829,9 @@ function integrityEnforcementOption(
           ...(proofLimitValue === undefined
             ? {}
             : { maxProofsPerRow: proofLimitValue }),
-          ...(maxViolationsValue === undefined ? {} : { maxViolations: maxViolationsValue }),
+          ...(maxViolationsValue === undefined
+            ? {}
+            : { maxViolations: maxViolationsValue }),
           ...(graphSelector === undefined ? {} : { graphSelector }),
         };
   }
@@ -810,18 +842,26 @@ function integrityEnforcementOption(
       maxViolationsValue !== undefined ||
       graphSelector !== undefined
     ) {
-      throw new Error("--integrity-mode 'off' cannot use integrity write options");
+      throw new Error(
+        "--integrity-mode 'off' cannot use integrity write options",
+      );
     }
     return false;
   }
   if (mode !== 'strict' && mode !== 'no_new_violations') {
-    throw new Error("--integrity-mode must be 'off', 'strict', or 'no_new_violations'");
+    throw new Error(
+      "--integrity-mode must be 'off', 'strict', or 'no_new_violations'",
+    );
   }
   return {
     mode,
     ...(namespaces === undefined ? {} : { namespaces }),
-    ...(proofLimitValue === undefined ? {} : { maxProofsPerRow: proofLimitValue }),
-    ...(maxViolationsValue === undefined ? {} : { maxViolations: maxViolationsValue }),
+    ...(proofLimitValue === undefined
+      ? {}
+      : { maxProofsPerRow: proofLimitValue }),
+    ...(maxViolationsValue === undefined
+      ? {}
+      : { maxViolations: maxViolationsValue }),
     ...(graphSelector === undefined ? {} : { graphSelector }),
   };
 }
@@ -838,11 +878,16 @@ async function readStdinBounded(maxBytes = MAX_INPUT_BYTES): Promise<string> {
   return Buffer.concat(chunks).toString('utf8');
 }
 
-function reviewSelections(raw: string | undefined, factCount: number): number[] {
+function reviewSelections(
+  raw: string | undefined,
+  factCount: number,
+): number[] {
   if (raw === undefined) return [];
   const values = raw.split(',').map((value) => value.trim());
   if (values.some((value) => !/^\d+$/.test(value))) {
-    throw new Error('--forget must be a comma-separated list of review numbers');
+    throw new Error(
+      '--forget must be a comma-separated list of review numbers',
+    );
   }
   const selected = [...new Set(values.map(Number))];
   const invalid = selected.find((value) => value < 1 || value > factCount);
@@ -922,7 +967,11 @@ function parseVersionArgs(argv: string[]): VersionArgs {
 
 async function runVersionCommand(argv: string[]): Promise<void> {
   const [subcommand, ...rest] = argv;
-  if (subcommand === undefined || subcommand === '--help' || subcommand === '-h') {
+  if (
+    subcommand === undefined ||
+    subcommand === '--help' ||
+    subcommand === '-h'
+  ) {
     console.log(VERSION_USAGE);
     return;
   }
@@ -931,13 +980,14 @@ async function runVersionCommand(argv: string[]): Promise<void> {
   const semanticAuthority = await openSemanticLedgerIfSupported(ledgerPath);
   if (semanticAuthority === undefined) {
     throw new Error(
-      "semantic version commands require the node:sqlite module (Node 22 or newer)"
+      'semantic version commands require the node:sqlite module (Node 22 or newer)',
     );
   }
   const { database, ledger } = semanticAuthority;
   try {
     if (subcommand === 'capture') {
-      if (args.positional.length !== 0) throw new Error('version capture accepts no positional arguments');
+      if (args.positional.length !== 0)
+        throw new Error('version capture accepts no positional arguments');
       const store = new MemoryStore();
       const parent = ledger.getRef(args.ref)?.versionDigest;
       const capture = captureRememberoVersion({
@@ -955,36 +1005,60 @@ async function runVersionCommand(argv: string[]): Promise<void> {
           reason: 'Initialize semantic version ref',
         });
       }
-      console.log(stringifyBoundedResult({
-        version: capture.version,
-        baselineVersionDigest: parent,
-        recordedSnapshot: {
-          sequence: capture.recordedSnapshot.sequence,
-          journalEntries: capture.recordedSnapshot.journalEntries,
-          namespaces: capture.recordedSnapshot.namespaces,
-        },
-      }, 'version capture'));
+      console.log(
+        stringifyBoundedResult(
+          {
+            version: capture.version,
+            baselineVersionDigest: parent,
+            recordedSnapshot: {
+              sequence: capture.recordedSnapshot.sequence,
+              journalEntries: capture.recordedSnapshot.journalEntries,
+              namespaces: capture.recordedSnapshot.namespaces,
+            },
+          },
+          'version capture',
+        ),
+      );
       return;
     }
     if (subcommand === 'list') {
-      if (args.positional.length !== 0) throw new Error('version list accepts no positional arguments');
-      console.log(stringifyBoundedResult({ refs: ledger.listRefs(), versions: ledger.listVersions() }, 'version list'));
+      if (args.positional.length !== 0)
+        throw new Error('version list accepts no positional arguments');
+      console.log(
+        stringifyBoundedResult(
+          { refs: ledger.listRefs(), versions: ledger.listVersions() },
+          'version list',
+        ),
+      );
       return;
     }
     if (subcommand === 'inspect') {
-      if (args.positional.length !== 1) throw new Error('version inspect requires one reference');
-      console.log(stringifyBoundedResult(ledger.resolveVersion(args.positional[0]), 'version inspect'));
+      if (args.positional.length !== 1)
+        throw new Error('version inspect requires one reference');
+      console.log(
+        stringifyBoundedResult(
+          ledger.resolveVersion(args.positional[0]),
+          'version inspect',
+        ),
+      );
       return;
     }
     if (subcommand === 'diff') {
-      if (args.positional.length !== 2) throw new Error('version diff requires <from> <to>');
+      if (args.positional.length !== 2)
+        throw new Error('version diff requires <from> <to>');
       const from = ledger.resolveVersion(args.positional[0]);
       const to = ledger.resolveVersion(args.positional[1]);
-      console.log(stringifyBoundedResult(ledger.diffVersions(from.digest, to.digest), 'version diff'));
+      console.log(
+        stringifyBoundedResult(
+          ledger.diffVersions(from.digest, to.digest),
+          'version diff',
+        ),
+      );
       return;
     }
     if (subcommand === 'review') {
-      if (args.positional.length !== 1) throw new Error('version review requires one candidate');
+      if (args.positional.length !== 1)
+        throw new Error('version review requires one candidate');
       const candidate = ledger.resolveVersion(args.positional[0]);
       const store = new MemoryStore();
       const result = reviewRememberoCandidate({
@@ -998,14 +1072,22 @@ async function runVersionCommand(argv: string[]): Promise<void> {
       return;
     }
     if (subcommand === 'history') {
-      if (args.positional.length > 1) throw new Error('version history accepts at most one ref');
+      if (args.positional.length > 1)
+        throw new Error('version history accepts at most one ref');
       const ref = args.positional[0] ?? args.ref;
-      console.log(stringifyBoundedResult({ ref, history: ledger.refHistory(ref) }, 'version history'));
+      console.log(
+        stringifyBoundedResult(
+          { ref, history: ledger.refHistory(ref) },
+          'version history',
+        ),
+      );
       return;
     }
     if (subcommand === 'promote') {
-      if (args.positional.length !== 2) throw new Error('version promote requires <candidate> <assessment>');
-      if (args.opId === undefined) throw new Error('version promote requires --op-id');
+      if (args.positional.length !== 2)
+        throw new Error('version promote requires <candidate> <assessment>');
+      if (args.opId === undefined)
+        throw new Error('version promote requires --op-id');
       const candidate = ledger.resolveVersion(args.positional[0]);
       const current = ledger.getRef(args.ref);
       const decision = promoteRememberoReview({
@@ -1048,7 +1130,9 @@ async function main(): Promise<void> {
   }
   if (command === 'verify-document-memorg') {
     if (args.positional.length !== 1) {
-      throw new Error('verify-document-memorg requires exactly one artifact file');
+      throw new Error(
+        'verify-document-memorg requires exactly one artifact file',
+      );
     }
     const file = resolve(args.positional[0]);
     const stat = lstatSync(file);
@@ -1061,21 +1145,21 @@ async function main(): Promise<void> {
     console.log(
       stringifyBoundedResult(
         verifyDocumentMemorgExport(readFileSync(file, 'utf8')),
-        'CLI result'
-      )
+        'CLI result',
+      ),
     );
     return;
   }
   const store = new MemoryStore();
   const graphSelector = graphSelectorOption(args);
   const operationId = operationIdOption(args.opId);
-  const recordedSequence = args.asOfSequence === undefined
-    ? undefined
-    : integerOption(args.asOfSequence, 0, 'recorded snapshot sequence');
+  const recordedSequence =
+    args.asOfSequence === undefined
+      ? undefined
+      : integerOption(args.asOfSequence, 0, 'recorded snapshot sequence');
   const entityIdentitySetting = entityIdentityOption(args.entityIdentity);
-  const entityIdentity = entityIdentitySetting === false
-    ? undefined
-    : entityIdentitySetting;
+  const entityIdentity =
+    entityIdentitySetting === false ? undefined : entityIdentitySetting;
   const writeCommand = [
     'serve',
     'remember',
@@ -1088,17 +1172,35 @@ async function main(): Promise<void> {
     'review',
     'checkpoint',
   ].includes(command ?? '');
-  const graphCommand = ['recall-explain', 'explain', 'profile', 'check', 'conflicts'].includes(command ?? '');
+  const graphCommand = [
+    'recall-explain',
+    'explain',
+    'profile',
+    'check',
+    'conflicts',
+  ].includes(command ?? '');
   if (graphSelector !== undefined && !writeCommand && !graphCommand) {
     throw new Error(
-      'graph selection is available for recall-explain, explain, profile, check, conflicts, and integrity-guarded writes'
+      'graph selection is available for recall-explain, explain, profile, check, conflicts, and integrity-guarded writes',
     );
   }
   if (
     operationId !== undefined &&
-    !['assert', 'accept', 'reject', 'supersede', 'forget', 'import', 'checkpoint', 'apply-rule-change', 'apply-memory'].includes(command ?? '')
+    ![
+      'assert',
+      'accept',
+      'reject',
+      'supersede',
+      'forget',
+      'import',
+      'checkpoint',
+      'apply-rule-change',
+      'apply-memory',
+    ].includes(command ?? '')
   ) {
-    throw new Error('--op-id is available for assert, accept, reject, supersede, forget, import, checkpoint, apply-rule-change, and apply-memory');
+    throw new Error(
+      '--op-id is available for assert, accept, reject, supersede, forget, import, checkpoint, apply-rule-change, and apply-memory',
+    );
   }
   if (
     args.trust !== undefined &&
@@ -1136,7 +1238,9 @@ async function main(): Promise<void> {
     args.answerMode !== undefined &&
     !['serve', 'recall', 'recall-explain'].includes(command ?? '')
   ) {
-    throw new Error('--answer-mode is available only for serve, recall, or recall-explain');
+    throw new Error(
+      '--answer-mode is available only for serve, recall, or recall-explain',
+    );
   }
   if (args.profile !== undefined && command !== 'serve') {
     throw new Error('--profile is available only for serve');
@@ -1151,8 +1255,7 @@ async function main(): Promise<void> {
     throw new Error('--without is available only for what-if');
   }
   if (
-    (args.assumedRules.length > 0 ||
-      args.withoutRules.length > 0) &&
+    (args.assumedRules.length > 0 || args.withoutRules.length > 0) &&
     command !== 'what-if'
   ) {
     throw new Error('rule simulation options are available only for what-if');
@@ -1163,12 +1266,17 @@ async function main(): Promise<void> {
     command !== 'health' &&
     command !== 'propose-memory'
   ) {
-    throw new Error('--check-suite is available only for propose-memory, what-if, or health');
+    throw new Error(
+      '--check-suite is available only for propose-memory, what-if, or health',
+    );
   }
   if (
-    [args.failureLimit, args.diagnosticDepth, args.candidateLimit, args.evidenceLimit].some(
-      (value) => value !== undefined
-    ) &&
+    [
+      args.failureLimit,
+      args.diagnosticDepth,
+      args.candidateLimit,
+      args.evidenceLimit,
+    ].some((value) => value !== undefined) &&
     command !== 'why-not'
   ) {
     throw new Error('why-not diagnostic limits are available only for why-not');
@@ -1178,14 +1286,16 @@ async function main(): Promise<void> {
     command !== 'topology' &&
     command !== 'audit-rules'
   ) {
-    throw new Error('--direction is available only for topology or audit-rules');
+    throw new Error(
+      '--direction is available only for topology or audit-rules',
+    );
   }
   if (args.queryText !== undefined && command !== 'diff') {
     throw new Error('--query is available only for diff');
   }
   if (
     [args.planLimit, args.repairSteps, args.searchStates].some(
-      (value) => value !== undefined
+      (value) => value !== undefined,
     ) &&
     command !== 'repair'
   ) {
@@ -1198,7 +1308,7 @@ async function main(): Promise<void> {
     command !== 'semantic-index'
   ) {
     throw new Error(
-      'search limits and kinds are available only for search, semantic-search, or semantic-index'
+      'search limits and kinds are available only for search, semantic-search, or semantic-index',
     );
   }
   if (args.semanticAfter !== undefined && command !== 'semantic-index') {
@@ -1212,7 +1322,7 @@ async function main(): Promise<void> {
     command !== 'recall-explain'
   ) {
     throw new Error(
-      'related knowledge options are available only for recall or recall-explain'
+      'related knowledge options are available only for recall or recall-explain',
     );
   }
   if (
@@ -1223,7 +1333,11 @@ async function main(): Promise<void> {
   ) {
     throw new Error('browse options are available only for browse');
   }
-  if (args.claimLimit !== undefined && command !== 'browse' && command !== 'connect') {
+  if (
+    args.claimLimit !== undefined &&
+    command !== 'browse' &&
+    command !== 'connect'
+  ) {
     throw new Error('--claim-limit is available only for browse or connect');
   }
   if (
@@ -1237,7 +1351,9 @@ async function main(): Promise<void> {
     throw new Error('path options are available only for connect');
   }
   if (args.includePassingEvidence && command !== 'test-knowledge') {
-    throw new Error('--include-passing-evidence is available only for test-knowledge');
+    throw new Error(
+      '--include-passing-evidence is available only for test-knowledge',
+    );
   }
   if (args.compareScan && command !== 'profile') {
     throw new Error('--compare-scan is available only for profile');
@@ -1248,22 +1364,45 @@ async function main(): Promise<void> {
     command !== 'checkpoint' &&
     command !== 'propose-memory'
   ) {
-    throw new Error('--at is available only for supersede, checkpoint, or propose-memory');
+    throw new Error(
+      '--at is available only for supersede, checkpoint, or propose-memory',
+    );
   }
   if (args.dryRun && command !== 'checkpoint') {
     throw new Error('--dry-run is available only for checkpoint');
   }
   if (command === 'supersede' && args.validTimeMode !== undefined) {
     throw new Error(
-      '--valid-time-mode does not apply to supersede; it always preserves _until history'
+      '--valid-time-mode does not apply to supersede; it always preserves _until history',
     );
   }
   if (
     recordedSequence !== undefined &&
-    !['health', 'recall', 'recall-explain', 'query', 'explain', 'profile', 'what-if', 'why-not', 'topology', 'audit-rules', 'search', 'semantic-search', 'semantic-index', 'browse', 'connect', 'bundle', 'test-knowledge', 'check', 'conflicts', 'list'].includes(command ?? '')
+    ![
+      'health',
+      'recall',
+      'recall-explain',
+      'query',
+      'explain',
+      'profile',
+      'what-if',
+      'why-not',
+      'topology',
+      'audit-rules',
+      'search',
+      'semantic-search',
+      'semantic-index',
+      'browse',
+      'connect',
+      'bundle',
+      'test-knowledge',
+      'check',
+      'conflicts',
+      'list',
+    ].includes(command ?? '')
   ) {
     throw new Error(
-      '--as-of-sequence is available for health, recall, recall-explain, query, explain, profile, what-if, why-not, topology, audit-rules, search, semantic-search, semantic-index, browse, connect, bundle, test-knowledge, check, conflicts, and list'
+      '--as-of-sequence is available for health, recall, recall-explain, query, explain, profile, what-if, why-not, topology, audit-rules, search, semantic-search, semantic-index, browse, connect, bundle, test-knowledge, check, conflicts, and list',
     );
   }
   const rawIntegritySetting = integrityEnforcementOption(
@@ -1272,7 +1411,7 @@ async function main(): Promise<void> {
     integrityEnforcementFromEnv(),
     writeCommand ? args.proofLimit : undefined,
     writeCommand ? args.maxViolations : undefined,
-    writeCommand ? graphSelector : undefined
+    writeCommand ? graphSelector : undefined,
   );
   const integritySetting =
     rawIntegritySetting === undefined || rawIntegritySetting === false
@@ -1286,22 +1425,24 @@ async function main(): Promise<void> {
   const knowledgeCheckEnforcement = knowledgeCheckEnforcementFromEnv();
   const llmAllowedNamespaces = llmNamespaceAllowlistFromEnv();
   const text = args.positional.join(' ');
-  const namespaces = args.namespaces ?? (args.namespace ? [args.namespace] : undefined);
+  const namespaces =
+    args.namespaces ?? (args.namespace ? [args.namespace] : undefined);
 
   switch (command) {
-    case 'serve':
-      {
-        const semantic = await openSemanticLedgerIfSupported(
-          join(defaultRoot(), 'semantic.sqlite')
-        );
+    case 'serve': {
+      const semantic = await openSemanticLedgerIfSupported(
+        join(defaultRoot(), 'semantic.sqlite'),
+      );
       await serveStdio({
         store,
         ...(semantic === undefined ? {} : { semanticLedger: semantic.ledger }),
         llm: lazyClientFromEnv(),
+        selfAtom: selfAtomFromEnv(),
+        extractionVocabulary: extractionVocabularyFromEnv(),
         llmAllowedNamespaces,
         validTimeMode: validTimeModeOption(args.validTimeMode),
         recallSchemaPredicateLimit: recallSchemaPredicateLimitOption(
-          args.schemaPredicateLimit
+          args.schemaPredicateLimit,
         ),
         recallAnswerMode: recallAnswerModeOption(args.answerMode),
         integrityEnforcement: integritySetting,
@@ -1309,12 +1450,17 @@ async function main(): Promise<void> {
         entityIdentity: entityIdentitySetting,
         trustMode: trustViewOption(args.trust),
         toolProfile: toolProfileOption(args.profile),
-        ...(args.namespace === undefined ? {} : { defaultNamespace: args.namespace }),
+        ...(args.namespace === undefined
+          ? {}
+          : { defaultNamespace: args.namespace }),
       });
       return; // keep process alive; transport owns stdio
-      }
+    }
     case 'session-brief': {
-      if (args.managedBy !== undefined && args.managedBy !== MANAGED_HOOK_MARKER) {
+      if (
+        args.managedBy !== undefined &&
+        args.managedBy !== MANAGED_HOOK_MARKER
+      ) {
         throw new Error('unrecognized auto-capture hook marker');
       }
       try {
@@ -1334,7 +1480,10 @@ async function main(): Promise<void> {
     }
     case 'remember': {
       if (args.batch) {
-        if (args.managedBy !== undefined && args.managedBy !== MANAGED_HOOK_MARKER) {
+        if (
+          args.managedBy !== undefined &&
+          args.managedBy !== MANAGED_HOOK_MARKER
+        ) {
           throw new Error('unrecognized auto-capture hook marker');
         }
         const rawHookInput = await readStdinBounded();
@@ -1342,6 +1491,8 @@ async function main(): Promise<void> {
           {
             store,
             llm: lazyClientFromEnv(),
+            selfAtom: selfAtomFromEnv(),
+            extractionVocabulary: extractionVocabularyFromEnv(),
             llmAllowedNamespaces,
             integrityEnforcement: integritySetting,
             knowledgeCheckEnforcement,
@@ -1353,16 +1504,17 @@ async function main(): Promise<void> {
             dailyCap: integerOption(
               args.dailyCap ?? process.env.REMBERO_AUTO_CAPTURE_DAILY_CAP,
               DEFAULT_AUTO_CAPTURE_DAILY_CAP,
-              'auto-capture daily cap'
+              'auto-capture daily cap',
             ),
             tailBytes: integerOption(
               args.tailBytes ?? process.env.REMBERO_AUTO_CAPTURE_TAIL_BYTES,
               DEFAULT_TRANSCRIPT_TAIL_BYTES,
-              'auto-capture tail bytes'
+              'auto-capture tail bytes',
             ),
-          }
+          },
         );
-        if (args.json) console.log(stringifyBoundedResult(result, 'CLI result'));
+        if (args.json)
+          console.log(stringifyBoundedResult(result, 'CLI result'));
         return;
       }
       const validTimeMode = validTimeModeOption(args.validTimeMode);
@@ -1370,6 +1522,8 @@ async function main(): Promise<void> {
         {
           store,
           llm: clientFromEnv(),
+          selfAtom: selfAtomFromEnv(),
+          extractionVocabulary: extractionVocabularyFromEnv(),
           llmAllowedNamespaces,
           entityIdentity: entityIdentitySetting,
           knowledgeCheckEnforcement,
@@ -1382,7 +1536,7 @@ async function main(): Promise<void> {
           knowledgeCheckEnforcement,
           entityIdentity: entityIdentitySetting,
           trust: knowledgeTrustOption(args.trust),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -1393,11 +1547,13 @@ async function main(): Promise<void> {
         const file = resolve(args.checkSuitePath);
         const stat = lstatSync(file);
         if (stat.isSymbolicLink() || !stat.isFile()) {
-          throw new Error('refusing non-regular memory proposal check suite file');
+          throw new Error(
+            'refusing non-regular memory proposal check suite file',
+          );
         }
         if (stat.size > MAX_KNOWLEDGE_CHECK_SUITE_BYTES) {
           throw new Error(
-            `memory proposal check suite exceeds ${MAX_KNOWLEDGE_CHECK_SUITE_BYTES} bytes`
+            `memory proposal check suite exceeds ${MAX_KNOWLEDGE_CHECK_SUITE_BYTES} bytes`,
           );
         }
         checkSuite = readFileSync(file, 'utf8');
@@ -1406,6 +1562,8 @@ async function main(): Promise<void> {
         {
           store,
           llm: clientFromEnv(),
+          selfAtom: selfAtomFromEnv(),
+          extractionVocabulary: extractionVocabularyFromEnv(),
           llmAllowedNamespaces,
           integrityEnforcement: integritySetting,
           knowledgeCheckEnforcement,
@@ -1420,7 +1578,7 @@ async function main(): Promise<void> {
           checkSuite,
           integrityEnforcement,
           entityIdentity,
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -1429,27 +1587,26 @@ async function main(): Promise<void> {
       if (args.positional.length !== 1) {
         throw new Error('apply-memory requires exactly one proposal JSON file');
       }
-      if (operationId === undefined) throw new Error('apply-memory requires --op-id');
+      if (operationId === undefined)
+        throw new Error('apply-memory requires --op-id');
       const file = resolve(args.positional[0]);
       const stat = lstatSync(file);
       if (stat.isSymbolicLink() || !stat.isFile()) {
         throw new Error('refusing non-regular memory proposal file');
       }
       if (stat.size > MAX_MEMORY_PROPOSAL_BYTES) {
-        throw new Error(`memory proposal exceeds ${MAX_MEMORY_PROPOSAL_BYTES} bytes`);
+        throw new Error(
+          `memory proposal exceeds ${MAX_MEMORY_PROPOSAL_BYTES} bytes`,
+        );
       }
       const maxViolations = maxViolationsOption(args.maxViolations);
-      const result = applyMemoryProposal(
-        store,
-        readFileSync(file, 'utf8'),
-        {
-          opId: operationId,
-          ...(maxViolations === undefined ? {} : { maxViolations }),
-          ...(knowledgeCheckEnforcement === undefined
-            ? {}
-            : { knowledgeCheckEnforcement }),
-        }
-      );
+      const result = applyMemoryProposal(store, readFileSync(file, 'utf8'), {
+        opId: operationId,
+        ...(maxViolations === undefined ? {} : { maxViolations }),
+        ...(knowledgeCheckEnforcement === undefined
+          ? {}
+          : { knowledgeCheckEnforcement }),
+      });
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
     }
@@ -1459,9 +1616,11 @@ async function main(): Promise<void> {
         {
           store,
           llm: clientFromEnv(),
+          selfAtom: selfAtomFromEnv(),
+          extractionVocabulary: extractionVocabularyFromEnv(),
           llmAllowedNamespaces,
           recallSchemaPredicateLimit: recallSchemaPredicateLimitOption(
-            args.schemaPredicateLimit
+            args.schemaPredicateLimit,
           ),
           recallAnswerMode: recallAnswerModeOption(args.answerMode),
           entityIdentity: entityIdentitySetting,
@@ -1472,15 +1631,16 @@ async function main(): Promise<void> {
         {
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
           ...(relatedKnowledge === undefined ? {} : { relatedKnowledge }),
-        }
+        },
       );
       assertBoundedOutput(result.answer, 'CLI recall answer');
       console.log(result.answer);
-      const recorded = result.recordedSnapshot === undefined
-        ? ''
-        : `, recorded: ${result.recordedSnapshot.sequence}/${result.recordedSnapshot.journalEntries}`;
+      const recorded =
+        result.recordedSnapshot === undefined
+          ? ''
+          : `, recorded: ${result.recordedSnapshot.sequence}/${result.recordedSnapshot.journalEntries}`;
       console.log(
-        `  (status: ${result.status}, query: ${result.query ?? 'n/a'}, matches: ${result.bindings.length}, trust: ${result.trustMode ?? 'accepted'}${recorded})`
+        `  (status: ${result.status}, query: ${result.query ?? 'n/a'}, matches: ${result.bindings.length}, trust: ${result.trustMode ?? 'accepted'}${recorded})`,
       );
       if (result.relatedKnowledge !== undefined) {
         console.log(relatedKnowledgeText(result.relatedKnowledge));
@@ -1494,9 +1654,11 @@ async function main(): Promise<void> {
         {
           store,
           llm: clientFromEnv(),
+          selfAtom: selfAtomFromEnv(),
+          extractionVocabulary: extractionVocabularyFromEnv(),
           llmAllowedNamespaces,
           recallSchemaPredicateLimit: recallSchemaPredicateLimitOption(
-            args.schemaPredicateLimit
+            args.schemaPredicateLimit,
           ),
           recallAnswerMode: recallAnswerModeOption(args.answerMode),
           entityIdentity: entityIdentitySetting,
@@ -1510,7 +1672,7 @@ async function main(): Promise<void> {
           ...(graphSelector === undefined ? {} : { graphSelector }),
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
           ...(relatedKnowledge === undefined ? {} : { relatedKnowledge }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -1526,28 +1688,29 @@ async function main(): Promise<void> {
           query: text,
           namespaces,
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
-        }
+        },
       );
       console.log(
         stringifyBoundedResult(
           recordedSequence === undefined && result.trustMode === undefined
             ? result.bindings
             : result,
-          'CLI result'
-        )
+          'CLI result',
+        ),
       );
       return;
     }
     case 'assert': {
-      const result = knowledgeTrustOption(args.trust) === 'tentative'
-        ? assertTentativeTool(
-            { store, integrityEnforcement, knowledgeCheckEnforcement },
-            { clauses: text, namespace: args.namespace, opId: operationId }
-          )
-        : assertFactsTool(
-            { store, integrityEnforcement, knowledgeCheckEnforcement },
-            { clauses: text, namespace: args.namespace, opId: operationId }
-          );
+      const result =
+        knowledgeTrustOption(args.trust) === 'tentative'
+          ? assertTentativeTool(
+              { store, integrityEnforcement, knowledgeCheckEnforcement },
+              { clauses: text, namespace: args.namespace, opId: operationId },
+            )
+          : assertFactsTool(
+              { store, integrityEnforcement, knowledgeCheckEnforcement },
+              { clauses: text, namespace: args.namespace, opId: operationId },
+            );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
     }
@@ -1560,7 +1723,7 @@ async function main(): Promise<void> {
           action: command === 'accept' ? 'accept' : 'reject',
           namespace: args.namespace,
           opId: operationId,
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -1579,7 +1742,7 @@ async function main(): Promise<void> {
           ...(proofLimit === undefined ? {} : { proofLimit }),
           ...(graphSelector === undefined ? {} : { graphSelector }),
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -1599,7 +1762,7 @@ async function main(): Promise<void> {
           ...(graphSelector === undefined ? {} : { graphSelector }),
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
           ...(args.compareScan ? { compareFullScan: true } : {}),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -1612,11 +1775,13 @@ async function main(): Promise<void> {
         const file = resolve(args.checkSuitePath);
         const stat = lstatSync(file);
         if (stat.isSymbolicLink() || !stat.isFile()) {
-          throw new Error('refusing non-regular counterfactual knowledge check suite file');
+          throw new Error(
+            'refusing non-regular counterfactual knowledge check suite file',
+          );
         }
         if (stat.size > MAX_KNOWLEDGE_CHECK_SUITE_BYTES) {
           throw new Error(
-            `counterfactual knowledge check suite exceeds ${MAX_KNOWLEDGE_CHECK_SUITE_BYTES} bytes`
+            `counterfactual knowledge check suite exceeds ${MAX_KNOWLEDGE_CHECK_SUITE_BYTES} bytes`,
           );
         }
         checkSuite = readFileSync(file, 'utf8');
@@ -1639,14 +1804,16 @@ async function main(): Promise<void> {
           ...(proofLimit === undefined ? {} : { proofLimit }),
           ...(maxViolations === undefined ? {} : { maxViolations }),
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
     }
     case 'apply-rule-change': {
       if (args.positional.length !== 1) {
-        throw new Error('apply-rule-change requires exactly one proposal JSON file');
+        throw new Error(
+          'apply-rule-change requires exactly one proposal JSON file',
+        );
       }
       if (operationId === undefined) {
         throw new Error('apply-rule-change requires --op-id');
@@ -1658,7 +1825,7 @@ async function main(): Promise<void> {
       }
       if (stat.size > MAX_RULE_CHANGE_PROPOSAL_BYTES) {
         throw new Error(
-          `rule change proposal exceeds ${MAX_RULE_CHANGE_PROPOSAL_BYTES} bytes`
+          `rule change proposal exceeds ${MAX_RULE_CHANGE_PROPOSAL_BYTES} bytes`,
         );
       }
       const maxViolations = maxViolationsOption(args.maxViolations);
@@ -1671,7 +1838,7 @@ async function main(): Promise<void> {
           ...(knowledgeCheckEnforcement === undefined
             ? {}
             : { knowledgeCheckEnforcement }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -1695,7 +1862,7 @@ async function main(): Promise<void> {
                 maxFailures: integerOption(
                   args.failureLimit,
                   0,
-                  'why-not failure limit'
+                  'why-not failure limit',
                 ),
               }),
           ...(args.diagnosticDepth === undefined
@@ -1704,7 +1871,7 @@ async function main(): Promise<void> {
                 maxDiagnosticDepth: integerOption(
                   args.diagnosticDepth,
                   0,
-                  'why-not diagnostic depth'
+                  'why-not diagnostic depth',
                 ),
               }),
           ...(args.candidateLimit === undefined
@@ -1713,7 +1880,7 @@ async function main(): Promise<void> {
                 maxCandidatesPerFailure: integerOption(
                   args.candidateLimit,
                   0,
-                  'why-not candidate limit'
+                  'why-not candidate limit',
                 ),
               }),
           ...(args.evidenceLimit === undefined
@@ -1722,10 +1889,10 @@ async function main(): Promise<void> {
                 maxEvidenceFacts: integerOption(
                   args.evidenceLimit,
                   0,
-                  'why-not evidence limit'
+                  'why-not evidence limit',
                 ),
               }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -1744,7 +1911,7 @@ async function main(): Promise<void> {
             ? {}
             : { direction: topologyDirectionOption(args.direction) }),
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -1765,18 +1932,18 @@ async function main(): Promise<void> {
           fromSequence: integerOption(
             args.positional[0],
             0,
-            'recorded diff from sequence'
+            'recorded diff from sequence',
           ),
           toSequence: integerOption(
             args.positional[1],
             0,
-            'recorded diff to sequence'
+            'recorded diff to sequence',
           ),
           namespaces,
           query: args.queryText,
           ...(proofLimit === undefined ? {} : { proofLimit }),
           ...(maxViolations === undefined ? {} : { maxViolations }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -1799,11 +1966,7 @@ async function main(): Promise<void> {
           ...(args.planLimit === undefined
             ? {}
             : {
-                maxPlans: integerOption(
-                  args.planLimit,
-                  0,
-                  'repair plan limit'
-                ),
+                maxPlans: integerOption(args.planLimit, 0, 'repair plan limit'),
               }),
           ...(args.repairSteps === undefined
             ? {}
@@ -1811,7 +1974,7 @@ async function main(): Promise<void> {
                 maxSteps: integerOption(
                   args.repairSteps,
                   0,
-                  'repair step limit'
+                  'repair step limit',
                 ),
               }),
           ...(args.searchStates === undefined
@@ -1820,10 +1983,10 @@ async function main(): Promise<void> {
                 maxSearchStates: integerOption(
                   args.searchStates,
                   0,
-                  'repair search state limit'
+                  'repair search state limit',
                 ),
               }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -1842,7 +2005,7 @@ async function main(): Promise<void> {
             ? {}
             : { direction: topologyDirectionOption(args.direction) }),
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       if (result.warningCount > 0) process.exitCode = 2;
@@ -1854,11 +2017,13 @@ async function main(): Promise<void> {
         const file = resolve(args.checkSuitePath);
         const stat = lstatSync(file);
         if (stat.isSymbolicLink() || !stat.isFile()) {
-          throw new Error('refusing non-regular health knowledge check suite file');
+          throw new Error(
+            'refusing non-regular health knowledge check suite file',
+          );
         }
         if (stat.size > MAX_KNOWLEDGE_CHECK_SUITE_BYTES) {
           throw new Error(
-            `health knowledge check suite exceeds ${MAX_KNOWLEDGE_CHECK_SUITE_BYTES} bytes`
+            `health knowledge check suite exceeds ${MAX_KNOWLEDGE_CHECK_SUITE_BYTES} bytes`,
           );
         }
         checkSuite = readFileSync(file, 'utf8');
@@ -1881,7 +2046,7 @@ async function main(): Promise<void> {
           ...(checkSuite === undefined ? {} : { checkSuite }),
           ...(proofLimit === undefined ? {} : { proofLimit }),
           ...(maxViolations === undefined ? {} : { maxViolations }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       if (result.status === 'violations') process.exitCode = 3;
@@ -1905,12 +2070,12 @@ async function main(): Promise<void> {
                 limit: integerOption(
                   args.searchLimit,
                   0,
-                  'knowledge search limit'
+                  'knowledge search limit',
                 ),
               }),
           ...(kinds === undefined ? {} : { kinds }),
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -1923,7 +2088,7 @@ async function main(): Promise<void> {
           embeddings: embeddingClientFromEnv(),
           semanticCache: new LayeredEmbeddingCache(
             new MemoryEmbeddingCache(),
-            new FileEmbeddingCache(store.semanticEmbeddingCacheRoot())
+            new FileEmbeddingCache(store.semanticEmbeddingCacheRoot()),
           ),
           llmAllowedNamespaces,
           entityIdentity: entityIdentitySetting,
@@ -1938,12 +2103,12 @@ async function main(): Promise<void> {
                 limit: integerOption(
                   args.searchLimit,
                   0,
-                  'semantic search limit'
+                  'semantic search limit',
                 ),
               }),
           ...(kinds === undefined ? {} : { kinds }),
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -1956,7 +2121,7 @@ async function main(): Promise<void> {
           embeddings: embeddingClientFromEnv(),
           semanticCache: new LayeredEmbeddingCache(
             new MemoryEmbeddingCache(),
-            new FileEmbeddingCache(store.semanticEmbeddingCacheRoot())
+            new FileEmbeddingCache(store.semanticEmbeddingCacheRoot()),
           ),
           llmAllowedNamespaces,
           entityIdentity: entityIdentitySetting,
@@ -1970,21 +2135,25 @@ async function main(): Promise<void> {
                 limit: integerOption(
                   args.searchLimit,
                   0,
-                  'semantic prepare limit'
+                  'semantic prepare limit',
                 ),
               }),
-          ...(args.semanticAfter === undefined ? {} : { after: args.semanticAfter }),
+          ...(args.semanticAfter === undefined
+            ? {}
+            : { after: args.semanticAfter }),
           ...(kinds === undefined ? {} : { kinds }),
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
     }
     case 'browse': {
-      let focus: string | number | undefined = text.length === 0 ? undefined : text;
+      let focus: string | number | undefined =
+        text.length === 0 ? undefined : text;
       if (args.focusNumber) {
-        if (text.length === 0) throw new Error('--focus-number requires an entity focus');
+        if (text.length === 0)
+          throw new Error('--focus-number requires an entity focus');
         const numeric = Number(text);
         if (!Number.isFinite(numeric)) {
           throw new Error('numeric browse focus must be finite');
@@ -2007,7 +2176,7 @@ async function main(): Promise<void> {
                 depth: integerOption(
                   args.browseDepth,
                   0,
-                  'knowledge graph browse depth'
+                  'knowledge graph browse depth',
                 ),
               }),
           ...(args.claimLimit === undefined
@@ -2016,29 +2185,33 @@ async function main(): Promise<void> {
                 maxClaims: integerOption(
                   args.claimLimit,
                   0,
-                  'knowledge graph claim limit'
+                  'knowledge graph claim limit',
                 ),
               }),
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
     }
     case 'connect': {
       if (args.positional.length !== 2) {
-        throw new Error('connect requires exactly two entity arguments: <from> <to>');
+        throw new Error(
+          'connect requires exactly two entity arguments: <from> <to>',
+        );
       }
       let from: string | number = args.positional[0];
       let to: string | number = args.positional[1];
       if (args.fromNumber) {
         const numeric = Number(from);
-        if (!Number.isFinite(numeric)) throw new Error('numeric path start must be finite');
+        if (!Number.isFinite(numeric))
+          throw new Error('numeric path start must be finite');
         from = numeric;
       }
       if (args.toNumber) {
         const numeric = Number(to);
-        if (!Number.isFinite(numeric)) throw new Error('numeric path end must be finite');
+        if (!Number.isFinite(numeric))
+          throw new Error('numeric path end must be finite');
         to = numeric;
       }
       const result = connectKnowledgeGraphTool(
@@ -2057,7 +2230,7 @@ async function main(): Promise<void> {
                 maxDepth: integerOption(
                   args.pathDepth,
                   0,
-                  'knowledge graph path depth'
+                  'knowledge graph path depth',
                 ),
               }),
           ...(args.pathLimit === undefined
@@ -2066,7 +2239,7 @@ async function main(): Promise<void> {
                 maxPaths: integerOption(
                   args.pathLimit,
                   0,
-                  'knowledge graph path limit'
+                  'knowledge graph path limit',
                 ),
               }),
           ...(args.claimLimit === undefined
@@ -2075,12 +2248,12 @@ async function main(): Promise<void> {
                 maxClaims: integerOption(
                   args.claimLimit,
                   0,
-                  'knowledge graph claim limit'
+                  'knowledge graph claim limit',
                 ),
               }),
           ...(args.includeDerived ? { includeDerived: true } : {}),
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -2100,7 +2273,7 @@ async function main(): Promise<void> {
           ...(maxViolations === undefined ? {} : { maxViolations }),
           ...(graphSelector === undefined ? {} : { graphSelector }),
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       if (result.status === 'violations') process.exitCode = 2;
@@ -2122,7 +2295,7 @@ async function main(): Promise<void> {
           ...(maxViolations === undefined ? {} : { maxViolations }),
           ...(graphSelector === undefined ? {} : { graphSelector }),
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       if (result.matchingViolationCount > 0) process.exitCode = 2;
@@ -2131,7 +2304,7 @@ async function main(): Promise<void> {
     case 'forget': {
       const result = forgetTool(
         { store, integrityEnforcement, knowledgeCheckEnforcement },
-        { pattern: text, namespace: args.namespace, opId: operationId }
+        { pattern: text, namespace: args.namespace, opId: operationId },
       );
       console.log(`removed ${result.removed} clause(s)`);
       return;
@@ -2145,7 +2318,7 @@ async function main(): Promise<void> {
           namespace: args.namespace,
           at: args.at,
           opId: operationId,
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
@@ -2157,7 +2330,7 @@ async function main(): Promise<void> {
           pattern: text,
           namespaces,
           limit: integerOption(args.limit, MAX_HISTORY_EVENTS, 'history limit'),
-        }
+        },
       );
       if (args.json) {
         console.log(stringifyBoundedResult(result, 'CLI result'));
@@ -2172,7 +2345,7 @@ async function main(): Promise<void> {
         const archive = event.archivedAs ? ` -> ${event.archivedAs}` : '';
         const trust = event.trustAction ? ` [trust: ${event.trustAction}]` : '';
         console.log(
-          `${event.sequence}.${event.position} ${event.ts} ${event.namespace} ${event.action}${current}${trust}: ${event.clause}${archive}`
+          `${event.sequence}.${event.position} ${event.ts} ${event.namespace} ${event.action}${current}${trust}: ${event.clause}${archive}`,
         );
         if (event.sourceText) console.log(`  source: ${event.sourceText}`);
       }
@@ -2185,17 +2358,14 @@ async function main(): Promise<void> {
           opId: operationId,
           at: args.at,
           dryRun: args.dryRun,
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
     }
     case 'checkpoints': {
       console.log(
-        stringifyBoundedResult(
-          listCheckpointsTool({ store }),
-          'CLI result'
-        )
+        stringifyBoundedResult(listCheckpointsTool({ store }), 'CLI result'),
       );
       return;
     }
@@ -2205,7 +2375,7 @@ async function main(): Promise<void> {
         {
           namespaces,
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
-        }
+        },
       );
       console.log(serializeKnowledgeBundle(bundle));
       return;
@@ -2221,7 +2391,7 @@ async function main(): Promise<void> {
       }
       if (stat.size > MAX_KNOWLEDGE_BUNDLE_BYTES) {
         throw new Error(
-          `knowledge bundle exceeds ${MAX_KNOWLEDGE_BUNDLE_BYTES} bytes`
+          `knowledge bundle exceeds ${MAX_KNOWLEDGE_BUNDLE_BYTES} bytes`,
         );
       }
       const result = verifyKnowledgeBundleTool({
@@ -2241,7 +2411,7 @@ async function main(): Promise<void> {
       }
       if (stat.size > MAX_KNOWLEDGE_CHECK_SUITE_BYTES) {
         throw new Error(
-          `knowledge check suite exceeds ${MAX_KNOWLEDGE_CHECK_SUITE_BYTES} bytes`
+          `knowledge check suite exceeds ${MAX_KNOWLEDGE_CHECK_SUITE_BYTES} bytes`,
         );
       }
       const proofLimit = proofLimitOption(args.proofLimit);
@@ -2259,7 +2429,7 @@ async function main(): Promise<void> {
           ...(args.includePassingEvidence
             ? { includePassingEvidence: true }
             : {}),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       if (result.status === 'failed') process.exitCode = 2;
@@ -2274,7 +2444,7 @@ async function main(): Promise<void> {
       }
       const summary = backupKnowledge(store, file);
       console.log(
-        `backed up ${summary.clauseCount} clauses across ${summary.namespaceCount} namespaces to ${file} (sha256 ${summary.sha256.slice(0, 12)})`
+        `backed up ${summary.clauseCount} clauses across ${summary.namespaceCount} namespaces to ${file} (sha256 ${summary.sha256.slice(0, 12)})`,
       );
       return;
     }
@@ -2287,14 +2457,15 @@ async function main(): Promise<void> {
       }
       const result = restoreKnowledge(store, file);
       console.log(
-        `restored ${result.clausesAdded} clauses into ${result.namespaces.length} namespaces from ${file} (sha256 ${result.sha256.slice(0, 12)})`
+        `restored ${result.clausesAdded} clauses into ${result.namespaces.length} namespaces from ${file} (sha256 ${result.sha256.slice(0, 12)})`,
       );
       return;
     }
     case 'export': {
       for (const ns of store.listNamespaces()) {
         console.log(`% namespace: ${ns}`);
-        for (const clause of store.load(ns)) console.log(serializeClause(clause));
+        for (const clause of store.load(ns))
+          console.log(serializeClause(clause));
         console.log('');
       }
       return;
@@ -2310,18 +2481,18 @@ async function main(): Promise<void> {
       if (size > MAX_INPUT_BYTES) {
         throw new Error(`import file exceeds ${MAX_INPUT_BYTES} bytes`);
       }
-      const result = store.importClauses(
-        ns,
-        readFileSync(file, 'utf8'),
-        {
-          ...(operationId === undefined ? {} : { opId: operationId }),
-          ...(integrityEnforcement === undefined ? {} : { integrity: integrityEnforcement }),
-          ...(knowledgeCheckEnforcement === undefined
-            ? {}
-            : { checks: knowledgeCheckEnforcement }),
-        }
+      const result = store.importClauses(ns, readFileSync(file, 'utf8'), {
+        ...(operationId === undefined ? {} : { opId: operationId }),
+        ...(integrityEnforcement === undefined
+          ? {}
+          : { integrity: integrityEnforcement }),
+        ...(knowledgeCheckEnforcement === undefined
+          ? {}
+          : { checks: knowledgeCheckEnforcement }),
+      });
+      console.log(
+        `imported ${result.added.length} clause(s), ${result.duplicates} duplicate(s) skipped`,
       );
-      console.log(`imported ${result.added.length} clause(s), ${result.duplicates} duplicate(s) skipped`);
       return;
     }
     case 'sqlite-build':
@@ -2334,7 +2505,9 @@ async function main(): Promise<void> {
       const [databasePath, ...ruleParts] = args.positional;
       const rule = ruleParts.join(' ');
       if (!databasePath || !rule) {
-        console.error(`usage: remembero ${command} <database> <datalog-program>`);
+        console.error(
+          `usage: remembero ${command} <database> <datalog-program>`,
+        );
         process.exitCode = 1;
         return;
       }
@@ -2342,16 +2515,17 @@ async function main(): Promise<void> {
         extensionPath: args.extensionPath,
       });
       try {
-        const result = command === 'sqlite-sql'
-          ? database.datalogSql(rule)
-          : stringifyBoundedResult(
-              command === 'sqlite-plan'
-                ? database.datalogPlan(rule)
-                : command === 'sqlite-explain'
-                  ? database.datalogExplain(rule)
-                  : database.datalogQuery(rule),
-              'CLI result'
-            );
+        const result =
+          command === 'sqlite-sql'
+            ? database.datalogSql(rule)
+            : stringifyBoundedResult(
+                command === 'sqlite-plan'
+                  ? database.datalogPlan(rule)
+                  : command === 'sqlite-explain'
+                    ? database.datalogExplain(rule)
+                    : database.datalogQuery(rule),
+                'CLI result',
+              );
         console.log(result);
       } finally {
         database.close();
@@ -2364,25 +2538,30 @@ async function main(): Promise<void> {
         {
           namespaces,
           ...(recordedSequence === undefined ? {} : { recordedSequence }),
-        }
+        },
       );
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
     }
     case 'claims': {
-      const result = reviewTentativeTool(
-        { store },
-        { namespaces }
-      );
+      const result = reviewTentativeTool({ store }, { namespaces });
       console.log(stringifyBoundedResult(result, 'CLI result'));
       return;
     }
     case 'review': {
       const days = integerOption(args.days, 7, 'review days');
-      const review = store.reviewAutoCaptures({ days, namespace: args.namespace });
-      const selectedNumbers = reviewSelections(args.forget, review.facts.length);
+      const review = store.reviewAutoCaptures({
+        days,
+        namespace: args.namespace,
+      });
+      const selectedNumbers = reviewSelections(
+        args.forget,
+        review.facts.length,
+      );
       if (selectedNumbers.length > 0) {
-        const selectedFacts = selectedNumbers.map((number) => review.facts[number - 1]);
+        const selectedFacts = selectedNumbers.map(
+          (number) => review.facts[number - 1],
+        );
         const result = store.pruneAutoCaptureFacts(selectedFacts, {
           ...(integrityEnforcement === undefined
             ? {}
@@ -2395,8 +2574,8 @@ async function main(): Promise<void> {
           console.log(
             stringifyBoundedResult(
               { ...result, selected: selectedNumbers, facts: selectedFacts },
-              'CLI result'
-            )
+              'CLI result',
+            ),
           );
         } else {
           console.log(`removed ${result.removed} auto-captured fact(s)`);
@@ -2410,7 +2589,7 @@ async function main(): Promise<void> {
       for (const capture of review.captures) {
         const detail = capture.reason ? ` (${capture.reason})` : '';
         console.log(
-          `${capture.ts}  ${capture.namespace}  ${capture.status}${detail}  ${capture.captureId}`
+          `${capture.ts}  ${capture.namespace}  ${capture.status}${detail}  ${capture.captureId}`,
         );
       }
       if (review.facts.length === 0) {
@@ -2420,7 +2599,7 @@ async function main(): Promise<void> {
       console.log('');
       review.facts.forEach((fact, index) => {
         console.log(
-          `${index + 1}. ${fact.current ? '[current]' : '[removed]'} ${fact.namespace}: ${fact.clause}`
+          `${index + 1}. ${fact.current ? '[current]' : '[removed]'} ${fact.namespace}: ${fact.clause}`,
         );
       });
       console.log('\nPrune with: remembero review --forget <number,...>');
@@ -2435,16 +2614,16 @@ async function main(): Promise<void> {
         dailyCap: integerOption(
           args.dailyCap ?? process.env.REMBERO_AUTO_CAPTURE_DAILY_CAP,
           DEFAULT_AUTO_CAPTURE_DAILY_CAP,
-          'auto-capture daily cap'
+          'auto-capture daily cap',
         ),
         tailBytes: integerOption(
           args.tailBytes ?? process.env.REMBERO_AUTO_CAPTURE_TAIL_BYTES,
           DEFAULT_TRANSCRIPT_TAIL_BYTES,
-          'auto-capture tail bytes'
+          'auto-capture tail bytes',
         ),
       });
       console.log(
-        `hooks: ${result.hooks.changed ? 'installed' : 'already current'} (${result.hooks.settingsPath})`
+        `hooks: ${result.hooks.changed ? 'installed' : 'already current'} (${result.hooks.settingsPath})`,
       );
       console.log(`mcp registration: ${result.registration.detail}`);
       if (!result.registration.ok) {
@@ -2454,14 +2633,16 @@ async function main(): Promise<void> {
       console.log(result.claudeMdSnippet);
       if ((process.env.LLM_API_KEY ?? '') === '') {
         console.log(
-          "\nNote: LLM_API_KEY is not set; natural-language remember/recall will be unavailable until it is configured (the raw query tools work without it)."
+          '\nNote: LLM_API_KEY is not set; natural-language remember/recall will be unavailable until it is configured (the raw query tools work without it).',
         );
       }
       return;
     }
     case 'init-hooks':
     case 'remove-hooks': {
-      const settingsPath = resolve(args.settingsPath ?? defaultClaudeSettingsPath());
+      const settingsPath = resolve(
+        args.settingsPath ?? defaultClaudeSettingsPath(),
+      );
       const remove = command === 'remove-hooks' || args.remove;
       const result = remove
         ? removeClaudeHook({ settingsPath })
@@ -2473,16 +2654,16 @@ async function main(): Promise<void> {
             dailyCap: integerOption(
               args.dailyCap ?? process.env.REMBERO_AUTO_CAPTURE_DAILY_CAP,
               DEFAULT_AUTO_CAPTURE_DAILY_CAP,
-              'auto-capture daily cap'
+              'auto-capture daily cap',
             ),
             tailBytes: integerOption(
               args.tailBytes ?? process.env.REMBERO_AUTO_CAPTURE_TAIL_BYTES,
               DEFAULT_TRANSCRIPT_TAIL_BYTES,
-              'auto-capture tail bytes'
+              'auto-capture tail bytes',
             ),
           });
       console.log(
-        `${remove ? 'removed' : 'installed'} Remembero Claude hook${result.changed ? '' : ' (already current)'}: ${result.settingsPath}`
+        `${remove ? 'removed' : 'installed'} Remembero Claude hook${result.changed ? '' : ' (already current)'}: ${result.settingsPath}`,
       );
       return;
     }
@@ -2494,12 +2675,16 @@ async function main(): Promise<void> {
 
 main().catch((e: unknown) => {
   if (e instanceof TrustMetadataError) {
-    console.error(stringifyBoundedResult(e.toJSON(), 'CLI trust metadata error'));
+    console.error(
+      stringifyBoundedResult(e.toJSON(), 'CLI trust metadata error'),
+    );
     process.exitCode = 6;
     return;
   }
   if (e instanceof IncompleteHistoryError) {
-    console.error(stringifyBoundedResult(e.toJSON(), 'CLI recorded history error'));
+    console.error(
+      stringifyBoundedResult(e.toJSON(), 'CLI recorded history error'),
+    );
     process.exitCode = 5;
     return;
   }
@@ -2509,45 +2694,59 @@ main().catch((e: unknown) => {
     return;
   }
   if (e instanceof RuleChangeStaleError) {
-    console.error(stringifyBoundedResult(e.toJSON(), 'CLI stale rule proposal'));
+    console.error(
+      stringifyBoundedResult(e.toJSON(), 'CLI stale rule proposal'),
+    );
     process.exitCode = 7;
     return;
   }
   if (e instanceof MemoryChangeStaleError) {
-    console.error(stringifyBoundedResult(e.toJSON(), 'CLI stale memory proposal'));
+    console.error(
+      stringifyBoundedResult(e.toJSON(), 'CLI stale memory proposal'),
+    );
     process.exitCode = 7;
     return;
   }
   if (e instanceof RuleChangeCheckError) {
-    console.error(stringifyBoundedResult(e.toJSON(), 'CLI rule change check failure'));
+    console.error(
+      stringifyBoundedResult(e.toJSON(), 'CLI rule change check failure'),
+    );
     process.exitCode = 2;
     return;
   }
   if (e instanceof MemoryChangeCheckError) {
-    console.error(stringifyBoundedResult(e.toJSON(), 'CLI memory change check failure'));
+    console.error(
+      stringifyBoundedResult(e.toJSON(), 'CLI memory change check failure'),
+    );
     process.exitCode = 2;
     return;
   }
   if (e instanceof KnowledgeCheckEnforcementError) {
     console.error(
-      stringifyBoundedResult(e.toJSON(), 'CLI knowledge check enforcement rejection')
+      stringifyBoundedResult(
+        e.toJSON(),
+        'CLI knowledge check enforcement rejection',
+      ),
     );
     process.exitCode = 8;
     return;
   }
   if (e instanceof IntegrityViolationError) {
     try {
-      console.error(stringifyBoundedResult(e.toJSON(), 'CLI integrity rejection'));
+      console.error(
+        stringifyBoundedResult(e.toJSON(), 'CLI integrity rejection'),
+      );
     } catch {
       console.error(
         JSON.stringify({
           error: 'integrity_rejection_output_exceeded',
-          message: 'write was rejected, but complete evidence exceeds the CLI output bound',
+          message:
+            'write was rejected, but complete evidence exceeds the CLI output bound',
           mode: e.mode,
           baselineViolationCount: e.baselineViolationCount,
           blockingViolationCount: e.blockingViolations.length,
           introducedViolationCount: e.introducedViolations.length,
-        })
+        }),
       );
     }
     process.exitCode = 3;

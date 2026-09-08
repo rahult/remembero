@@ -23,6 +23,10 @@ export interface AutoCaptureDeps {
   integrityEnforcement?: IntegrityEnforcementOptions | false;
   knowledgeCheckEnforcement?: KnowledgeCheckEnforcementOptions | false;
   entityIdentity?: EntityIdentityMode | false;
+  /** Constant naming the speaker in captured text (default 'user'; REMBERO_SELF). */
+  selfAtom?: string;
+  /** 'closed' restricts captured facts to predicates already in the schema. */
+  extractionVocabulary?: 'open' | 'closed';
 }
 
 export interface AutoCaptureOptions {
@@ -53,22 +57,24 @@ function safeFailureReason(error: unknown): string {
   if (/sensitive/i.test(message)) return 'sensitive_text';
   if (/namespace.+local-only/i.test(message)) return 'namespace_denied';
   if (/transcript|Stop hook/i.test(message)) return 'invalid_transcript';
-  if (/parse|expected|ground facts|retract|rule/i.test(message)) return 'invalid_extraction';
-  if (/fetch|HTTP|OpenRouter|LLM|model|response/i.test(message)) return 'llm_error';
+  if (/parse|expected|ground facts|retract|rule/i.test(message))
+    return 'invalid_extraction';
+  if (/fetch|HTTP|OpenRouter|LLM|model|response/i.test(message))
+    return 'llm_error';
   return 'capture_error';
 }
 
 export async function autoCaptureClaudeStop(
   deps: AutoCaptureDeps,
   rawHookInput: string,
-  options: AutoCaptureOptions = {}
+  options: AutoCaptureOptions = {},
 ): Promise<AutoCaptureResult> {
   const namespace = options.namespace ?? 'default';
   const dailyCap = validateAutoCaptureDailyCap(
-    options.dailyCap ?? DEFAULT_AUTO_CAPTURE_DAILY_CAP
+    options.dailyCap ?? DEFAULT_AUTO_CAPTURE_DAILY_CAP,
   );
   const tailBytes = validateAutoCaptureTailBytes(
-    options.tailBytes ?? DEFAULT_TRANSCRIPT_TAIL_BYTES
+    options.tailBytes ?? DEFAULT_TRANSCRIPT_TAIL_BYTES,
   );
   const now = options.now ?? new Date();
   const captureId = deps.store.createOperationId();
@@ -90,7 +96,12 @@ export async function autoCaptureClaudeStop(
       });
     } catch {
       try {
-        deps.store.recordAutoCaptureEmergency(namespace, captureId, 'journal_unavailable', now);
+        deps.store.recordAutoCaptureEmergency(
+          namespace,
+          captureId,
+          'journal_unavailable',
+          now,
+        );
       } catch {
         // The input error remains the useful failure to surface.
       }
@@ -100,10 +111,18 @@ export async function autoCaptureClaudeStop(
 
   if (tail.userMessageCount === 0 || tail.text.trim() === '') {
     try {
-      deps.store.recordAutoCaptureSkip(namespace, 'no_user_text', { captureId, at: now });
+      deps.store.recordAutoCaptureSkip(namespace, 'no_user_text', {
+        captureId,
+        at: now,
+      });
     } catch (error) {
       try {
-        deps.store.recordAutoCaptureEmergency(namespace, captureId, 'journal_unavailable', now);
+        deps.store.recordAutoCaptureEmergency(
+          namespace,
+          captureId,
+          'journal_unavailable',
+          now,
+        );
       } catch {
         // The primary journal error is surfaced below.
       }
@@ -133,7 +152,12 @@ export async function autoCaptureClaudeStop(
     });
   } catch (error) {
     try {
-      deps.store.recordAutoCaptureEmergency(namespace, captureId, 'journal_unavailable', now);
+      deps.store.recordAutoCaptureEmergency(
+        namespace,
+        captureId,
+        'journal_unavailable',
+        now,
+      );
     } catch {
       // The original journal failure remains the most useful error to surface.
     }
@@ -161,22 +185,28 @@ export async function autoCaptureClaudeStop(
       },
       tail.text,
       namespace,
-      { captureId, at: now }
+      { captureId, at: now },
     );
-    const status = result.added.length === 0 && result.duplicates === 0
-      ? 'empty'
-      : 'captured';
+    const status =
+      result.added.length === 0 && result.duplicates === 0
+        ? 'empty'
+        : 'captured';
     try {
       deps.store.finishAutoCapture(
         namespace,
         captureId,
         status,
         { added: result.added.length, duplicates: result.duplicates },
-        now
+        now,
       );
     } catch (error) {
       try {
-        deps.store.recordAutoCaptureEmergency(namespace, captureId, 'journal_unavailable', now);
+        deps.store.recordAutoCaptureEmergency(
+          namespace,
+          captureId,
+          'journal_unavailable',
+          now,
+        );
       } catch {
         // The primary journal error is surfaced below.
       }
@@ -195,11 +225,16 @@ export async function autoCaptureClaudeStop(
         captureId,
         'failed',
         { reason: safeFailureReason(error) },
-        now
+        now,
       );
     } catch {
       try {
-        deps.store.recordAutoCaptureEmergency(namespace, captureId, 'journal_unavailable', now);
+        deps.store.recordAutoCaptureEmergency(
+          namespace,
+          captureId,
+          'journal_unavailable',
+          now,
+        );
       } catch {
         // The original capture error remains the useful failure to surface.
       }

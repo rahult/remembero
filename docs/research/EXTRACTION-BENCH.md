@@ -1,7 +1,8 @@
 # Extraction benchmark v1: baselines
 
 Status: first results · 2026-09-08
-Evidence: `results/extraction-bench-v1-{luna,llama3.2-3b,qwen2.5-coder-7b}.json`
+Evidence: `results/extraction-bench-v1-{luna,llama3.2-3b,qwen2.5-coder-7b}.json` (before guards),
+`results/extraction-bench-v1-{luna-guarded,qwen2.5-coder-7b-guarded,qwen2.5-coder-7b-closed,llama3.2-3b-closed}.json`
 Run: `npm run eval:extract-bench -- --models <id> [--base-url http://127.0.0.1:11434/v1 --api-key ollama]`
 
 ## Why a new suite
@@ -46,7 +47,37 @@ Per phenomenon (correct / cases):
 | entity_normalization |   5/8 |      1/8 |      1/8 |
 | date_number          |   5/8 |      2/8 |      1/8 |
 
-## What the failures are
+## After the write-side guards (same day)
+
+Four deterministic guards were added to the extraction pipeline
+(`src/llm/extraction-guard.ts`): an output normalizer (list markers, missing periods, several
+facts on one line, prose labels, an invented `assert` keyword), a configured self atom
+(`REMBERO_SELF`, default `user`) that rewrites `me`/`the_user`/`you`/... after parsing,
+constant grounding (every new constant must appear in the input, loosely matched, or already
+be in the store), and predicate aliases (`rembero_predicate_alias(from, to).`) with an
+optional closed vocabulary (`REMBERO_EXTRACTION_VOCABULARY=closed`, `--vocabulary closed`).
+
+| model               | before | guards, open | guards, closed | drift (closed) |
+| ------------------- | -----: | -----------: | -------------: | -------------: |
+| openai/gpt-5.6-luna |  83.5% |        84.5% |              — |              — |
+| qwen2.5-coder:7b    |  66.0% |        76.7% |      **81.6%** |           0.0% |
+| llama3.2:3b         |  24.3% |            — |          34.0% |           0.0% |
+
+Per phenomenon for the 7B coder model, before → closed: first_person 1/8 → 7/8,
+transcript 2/8 → 6/8, competitor_predicate 4/8 → 7/8, distractor_prose 7/8 → 8/8, hedge
+8/9 → 9/9; entity_normalization (2/8) and date_number (3/8) barely move, because those are
+convention disagreements (quoted `'Mandarin Chinese'` versus `mandarin_chinese`) and
+subject-slot choices, not grounding or vocabulary errors. The 3B model's remaining 22
+pipeline errors are content: it retracts and re-asserts facts the input never stated
+(`initech` for a negation, `sydney` for a hedge), which grounding rejects, so it fails
+honestly rather than storing them.
+
+A first version of the self-atom prompt line also said "use only names that appear in the
+input", which pushed Luna toward verbatim surface forms (`tuesdays`, `'ledger service'`)
+and cost five points; the deterministic guard already enforces grounding, so the sentence
+now only forbids inference. Prompt text is not where these fixes live.
+
+## What the failures are (first run, before guards)
 
 - **First person has no name.** Luna wrote `the_user`, `me`, `you` and `user` for "I" across
   eight cases; the 7B model got one right; the 3B none. The pipeline has no self atom. This

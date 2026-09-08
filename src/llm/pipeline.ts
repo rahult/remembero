@@ -66,6 +66,16 @@ import {
 } from '../knowledge/search.js';
 import { assertBoundedOutput, assertSafeForExternalLlm } from '../safety.js';
 import {
+  applyPredicateAliases,
+  applyPredicateAliasesToGoals,
+  assertGroundedConstants,
+  assertKnownVocabulary,
+  normalizeExtractionOutput,
+  predicateAliasesFrom,
+  rewriteSelfAtoms,
+  rewriteSelfAtomsInGoals,
+} from './extraction-guard.js';
+import {
   NOTHING_SENTINEL,
   PHRASING_SYSTEM_PROMPT,
   UNANSWERABLE,
@@ -123,7 +133,20 @@ export interface PipelineDeps {
   toolProfile?: McpToolProfile;
   /** Namespace used when a tool call names none (default: 'default'). */
   defaultNamespace?: string;
+  /**
+   * Constant naming the speaker: "I", "me", "my" in remembered text become this
+   * atom (default 'user'). Set REMBERO_SELF to your own name.
+   */
+  selfAtom?: string;
+  /**
+   * 'open' (default): extraction may introduce new predicates. 'closed': every
+   * added fact must use a predicate already in the schema (aliases from
+   * rembero_predicate_alias declarations are rewritten first).
+   */
+  extractionVocabulary?: 'open' | 'closed';
 }
+
+export const DEFAULT_SELF_ATOM = 'user';
 
 export type McpToolProfile = 'core' | 'full';
 
@@ -195,8 +218,7 @@ export interface RecallWhyNotUnavailable {
 }
 
 export type RecallQueryReviewReason =
-  | 'competing_predicate'
-  | 'missing_temporal_context';
+  'competing_predicate' | 'missing_temporal_context';
 
 export interface RecallQueryReview {
   originalQuery: string;
@@ -223,10 +245,7 @@ export interface RecallPruningReport extends RecallSchemaDiagnostics {
 }
 
 export type RecallStatus =
-  | 'answered'
-  | 'no_match'
-  | 'unanswerable'
-  | 'schema_budget_exhausted';
+  'answered' | 'no_match' | 'unanswerable' | 'schema_budget_exhausted';
 
 export type RecallAnswerMode = 'natural' | 'deterministic' | 'evidence';
 
@@ -257,17 +276,22 @@ export interface RecallOptions {
 export function deterministicRecallAnswer(
   query: string,
   bindings: Record<string, string>[],
-  rowTrust?: KnowledgeTrust[]
+  rowTrust?: KnowledgeTrust[],
 ): string {
   if (rowTrust !== undefined && rowTrust.length !== bindings.length) {
-    throw new Error('deterministic recall rowTrust must match binding row count');
+    throw new Error(
+      'deterministic recall rowTrust must match binding row count',
+    );
   }
   if (bindings.length === 0) {
     const answer = `No stored result matches ${query}.`;
     assertBoundedOutput(answer, 'deterministic recall answer');
     return answer;
   }
-  const renderRow = (binding: Record<string, string>, index: number): string => {
+  const renderRow = (
+    binding: Record<string, string>,
+    index: number,
+  ): string => {
     const values = Object.entries(binding)
       .map(([name, value]) => `${name} = ${value}`)
       .join(', ');
@@ -282,7 +306,7 @@ export function deterministicRecallAnswer(
     } else {
       answer = `${tentative ? 'Tentative result' : 'Result'} for ${query}: ${renderRow(
         bindings[0],
-        0
+        0,
       ).replace(/^\[tentative\] /, '')}.`;
     }
   } else {
@@ -315,11 +339,13 @@ function evidenceSummary(): RecallEvidenceSummary {
 }
 
 function sourceLabel(source: MemorySource): string {
-  const temporal = source.temporal === undefined
-    ? ''
-    : ` [valid until ${source.temporal.validUntil}; previously ${source.temporal.previousClause}]`;
+  const temporal =
+    source.temporal === undefined
+      ? ''
+      : ` [valid until ${source.temporal.validUntil}; previously ${source.temporal.previousClause}]`;
   const trust = source.trust === 'tentative' ? ' [tentative]' : '';
-  const text = source.text === undefined ? '' : ` ${JSON.stringify(source.text)}`;
+  const text =
+    source.text === undefined ? '' : ` ${JSON.stringify(source.text)}`;
   return `${source.namespace}/${source.opId}@${source.ts}${trust}${temporal}${text}`;
 }
 
@@ -327,13 +353,13 @@ function evidenceValue(value: string | number): string {
   return serializeTerm(
     typeof value === 'number'
       ? { type: 'num', value }
-      : { type: 'atom', value }
+      : { type: 'atom', value },
   );
 }
 
 function collectEvidence(
   proof: SourcedQueryProof,
-  summary: RecallEvidenceSummary
+  summary: RecallEvidenceSummary,
 ): void {
   if ('aggregated' in proof) {
     summary.aggregates.add(`${proof.op}(${proof.input}) = ${proof.value}`);
@@ -345,13 +371,13 @@ function collectEvidence(
   if ('negated' in proof) {
     summary.absences.add(
       `${proof.predicate}(${proof.pattern
-        .map((value) => value === null ? '_' : evidenceValue(value))
-        .join(', ')})`
+        .map((value) => (value === null ? '_' : evidenceValue(value)))
+        .join(', ')})`,
     );
     return;
   }
   summary.claims.add(
-    `${proof.predicate}(${proof.values.map(evidenceValue).join(', ')})`
+    `${proof.predicate}(${proof.values.map(evidenceValue).join(', ')})`,
   );
   if (proof.rule !== undefined) summary.rules.add(proof.rule);
   if (proof.projectedFrom !== undefined) {
@@ -367,7 +393,7 @@ function collectEvidence(
   for (const child of proof.because ?? []) collectEvidence(child, summary);
   if (proof.aggregate !== undefined) {
     summary.aggregates.add(
-      `${proof.aggregate.op}(${proof.aggregate.input}) = ${proof.aggregate.value}`
+      `${proof.aggregate.op}(${proof.aggregate.input}) = ${proof.aggregate.value}`,
     );
     for (const contributor of proof.aggregate.contributors) {
       for (const child of contributor.proofs) collectEvidence(child, summary);
@@ -380,7 +406,7 @@ export function evidenceRecallAnswer(
   query: string,
   bindings: Record<string, string>[],
   explanation: ExplainKnowledgeResult,
-  rowTrust?: KnowledgeTrust[]
+  rowTrust?: KnowledgeTrust[],
 ): string {
   if (explanation.rows.length !== bindings.length) {
     throw new Error('evidence recall explanation rows must match binding rows');
@@ -389,7 +415,7 @@ export function evidenceRecallAnswer(
     throw new Error('evidence recall rowTrust must match binding rows');
   }
   const ruleByNumber = new Map(
-    explanation.rules.map((rule) => [rule.number, rule.clause])
+    explanation.rules.map((rule) => [rule.number, rule.clause]),
   );
   const lines = [`Evidence for ${query}:`];
   for (const [index, binding] of bindings.entries()) {
@@ -411,8 +437,11 @@ export function evidenceRecallAnswer(
       lines.push(
         `   Rules: ${[...summary.rules]
           .sort((left, right) => left - right)
-          .map((number) => `#${number} ${ruleByNumber.get(number) ?? '(unknown rule)'}`)
-          .join('; ')}`
+          .map(
+            (number) =>
+              `#${number} ${ruleByNumber.get(number) ?? '(unknown rule)'}`,
+          )
+          .join('; ')}`,
       );
     }
     if (summary.absences.size > 0) {
@@ -422,10 +451,14 @@ export function evidenceRecallAnswer(
       lines.push(`   Aggregates: ${[...summary.aggregates].sort().join('; ')}`);
     }
     if (summary.projections.size > 0) {
-      lines.push(`   Projected from: ${[...summary.projections].sort().join('; ')}`);
+      lines.push(
+        `   Projected from: ${[...summary.projections].sort().join('; ')}`,
+      );
     }
     if (summary.sources.size > 0) {
-      lines.push(`   Sources: ${[...summary.sources.values()].sort().join('; ')}`);
+      lines.push(
+        `   Sources: ${[...summary.sources.values()].sort().join('; ')}`,
+      );
     }
   }
   const answer = lines.join('\n');
@@ -436,16 +469,20 @@ export function evidenceRecallAnswer(
 function resolvedRecallAnswerMode(value: unknown): RecallAnswerMode {
   if (value === undefined || value === 'natural') return 'natural';
   if (value === 'deterministic' || value === 'evidence') return value;
-  throw new Error("recall answer mode must be 'natural', 'deterministic', or 'evidence'");
+  throw new Error(
+    "recall answer mode must be 'natural', 'deterministic', or 'evidence'",
+  );
 }
 
 function resolvedRelatedKnowledgeOptions(
-  value: RecallOptions['relatedKnowledge']
+  value: RecallOptions['relatedKnowledge'],
 ): RecallRelatedKnowledgeOptions | undefined {
   if (value === undefined || value === false) return undefined;
   if (value === true) return {};
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    throw new Error('recall related knowledge must be a boolean or options object');
+    throw new Error(
+      'recall related knowledge must be a boolean or options object',
+    );
   }
   return value;
 }
@@ -460,15 +497,16 @@ function stripFences(text: string): string {
 
 function assertLlmNamespacesAllowed(
   deps: PipelineDeps,
-  namespaces: string[] | '*'
+  namespaces: string[] | '*',
 ): void {
   const allowed = deps.llmAllowedNamespaces;
   if (allowed === undefined) return;
-  const selected = namespaces === '*' ? deps.store.listNamespaces() : namespaces;
+  const selected =
+    namespaces === '*' ? deps.store.listNamespaces() : namespaces;
   const denied = selected.find((namespace) => !allowed.has(namespace));
   if (denied !== undefined) {
     throw new Error(
-      `namespace '${denied}' is local-only under REMBERO_LLM_ALLOWED_NAMESPACES`
+      `namespace '${denied}' is local-only under REMBERO_LLM_ALLOWED_NAMESPACES`,
     );
   }
 }
@@ -477,7 +515,7 @@ function assertLlmNamespacesAllowed(
 async function completeWithRetry<T>(
   llm: LlmClient,
   messages: ChatMessage[],
-  validate: (response: string) => T
+  validate: (response: string) => T,
 ): Promise<T> {
   const response = stripFences(await llm.complete(messages));
   try {
@@ -506,7 +544,7 @@ export async function extractRememberText(
   deps: PipelineDeps,
   text: string,
   namespace = 'default',
-  options: RememberOptions = {}
+  options: RememberOptions = {},
 ): Promise<RememberExtraction | null> {
   const trust = options.trust ?? 'accepted';
   if (trust !== 'accepted' && trust !== 'tentative') {
@@ -516,17 +554,37 @@ export async function extractRememberText(
   assertSafeForExternalLlm(text, 'memory text');
   const literalClauses = deps.store.load(namespace);
   const configuredIdentity = options.entityIdentity ?? deps.entityIdentity;
-  const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
-  const schemaClauses = entityIdentity === 'canonical'
-    ? canonicalizeKnowledge(
-        literalClauses,
-        deps.store.sourcesFor([namespace])
-      ).clauses
-    : literalKnowledge(literalClauses).clauses;
+  const entityIdentity =
+    configuredIdentity === false ? undefined : configuredIdentity;
+  const schemaClauses =
+    entityIdentity === 'canonical'
+      ? canonicalizeKnowledge(
+          literalClauses,
+          deps.store.sourcesFor([namespace]),
+        ).clauses
+      : literalKnowledge(literalClauses).clauses;
   const schema = buildSchemaSummary(schemaClauses);
   assertSafeForExternalLlm(schema, 'memory schema');
+  const selfAtom = deps.selfAtom ?? DEFAULT_SELF_ATOM;
+  const aliases = predicateAliasesFrom(literalClauses);
+  const knownPredicates = new Set(
+    schemaClauses
+      .filter((c) => !isIntegrityConstraint(c))
+      .map((c) => predKey(c.head)),
+  );
+  const knownConstants = new Set<string>();
+  for (const clause of schemaClauses) {
+    if (isIntegrityConstraint(clause) || clause.body.length > 0) continue;
+    for (const term of clause.head.args) {
+      if (term.type === 'atom' || term.type === 'num')
+        knownConstants.add(String(term.value));
+    }
+  }
   const messages: ChatMessage[] = [
-    { role: 'system', content: extractionSystemPrompt(schema, trust) },
+    {
+      role: 'system',
+      content: extractionSystemPrompt(schema, trust, selfAtom),
+    },
     { role: 'user', content: text },
   ];
   return completeWithRetry(
@@ -536,20 +594,26 @@ export async function extractRememberText(
       if (response === NOTHING_SENTINEL) return null;
       const retractionLines: string[] = [];
       const clauseLines: string[] = [];
-      for (const line of response.split('\n')) {
+      for (const line of normalizeExtractionOutput(response)) {
         const retractMatch = line.trim().match(/^retract\s+(.*)$/);
-        if (retractMatch) retractionLines.push(retractMatch[1].replace(/\.\s*$/, ''));
+        if (retractMatch)
+          retractionLines.push(retractMatch[1].replace(/\.\s*$/, ''));
         else clauseLines.push(line);
       }
+      if (clauseLines.length === 0 && retractionLines.length === 0) return null;
       // parse retraction patterns up front so a bad one triggers the retry loop
       const retractions = retractionLines.map((p) => parseQuery(p));
       if (
         retractions.some(
           (goals) =>
-            goals.length !== 1 || isComparison(goals[0]) || isNegation(goals[0])
+            goals.length !== 1 ||
+            isComparison(goals[0]) ||
+            isNegation(goals[0]),
         )
       ) {
-        throw new Error('each retract line must contain exactly one positive fact pattern');
+        throw new Error(
+          'each retract line must contain exactly one positive fact pattern',
+        );
       }
       if (
         retractions.some((goals) => {
@@ -563,7 +627,7 @@ export async function extractRememberText(
         })
       ) {
         throw new Error(
-          'natural-language memory extraction may not retract trust metadata'
+          'natural-language memory extraction may not retract trust metadata',
         );
       }
       if (
@@ -578,27 +642,45 @@ export async function extractRememberText(
         })
       ) {
         throw new Error(
-          'natural-language memory extraction may not retract entity identity metadata'
+          'natural-language memory extraction may not retract entity identity metadata',
         );
       }
       const clauses = parseProgram(clauseLines.join('\n'));
       if (clauses.some(isIntegrityConstraint)) {
         throw new Error(
-          'natural-language memory extraction may not create integrity constraints'
+          'natural-language memory extraction may not create integrity constraints',
         );
       }
       if (clauses.some(isTentativeDeclaration)) {
         throw new Error(
-          'natural-language memory extraction may not assign trust metadata; the caller must request tentative storage'
+          'natural-language memory extraction may not assign trust metadata; the caller must request tentative storage',
         );
       }
       if (clauses.some(isEntityMetadataDeclaration)) {
         throw new Error(
-          'natural-language memory extraction may not create entity identity metadata'
+          'natural-language memory extraction may not create entity identity metadata',
         );
       }
-      return { clauses, retractions };
-    }
+      // Deterministic guards (see extraction-guard.ts): the speaker becomes the
+      // configured self atom, aliased predicates are renamed, every new constant
+      // must be present in the input, and a closed vocabulary rejects unknowns.
+      const guarded = applyPredicateAliases(
+        rewriteSelfAtoms(clauses, selfAtom),
+        aliases,
+      );
+      const guardedRetractions = applyPredicateAliasesToGoals(
+        rewriteSelfAtomsInGoals(retractions, selfAtom),
+        aliases,
+      );
+      assertGroundedConstants(guarded, text, {
+        known: knownConstants,
+        selfAtom,
+      });
+      if (deps.extractionVocabulary === 'closed') {
+        assertKnownVocabulary(guarded, knownPredicates);
+      }
+      return { clauses: guarded, retractions: guardedRetractions };
+    },
   );
 }
 
@@ -606,7 +688,7 @@ export async function rememberText(
   deps: PipelineDeps,
   text: string,
   namespace = 'default',
-  options: RememberOptions = {}
+  options: RememberOptions = {},
 ): Promise<RememberResult> {
   const validTimeMode = options.validTimeMode ?? deps.validTimeMode ?? 'delete';
   const trust = options.trust ?? 'accepted';
@@ -616,13 +698,16 @@ export async function rememberText(
   const extraction = await extractRememberText(deps, text, namespace, options);
   if (extraction === null) return { added: [], duplicates: 0, retracted: 0 };
   if (trust === 'tentative' && extraction.retractions.length > 0) {
-    throw new Error('tentative memory is additive; it cannot retract accepted facts');
+    throw new Error(
+      'tentative memory is additive; it cannot retract accepted facts',
+    );
   }
 
   const opId = deps.store.createOperationId();
   const configuredIntegrity =
     options.integrityEnforcement ?? deps.integrityEnforcement;
-  const integrity = configuredIntegrity === false ? undefined : configuredIntegrity;
+  const integrity =
+    configuredIntegrity === false ? undefined : configuredIntegrity;
   const configuredChecks =
     options.knowledgeCheckEnforcement ?? deps.knowledgeCheckEnforcement;
   const checks = configuredChecks === false ? undefined : configuredChecks;
@@ -636,11 +721,12 @@ export async function rememberText(
   };
   if (extraction.retractions.length > 0) {
     const patterns = extraction.retractions.map((goals) =>
-      goals.map(serializeGoal).join(', ')
+      goals.map(serializeGoal).join(', '),
     );
-    const result = validTimeMode === 'archive_until'
-      ? deps.store.supersede(namespace, patterns, extraction.clauses, context)
-      : deps.store.replace(namespace, patterns, extraction.clauses, context);
+    const result =
+      validTimeMode === 'archive_until'
+        ? deps.store.supersede(namespace, patterns, extraction.clauses, context)
+        : deps.store.replace(namespace, patterns, extraction.clauses, context);
     return {
       added: result.added.map(serializeClause),
       duplicates: result.duplicates,
@@ -659,7 +745,7 @@ export async function rememberText(
       deps.store,
       namespace,
       extraction.clauses,
-      context
+      context,
     );
     return {
       added: result.added,
@@ -672,7 +758,11 @@ export async function rememberText(
   if (integrity === undefined) {
     deps.store.note(namespace, 'remember', { opId, text }, options.at);
   }
-  const { added, duplicates } = deps.store.assert(namespace, extraction.clauses, context);
+  const { added, duplicates } = deps.store.assert(
+    namespace,
+    extraction.clauses,
+    context,
+  );
   return { added: added.map(serializeClause), duplicates, retracted: 0, opId };
 }
 
@@ -684,21 +774,40 @@ export async function rememberTranscriptText(
   deps: PipelineDeps,
   transcript: string,
   namespace: string,
-  options: RememberTranscriptOptions
+  options: RememberTranscriptOptions,
 ): Promise<RememberResult> {
   assertLlmNamespacesAllowed(deps, [namespace]);
   assertSafeForExternalLlm(transcript, 'transcript');
   const literalClauses = deps.store.load(namespace);
-  const schemaClauses = deps.entityIdentity === 'canonical'
-    ? canonicalizeKnowledge(
-        literalClauses,
-        deps.store.sourcesFor([namespace])
-      ).clauses
-    : literalKnowledge(literalClauses).clauses;
+  const schemaClauses =
+    deps.entityIdentity === 'canonical'
+      ? canonicalizeKnowledge(
+          literalClauses,
+          deps.store.sourcesFor([namespace]),
+        ).clauses
+      : literalKnowledge(literalClauses).clauses;
   const schema = buildSchemaSummary(schemaClauses);
   assertSafeForExternalLlm(schema, 'memory schema');
+  const selfAtom = deps.selfAtom ?? DEFAULT_SELF_ATOM;
+  const aliases = predicateAliasesFrom(literalClauses);
+  const knownPredicates = new Set(
+    schemaClauses
+      .filter((c) => !isIntegrityConstraint(c))
+      .map((c) => predKey(c.head)),
+  );
+  const knownConstants = new Set<string>();
+  for (const clause of schemaClauses) {
+    if (isIntegrityConstraint(clause) || clause.body.length > 0) continue;
+    for (const term of clause.head.args) {
+      if (term.type === 'atom' || term.type === 'num')
+        knownConstants.add(String(term.value));
+    }
+  }
   const messages: ChatMessage[] = [
-    { role: 'system', content: transcriptExtractionSystemPrompt(schema) },
+    {
+      role: 'system',
+      content: transcriptExtractionSystemPrompt(schema, selfAtom),
+    },
     { role: 'user', content: transcript },
   ];
   const clauses = await completeWithRetry(
@@ -706,10 +815,14 @@ export async function rememberTranscriptText(
     messages,
     (response): Clause[] | null => {
       if (response === NOTHING_SENTINEL) return null;
-      if (response.split('\n').some((line) => /^\s*retract\b/i.test(line))) {
-        throw new Error('auto-capture accepts additive ground facts only; retractions are forbidden');
+      const lines = normalizeExtractionOutput(response);
+      if (lines.length === 0) return null;
+      if (lines.some((line) => /^\s*retract\b/i.test(line))) {
+        throw new Error(
+          'auto-capture accepts additive ground facts only; retractions are forbidden',
+        );
       }
-      const parsed = parseProgram(response);
+      const parsed = parseProgram(lines.join('\n'));
       if (parsed.some(isTentativeDeclaration)) {
         throw new Error('auto-capture may not create trust metadata');
       }
@@ -717,13 +830,28 @@ export async function rememberTranscriptText(
         throw new Error('auto-capture may not create entity identity metadata');
       }
       if (parsed.some((clause) => clause.body.length > 0)) {
-        throw new Error('auto-capture accepts additive ground facts only; rules are forbidden');
+        throw new Error(
+          'auto-capture accepts additive ground facts only; rules are forbidden',
+        );
       }
       if (parsed.length > 12) {
-        throw new Error('auto-capture accepts at most 12 additive ground facts');
+        throw new Error(
+          'auto-capture accepts at most 12 additive ground facts',
+        );
       }
-      return parsed;
-    }
+      const guarded = applyPredicateAliases(
+        rewriteSelfAtoms(parsed, selfAtom),
+        aliases,
+      );
+      assertGroundedConstants(guarded, transcript, {
+        known: knownConstants,
+        selfAtom,
+      });
+      if (deps.extractionVocabulary === 'closed') {
+        assertKnownVocabulary(guarded, knownPredicates);
+      }
+      return guarded;
+    },
   );
   if (clauses === null || clauses.length === 0) {
     return { added: [], duplicates: 0, retracted: 0 };
@@ -736,7 +864,8 @@ export async function rememberTranscriptText(
     origin: 'claude-stop',
     sourceText: 'Auto-captured from a Claude Code Stop hook',
     at: options.at,
-    ...(deps.integrityEnforcement === undefined || deps.integrityEnforcement === false
+    ...(deps.integrityEnforcement === undefined ||
+    deps.integrityEnforcement === false
       ? {}
       : { integrity: deps.integrityEnforcement }),
     ...(deps.knowledgeCheckEnforcement === undefined ||
@@ -756,14 +885,16 @@ function visiblePredicateList(known: ReadonlySet<string>): string {
   const ordered = [...known].sort();
   const visible = ordered.slice(0, 64);
   return `${visible.join(', ') || '(none)'}${
-    ordered.length > visible.length ? `, ... (${ordered.length - visible.length} more shown in schema)` : ''
+    ordered.length > visible.length
+      ? `, ... (${ordered.length - visible.length} more shown in schema)`
+      : ''
   }`;
 }
 
 function validateQueryPredicates(
   goals: Goal[],
   known: ReadonlySet<string>,
-  question: string
+  question: string,
 ): void {
   const questionWords = new Set(recallWords(question));
   for (const goal of goals) {
@@ -780,11 +911,11 @@ function validateQueryPredicates(
       const lookalike = sameArity.find(
         (predicate) =>
           predicate !== literal.predicate &&
-          recallEditDistance(predicate, literal.predicate) <= 1
+          recallEditDistance(predicate, literal.predicate) <= 1,
       );
       if (lookalike !== undefined) {
         throw new Error(
-          `unknown negated predicate ${key} resembles ${lookalike}/${literal.args.length}; correct the predicate name`
+          `unknown negated predicate ${key} resembles ${lookalike}/${literal.args.length}; correct the predicate name`,
         );
       }
       const predicateWords = recallWords(literal.predicate);
@@ -793,14 +924,14 @@ function validateQueryPredicates(
         !predicateWords.every((word) => questionWords.has(word))
       ) {
         throw new Error(
-          `unknown negated predicate ${key} must be explicitly named by the question`
+          `unknown negated predicate ${key} must be explicitly named by the question`,
         );
       }
       continue;
     }
     if (!known.has(key)) {
       throw new Error(
-        `unknown predicate ${key} — available in this schema: ${visiblePredicateList(known)}`
+        `unknown predicate ${key} — available in this schema: ${visiblePredicateList(known)}`,
       );
     }
   }
@@ -821,28 +952,32 @@ function directlyQueriesAggregateRelation(
   aggregatePredicates: ReadonlyMap<
     string,
     ReadonlyArray<{ op: AggregateOperator; outputPosition: number }>
-  >
+  >,
 ): boolean {
   if (query.kind !== 'relational' || requested === undefined) return false;
   const positive = query.goals.flatMap((goal, index) =>
-    isComparison(goal) || isNegation(goal) ? [] : [{ goal, index }]
+    isComparison(goal) || isNegation(goal) ? [] : [{ goal, index }],
   );
   const candidates = positive.flatMap(({ goal, index }) =>
     (aggregatePredicates.get(predKey(goal)) ?? []).flatMap((signature) =>
       signature.op === requested &&
       goal.args[signature.outputPosition]?.type === 'var'
         ? [{ goal, index, signature }]
-        : []
-    )
+        : [],
+    ),
   );
   if (candidates.length !== 1) return false;
 
-  const { goal: aggregateGoal, index: aggregateIndex, signature } = candidates[0];
+  const {
+    goal: aggregateGoal,
+    index: aggregateIndex,
+    signature,
+  } = candidates[0];
   const groupTerms = aggregateGoal.args.filter(
-    (_term, position) => position !== signature.outputPosition
+    (_term, position) => position !== signature.outputPosition,
   );
   const groupVariables = new Set(
-    groupTerms.flatMap((term) => (term.type === 'var' ? [term.name] : []))
+    groupTerms.flatMap((term) => (term.type === 'var' ? [term.name] : [])),
   );
   const auxiliaryVariables = new Set<string>();
   for (const { goal, index } of positive) {
@@ -859,7 +994,7 @@ function directlyQueriesAggregateRelation(
       term.type === 'atom' ||
       term.type === 'num' ||
       (term.type === 'var' &&
-        (distributive || auxiliaryVariables.has(term.name)))
+        (distributive || auxiliaryVariables.has(term.name))),
   );
 }
 
@@ -871,7 +1006,7 @@ function validateQuerySpec(
     string,
     ReadonlyArray<{ op: AggregateOperator; outputPosition: number }>
   >,
-  requireProjection: boolean
+  requireProjection: boolean,
 ): void {
   validateQueryPredicates(query.goals, known, question);
   if (
@@ -881,17 +1016,17 @@ function validateQuerySpec(
     relationalVariableNames(query.goals).size > 1
   ) {
     throw new Error(
-      'grounded relational queries with multiple variables must use select to declare answer columns'
+      'grounded relational queries with multiple variables must use select to declare answer columns',
     );
   }
   const requested = Object.entries(AGGREGATE_INTENT).find(([, pattern]) =>
-    pattern.test(question)
+    pattern.test(question),
   )?.[0];
   const directAggregateRelation = directlyQueriesAggregateRelation(
     query,
     requested,
     question,
-    aggregatePredicates
+    aggregatePredicates,
   );
   if (
     query.kind === 'relational' &&
@@ -899,19 +1034,22 @@ function validateQuerySpec(
     !directAggregateRelation
   ) {
     throw new Error(
-      `question explicitly requests ${requested} aggregation; emit the scalar aggregate query form`
+      `question explicitly requests ${requested} aggregation; emit the scalar aggregate query form`,
     );
   }
-  if (query.kind === 'aggregate' && !AGGREGATE_INTENT[query.op].test(question)) {
+  if (
+    query.kind === 'aggregate' &&
+    !AGGREGATE_INTENT[query.op].test(question)
+  ) {
     throw new Error(
-      `${query.op} aggregation requires the question to explicitly request that aggregate`
+      `${query.op} aggregation requires the question to explicitly request that aggregate`,
     );
   }
 }
 
 function expressionVariableNames(
   expression: ScalarExpression,
-  names: Set<string>
+  names: Set<string>,
 ): void {
   if (!isArithmeticExpression(expression)) {
     if (expression.type === 'var') names.add(expression.name);
@@ -933,7 +1071,7 @@ function relationalVariableNames(goals: Goal[]): Set<string> {
       expressionVariableNames(goal.right, names);
       continue;
     }
-    for (const term of (isNegation(goal) ? goal.not.args : goal.args)) {
+    for (const term of isNegation(goal) ? goal.not.args : goal.args) {
       if (term.type === 'var') names.add(term.name);
     }
   }
@@ -953,18 +1091,23 @@ interface AnsweredQueryAmbiguity {
 
 function positiveLiterals(query: QuerySpec): Literal[] {
   return query.goals.filter(
-    (goal): goal is Literal => !isComparison(goal) && !isNegation(goal)
+    (goal): goal is Literal => !isComparison(goal) && !isNegation(goal),
   );
 }
 
 function sameGroundTerm(left: Term, right: Term): boolean {
   return (
-    (left.type === 'atom' && right.type === 'atom' && left.value === right.value) ||
+    (left.type === 'atom' &&
+      right.type === 'atom' &&
+      left.value === right.value) ||
     (left.type === 'num' && right.type === 'num' && left.value === right.value)
   );
 }
 
-function literalAnchors(literal: Literal, arity = literal.args.length): Array<{
+function literalAnchors(
+  literal: Literal,
+  arity = literal.args.length,
+): Array<{
   position: number;
   term: Extract<Term, { type: 'atom' | 'num' }>;
 }> {
@@ -972,19 +1115,21 @@ function literalAnchors(literal: Literal, arity = literal.args.length): Array<{
     .slice(0, arity)
     .map((term, position) => ({ term, position }))
     .filter(
-      (entry): entry is {
+      (
+        entry,
+      ): entry is {
         position: number;
         term: Extract<Term, { type: 'atom' | 'num' }>;
-      } => entry.term.type === 'atom' || entry.term.type === 'num'
+      } => entry.term.type === 'atom' || entry.term.type === 'num',
     );
 }
 
 function factMatchesAnchors(
   clause: Clause,
-  anchors: ReadonlyArray<{ position: number; term: Term }>
+  anchors: ReadonlyArray<{ position: number; term: Term }>,
 ): boolean {
   return anchors.every(({ position, term }) =>
-    sameGroundTerm(clause.head.args[position], term)
+    sameGroundTerm(clause.head.args[position], term),
   );
 }
 
@@ -1000,13 +1145,18 @@ function factsByPredicate(clauses: Clause[]): ReadonlyMap<string, Clause[]> {
   return facts;
 }
 
-function predicateWordOverlap(predicate: string, questionWords: ReadonlySet<string>): number {
+function predicateWordOverlap(
+  predicate: string,
+  questionWords: ReadonlySet<string>,
+): number {
   return new Set(
-    recallWords(predicate).filter((word) => questionWords.has(word))
+    recallWords(predicate).filter((word) => questionWords.has(word)),
   ).size;
 }
 
-function predicateParts(key: string): { predicate: string; arity: number } | undefined {
+function predicateParts(
+  key: string,
+): { predicate: string; arity: number } | undefined {
   const match = key.match(/^(.*)\/(\d+)$/);
   return match === null
     ? undefined
@@ -1017,34 +1167,43 @@ function directCompetitors(
   query: QuerySpec,
   selection: RecallSchemaSelection,
   facts: ReadonlyMap<string, Clause[]>,
-  questionWords: ReadonlySet<string>
+  questionWords: ReadonlySet<string>,
 ): string[] {
   const ordered = [...selection.availablePredicates];
   const rank = new Map(ordered.map((key, index) => [key, index]));
   const used = new Set(
     positiveLiterals(query).map(
-      (literal) => `${literal.predicate}/${literal.args.length}`
-    )
+      (literal) => `${literal.predicate}/${literal.args.length}`,
+    ),
   );
   const competitors = new Set<string>();
 
   for (const literal of positiveLiterals(query)) {
     const chosenKey = `${literal.predicate}/${literal.args.length}`;
     const chosenRank = rank.get(chosenKey);
-    const chosenOverlap = predicateWordOverlap(literal.predicate, questionWords);
+    const chosenOverlap = predicateWordOverlap(
+      literal.predicate,
+      questionWords,
+    );
     const anchors = literalAnchors(literal);
-    if (chosenRank === undefined || chosenOverlap !== 0 || anchors.length === 0) continue;
+    if (chosenRank === undefined || chosenOverlap !== 0 || anchors.length === 0)
+      continue;
 
     for (const candidateKey of ordered) {
       if (used.has(candidateKey)) continue;
       const candidate = predicateParts(candidateKey);
-      if (candidate === undefined || candidate.arity !== literal.args.length) continue;
+      if (candidate === undefined || candidate.arity !== literal.args.length)
+        continue;
       const candidateRank = rank.get(candidateKey)!;
-      const candidateOverlap = predicateWordOverlap(candidate.predicate, questionWords);
-      if (candidateOverlap <= chosenOverlap && candidateRank >= chosenRank) continue;
+      const candidateOverlap = predicateWordOverlap(
+        candidate.predicate,
+        questionWords,
+      );
+      if (candidateOverlap <= chosenOverlap && candidateRank >= chosenRank)
+        continue;
       if (
         (facts.get(candidateKey) ?? []).some((clause) =>
-          factMatchesAnchors(clause, anchors)
+          factMatchesAnchors(clause, anchors),
         )
       ) {
         competitors.add(candidateKey);
@@ -1053,8 +1212,10 @@ function directCompetitors(
   }
 
   return [...competitors].sort(
-    (left, right) => (rank.get(left) ?? Number.MAX_SAFE_INTEGER) -
-      (rank.get(right) ?? Number.MAX_SAFE_INTEGER) || left.localeCompare(right)
+    (left, right) =>
+      (rank.get(left) ?? Number.MAX_SAFE_INTEGER) -
+        (rank.get(right) ?? Number.MAX_SAFE_INTEGER) ||
+      left.localeCompare(right),
   );
 }
 
@@ -1063,7 +1224,7 @@ function temporalCompetitors(
   selection: RecallSchemaSelection,
   facts: ReadonlyMap<string, Clause[]>,
   question: string,
-  questionWords: ReadonlySet<string>
+  questionWords: ReadonlySet<string>,
 ): string[] {
   if (!NAMED_LATER_STATE.test(question)) return [];
   const literals = positiveLiterals(query);
@@ -1071,7 +1232,8 @@ function temporalCompetitors(
   const competitors = new Set<string>();
 
   for (const historical of literals) {
-    if (!historical.predicate.endsWith('_until') || historical.args.length < 2) continue;
+    if (!historical.predicate.endsWith('_until') || historical.args.length < 2)
+      continue;
     const basePredicate = historical.predicate.slice(0, -'_until'.length);
     const baseArity = historical.args.length - 1;
     const baseKey = `${basePredicate}/${baseArity}`;
@@ -1087,11 +1249,12 @@ function temporalCompetitors(
       if (!factMatchesAnchors(clause, anchors)) return false;
       return clause.head.args.some((term, position) => {
         if (anchorPositions.has(position)) return false;
-        const value = term.type === 'atom'
-          ? term.value
-          : term.type === 'num'
-            ? String(term.value)
-            : '';
+        const value =
+          term.type === 'atom'
+            ? term.value
+            : term.type === 'num'
+              ? String(term.value)
+              : '';
         return recallWords(value).some((word) => questionWords.has(word));
       });
     });
@@ -1105,14 +1268,14 @@ function answeredQueryAmbiguity(
   query: QuerySpec,
   selection: RecallSchemaSelection,
   clauses: Clause[],
-  question: string
+  question: string,
 ): AnsweredQueryAmbiguity | undefined {
   const questionWords = new Set(recallWords(question));
   const literals = positiveLiterals(query);
   const mayHaveDirectCompetitor = literals.some(
     (literal) =>
       literalAnchors(literal).length > 0 &&
-      predicateWordOverlap(literal.predicate, questionWords) === 0
+      predicateWordOverlap(literal.predicate, questionWords) === 0,
   );
   const mayNeedTemporalContext =
     NAMED_LATER_STATE.test(question) &&
@@ -1123,13 +1286,7 @@ function answeredQueryAmbiguity(
     ? directCompetitors(query, selection, facts, questionWords)
     : [];
   const temporal = mayNeedTemporalContext
-    ? temporalCompetitors(
-        query,
-        selection,
-        facts,
-        question,
-        questionWords
-      )
+    ? temporalCompetitors(query, selection, facts, question, questionWords)
     : [];
   const reasons: RecallQueryReviewReason[] = [];
   if (direct.length > 0) reasons.push('competing_predicate');
@@ -1139,7 +1296,7 @@ function answeredQueryAmbiguity(
     reasons,
     competingPredicates: [...new Set([...direct, ...temporal])].slice(
       0,
-      MAX_QUERY_REVIEW_COMPETITORS
+      MAX_QUERY_REVIEW_COMPETITORS,
     ),
   };
 }
@@ -1151,12 +1308,12 @@ function proofTrust(proof: SourcedQueryProof): KnowledgeTrust {
 }
 
 function explanationRowTrust(
-  explanation: ExplainKnowledgeResult
+  explanation: ExplainKnowledgeResult,
 ): KnowledgeTrust[] {
   return explanation.rows.map((row) =>
     row.proofs.some((proof) => proofTrust(proof) === 'tentative')
       ? 'tentative'
-      : 'accepted'
+      : 'accepted',
   );
 }
 
@@ -1164,38 +1321,45 @@ export async function retrieveQuestion(
   deps: PipelineDeps,
   question: string,
   namespaces: string[] | '*' = ['default'],
-  options: RecallOptions = {}
+  options: RecallOptions = {},
 ): Promise<RetrievalResult> {
   assertLlmNamespacesAllowed(deps, namespaces);
   assertSafeForExternalLlm(question, 'recall question');
-  const recorded = options.recordedSequence === undefined
-    ? undefined
-    : deps.store.recordedSnapshot(namespaces, options.recordedSequence);
-  const current = recorded === undefined
-    ? deps.store.knowledgeSnapshot(namespaces)
-    : undefined;
+  const recorded =
+    options.recordedSequence === undefined
+      ? undefined
+      : deps.store.recordedSnapshot(namespaces, options.recordedSequence);
+  const current =
+    recorded === undefined
+      ? deps.store.knowledgeSnapshot(namespaces)
+      : undefined;
   const literalClauses = recorded?.clauses ?? current!.clauses;
   const literalSources = recorded?.sources ?? current!.sources;
-  const recordedSnapshot = recorded === undefined
-    ? undefined
-    : {
-        sequence: recorded.sequence,
-        journalEntries: recorded.journalEntries,
-        namespaces: recorded.namespaces,
-      };
+  const recordedSnapshot =
+    recorded === undefined
+      ? undefined
+      : {
+          sequence: recorded.sequence,
+          journalEntries: recorded.journalEntries,
+          namespaces: recorded.namespaces,
+        };
   const configuredIdentity = options.entityIdentity ?? deps.entityIdentity;
-  const entityIdentity = configuredIdentity === false ? undefined : configuredIdentity;
+  const entityIdentity =
+    configuredIdentity === false ? undefined : configuredIdentity;
   const configuredTrust = options.trustMode ?? deps.trustMode;
   const trustMode =
     configuredTrust === false || configuredTrust === undefined
       ? 'accepted'
       : configuredTrust;
-  const view = entityIdentity === 'canonical'
-    ? canonicalizeKnowledge(literalClauses, literalSources, trustMode)
-    : literalKnowledge(literalClauses, literalSources, trustMode);
+  const view =
+    entityIdentity === 'canonical'
+      ? canonicalizeKnowledge(literalClauses, literalSources, trustMode)
+      : literalKnowledge(literalClauses, literalSources, trustMode);
   const clauses = view.clauses;
   const trustResult = trustMode === 'accepted' ? {} : { trustMode };
-  const relatedOptions = resolvedRelatedKnowledgeOptions(options.relatedKnowledge);
+  const relatedOptions = resolvedRelatedKnowledgeOptions(
+    options.relatedKnowledge,
+  );
   const relatedResult = (): { relatedKnowledge?: KnowledgeSearchResult } =>
     relatedOptions === undefined
       ? {}
@@ -1213,7 +1377,7 @@ export async function retrieveQuestion(
                 : { kinds: relatedOptions.kinds }),
               ...(entityIdentity === undefined ? {} : { entityIdentity }),
               ...(trustMode === 'accepted' ? {} : { trustMode }),
-            }
+            },
           ),
         };
   const aggregatePredicates = new Map<
@@ -1223,7 +1387,7 @@ export async function retrieveQuestion(
   for (const clause of clauses) {
     if (!isAggregateRule(clause)) continue;
     const outputPosition = clause.head.args.findIndex(
-      (term) => term.type === 'var' && term.name === clause.aggregate.as
+      (term) => term.type === 'var' && term.name === clause.aggregate.as,
     );
     const signatures = aggregatePredicates.get(predKey(clause.head)) ?? [];
     signatures.push({ op: clause.aggregate.op, outputPosition });
@@ -1257,7 +1421,9 @@ export async function retrieveQuestion(
       initialSelection = selectRecallSchema(clauses, question, {
         sourceIndex: view.sources,
         predicateLimit: MAX_RECALL_SCHEMA_PREDICATES,
-        ...(schemaByteLimit === undefined ? {} : { byteLimit: schemaByteLimit }),
+        ...(schemaByteLimit === undefined
+          ? {}
+          : { byteLimit: schemaByteLimit }),
       });
     } catch (widenError) {
       if (widenError instanceof RecallSchemaBudgetError) {
@@ -1283,12 +1449,17 @@ export async function retrieveQuestion(
     queryReview?: RecallQueryReview;
   }
 
-  const runPass = async (selection: RecallSchemaSelection): Promise<PassResult> => {
+  const runPass = async (
+    selection: RecallSchemaSelection,
+  ): Promise<PassResult> => {
     assertSafeForExternalLlm(selection.summary, 'memory schema');
     const messages: ChatMessage[] = [
       {
         role: 'system',
-        content: queryGenSystemPrompt(selection.summary, options.queryPromptVariant),
+        content: queryGenSystemPrompt(
+          selection.summary,
+          options.queryPromptVariant,
+        ),
       },
       { role: 'user', content: question },
     ];
@@ -1300,7 +1471,7 @@ export async function retrieveQuestion(
         selection.availablePredicates,
         question,
         aggregatePredicates,
-        options.queryPromptVariant !== 'baseline'
+        options.queryPromptVariant !== 'baseline',
       );
       return entityIdentity === 'canonical'
         ? view.resolver.canonicalizeQuery(parsed).query
@@ -1321,7 +1492,7 @@ export async function retrieveQuestion(
             ...(options.graphSelector === undefined
               ? {}
               : { graphSelector: options.graphSelector }),
-          }
+          },
         );
         const bindings = explanation.rows.map((row) => row.bindings);
         return {
@@ -1334,10 +1505,14 @@ export async function retrieveQuestion(
           ...(options.explain ? { explanation } : {}),
         };
       }
-      const bindings = evaluateQuerySpec(clauses, query).map((binding: Bindings) =>
-        Object.fromEntries(
-          Object.entries(binding).map(([name, term]) => [name, serializeTerm(term)])
-        )
+      const bindings = evaluateQuerySpec(clauses, query).map(
+        (binding: Bindings) =>
+          Object.fromEntries(
+            Object.entries(binding).map(([name, term]) => [
+              name,
+              serializeTerm(term),
+            ]),
+          ),
       );
       return {
         outcome: bindings.length > 0 ? 'answered' : 'empty',
@@ -1357,7 +1532,7 @@ export async function retrieveQuestion(
         query,
         selection,
         clauses,
-        question
+        question,
       );
       if (ambiguity === undefined) return result;
 
@@ -1367,7 +1542,7 @@ export async function retrieveQuestion(
         originalQuery,
         result.bindings.slice(0, MAX_QUERY_REVIEW_ROWS),
         ambiguity.reasons,
-        ambiguity.competingPredicates
+        ambiguity.competingPredicates,
       );
       assertSafeForExternalLlm(reviewPrompt, 'query review evidence');
       const reviewMessages: ChatMessage[] = [
@@ -1375,7 +1550,11 @@ export async function retrieveQuestion(
         { role: 'assistant', content: `?- ${originalQuery}.` },
         { role: 'user', content: reviewPrompt },
       ];
-      query = await completeWithRetry(deps.llm, reviewMessages, validateResponse);
+      query = await completeWithRetry(
+        deps.llm,
+        reviewMessages,
+        validateResponse,
+      );
       if (query === null) {
         return {
           outcome: 'unanswerable',
@@ -1411,7 +1590,11 @@ export async function retrieveQuestion(
         content: `The query ${queryText} returned no results. If it correctly expresses the question, repeat it unchanged: an empty result is valid evidence that no stored fact matches. Try ONE alternative only if the first query mistranslated the question. Output exactly ?- ${UNANSWERABLE}. only when the schema cannot express the question at all, never merely because the result was empty.`,
       },
     ];
-    query = await completeWithRetry(deps.llm, fallbackMessages, validateResponse);
+    query = await completeWithRetry(
+      deps.llm,
+      fallbackMessages,
+      validateResponse,
+    );
     if (query === null) {
       return { outcome: 'unanswerable', query: null, bindings: [] };
     }
@@ -1447,7 +1630,9 @@ export async function retrieveQuestion(
       finalSelection = selectRecallSchema(clauses, question, {
         sourceIndex: view.sources,
         predicateLimit: finalSelection.totalPredicates,
-        ...(schemaByteLimit === undefined ? {} : { byteLimit: schemaByteLimit }),
+        ...(schemaByteLimit === undefined
+          ? {}
+          : { byteLimit: schemaByteLimit }),
       });
       pass = await runPass(finalSelection);
       if (pass.queryReview !== undefined) queryReviews.push(pass.queryReview);
@@ -1461,7 +1646,9 @@ export async function retrieveQuestion(
   }
 
   const includePruning =
-    initialSelection.pruned || !initialSelection.schemaComplete || attempts.length > 1;
+    initialSelection.pruned ||
+    !initialSelection.schemaComplete ||
+    attempts.length > 1;
   const pruning = includePruning
     ? {
         pruning: {
@@ -1473,7 +1660,8 @@ export async function retrieveQuestion(
     : {};
   const { outcome, queryReview: _queryReview, ...retrieval } = pass;
   const reviewResult = queryReviews.length === 0 ? {} : { queryReviews };
-  const snapshotResult = recordedSnapshot === undefined ? {} : { recordedSnapshot };
+  const snapshotResult =
+    recordedSnapshot === undefined ? {} : { recordedSnapshot };
   if (pass.outcome === 'answered') {
     return {
       status: 'answered',
@@ -1502,18 +1690,13 @@ export async function retrieveQuestion(
   if (outcome === 'empty' && retrieval.query !== null) {
     try {
       whyNotResult = {
-        whyNot: explainWhyNot(
-          literalClauses,
-          retrieval.query,
-          literalSources,
-          {
-            ...(options.proofLimit === undefined
-              ? {}
-              : { maxProofsPerRow: options.proofLimit }),
-            ...(entityIdentity === undefined ? {} : { entityIdentity }),
-            ...(trustMode === 'accepted' ? {} : { trustMode }),
-          }
-        ),
+        whyNot: explainWhyNot(literalClauses, retrieval.query, literalSources, {
+          ...(options.proofLimit === undefined
+            ? {}
+            : { maxProofsPerRow: options.proofLimit }),
+          ...(entityIdentity === undefined ? {} : { entityIdentity }),
+          ...(trustMode === 'accepted' ? {} : { trustMode }),
+        }),
       };
     } catch (error) {
       if (!(error instanceof EngineLimitError)) throw error;
@@ -1541,18 +1724,17 @@ export async function recallQuestion(
   deps: PipelineDeps,
   question: string,
   namespaces: string[] | '*' = ['default'],
-  options: RecallOptions = {}
+  options: RecallOptions = {},
 ): Promise<RecallResult> {
   const answerMode = resolvedRecallAnswerMode(
-    options.answerMode ?? deps.recallAnswerMode
+    options.answerMode ?? deps.recallAnswerMode,
   );
-  const answerModeResult =
-    answerMode === 'natural' ? {} : { answerMode };
+  const answerModeResult = answerMode === 'natural' ? {} : { answerMode };
   const retrieval = await retrieveQuestion(
     deps,
     question,
     namespaces,
-    answerMode === 'evidence' ? { ...options, explain: true } : options
+    answerMode === 'evidence' ? { ...options, explain: true } : options,
   );
   if (retrieval.query === null) {
     return {
@@ -1567,7 +1749,8 @@ export async function recallQuestion(
 
   if (retrieval.status === 'schema_budget_exhausted') {
     return {
-      answer: 'Recall reached its schema budget before it could rule out relevant memories.',
+      answer:
+        'Recall reached its schema budget before it could rule out relevant memories.',
       ...answerModeResult,
       ...retrieval,
     };
@@ -1588,7 +1771,7 @@ export async function recallQuestion(
       answer: deterministicRecallAnswer(
         retrieval.query,
         retrieval.bindings,
-        retrieval.rowTrust
+        retrieval.rowTrust,
       ),
       answerMode,
       ...retrieval,
@@ -1603,7 +1786,7 @@ export async function recallQuestion(
         retrieval.query,
         retrieval.bindings,
         retrieval.explanation,
-        retrieval.rowTrust
+        retrieval.rowTrust,
       ),
       answerMode,
       ...retrieval,
@@ -1615,7 +1798,7 @@ export async function recallQuestion(
     retrieval.query,
     retrieval.bindings,
     retrieval.trustMode,
-    retrieval.rowTrust
+    retrieval.rowTrust,
   );
   assertSafeForExternalLlm(phrasing, 'recall evidence');
   const answer = await deps.llm.complete([

@@ -51,6 +51,7 @@ interface Args {
   output: string | undefined;
   baseUrl: string | undefined;
   apiKey: string | undefined;
+  vocabulary: 'open' | 'closed';
 }
 
 const USAGE = `Usage: npm run eval:extract-bench -- [options]
@@ -60,6 +61,7 @@ Options:
   --cases <a,b>         Only these case IDs
   --base-url <url>      OpenAI-compatible base URL (default: LLM_BASE_URL or OpenRouter)
   --api-key <key>       Bearer token (default: LLM_API_KEY); any value works for local Ollama
+  --vocabulary <mode>   'open' (default) or 'closed' (only schema predicates may be added)
   --json                Print machine-readable JSON
   --output <path>       Write machine-readable JSON to a regular file
 `;
@@ -82,6 +84,7 @@ function parseArgs(argv: string[]): Args {
     output: undefined,
     baseUrl: undefined,
     apiKey: undefined,
+    vocabulary: 'open',
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -107,6 +110,12 @@ function parseArgs(argv: string[]): Args {
       i += 1;
     } else if (arg === '--api-key') {
       args.apiKey = argv[i + 1];
+      i += 1;
+    } else if (arg === '--vocabulary') {
+      const value = argv[i + 1];
+      if (value !== 'open' && value !== 'closed')
+        throw new Error("--vocabulary must be 'open' or 'closed'");
+      args.vocabulary = value;
       i += 1;
     } else if (arg === '--json') {
       args.json = true;
@@ -137,6 +146,7 @@ async function runModel(
   cases: ExtractionBenchCase[],
   apiKey: string,
   baseUrl: string,
+  vocabulary: 'open' | 'closed',
 ): Promise<ExtractionEvalObservation[]> {
   const client = new OpenRouterClient({ apiKey, baseUrl, model });
   const observations: ExtractionEvalObservation[] = [];
@@ -161,14 +171,19 @@ async function runModel(
       const result =
         testCase.mode === 'transcript'
           ? await rememberTranscriptText(
-              { store, llm },
+              { store, llm, extractionVocabulary: vocabulary },
               testCase.input,
               'default',
               {
                 captureId: `bench-${testCase.id}`,
               },
             )
-          : await rememberText({ store, llm }, testCase.input, 'default', {});
+          : await rememberText(
+              { store, llm, extractionVocabulary: vocabulary },
+              testCase.input,
+              'default',
+              {},
+            );
       observations.push({
         case: testCase,
         model,
@@ -227,7 +242,13 @@ async function main(): Promise<void> {
   const cases = selectedCases(args);
   const runs = [];
   for (const model of args.models) {
-    const observations = await runModel(model, cases, apiKey, baseUrl);
+    const observations = await runModel(
+      model,
+      cases,
+      apiKey,
+      baseUrl,
+      args.vocabulary,
+    );
     const score = scoreExtractionBench(observations);
     runs.push({
       model,
@@ -256,6 +277,7 @@ async function main(): Promise<void> {
   }
   const payload = {
     benchmark: 'extraction-bench-v1',
+    vocabulary: args.vocabulary,
     generatedAt: new Date().toISOString(),
     cases: cases.length,
     runs,
