@@ -520,3 +520,21 @@ describe('agent-boundary: query-leg grading', () => {
     ).toBe(true);
   });
 });
+
+describe('agent-boundary runner: hosted OpenAI-compatible providers', () => {
+  it('sends a bearer token and an overridable completion budget', () => {
+    const request = chatRequest(
+      'openai',
+      'https://openrouter.ai/api/v1',
+      'z-ai/glm-5.3',
+      [{ role: 'user', content: 'u' }],
+      7,
+      { apiKey: 'sk-test', maxTokens: 4000 },
+    );
+    expect(request.url).toBe('https://openrouter.ai/api/v1/chat/completions');
+    expect(request.headers).toMatchObject({ authorization: 'Bearer sk-test' });
+    expect(request.body).toMatchObject({ max_tokens: 4000 });
+    const bare = chatRequest('ollama', 'http://127.0.0.1:11434', 'm', [], 7);
+    expect(bare.headers.authorization).toBeUndefined();
+  });
+});

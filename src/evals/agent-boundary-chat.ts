@@ -13,29 +13,52 @@ export interface ChatMessage {
 
 export const CHAT_MAX_TOKENS = 400;
 
+export interface ChatRequestOptions {
+  /** Bearer token for hosted OpenAI-compatible providers (e.g. OpenRouter). */
+  apiKey?: string;
+  /** Completion budget; raise it for reasoning models that think before answering. */
+  maxTokens?: number;
+}
+
 export function chatRequest(
   backend: ChatBackend,
   baseUrl: string,
   model: string,
   messages: ChatMessage[],
   seed: number,
-): { url: string; body: Record<string, unknown> } {
+  options: ChatRequestOptions = {},
+): {
+  url: string;
+  headers: Record<string, string>;
+  body: Record<string, unknown>;
+} {
   const base = baseUrl.replace(/\/$/, '');
+  const maxTokens = options.maxTokens ?? CHAT_MAX_TOKENS;
+  const headers: Record<string, string> = {
+    'content-type': 'application/json',
+  };
+  if (options.apiKey) headers.authorization = `Bearer ${options.apiKey}`;
   if (backend === 'openai') {
+    // A base URL that already ends in /v1 (OpenRouter, OpenAI) gets only the path.
+    const path = base.endsWith('/v1')
+      ? '/chat/completions'
+      : '/v1/chat/completions';
     return {
-      url: `${base}/v1/chat/completions`,
+      url: `${base}${path}`,
+      headers,
       body: {
         model,
         messages,
         temperature: 0,
         seed,
-        max_tokens: CHAT_MAX_TOKENS,
+        max_tokens: maxTokens,
         stream: false,
       },
     };
   }
   return {
     url: `${base}/api/chat`,
+    headers,
     body: {
       model,
       messages,
@@ -44,7 +67,7 @@ export function chatRequest(
         temperature: 0,
         seed,
         num_ctx: 4096,
-        num_predict: CHAT_MAX_TOKENS,
+        num_predict: maxTokens,
       },
     },
   };

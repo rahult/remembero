@@ -71,10 +71,17 @@ async function chat(
     url: CHAT_URL,
   },
 ): Promise<string> {
-  const request = chatRequest(leg.backend, leg.url, model, messages, seed);
+  // CHAT_API_KEY authorizes hosted OpenAI-compatible providers (OpenRouter);
+  // CHAT_MAX_TOKENS raises the completion budget for reasoning models.
+  const request = chatRequest(leg.backend, leg.url, model, messages, seed, {
+    apiKey: process.env.CHAT_API_KEY,
+    maxTokens: process.env.CHAT_MAX_TOKENS
+      ? Number(process.env.CHAT_MAX_TOKENS)
+      : undefined,
+  });
   const response = await fetch(request.url, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: request.headers,
     body: JSON.stringify(request.body),
   });
   if (!response.ok) {
