@@ -12,7 +12,7 @@ import {
   isIntegrityConstraint,
   isNegation,
   parseProgram,
-  parseQuerySpec,
+  parseQueryProgram,
   serializeTerm,
 } from '../engine/index.js';
 import type { Candidate } from './templates.js';
@@ -36,18 +36,16 @@ export function isRejection(value: Example | Rejection): value is Rejection {
 
 /** Rule programs answer their first head; bare queries (including aggregates) run as query specs. */
 export function executeProgram(clauses: Clause[], program: string): Bindings[] {
-  const options = { maxRows: MAX_ANSWER_ROWS + 1 };
-  if (program.includes(':-')) {
-    const rules = parseProgram(program);
-    const head = rules[0]?.head;
-    if (!head) throw new Error('program has no rule');
-    return evaluateQuerySpec(
-      [...clauses, ...rules],
-      { kind: 'relational', goals: [head] },
-      options,
-    );
-  }
-  return evaluateQuerySpec(clauses, parseQuerySpec(program), options);
+  // Same normalizer the product uses: goal list, `?-`, or a rule program whose
+  // sink rule is the target. Ground queries yield [{}] (true) or [] (false).
+  const normalized = parseQueryProgram(program);
+  return evaluateQuerySpec(
+    [...clauses, ...normalized.clauses],
+    normalized.query,
+    {
+      maxRows: MAX_ANSWER_ROWS + 1,
+    },
+  );
 }
 
 /** Throw when any authored rule reaches its own head through the authored rules. */
@@ -114,7 +112,10 @@ export function verifyCandidate(
     const oneHop = candidate.program.replaceAll('_plus(', '(');
     try {
       const hopRows = executeProgram(clauses, oneHop);
-      if (rowStrings(hopRows).join('|') === rowStrings(rows).join('|')) {
+      // JSON, not join: [] and [{}] (false and true for a ground goal) must differ
+      if (
+        JSON.stringify(rowStrings(hopRows)) === JSON.stringify(rowStrings(rows))
+      ) {
         return reject('closure not required: one-hop answer identical');
       }
     } catch {

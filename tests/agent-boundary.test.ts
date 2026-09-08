@@ -29,7 +29,7 @@ import {
   resolveAnswerLeg,
 } from '../src/evals/agent-boundary-chat.js';
 import { checkIntegrity } from '../src/knowledge/integrity.js';
-import { parseProgram } from '../src/engine/index.js';
+import { parseProgram, parseQueryProgram } from '../src/engine/index.js';
 import {
   openRememberoDatabase,
   type RememberoDatabase,
@@ -361,7 +361,7 @@ describe('agent-boundary v2 Datalog prompt', () => {
     db.close();
   });
 
-  it('every few-shot example runs against the seeded database', () => {
+  it('every few-shot example runs against the seeded database and answers its question', () => {
     expect(DATALOG_FEW_SHOT.length).toBe(8);
     for (const example of DATALOG_FEW_SHOT) {
       expect(
@@ -369,6 +369,21 @@ describe('agent-boundary v2 Datalog prompt', () => {
         `few-shot '${example.q}' must parse and run on the bridge`,
       ).not.toThrow();
     }
+    // The chain examples must answer the question asked, not a helper rule:
+    // the sink rule is the query target regardless of rule order.
+    const root = DATALOG_FEW_SHOT.find((e) =>
+      e.q.startsWith('What is the final upstream'),
+    );
+    expect(db.datalogQuery(root!.program)).toEqual([
+      { R: 'procurement_freeze' },
+    ]);
+    for (const example of DATALOG_CLOSURE_FEW_SHOT) {
+      expect(() => db.datalogQuery(example.program), example.q).not.toThrow();
+    }
+    const yesNo = DATALOG_CLOSURE_FEW_SHOT.find((e) =>
+      e.q.startsWith('Does priya'),
+    );
+    expect(db.datalogQuery(yesNo!.program)).toEqual([{ yes: 'true' }]);
   });
 
   it('the system prompt embeds the cheatsheet and all examples', () => {
@@ -382,7 +397,7 @@ describe('agent-boundary v2 Datalog prompt', () => {
   it('closure few-shot programs run on the seeded database without any recursive rule', () => {
     expect(DATALOG_CLOSURE_FEW_SHOT.length).toBe(DATALOG_FEW_SHOT.length);
     for (const example of DATALOG_CLOSURE_FEW_SHOT) {
-      for (const clause of parseProgram(example.program)) {
+      for (const clause of parseQueryProgram(example.program).clauses) {
         const body = JSON.stringify(clause.body);
         expect(body, example.program).not.toContain(
           `"predicate":"${clause.head.predicate}"`,

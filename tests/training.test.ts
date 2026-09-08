@@ -223,6 +223,21 @@ describe('training: templates', () => {
     expect(directions).toEqual(new Set(['anchor-first', 'anchor-second']));
   });
 
+  it('asks yes/no questions as ground goals that answer with a boolean row', () => {
+    let seen = 0;
+    for (let seed = 1; seed <= 20; seed += 1) {
+      const world = generateWorld(seed);
+      for (const candidate of generateCandidates(world, createRng(seed))) {
+        if (candidate.category !== 'yes-no') continue;
+        seen += 1;
+        expect(candidate.program, candidate.question).toMatch(
+          /^\?- [a-z_]+_plus\([a-z_0-9]+, [a-z_0-9]+\)\.$/,
+        );
+      }
+    }
+    expect(seen).toBeGreaterThan(10);
+  });
+
   it('never emits a recursive rule', () => {
     for (let seed = 1; seed <= 20; seed += 1) {
       const world = generateWorld(seed);
@@ -450,7 +465,7 @@ describe('training: export', () => {
       ]);
       expect(parsed.messages[0].content).toContain('p_plus');
       expect(parsed.messages[0].content).toContain(world.relations[0].name);
-      expect(parsed.messages[2].content).toMatch(/^(q\(|count\()/);
+      expect(parsed.messages[2].content).toMatch(/^(q\(|count\(|\?- )/);
     }
     expect(manifest.train + manifest.heldout).toBe(examples.length);
     expect(Object.values(manifest.byCategory).reduce((a, b) => a + b, 0)).toBe(

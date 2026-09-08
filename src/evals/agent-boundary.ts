@@ -628,15 +628,16 @@ SELECT s.project FROM status s LEFT JOIN review_slot r ON r.project = s.project 
 const DATALOG_CHEATSHEET = `Dialect cheatsheet (this bridge exactly; anything else errors):
 - A program is one or more rules; every rule ends with a period.
 - Rule shape: head(A, B) :- predicate(A), other_predicate(B, A).
-- The FIRST rule's head predicate is the query; its rows are the answer.
+- The answer is the rule no other rule uses (write helpers first, the answer last);
+  add a final line ?- q(X). to choose explicitly when several rules could be the answer.
+- A goal with no variables is a yes/no question and returns one row: yes = true or yes = false.
 - Variables start uppercase (Person, X). Constants are lowercase (atlas, blocked).
 - _ is a wildcard for a value you do not care about.
 - \\+ predicate(X) means "there is no such fact" (negation).
 - Comparisons come after a predicate: A != B, X > 3.
 - Recursion is allowed: a rule body may reuse its own head predicate.
 - NOT supported: cuts (!), lists ([...]), comments, prose, or a Q: line.
-- A bare fact like prefers_meeting(maya, morning). is NOT a query — it has no
-  variable to return. Give the head a variable: q(W) :- prefers_meeting(maya, W).`;
+- To read a value, give the head a variable: q(W) :- prefers_meeting(maya, W).`;
 
 /**
  * Few-shot examples for the Datalog condition (ADR 0002 prior leveling).
@@ -702,7 +703,7 @@ export const DATALOG_CLOSURE_FEW_SHOT: ReadonlyArray<{
   if (example.q === 'Which pairs of different people share a project?') {
     return {
       q: 'Does priya ultimately report up to ava? Yes or no.',
-      program: `q(M) :- reports_to_plus(priya, M), M = ava.`,
+      program: `?- reports_to_plus(priya, ava).`,
     };
   }
   return example;
@@ -715,8 +716,8 @@ waits_on_plus(Item, Upstream)     -- Upstream is anywhere up the chain from Item
 For any question about a chain, "ultimately", "directly or transitively", "above", "below",
 "up the chain", or "the end of the chain": use reports_to_plus or waits_on_plus.
 NEVER write recursive rules yourself — the _plus predicates already contain the whole chain.
-For a yes/no question, select the value being checked so the rows show it:
-q(X) :- waits_on_plus(atlas, X), X = legal_signoff.   (a row means yes; no rows means no)`;
+For a yes/no question, ask the ground goal directly and read the yes column:
+?- waits_on_plus(atlas, legal_signoff).   (returns yes = true or yes = false)`;
 
 export function datalogClosureSystemPrompt(): string {
   const examples = DATALOG_CLOSURE_FEW_SHOT.map(

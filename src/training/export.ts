@@ -10,12 +10,12 @@ import type { Example, Rejection } from './verify.js';
 import { schemaListing, type World } from './worlds.js';
 
 export const DIALECT_CARD = `Write ONE Datalog program that answers the question. Reply with ONLY the program.
-- Rule shape: q(A, B) :- predicate(A), other(B, A).   The first rule's head is the answer.
+- Rule shape: q(A, B) :- predicate(A), other(B, A).   The answer is the rule no other rule uses.
 - Variables start uppercase (X, Person). Constants are lowercase exactly as listed.
 - _ is a wildcard. \\+ predicate(X) means "no such fact". Comparisons: A != B, X = value.
 - Any binary predicate p also answers p_plus(X, Y): Y is reachable from X in ONE OR MORE hops.
   Use p_plus for chains ("above", "below", "ultimately", "directly or transitively"). NEVER write recursive rules.
-- Yes/no: select the value being checked: q(Y) :- p_plus(x, Y), Y = target.   A row means yes.
+- Yes/no: ask the ground goal: ?- p_plus(x, target).   Answers yes = true or yes = false.
 - Counting: count(*) as N where predicate(X, value)`;
 
 export function systemPrompt(world: World): string {

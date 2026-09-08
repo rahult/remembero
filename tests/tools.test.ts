@@ -1232,7 +1232,7 @@ describe('MCP tool handlers', () => {
         { store },
         { query: 'active(mira)', recordedSequence: 1, entityIdentity: 'canonical' }
       ).bindings
-    ).toEqual([{}]);
+    ).toEqual([{ yes: 'true' }]); // ground goal: one boolean row
   });
 
   it('query and explain_query accept arithmetic comparison filters', () => {

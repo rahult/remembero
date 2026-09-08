@@ -366,7 +366,8 @@ export function generateCandidates(world: World, rng: Rng): Candidate[] {
     ] as const) {
       if (!pair) continue;
       const [a, b] = pair;
-      const [up, upDir] = chainLiteral(edge, a, 'Y', true);
+      // a ground goal: the engine answers with one boolean row (yes = true/false)
+      const [ground, upDir] = chainLiteral(edge, a, b, true);
       add({
         category: 'yes-no',
         direction: upDir,
@@ -377,7 +378,7 @@ export function generateCandidates(world: World, rng: Rng): Candidate[] {
           `Is ${b} anywhere above ${a} via ${edge.name}? Yes or no.`,
           `Does ${a} ultimately reach ${b} through ${edge.name}?`,
         ]),
-        program: `q(Y) :- ${up}, Y = ${b}.`,
+        program: `?- ${ground}.`,
       });
     }
     if (ups.length > 0) {

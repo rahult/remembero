@@ -19,6 +19,7 @@ import {
   isIntegrityConstraint,
   isNegation,
   parseProgram,
+  parseQueryProgram,
   parseQuerySpec,
   predKey,
   serializeClause,
@@ -287,12 +288,19 @@ export function sqliteDatalogExecutionMode(
     // Let the native parser retain its established error contract for ordinary rules.
   }
   if (referencesSynthesizedClosure(program)) return 'portable';
+  try {
+    if (parseQueryProgram(program).ground) return 'portable';
+  } catch {
+    // let the native parser keep its error contract
+  }
   return 'native';
 }
 
 interface PortableRequest {
   program: Clause[];
   query: QuerySpec;
+  /** No variables in the query: answer as one boolean row. */
+  ground: boolean;
   basePredicates: Array<{ predicate: string; arity: number }>;
 }
 
@@ -309,37 +317,33 @@ function preparePortableRequest(input: string): PortableRequest {
     throw new Error('Datalog program contains a NUL byte');
   const inspection = inspectSyntax(input);
   assertNoIdentitySyntax(inspection);
-  let program: Clause[];
-  let query: QuerySpec;
-
-  if (inspection.rule) {
-    program = parseProgram(input);
-    if (program.some(isIntegrityConstraint)) {
-      throw new Error(
-        'integrity constraints are policies for the personal knowledge store, not SQLite queries',
-      );
-    }
-    const target = program[0]?.head;
-    if (target === undefined)
-      throw new Error('expected a Datalog rule or query');
-    const names = new Set<string>();
-    for (const term of target.args) {
-      if (term.type !== 'var' || term.name === '_' || names.has(term.name)) {
-        throw new Error(
-          'SQLite query rule head terms must be distinct named variables',
-        );
+  // Shared normalizer: goal list, `?-` query, or a rule program whose sink rule
+  // is the target (an explicit `?-` line overrides). Ground queries are flagged
+  // so the caller can answer with one boolean row.
+  const normalized = parseQueryProgram(input);
+  let program: Clause[] = normalized.clauses;
+  const query: QuerySpec = normalized.query;
+  if (program.some(isIntegrityConstraint)) {
+    throw new Error(
+      'integrity constraints are policies for the personal knowledge store, not SQLite queries',
+    );
+  }
+  if (normalized.target === 'sink' && query.kind === 'relational') {
+    const target = query.goals[0];
+    if (target !== undefined && !isComparison(target) && !isNegation(target)) {
+      const names = new Set<string>();
+      for (const term of target.args) {
+        if (
+          term.type === 'var' &&
+          (term.name === '_' || names.has(term.name))
+        ) {
+          throw new Error(
+            'SQLite query rule head terms must be distinct named variables',
+          );
+        }
+        if (term.type === 'var') names.add(term.name);
       }
-      names.add(term.name);
     }
-    if (target.args.length === 0) {
-      throw new Error(
-        'SQLite query rule head must contain at least one named variable',
-      );
-    }
-    query = { kind: 'relational', goals: [target] };
-  } else {
-    program = [];
-    query = parseQuerySpec(input);
   }
   // Synthesize p_plus closure rules here so the base predicate, not the
   // closure, is what gets resolved to a SQLite relation below.
@@ -384,6 +388,7 @@ function preparePortableRequest(input: string): PortableRequest {
   return {
     program,
     query,
+    ground: normalized.ground,
     basePredicates: [...baseByName]
       .map(([predicate, arity]) => ({ predicate, arity }))
       .sort(
@@ -552,36 +557,9 @@ function packageRoot(): string {
   return fileURLToPath(new URL('../../', import.meta.url));
 }
 
-/**
- * A fully ground first clause (`prefers_meeting(maya, afternoon).`) parses
- * as a fact; treated as a query it can only succeed or fail, returning
- * `[{}]` — no readable values. Surface that as an actionable error instead
- * so agents learn to project a variable (`q(W) :- prefers_meeting(maya, W).`).
- * A fact with a variable in a head position (`works_on(P, orchard).`) IS a
- * working relational query and stays allowed.
- */
+/** Reserved metadata predicates keep their specific fail-closed errors. */
 function assertQueryableInput(input: string): void {
-  // Reserved metadata predicates keep their specific fail-closed errors.
   assertNoIdentitySyntax(inspectSyntax(input));
-  let clauses: Clause[];
-  try {
-    clauses = parseProgram(input);
-  } catch {
-    return; // goal-list or malformed input: existing paths produce the errors
-  }
-  const first = clauses[0];
-  if (
-    first !== undefined &&
-    !isIntegrityConstraint(first) &&
-    first.body.length === 0 &&
-    !first.head.args.some((arg) => arg.type === 'var')
-  ) {
-    throw new Error(
-      `ground fact ${first.head.predicate}/${first.head.args.length} is not a query: ` +
-        `no variable to return. Write a rule head with an uppercase variable, e.g. ` +
-        `q(W) :- ${first.head.predicate}(${first.head.args.map(() => '_').join(', ')}).`,
-    );
-  }
 }
 
 export function buildSqliteExtension(): string {
@@ -874,6 +852,8 @@ export class DatalogDatabase {
       if (bindings.length > MAX_QUERY_ROWS) {
         throw new Error(`Datalog query exceeded ${MAX_QUERY_ROWS} rows`);
       }
+      if (request.ground)
+        return [{ yes: bindings.length > 0 ? 'true' : 'false' }];
       const rows = bindings.map(rowFromBindings);
       assertResultBounds(rows);
       return rows;

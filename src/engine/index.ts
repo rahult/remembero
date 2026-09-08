@@ -71,6 +71,7 @@ export {
 } from './closure.js';
 export { ParseError } from './lexer.js';
 export { parseProgram, parseQuery, parseQuerySpec } from './parser.js';
+export { parseQueryProgram, type QueryProgram } from './query-program.js';
 export {
   StratificationError,
   stratifyProgram,

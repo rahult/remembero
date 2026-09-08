@@ -15,7 +15,7 @@ So a chain question is one flat literal, and never a hand-written recursion:
 above(M) :- reports_to_plus(maya, M).          % everyone above maya
 under(P) :- reports_to_plus(P, dana).          % everyone below dana
 root(R)  :- waits_on_plus(atlas, R), \+ waits_on(R, _).   % end of the dependency chain
-?- waits_on_plus(atlas, procurement_freeze).   % yes/no: one empty binding or none
+?- waits_on_plus(atlas, procurement_freeze).   % yes/no: one row, yes = true or yes = false
 ```
 
 ## Why

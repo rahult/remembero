@@ -92,20 +92,43 @@ describe.skipIf(!hasSqliteCli)('SQLite loadable extension', () => {
 });
 
 describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
-  it('errors on fully ground fact queries with actionable guidance', async () => {
+  it('answers fully ground queries with one boolean row on every spelling', async () => {
     const database = await openRememberoDatabase(':memory:');
     try {
       database.exec(
         "CREATE TABLE prefers_meeting(person TEXT, window TEXT); INSERT INTO prefers_meeting VALUES ('maya', 'afternoon');",
       );
-      expect(() =>
-        database.datalogQuery('prefers_meeting(maya, afternoon).'),
-      ).toThrow(
-        /ground fact prefers_meeting\/2 is not a query.*q\(W\) :- prefers_meeting\(_, _\)\./s,
+      for (const spelling of [
+        'prefers_meeting(maya, afternoon).',
+        'prefers_meeting(maya, afternoon)',
+        '?- prefers_meeting(maya, afternoon).',
+      ]) {
+        expect(database.datalogQuery(spelling), spelling).toEqual([
+          { yes: 'true' },
+        ]);
+      }
+      expect(database.datalogQuery('prefers_meeting(maya, morning).')).toEqual([
+        { yes: 'false' },
+      ]);
+      expect(
+        sqliteDatalogExecutionMode('prefers_meeting(maya, afternoon).'),
+      ).toBe('portable');
+    } finally {
+      database.close();
+    }
+  });
+
+  it('takes the sink rule as the query target for multi-rule programs', async () => {
+    const database = await openRememberoDatabase(':memory:');
+    try {
+      database.exec(`
+        CREATE TABLE waits_on(item TEXT, upstream TEXT);
+        INSERT INTO waits_on VALUES ('atlas','vendor'),('vendor','legal'),('legal','freeze');
+      `);
+      const rows = database.datalogQuery(
+        'reach(X) :- waits_on(atlas, X).\nreach(X) :- reach(M), waits_on(M, X).\nroot(R) :- reach(R), \\+ waits_on(R, _).',
       );
-      expect(() =>
-        database.datalogExplain('prefers_meeting(maya, afternoon).'),
-      ).toThrow(/is not a query/);
+      expect(rows).toEqual([{ R: 'freeze' }]);
     } finally {
       database.close();
     }
@@ -819,7 +842,7 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
         database.datalogQuery("rembero_tentative('edge(a, b).')."),
       ).toThrow(/tentative trust declarations.*not SQLite predicates/i);
       expect(() => database.datalogQuery(':- edge(X, Y), X = Y.')).toThrow(
-        /integrity constraints.*personal knowledge store/i,
+        /integrity constraint is a policy/i,
       );
       expect(() => database.datalogQuery('missing(X), \\+ edge(X, X)')).toThrow(
         /predicate 'missing' is unavailable/i,
