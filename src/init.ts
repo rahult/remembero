@@ -44,8 +44,11 @@ function defaultExec(command: string, args: string[]): ReturnType<InitExec> {
 
 export function claudeMdSnippet(namespace: string): string {
   return `## Memory (Remembero)
-- A session-start brief of remembered facts is injected automatically; use the
-  \`recall\` or \`query\` tools when you need more than the brief shows.
+- A session-start brief of remembered facts is injected automatically; use
+  \`recall\` (a question), \`lookup\` (predicate + subject/object slots,
+  \`transitive: true\` for chains) or \`query\` (Datalog; any binary predicate p
+  also answers p_plus(X, Y) for chains) when you need more than the brief shows.
+  \`list_memories\` shows the predicates and their argument order.
 - When I state something durable — a preference, decision, relationship, or fact
   about me or a project — store it with \`remember\` (namespace '${namespace}').
   Updates ("X is now Y") supersede old facts.

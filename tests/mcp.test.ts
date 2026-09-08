@@ -40,18 +40,16 @@ describe('MCP tool profiles', () => {
     await client.connect(clientTransport);
     try {
       const tools = await client.listTools();
+      // the small-model core: eight tools; proofs via query {explain:true},
+      // chains via lookup {transitive:true}; the rest lives on the full profile
       expect(tools.tools.map((tool) => tool.name).sort()).toEqual([
         'assert_facts',
-        'check_integrity',
-        'explain_query',
         'forget',
-        'history',
         'list_memories',
+        'lookup',
         'query',
         'recall',
-        'recall_explain',
         'remember',
-        'search_knowledge',
         'supersede_facts',
       ]);
     } finally {

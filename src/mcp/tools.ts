@@ -1459,16 +1459,35 @@ export interface PredicateGroup {
   rules?: string[];
 }
 
+/** Compact per-predicate schema entry for models: what exists and how to call it. */
+export interface SchemaEntry {
+  predicate: string;
+  arity: number;
+  /** Stored facts (rules excluded). */
+  count: number;
+  /** Up to three example facts. */
+  samples: string[];
+  /** Argument names from a `rembero_arg_names(pred, name1, name2, ...)` declaration. */
+  args?: string[];
+  rules?: number;
+}
+
+const ARG_NAMES_PREDICATE = 'rembero_arg_names';
+const SCHEMA_SAMPLES = 3;
+
 export function listMemoriesTool(
   deps: StoreToolDeps,
   args: {
     namespaces?: string[] | '*';
     predicate?: string;
+    /** 'schema' (compact: arity, count, samples, argument names) or 'full' (every fact and rule). */
+    mode?: 'schema' | 'full';
     trustMode?: TrustViewMode;
     recordedSequence?: number;
   },
 ): {
   predicates: PredicateGroup[];
+  schema?: SchemaEntry[];
   constraints?: string[];
   aliases?: EntityAlias[];
   entityPositions?: EntityPosition[];
@@ -1494,7 +1513,21 @@ export function listMemoriesTool(
   const clauses = view.clauses;
   const groups = new Map<string, PredicateGroup>();
   const constraints: string[] = [];
+  const argNames = new Map<string, string[]>();
   for (const clause of clauses) {
+    if (
+      !isIntegrityConstraint(clause) &&
+      clause.body.length === 0 &&
+      clause.head.predicate === ARG_NAMES_PREDICATE &&
+      clause.head.args.length >= 2 &&
+      clause.head.args[0].type === 'atom'
+    ) {
+      const names = clause.head.args
+        .slice(1)
+        .map((term) => serializeTerm(term));
+      argNames.set(`${clause.head.args[0].value}/${names.length}`, names);
+      continue; // declaration, not a memory
+    }
     if (isIntegrityConstraint(clause)) {
       const matchesFilter =
         args.predicate === undefined ||
@@ -1530,6 +1563,33 @@ export function listMemoriesTool(
   }
   const aliases = resolver?.aliases() ?? [];
   const entityPositions = resolver?.positions() ?? [];
+  const mode = args.mode ?? 'full';
+  if (mode === 'schema') {
+    const schema: SchemaEntry[] = [...groups.values()].map((group) => {
+      const arity = Number(group.predicate.split('/')[1]);
+      const names = argNames.get(group.predicate);
+      return {
+        predicate: group.predicate,
+        arity,
+        count: group.facts.length,
+        samples: group.facts.slice(0, SCHEMA_SAMPLES),
+        ...(names === undefined ? {} : { args: names }),
+        ...(group.rules === undefined ? {} : { rules: group.rules.length }),
+      };
+    });
+    return {
+      predicates: [],
+      schema,
+      ...(constraints.length === 0 ? {} : { constraints }),
+      ...(aliases.length === 0 ? {} : { aliases }),
+      ...(entityPositions.length === 0 ? {} : { entityPositions }),
+      ...(identityError === undefined ? {} : { identityError }),
+      ...(trustMode === 'accepted' ? {} : { trustMode }),
+      ...(recorded.recordedSnapshot === undefined
+        ? {}
+        : { recordedSnapshot: recorded.recordedSnapshot }),
+    };
+  }
   return {
     predicates: [...groups.values()],
     ...(constraints.length === 0 ? {} : { constraints }),
@@ -1540,5 +1600,63 @@ export function listMemoriesTool(
     ...(recorded.recordedSnapshot === undefined
       ? {}
       : { recordedSnapshot: recorded.recordedSnapshot }),
+  };
+}
+
+const PREDICATE_NAME = /^[a-z][a-z0-9_]*$/;
+const CONSTANT_TEXT = /^[a-z][a-z0-9_]*$/;
+
+function lookupConstant(value: string, role: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) throw new Error(`${role} must not be empty`);
+  return CONSTANT_TEXT.test(trimmed)
+    ? trimmed
+    : `'${trimmed.replaceAll("'", "''")}'`;
+}
+
+/**
+ * Slot-filled lookup for the two things small models get wrong in raw Datalog:
+ * argument order and recursion. `subject` is the first argument, `object` the
+ * second; a missing slot becomes a variable. `transitive` asks the closure
+ * (`p_plus`) so chains need no rule. Both slots filled is a yes/no question.
+ */
+export function lookupTool(
+  deps: StoreToolDeps,
+  args: {
+    predicate: string;
+    subject?: string;
+    object?: string;
+    transitive?: boolean;
+    namespaces?: string[] | '*';
+  },
+): ReturnType<typeof queryTool> {
+  const predicate = args.predicate.trim();
+  if (!PREDICATE_NAME.test(predicate)) {
+    throw new Error(
+      `predicate must be lowercase letters, digits and underscores (got '${args.predicate}'); call list_memories to see the names`,
+    );
+  }
+  const name = args.transitive === true ? `${predicate}_plus` : predicate;
+  const subject =
+    args.subject === undefined
+      ? 'subject'
+      : lookupConstant(args.subject, 'subject');
+  const object =
+    args.object === undefined
+      ? 'object'
+      : lookupConstant(args.object, 'object');
+  const goal = `${name}(${subject === 'subject' ? 'Subject' : subject}, ${object === 'object' ? 'Object' : object})`;
+  const result = queryTool(deps, { query: goal, namespaces: args.namespaces });
+  // present variables as the slot names the caller used
+  return {
+    ...result,
+    bindings: result.bindings.map((row) =>
+      Object.fromEntries(
+        Object.entries(row).map(([key, value]) => [
+          key === 'Subject' ? 'subject' : key === 'Object' ? 'object' : key,
+          value,
+        ]),
+      ),
+    ),
   };
 }

@@ -15,7 +15,7 @@ import type {
   RecallRelatedKnowledgeOptions,
 } from '../llm/pipeline.js';
 import { MAX_RECALL_SCHEMA_PREDICATES } from '../llm/schema.js';
-import { MAX_PROOFS_PER_ROW } from '../engine/index.js';
+import { MAX_PROOFS_PER_ROW, ParseError } from '../engine/index.js';
 import {
   MAX_INPUT_BYTES,
   MAX_NAMESPACE_COUNT,
@@ -32,6 +32,7 @@ import {
   forgetTool,
   historyTool,
   listMemoriesTool,
+  lookupTool,
   listCheckpointsTool,
   queryTool,
   recallExplainTool,
@@ -151,7 +152,9 @@ const namespaceField = z
 const namespacesField = z
   .union([z.array(z.string()).max(MAX_NAMESPACE_COUNT), z.literal('*')])
   .optional()
-  .describe('Namespaces to search: a list, or "*" for all (default: ["default"])');
+  .describe(
+    'Namespaces to search: a list, or "*" for all (default: ["default"])',
+  );
 const schemaPredicateLimitField = z
   .number()
   .int()
@@ -165,14 +168,18 @@ const proofLimitField = z
   .min(1)
   .max(MAX_PROOFS_PER_ROW)
   .optional()
-  .describe('Total deterministic proof witnesses per result, including the primary witness');
+  .describe(
+    'Total deterministic proof witnesses per result, including the primary witness',
+  );
 const maxViolationsField = z
   .number()
   .int()
   .min(1)
   .max(MAX_INTEGRITY_VIOLATIONS)
   .optional()
-  .describe('Maximum complete integrity-violation rows returned across all constraints');
+  .describe(
+    'Maximum complete integrity-violation rows returned across all constraints',
+  );
 const whyNotFailureLimitField = z
   .number()
   .int()
@@ -200,7 +207,9 @@ const whyNotEvidenceLimitField = z
   .min(1)
   .max(MAX_WHY_NOT_EVIDENCE)
   .optional()
-  .describe('Maximum distinct nearby facts carrying proof evidence (default: 16)');
+  .describe(
+    'Maximum distinct nearby facts carrying proof evidence (default: 16)',
+  );
 const topologyFocusField = z
   .string()
   .min(1)
@@ -269,10 +278,7 @@ const relatedKnowledgeKindsField = z
   .optional()
   .describe('Optional related fact, rule, or constraint filters');
 const browseEntityFocusField = z
-  .union([
-    z.string().max(MAX_BROWSE_ENTITY_FOCUS_BYTES),
-    z.number().finite(),
-  ])
+  .union([z.string().max(MAX_BROWSE_ENTITY_FOCUS_BYTES), z.number().finite()])
   .optional()
   .describe('Optional exact atom string or numeric entity seed');
 const browsePredicateField = z
@@ -296,10 +302,7 @@ const browseClaimLimitField = z
   .optional()
   .describe('Maximum complete explicit claims (default: 100)');
 const pathEndpointField = z
-  .union([
-    z.string().max(MAX_BROWSE_ENTITY_FOCUS_BYTES),
-    z.number().finite(),
-  ])
+  .union([z.string().max(MAX_BROWSE_ENTITY_FOCUS_BYTES), z.number().finite()])
   .describe('Exact atom string or numeric path endpoint');
 const pathDepthField = z
   .number()
@@ -320,15 +323,21 @@ const conflictFocusField = z
   .min(1)
   .max(MAX_CONFLICT_FOCUS_BYTES)
   .optional()
-  .describe('Optional ground Datalog atom or number selecting one conflict focus');
+  .describe(
+    'Optional ground Datalog atom or number selecting one conflict focus',
+  );
 const integrityModeField = z
   .enum(['strict', 'no_new_violations'])
   .optional()
-  .describe('Atomically reject writes that violate policy; cannot weaken a server default');
+  .describe(
+    'Atomically reject writes that violate policy; cannot weaken a server default',
+  );
 const integrityNamespacesField = z
   .union([z.array(z.string()).max(MAX_NAMESPACE_COUNT), z.literal('*')])
   .optional()
-  .describe('Knowledge view governed by write enforcement; must include the target namespace');
+  .describe(
+    'Knowledge view governed by write enforcement; must include the target namespace',
+  );
 const entityIdentityField = z
   .literal('canonical')
   .optional()
@@ -336,7 +345,9 @@ const entityIdentityField = z
 const knowledgeTrustField = z
   .enum(['accepted', 'tentative'])
   .optional()
-  .describe('Store extracted facts as accepted (default) or explicitly tentative');
+  .describe(
+    'Store extracted facts as accepted (default) or explicitly tentative',
+  );
 const trustViewField = z
   .enum(['accepted', 'include_tentative'])
   .optional()
@@ -344,7 +355,9 @@ const trustViewField = z
 const recallAnswerModeField = z
   .enum(['natural', 'deterministic', 'evidence'])
   .optional()
-  .describe('LLM phrasing, exact local bindings, or compact local proof/source evidence');
+  .describe(
+    'LLM phrasing, exact local bindings, or compact local proof/source evidence',
+  );
 const graphSelectorField = z
   .discriminatedUnion('kind', [
     z.object({
@@ -362,7 +375,9 @@ const graphSelectorField = z
     }),
   ])
   .optional()
-  .describe('Select one complete result support chain, node support closure, or bounded neighborhood');
+  .describe(
+    'Select one complete result support chain, node support closure, or bounded neighborhood',
+  );
 const boundedText = (description?: string) => {
   const field = z.string().max(MAX_INPUT_BYTES);
   return description ? field.describe(description) : field;
@@ -378,7 +393,9 @@ const recordedSequenceField = z
   .int()
   .min(0)
   .optional()
-  .describe('Read the deterministic knowledge snapshot after global journal entry n; 0 is empty');
+  .describe(
+    'Read the deterministic knowledge snapshot after global journal entry n; 0 is empty',
+  );
 const recordedDiffSequenceField = z
   .number()
   .int()
@@ -391,7 +408,14 @@ const validTimeInstantField = z
   .describe('Canonical UTC valid-until instant, e.g. 2026-08-16T16:59:00.000Z');
 
 function asContent(result: unknown) {
-  return { content: [{ type: 'text' as const, text: stringifyBoundedResult(result, 'MCP result') }] };
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: stringifyBoundedResult(result, 'MCP result'),
+      },
+    ],
+  };
 }
 
 function asRawContent(text: string, label: string) {
@@ -399,7 +423,45 @@ function asRawContent(text: string, label: string) {
   return { content: [{ type: 'text' as const, text }] };
 }
 
-function asError(e: unknown) {
+/**
+ * Turn parser-internal messages into the fix a model should apply. `input` is
+ * the text that failed, so hints can quote the corrected form.
+ */
+export function parseErrorHint(
+  message: string,
+  input?: string,
+): string | undefined {
+  if (message.includes("unexpected character '\"'")) {
+    const quoted = input?.match(/"([^"]*)"/);
+    return quoted
+      ? `Strings use single quotes: '${quoted[1].replaceAll("'", "''")}'.`
+      : "Strings use single quotes, not double quotes: 'like this'.";
+  }
+  const variable = message.match(/contains variable ([A-Z][A-Za-z0-9_]*)/);
+  if (variable) {
+    const name = variable[1];
+    const fixed = input
+      ?.replaceAll(new RegExp(`\\b${name}\\b`, 'g'), name.toLowerCase())
+      .trim();
+    return (
+      `Constants must be lowercase (or 'single quoted'); ${name} was read as a variable.` +
+      (fixed ? ` Did you mean ${fixed}` : '')
+    );
+  }
+  if (/found '(AND|and)'/.test(message))
+    return 'Join goals with a comma, not AND.';
+  if (/found 'not'/.test(message))
+    return 'Negation is written \\+ goal, e.g. \\+ suspended(X).';
+  if (
+    /expected '\.' but found '<eof>'|expected '\.'/.test(message) &&
+    !message.includes("found '")
+  ) {
+    return 'End every clause with a period.';
+  }
+  return undefined;
+}
+
+function asError(e: unknown, input?: string) {
   let text: string;
   if (
     e instanceof OperationConflictError ||
@@ -418,13 +480,17 @@ function asError(e: unknown) {
     } catch {
       text = JSON.stringify({
         error: 'integrity_rejection_output_exceeded',
-        message: 'write was rejected, but complete evidence exceeds the MCP output bound',
+        message:
+          'write was rejected, but complete evidence exceeds the MCP output bound',
         mode: e.mode,
         baselineViolationCount: e.baselineViolationCount,
         blockingViolationCount: e.blockingViolations.length,
         introducedViolationCount: e.introducedViolations.length,
       });
     }
+  } else if (e instanceof ParseError) {
+    const hint = parseErrorHint(e.message, input);
+    text = hint === undefined ? e.message : `${e.message}. ${hint}`;
   } else {
     text = e instanceof Error ? e.message : String(e);
   }
@@ -438,20 +504,20 @@ function requestedIntegrity(
   proofLimit: number | undefined,
   maxViolations: number | undefined,
   entityIdentity: EntityIdentityMode | undefined,
-  graphSelector: ExplanationGraphSelector | undefined
+  graphSelector: ExplanationGraphSelector | undefined,
 ): IntegrityEnforcementOptions | undefined {
   const activeFallback = fallback === false ? undefined : fallback;
   if (mode === undefined) {
     if (
       activeFallback === undefined &&
-      (
-        namespaces !== undefined ||
+      (namespaces !== undefined ||
         proofLimit !== undefined ||
         maxViolations !== undefined ||
-        graphSelector !== undefined
-      )
+        graphSelector !== undefined)
     ) {
-      throw new Error('integrity write options require integrityMode or a server default');
+      throw new Error(
+        'integrity write options require integrityMode or a server default',
+      );
     }
     return activeFallback === undefined
       ? undefined
@@ -465,7 +531,9 @@ function requestedIntegrity(
         };
   }
   if (activeFallback?.mode === 'strict' && mode !== 'strict') {
-    throw new Error('tool call cannot weaken strict server integrity enforcement');
+    throw new Error(
+      'tool call cannot weaken strict server integrity enforcement',
+    );
   }
   return {
     ...(activeFallback ?? {}),
@@ -481,17 +549,18 @@ function requestedIntegrity(
 function requestedRelatedKnowledge(
   enabled: boolean | undefined,
   limit: number | undefined,
-  kinds: KnowledgeSearchClauseKind[] | undefined
+  kinds: KnowledgeSearchClauseKind[] | undefined,
 ): boolean | RecallRelatedKnowledgeOptions | undefined {
   if (enabled === false) {
     if (limit !== undefined || kinds !== undefined) {
       throw new Error(
-        'related knowledge limits or kinds cannot be used when relatedKnowledge is false'
+        'related knowledge limits or kinds cannot be used when relatedKnowledge is false',
       );
     }
     return false;
   }
-  if (enabled !== true && limit === undefined && kinds === undefined) return undefined;
+  if (enabled !== true && limit === undefined && kinds === undefined)
+    return undefined;
   if (limit === undefined && kinds === undefined) return true;
   return {
     ...(limit === undefined ? {} : { limit }),
@@ -505,24 +574,41 @@ function requestedRelatedKnowledge(
  * diagnostics, time travel, bundles, the semantic version ledger) registers
  * only under the `full` profile.
  */
+/**
+ * The small-model core: eight tools, at most four parameters each. Read with
+ * `recall` (natural language), `lookup` (slot-filled, no Datalog) or `query`
+ * (Datalog, `explain: true` for proofs); write with `remember`, `assert_facts`,
+ * `supersede_facts`, `forget`; discover the schema with `list_memories`.
+ * Integrity, proof, graph and identity plumbing lives on the `full` profile.
+ */
 export const CORE_PROFILE_TOOLS: ReadonlySet<string> = new Set([
   'remember',
   'recall',
-  'recall_explain',
-  'list_memories',
-  'forget',
-  'history',
-  'assert_facts',
+  'lookup',
   'query',
-  'explain_query',
+  'list_memories',
+  'assert_facts',
   'supersede_facts',
-  'check_integrity',
-  'search_knowledge',
+  'forget',
 ]);
+
+/** Input fields each core tool keeps; everything else is a full-profile option. */
+export const CORE_PROFILE_FIELDS: Readonly<Record<string, readonly string[]>> =
+  {
+    remember: ['text', 'namespace'],
+    recall: ['question', 'namespaces'],
+    lookup: ['predicate', 'subject', 'object', 'transitive'],
+    query: ['query', 'namespaces', 'explain'],
+    list_memories: ['namespaces', 'predicate', 'mode'],
+    assert_facts: ['clauses', 'namespace', 'opId'],
+    supersede_facts: ['patterns', 'replacements', 'namespace', 'opId'],
+    forget: ['pattern', 'namespace', 'opId'],
+  };
 
 export function createServer(deps: PipelineDeps): McpServer {
   const entityIdentity = deps.entityIdentity ?? entityIdentityFromEnv();
-  const configuredIntegrity = deps.integrityEnforcement ?? integrityEnforcementFromEnv();
+  const configuredIntegrity =
+    deps.integrityEnforcement ?? integrityEnforcementFromEnv();
   const configuredChecks =
     deps.knowledgeCheckEnforcement ?? knowledgeCheckEnforcementFromEnv();
   const resolvedDeps: PipelineDeps = {
@@ -536,7 +622,8 @@ export function createServer(deps: PipelineDeps): McpServer {
         ? configuredIntegrity
         : {
             ...configuredIntegrity,
-            ...(configuredIntegrity.entityIdentity !== undefined || entityIdentity !== 'canonical'
+            ...(configuredIntegrity.entityIdentity !== undefined ||
+            entityIdentity !== 'canonical'
               ? {}
               : { entityIdentity }),
           },
@@ -544,24 +631,49 @@ export function createServer(deps: PipelineDeps): McpServer {
     entityIdentity,
   };
   const embeddings = deps.embeddings ?? lazyEmbeddingClientFromEnv();
-  const semanticCache = deps.semanticCache ?? new LayeredEmbeddingCache(
-    new MemoryEmbeddingCache(),
-    new FileEmbeddingCache(resolvedDeps.store.semanticEmbeddingCacheRoot())
-  );
+  const semanticCache =
+    deps.semanticCache ??
+    new LayeredEmbeddingCache(
+      new MemoryEmbeddingCache(),
+      new FileEmbeddingCache(resolvedDeps.store.semanticEmbeddingCacheRoot()),
+    );
   const server = new McpServer({ name: 'rembero', version: '0.54.0' });
 
   const toolProfile = resolvedDeps.toolProfile ?? mcpToolProfileFromEnv();
   if (toolProfile === 'core') {
     const registerAll = server.registerTool.bind(server);
-    server.registerTool = ((name: string, ...rest: unknown[]) =>
-      CORE_PROFILE_TOOLS.has(name)
-        ? (registerAll as (...args: unknown[]) => unknown)(name, ...rest)
-        : undefined) as typeof server.registerTool;
+    server.registerTool = ((
+      name: string,
+      config: unknown,
+      ...rest: unknown[]
+    ) => {
+      if (!CORE_PROFILE_TOOLS.has(name)) return undefined;
+      const keep = CORE_PROFILE_FIELDS[name];
+      const typed = config as { inputSchema?: Record<string, unknown> };
+      const trimmed =
+        keep === undefined || typed.inputSchema === undefined
+          ? config
+          : {
+              ...typed,
+              inputSchema: Object.fromEntries(
+                Object.entries(typed.inputSchema).filter(([key]) =>
+                  keep.includes(key),
+                ),
+              ),
+            };
+      return (registerAll as (...args: unknown[]) => unknown)(
+        name,
+        trimmed,
+        ...rest,
+      );
+    }) as typeof server.registerTool;
   }
 
   const semanticLedger = () => {
     if (resolvedDeps.semanticLedger === undefined) {
-      throw new Error('semantic version authority is not configured for this MCP server');
+      throw new Error(
+        'semantic version authority is not configured for this MCP server',
+      );
     }
     return resolvedDeps.semanticLedger;
   };
@@ -609,31 +721,36 @@ export function createServer(deps: PipelineDeps): McpServer {
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
     'list_semantic_versions',
     {
       title: 'List semantic versions',
-      description: 'List current semantic refs and recent immutable Remembero versions.',
+      description:
+        'List current semantic refs and recent immutable Remembero versions.',
       inputSchema: {},
     },
     async () => {
       try {
         const ledger = semanticLedger();
-        return asContent({ refs: ledger.listRefs(), versions: ledger.listVersions() });
+        return asContent({
+          refs: ledger.listRefs(),
+          versions: ledger.listVersions(),
+        });
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
     'inspect_semantic_version',
     {
       title: 'Inspect semantic version',
-      description: 'Resolve an exact digest, immutable label, or mutable ref to its full semantic version.',
+      description:
+        'Resolve an exact digest, immutable label, or mutable ref to its full semantic version.',
       inputSchema: { reference: z.string().min(1).max(256) },
     },
     async ({ reference }) => {
@@ -642,14 +759,15 @@ export function createServer(deps: PipelineDeps): McpServer {
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
     'diff_semantic_versions',
     {
       title: 'Diff semantic versions',
-      description: 'Compare semantic members, typed edges, contracts, evidence metrics, and compatibility for two exact versions.',
+      description:
+        'Compare semantic members, typed edges, contracts, evidence metrics, and compatibility for two exact versions.',
       inputSchema: {
         from: z.string().min(1).max(256),
         to: z.string().min(1).max(256),
@@ -664,7 +782,7 @@ export function createServer(deps: PipelineDeps): McpServer {
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -689,12 +807,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             candidateVersionDigest: version.digest,
             baselineVersionDigest: version.parents[0],
             includeDocumentEvaluation,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -708,11 +826,21 @@ export function createServer(deps: PipelineDeps): McpServer {
         candidate: z.string().min(1).max(256),
         assessment: z.string().regex(/^[a-f0-9]{64}$/),
         operationId: z.string().min(1).max(MAX_OPERATION_ID_BYTES),
-        acceptedReviewDimensions: z.array(z.string().min(1).max(128)).max(256).optional(),
+        acceptedReviewDimensions: z
+          .array(z.string().min(1).max(128))
+          .max(256)
+          .optional(),
         reason: z.string().max(4096).optional(),
       },
     },
-    async ({ ref, candidate, assessment, operationId, acceptedReviewDimensions, reason }) => {
+    async ({
+      ref,
+      candidate,
+      assessment,
+      operationId,
+      acceptedReviewDimensions,
+      reason,
+    }) => {
       try {
         const ledger = semanticLedger();
         const version = ledger.resolveVersion(candidate);
@@ -727,19 +855,20 @@ export function createServer(deps: PipelineDeps): McpServer {
             expectedCurrentVersionDigest: current?.versionDigest,
             acceptedReviewDimensions,
             reason,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
     'semantic_ref_history',
     {
       title: 'Semantic ref history',
-      description: 'List immutable movements of one semantic ref, including promotion decisions.',
+      description:
+        'List immutable movements of one semantic ref, including promotion decisions.',
       inputSchema: { ref: z.string().min(1).max(256) },
     },
     async ({ ref }) => {
@@ -748,7 +877,7 @@ export function createServer(deps: PipelineDeps): McpServer {
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -792,16 +921,16 @@ export function createServer(deps: PipelineDeps): McpServer {
               proofLimit,
               maxViolations,
               entityIdentity,
-              graphSelector
+              graphSelector,
             ),
             entityIdentity,
             trust,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -820,7 +949,9 @@ export function createServer(deps: PipelineDeps): McpServer {
           .string()
           .max(MAX_KNOWLEDGE_CHECK_SUITE_BYTES)
           .optional()
-          .describe('Optional JSON v1 checks and semantic coverage required by the proposal'),
+          .describe(
+            'Optional JSON v1 checks and semantic coverage required by the proposal',
+          ),
         integrityMode: integrityModeField,
         integrityNamespaces: integrityNamespacesField,
         proofLimit: proofLimitField,
@@ -859,15 +990,15 @@ export function createServer(deps: PipelineDeps): McpServer {
               proofLimit,
               maxViolations,
               entityIdentity,
-              graphSelector
+              graphSelector,
             ),
             entityIdentity,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -880,12 +1011,16 @@ export function createServer(deps: PipelineDeps): McpServer {
         proposal: z
           .string()
           .max(MAX_MEMORY_PROPOSAL_BYTES)
-          .describe('Standalone proposal JSON or complete propose_memory JSON containing one'),
+          .describe(
+            'Standalone proposal JSON or complete propose_memory JSON containing one',
+          ),
         opId: z
           .string()
           .min(1)
           .max(MAX_OPERATION_ID_BYTES)
-          .describe('Caller-stable idempotency key for this reviewed application'),
+          .describe(
+            'Caller-stable idempotency key for this reviewed application',
+          ),
         maxViolations: maxViolationsField,
       },
     },
@@ -896,12 +1031,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             proposal,
             opId,
             maxViolations,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -919,7 +1054,9 @@ export function createServer(deps: PipelineDeps): McpServer {
           .string()
           .max(MAX_KNOWLEDGE_CHECK_SUITE_BYTES)
           .optional()
-          .describe('Optional serialized JSON v1 knowledge check and coverage suite'),
+          .describe(
+            'Optional serialized JSON v1 knowledge check and coverage suite',
+          ),
         proofLimit: proofLimitField,
         maxViolations: maxViolationsField,
       },
@@ -943,12 +1080,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             checkSuite,
             proofLimit,
             maxViolations,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -986,7 +1123,7 @@ export function createServer(deps: PipelineDeps): McpServer {
         const related = requestedRelatedKnowledge(
           relatedKnowledge,
           relatedLimit,
-          relatedKinds
+          relatedKinds,
         );
         return asContent(
           await recallTool(resolvedDeps, {
@@ -998,12 +1135,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             answerMode,
             ...(related === undefined ? {} : { relatedKnowledge: related }),
             recordedSequence,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1045,7 +1182,7 @@ export function createServer(deps: PipelineDeps): McpServer {
         const related = requestedRelatedKnowledge(
           relatedKnowledge,
           relatedLimit,
-          relatedKinds
+          relatedKinds,
         );
         return asContent(
           await recallExplainTool(resolvedDeps, {
@@ -1059,12 +1196,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             ...(related === undefined ? {} : { relatedKnowledge: related }),
             graphSelector,
             recordedSequence,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1098,29 +1235,32 @@ export function createServer(deps: PipelineDeps): McpServer {
     }) => {
       try {
         return asContent(
-          assertFactsTool({
-            store: resolvedDeps.store,
-            defaultNamespace: resolvedDeps.defaultNamespace,
-            knowledgeCheckEnforcement: resolvedDeps.knowledgeCheckEnforcement,
-          }, {
-            clauses,
-            namespace,
-            opId,
-            integrityEnforcement: requestedIntegrity(
-              resolvedDeps.integrityEnforcement,
-              integrityMode,
-              integrityNamespaces,
-              proofLimit,
-              maxViolations,
-              entityIdentity,
-              graphSelector
-            ),
-          })
+          assertFactsTool(
+            {
+              store: resolvedDeps.store,
+              defaultNamespace: resolvedDeps.defaultNamespace,
+              knowledgeCheckEnforcement: resolvedDeps.knowledgeCheckEnforcement,
+            },
+            {
+              clauses,
+              namespace,
+              opId,
+              integrityEnforcement: requestedIntegrity(
+                resolvedDeps.integrityEnforcement,
+                integrityMode,
+                integrityNamespaces,
+                proofLimit,
+                maxViolations,
+                entityIdentity,
+                graphSelector,
+              ),
+            },
+          ),
         );
       } catch (e) {
-        return asError(e);
+        return asError(e, clauses);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1157,7 +1297,7 @@ export function createServer(deps: PipelineDeps): McpServer {
           assertTentativeTool(
             {
               store: resolvedDeps.store,
-            defaultNamespace: resolvedDeps.defaultNamespace,
+              defaultNamespace: resolvedDeps.defaultNamespace,
               knowledgeCheckEnforcement: resolvedDeps.knowledgeCheckEnforcement,
             },
             {
@@ -1171,15 +1311,15 @@ export function createServer(deps: PipelineDeps): McpServer {
                 proofLimit,
                 maxViolations,
                 entityIdentity,
-                graphSelector
+                graphSelector,
               ),
-            }
-          )
+            },
+          ),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1196,16 +1336,16 @@ export function createServer(deps: PipelineDeps): McpServer {
           reviewTentativeTool(
             {
               store: resolvedDeps.store,
-            defaultNamespace: resolvedDeps.defaultNamespace,
+              defaultNamespace: resolvedDeps.defaultNamespace,
               knowledgeCheckEnforcement: resolvedDeps.knowledgeCheckEnforcement,
             },
-            { namespaces }
-          )
+            { namespaces },
+          ),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1215,7 +1355,9 @@ export function createServer(deps: PipelineDeps): McpServer {
       description:
         'Atomically accept or reject exact tentative ground facts. Every requested claim must still be current; acceptance passes configured integrity enforcement.',
       inputSchema: {
-        clauses: boundedText('Exact ground facts previously stored as tentative'),
+        clauses: boundedText(
+          'Exact ground facts previously stored as tentative',
+        ),
         action: z.enum(['accept', 'reject']),
         namespace: namespaceField,
         opId: operationIdField,
@@ -1244,7 +1386,7 @@ export function createServer(deps: PipelineDeps): McpServer {
           resolveTentativeTool(
             {
               store: resolvedDeps.store,
-            defaultNamespace: resolvedDeps.defaultNamespace,
+              defaultNamespace: resolvedDeps.defaultNamespace,
               knowledgeCheckEnforcement: resolvedDeps.knowledgeCheckEnforcement,
             },
             {
@@ -1259,15 +1401,15 @@ export function createServer(deps: PipelineDeps): McpServer {
                 proofLimit,
                 maxViolations,
                 entityIdentity,
-                graphSelector
+                graphSelector,
               ),
-            }
-          )
+            },
+          ),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1278,11 +1420,14 @@ export function createServer(deps: PipelineDeps): McpServer {
         "Atomically end current ground facts matching one or more patterns, preserve each as a system-managed '_until' fact, and add explicit replacement clauses. No LLM is used. Append order remains authoritative; the optional UTC timestamp is descriptive valid-time metadata.",
       inputSchema: {
         patterns: z
-          .array(boundedText("A positive fact pattern, e.g. 'works_at(mira, _)'"))
+          .array(
+            boundedText("A positive fact pattern, e.g. 'works_at(mira, _)'"),
+          )
           .min(1)
           .max(MAX_SUPERSEDE_PATTERNS),
-        replacements: boundedText('Optional ground facts or other Datalog clauses to add')
-          .optional(),
+        replacements: boundedText(
+          'Optional ground facts or other Datalog clauses to add',
+        ).optional(),
         namespace: namespaceField,
         at: validTimeInstantField,
         opId: operationIdField,
@@ -1312,7 +1457,7 @@ export function createServer(deps: PipelineDeps): McpServer {
           supersedeFactsTool(
             {
               store: resolvedDeps.store,
-            defaultNamespace: resolvedDeps.defaultNamespace,
+              defaultNamespace: resolvedDeps.defaultNamespace,
               knowledgeCheckEnforcement: resolvedDeps.knowledgeCheckEnforcement,
             },
             {
@@ -1328,15 +1473,15 @@ export function createServer(deps: PipelineDeps): McpServer {
                 proofLimit,
                 maxViolations,
                 entityIdentity,
-                graphSelector
+                graphSelector,
               ),
-            }
-          )
+            },
+          ),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1374,12 +1519,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             entityIdentity,
             trustMode,
             recordedSequence,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1412,7 +1557,7 @@ export function createServer(deps: PipelineDeps): McpServer {
           await semanticSearchKnowledgeTool(
             {
               store: resolvedDeps.store,
-            defaultNamespace: resolvedDeps.defaultNamespace,
+              defaultNamespace: resolvedDeps.defaultNamespace,
               embeddings,
               semanticCache,
               llmAllowedNamespaces: resolvedDeps.llmAllowedNamespaces,
@@ -1427,13 +1572,13 @@ export function createServer(deps: PipelineDeps): McpServer {
               entityIdentity,
               trustMode,
               recordedSequence,
-            }
-          )
+            },
+          ),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1466,7 +1611,7 @@ export function createServer(deps: PipelineDeps): McpServer {
           await prepareSemanticKnowledgeTool(
             {
               store: resolvedDeps.store,
-            defaultNamespace: resolvedDeps.defaultNamespace,
+              defaultNamespace: resolvedDeps.defaultNamespace,
               embeddings,
               semanticCache,
               llmAllowedNamespaces: resolvedDeps.llmAllowedNamespaces,
@@ -1481,13 +1626,13 @@ export function createServer(deps: PipelineDeps): McpServer {
               entityIdentity,
               trustMode,
               recordedSequence,
-            }
-          )
+            },
+          ),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1528,12 +1673,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             entityIdentity,
             trustMode,
             recordedSequence,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1551,7 +1696,9 @@ export function createServer(deps: PipelineDeps): McpServer {
         includeDerived: z
           .boolean()
           .optional()
-          .describe('Traverse rule-derived facts only when each returned claim carries a proof'),
+          .describe(
+            'Traverse rule-derived facts only when each returned claim carries a proof',
+          ),
         namespaces: namespacesField,
         entityIdentity: entityIdentityField,
         trustMode: trustViewField,
@@ -1583,12 +1730,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             entityIdentity,
             trustMode,
             recordedSequence,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1629,12 +1776,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             trustMode,
             recordedSequence,
             includePassingEvidence,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1675,12 +1822,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             graphSelector,
             recordedSequence,
             compareFullScan,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1692,13 +1839,35 @@ export function createServer(deps: PipelineDeps): McpServer {
       inputSchema: {
         query: boundedText(),
         namespaces: namespacesField,
+        explain: z
+          .boolean()
+          .optional()
+          .describe('true: also return the derivation proof for every row'),
         entityIdentity: entityIdentityField,
         trustMode: trustViewField,
         recordedSequence: recordedSequenceField,
       },
     },
-    async ({ query, namespaces, entityIdentity, trustMode, recordedSequence }) => {
+    async ({
+      query,
+      namespaces,
+      explain,
+      entityIdentity,
+      trustMode,
+      recordedSequence,
+    }) => {
       try {
+        if (explain === true) {
+          return asContent(
+            explainQueryTool(resolvedDeps, {
+              query,
+              namespaces,
+              entityIdentity,
+              trustMode,
+              recordedSequence,
+            }),
+          );
+        }
         return asContent(
           queryTool(resolvedDeps, {
             query,
@@ -1706,12 +1875,58 @@ export function createServer(deps: PipelineDeps): McpServer {
             entityIdentity,
             trustMode,
             recordedSequence,
-          })
+          }),
+        );
+      } catch (e) {
+        return asError(e, query);
+      }
+    },
+  );
+
+  server.registerTool(
+    'lookup',
+    {
+      title: 'Lookup',
+      description:
+        "Look up facts without writing Datalog. Give the predicate name and fill the slots you know: subject is the first argument, object the second; leave a slot empty to get it back as a column. Set transitive: true to follow a chain (managers of managers, dependencies of dependencies) — no rules needed. Both slots filled answers yes/no. Examples: {predicate:'reports_to', subject:'maya'} → maya's manager; {predicate:'reports_to', object:'dana', transitive:true} → everyone under dana. Call list_memories first to see predicate names and argument order.",
+      inputSchema: {
+        predicate: z
+          .string()
+          .min(1)
+          .max(128)
+          .describe('predicate name, e.g. reports_to'),
+        subject: z
+          .string()
+          .max(256)
+          .optional()
+          .describe('first argument (a constant)'),
+        object: z
+          .string()
+          .max(256)
+          .optional()
+          .describe('second argument (a constant)'),
+        transitive: z
+          .boolean()
+          .optional()
+          .describe('follow the chain (one or more hops) instead of one step'),
+        namespaces: namespacesField,
+      },
+    },
+    async ({ predicate, subject, object, transitive, namespaces }) => {
+      try {
+        return asContent(
+          lookupTool(resolvedDeps, {
+            predicate,
+            subject,
+            object,
+            transitive,
+            namespaces,
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1749,12 +1964,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             trustMode,
             graphSelector,
             recordedSequence,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1801,12 +2016,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             maxDiagnosticDepth,
             maxCandidatesPerFailure,
             maxEvidenceFacts,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1841,12 +2056,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             entityIdentity,
             trustMode,
             recordedSequence,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1893,12 +2108,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             maxPlans,
             maxSteps,
             maxSearchStates,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1933,12 +2148,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             entityIdentity,
             trustMode,
             recordedSequence,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -1951,7 +2166,9 @@ export function createServer(deps: PipelineDeps): McpServer {
         fromSequence: recordedDiffSequenceField,
         toSequence: recordedDiffSequenceField,
         namespaces: namespacesField,
-        query: boundedText('Optional Datalog query whose result/proof impact is compared').optional(),
+        query: boundedText(
+          'Optional Datalog query whose result/proof impact is compared',
+        ).optional(),
         proofLimit: proofLimitField,
         maxViolations: maxViolationsField,
         entityIdentity: entityIdentityField,
@@ -1979,12 +2196,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             maxViolations,
             entityIdentity,
             trustMode,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -2022,12 +2239,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             trustMode,
             graphSelector,
             recordedSequence,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -2068,12 +2285,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             trustMode,
             graphSelector,
             recordedSequence,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -2107,29 +2324,32 @@ export function createServer(deps: PipelineDeps): McpServer {
     }) => {
       try {
         return asContent(
-          forgetTool({
-            store: resolvedDeps.store,
-            defaultNamespace: resolvedDeps.defaultNamespace,
-            knowledgeCheckEnforcement: resolvedDeps.knowledgeCheckEnforcement,
-          }, {
-            pattern,
-            namespace,
-            opId,
-            integrityEnforcement: requestedIntegrity(
-              resolvedDeps.integrityEnforcement,
-              integrityMode,
-              integrityNamespaces,
-              proofLimit,
-              maxViolations,
-              entityIdentity,
-              graphSelector
-            ),
-          })
+          forgetTool(
+            {
+              store: resolvedDeps.store,
+              defaultNamespace: resolvedDeps.defaultNamespace,
+              knowledgeCheckEnforcement: resolvedDeps.knowledgeCheckEnforcement,
+            },
+            {
+              pattern,
+              namespace,
+              opId,
+              integrityEnforcement: requestedIntegrity(
+                resolvedDeps.integrityEnforcement,
+                integrityMode,
+                integrityNamespaces,
+                proofLimit,
+                maxViolations,
+                entityIdentity,
+                graphSelector,
+              ),
+            },
+          ),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -2139,25 +2359,29 @@ export function createServer(deps: PipelineDeps): McpServer {
       description:
         'Read-only deterministic counterfactual over one current or recorded baseline. Retract/assume facts or exact alpha-equivalent rules, then compare query proofs, provenance, integrity, rule audit/topology, and an optional knowledge-suite/coverage result. Proposed rules receive hypothetical sources; no LLM is used and nothing is persisted.',
       inputSchema: {
-        query: boundedText('Datalog query whose result impact should be explained'),
+        query: boundedText(
+          'Datalog query whose result impact should be explained',
+        ),
         assume: boundedText(
-          `Ordinary ground Datalog facts to assume (maximum ${MAX_COUNTERFACTUAL_ASSUMPTIONS})`
+          `Ordinary ground Datalog facts to assume (maximum ${MAX_COUNTERFACTUAL_ASSUMPTIONS})`,
         ).optional(),
         without: z
           .array(boundedText('One positive ground-fact pattern'))
           .max(MAX_COUNTERFACTUAL_RETRACTIONS)
           .optional(),
         assumeRules: boundedText(
-          `Ordinary or aggregate Datalog rules to assume (maximum ${MAX_COUNTERFACTUAL_RULE_ADDITIONS})`
+          `Ordinary or aggregate Datalog rules to assume (maximum ${MAX_COUNTERFACTUAL_RULE_ADDITIONS})`,
         ).optional(),
         withoutRules: boundedText(
-          `Exact alpha-equivalent rules to remove (maximum ${MAX_COUNTERFACTUAL_RULE_REMOVALS})`
+          `Exact alpha-equivalent rules to remove (maximum ${MAX_COUNTERFACTUAL_RULE_REMOVALS})`,
         ).optional(),
         checkSuite: z
           .string()
           .max(MAX_KNOWLEDGE_CHECK_SUITE_BYTES)
           .optional()
-          .describe('Optional serialized JSON v1 knowledge check and coverage suite'),
+          .describe(
+            'Optional serialized JSON v1 knowledge check and coverage suite',
+          ),
         namespace: namespaceField,
         namespaces: namespacesField,
         proofLimit: proofLimitField,
@@ -2198,12 +2422,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             entityIdentity,
             trustMode,
             recordedSequence,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -2216,12 +2440,16 @@ export function createServer(deps: PipelineDeps): McpServer {
         proposal: z
           .string()
           .max(MAX_RULE_CHANGE_PROPOSAL_BYTES)
-          .describe('Standalone ruleProposal JSON or complete what_if JSON containing one'),
+          .describe(
+            'Standalone ruleProposal JSON or complete what_if JSON containing one',
+          ),
         opId: z
           .string()
           .min(1)
           .max(MAX_OPERATION_ID_BYTES)
-          .describe('Caller-stable idempotency key for this reviewed application'),
+          .describe(
+            'Caller-stable idempotency key for this reviewed application',
+          ),
         maxViolations: maxViolationsField,
       },
     },
@@ -2232,12 +2460,12 @@ export function createServer(deps: PipelineDeps): McpServer {
             proposal,
             opId,
             maxViolations,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -2254,17 +2482,20 @@ export function createServer(deps: PipelineDeps): McpServer {
     async ({ namespaces, recordedSequence }) => {
       try {
         const bundle = exportKnowledgeBundleTool(
-          { store: resolvedDeps.store, defaultNamespace: resolvedDeps.defaultNamespace },
-          { namespaces, recordedSequence }
+          {
+            store: resolvedDeps.store,
+            defaultNamespace: resolvedDeps.defaultNamespace,
+          },
+          { namespaces, recordedSequence },
         );
         return asRawContent(
           serializeKnowledgeBundle(bundle),
-          'MCP knowledge bundle'
+          'MCP knowledge bundle',
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -2286,7 +2517,7 @@ export function createServer(deps: PipelineDeps): McpServer {
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -2306,13 +2537,13 @@ export function createServer(deps: PipelineDeps): McpServer {
         return asContent(
           checkpointJournalTool(
             { store: resolvedDeps.store },
-            { opId, at, dryRun }
-          )
+            { opId, at, dryRun },
+          ),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -2329,7 +2560,7 @@ export function createServer(deps: PipelineDeps): McpServer {
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -2350,7 +2581,7 @@ export function createServer(deps: PipelineDeps): McpServer {
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   server.registerTool(
@@ -2358,28 +2589,36 @@ export function createServer(deps: PipelineDeps): McpServer {
     {
       title: 'List memories',
       description:
-        'List stored facts and rules grouped by predicate, plus explicit integrity constraints when present. Start here to discover the schema before writing raw query or assert_facts calls — LLM-free and instant.',
+        "Discover the schema before writing query, lookup or assert_facts calls — LLM-free and instant. mode 'schema' (default) lists each predicate with its arity, fact count, up to three sample facts and argument names when declared (rembero_arg_names(pred, name1, name2).); mode 'full' returns every fact and rule. Integrity constraints are included either way.",
       inputSchema: {
         namespaces: namespacesField,
-        predicate: z.string().optional().describe("Filter: 'name' or 'name/arity'"),
+        predicate: z
+          .string()
+          .optional()
+          .describe("Filter: 'name' or 'name/arity'"),
+        mode: z
+          .enum(['schema', 'full'])
+          .optional()
+          .describe("'schema' (compact, default) or 'full' (every fact)"),
         trustMode: trustViewField,
         recordedSequence: recordedSequenceField,
       },
     },
-    async ({ namespaces, predicate, trustMode, recordedSequence }) => {
+    async ({ namespaces, predicate, mode, trustMode, recordedSequence }) => {
       try {
         return asContent(
           listMemoriesTool(resolvedDeps, {
             namespaces,
             predicate,
+            mode: mode ?? 'schema',
             trustMode,
             recordedSequence,
-          })
+          }),
         );
       } catch (e) {
         return asError(e);
       }
-    }
+    },
   );
 
   return server;

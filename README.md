@@ -21,7 +21,7 @@ remembero init                 # hooks + core-profile MCP registration + CLAUDE.
 
 `remembero init` installs two Claude Code hooks (ambient capture of durable facts on Stop,
 a deterministic memory brief injected at SessionStart), registers the MCP server with the
-12-tool `core` profile, and prints a CLAUDE.md snippet to paste. Then, in chat:
+8-tool `core` profile, and prints a CLAUDE.md snippet to paste. Then, in chat:
 *"Remember that my dentist is Dr Chen"* → later, *"Who's my dentist?"*.
 
 Daily commands:
@@ -220,10 +220,14 @@ To make agents use memory *proactively*, add a snippet like this to your `CLAUDE
 - Never store secrets or transient details. When unsure whether to remember, ask.
 ```
 
-The `core` profile (`serve --profile core`, used by `remembero init`) registers the
-12 daily-driver tools: `remember`, `recall`, `recall_explain`, `list_memories`, `forget`,
-`history`, `assert_facts`, `query`, `explain_query`, `supersede_facts`, `check_integrity`,
-and `search_knowledge`. The default `full` profile also exposes the knowledge-engineering
+The `core` profile (`serve --profile core`, used by `remembero init`) is the small-model
+surface: eight tools with at most four parameters each. Read with `recall` (natural
+language), `lookup` (fill `subject`/`object` slots, `transitive: true` for chains, no Datalog)
+or `query` (Datalog; `explain: true` returns proofs); write with `remember`, `assert_facts`,
+`supersede_facts` and `forget`; discover the schema with `list_memories`, which defaults to a
+compact listing (arity, fact count, samples, argument names from
+`rembero_arg_names(pred, name1, name2).`). Integrity, proof-limit, graph and identity
+options live on the default `full` profile, which also exposes the knowledge-engineering
 surface below.
 
 Tools exposed (full profile): `remember`, `propose_memory`, `apply_memory_proposal`, `recall`, `recall_explain`, `assert_facts`,
