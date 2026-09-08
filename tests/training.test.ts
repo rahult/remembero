@@ -143,6 +143,23 @@ describe('training: templates', () => {
     expect(ratio).toBeLessThan(1.7);
   });
 
+  it('emits one-hop edge lookups in both directions without _plus', () => {
+    let oneHop = 0;
+    const directions = new Set<string>();
+    for (let seed = 1; seed <= 20; seed += 1) {
+      const world = generateWorld(seed);
+      for (const candidate of generateCandidates(world, createRng(seed))) {
+        if (candidate.template !== 'edge-one-hop') continue;
+        oneHop += 1;
+        directions.add(candidate.direction);
+        expect(candidate.requiresClosure).toBe(false);
+        expect(candidate.program).not.toContain('_plus');
+      }
+    }
+    expect(oneHop).toBeGreaterThan(20);
+    expect(directions).toEqual(new Set(['anchor-first', 'anchor-second']));
+  });
+
   it('never emits a recursive rule', () => {
     for (let seed = 1; seed <= 20; seed += 1) {
       const world = generateWorld(seed);

@@ -525,6 +525,45 @@ export function gradeAnswerV2(
   };
 }
 
+export interface QueryGrade {
+  passed: boolean;
+  missing: string[];
+  forbidden: string[];
+}
+
+/**
+ * Query-leg grading: judge the model-authored query by the rows it returned,
+ * independent of any answer model. Every expected entity must appear among
+ * the row values (normalized, so `procurement_freeze` matches "procurement
+ * freeze"); no forbidden entity may; "yes"/"no" expectations become row
+ * presence or absence. This isolates query authoring from row reading, which
+ * small models get wrong in both directions.
+ */
+export function gradeQueryRows(
+  question: AgentBoundaryQuestion,
+  rows: Array<Record<string, unknown>>,
+): QueryGrade {
+  const entities = entitiesFromRows(rows);
+  const has = (term: string) =>
+    entities.has(term) || entities.has(normalizeAnswer(term));
+  const missing: string[] = [];
+  for (const term of question.expect) {
+    if (term === 'yes') {
+      if (rows.length === 0) missing.push(term);
+    } else if (term === 'no') {
+      if (rows.length > 0) missing.push(term);
+    } else if (!has(term)) {
+      missing.push(term);
+    }
+  }
+  const forbidden = (question.forbid ?? []).filter((term) => has(term));
+  return {
+    passed: missing.length === 0 && forbidden.length === 0,
+    missing,
+    forbidden,
+  };
+}
+
 const SQL_SCHEMA_PROMPT = `You query a SQLite database with these tables:
 works_on(person, project)
 reports_to(person, manager)
@@ -621,25 +660,27 @@ root(R) :- reach(R), \\+ waits_on(R, _).`,
  * DATALOG_FEW_SHOT with the two recursive programs rewritten in the flat
  * `_plus` dialect and the pair example swapped for a yes/no chain check.
  */
-export const DATALOG_CLOSURE_FEW_SHOT: ReadonlyArray<{ q: string; program: string }> =
-  DATALOG_FEW_SHOT.map((example) => {
-    if (example.q === 'Every manager above nora in the chain?') {
-      return { q: example.q, program: `above(M) :- reports_to_plus(nora, M).` };
-    }
-    if (example.q === 'What is the final upstream dependency atlas waits on?') {
-      return {
-        q: example.q,
-        program: `root(R) :- waits_on_plus(atlas, R), \\+ waits_on(R, _).`,
-      };
-    }
-    if (example.q === 'Which pairs of different people share a project?') {
-      return {
-        q: 'Does priya ultimately report up to ava? Yes or no.',
-        program: `q(M) :- reports_to_plus(priya, M), M = ava.`,
-      };
-    }
-    return example;
-  });
+export const DATALOG_CLOSURE_FEW_SHOT: ReadonlyArray<{
+  q: string;
+  program: string;
+}> = DATALOG_FEW_SHOT.map((example) => {
+  if (example.q === 'Every manager above nora in the chain?') {
+    return { q: example.q, program: `above(M) :- reports_to_plus(nora, M).` };
+  }
+  if (example.q === 'What is the final upstream dependency atlas waits on?') {
+    return {
+      q: example.q,
+      program: `root(R) :- waits_on_plus(atlas, R), \\+ waits_on(R, _).`,
+    };
+  }
+  if (example.q === 'Which pairs of different people share a project?') {
+    return {
+      q: 'Does priya ultimately report up to ava? Yes or no.',
+      program: `q(M) :- reports_to_plus(priya, M), M = ava.`,
+    };
+  }
+  return example;
+});
 
 const DATALOG_CLOSURE_SCHEMA_PROMPT = `${DATALOG_SCHEMA_PROMPT}
 reports_to_plus(Person, Manager)  -- Manager is anywhere above Person: one OR MORE steps up the chain

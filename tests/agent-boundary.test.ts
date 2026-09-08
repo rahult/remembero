@@ -13,7 +13,9 @@ import {
   entitiesFromRows,
   gradeAnswer,
   gradeAnswerV2,
+  gradeQueryRows,
   normalizeAnswer,
+  type AgentBoundaryQuestion,
   seedEntityLexicon,
 } from '../src/evals/agent-boundary.js';
 import {
@@ -382,7 +384,9 @@ describe('agent-boundary v2 Datalog prompt', () => {
     for (const example of DATALOG_CLOSURE_FEW_SHOT) {
       for (const clause of parseProgram(example.program)) {
         const body = JSON.stringify(clause.body);
-        expect(body, example.program).not.toContain(`"predicate":"${clause.head.predicate}"`);
+        expect(body, example.program).not.toContain(
+          `"predicate":"${clause.head.predicate}"`,
+        );
       }
       expect(
         () => db.datalogQuery(example.program),
@@ -405,35 +409,114 @@ describe('agent-boundary runner: chat backends', () => {
   ];
 
   it('builds an Ollama /api/chat request by default and reads message.content', () => {
-    const request = chatRequest('ollama', 'http://127.0.0.1:11434', 'llama3.2:3b', messages, 7);
+    const request = chatRequest(
+      'ollama',
+      'http://127.0.0.1:11434',
+      'llama3.2:3b',
+      messages,
+      7,
+    );
     expect(request.url).toBe('http://127.0.0.1:11434/api/chat');
     expect(request.body.options).toMatchObject({ temperature: 0, seed: 7 });
-    expect(parseChatResponse('ollama', { message: { content: 'q(X) :- a(X).' } })).toBe('q(X) :- a(X).');
+    expect(
+      parseChatResponse('ollama', { message: { content: 'q(X) :- a(X).' } }),
+    ).toBe('q(X) :- a(X).');
   });
 
   it('builds an OpenAI-compatible /v1/chat/completions request for Tinker proxies', () => {
-    const request = chatRequest('openai', 'http://127.0.0.1:7462/', 'tinker://run/sampler_weights/final', messages, 7);
+    const request = chatRequest(
+      'openai',
+      'http://127.0.0.1:7462/',
+      'tinker://run/sampler_weights/final',
+      messages,
+      7,
+    );
     expect(request.url).toBe('http://127.0.0.1:7462/v1/chat/completions');
-    expect(request.body).toMatchObject({ temperature: 0, seed: 7, max_tokens: 400, messages });
+    expect(request.body).toMatchObject({
+      temperature: 0,
+      seed: 7,
+      max_tokens: 400,
+      messages,
+    });
     expect(
-      parseChatResponse('openai', { choices: [{ message: { content: 'q(X) :- a(X).' } }] }),
+      parseChatResponse('openai', {
+        choices: [{ message: { content: 'q(X) :- a(X).' } }],
+      }),
     ).toBe('q(X) :- a(X).');
-    expect(() => parseChatResponse('openai', { choices: [] })).toThrow(/no message content/);
+    expect(() => parseChatResponse('openai', { choices: [] })).toThrow(
+      /no message content/,
+    );
   });
 });
 
 describe('agent-boundary runner: separate answer model', () => {
   it('resolves an answer-leg override from --answer-model, defaulting to the query model', () => {
-    const argv = ['node', 'run.js', '--model', 'tinker://x', '--answer-model', 'llama3.2:3b', '--answer-chat-api', 'ollama'];
+    const argv = [
+      'node',
+      'run.js',
+      '--model',
+      'tinker://x',
+      '--answer-model',
+      'llama3.2:3b',
+      '--answer-chat-api',
+      'ollama',
+    ];
     expect(resolveAnswerLeg(argv, {}, 'tinker://x', 'openai')).toEqual({
       model: 'llama3.2:3b',
       backend: 'ollama',
       url: 'http://127.0.0.1:11434',
     });
-    expect(resolveAnswerLeg(['node', 'run.js'], {}, 'tinker://x', 'openai')).toEqual({
+    expect(
+      resolveAnswerLeg(['node', 'run.js'], {}, 'tinker://x', 'openai'),
+    ).toEqual({
       model: 'tinker://x',
       backend: 'openai',
       url: undefined,
     });
+  });
+});
+
+describe('agent-boundary: query-leg grading', () => {
+  const q = (over: Partial<AgentBoundaryQuestion>): AgentBoundaryQuestion => ({
+    id: 'x',
+    category: 'multihop',
+    question: 'q',
+    expect: [],
+    goldSql: 'SELECT 1',
+    goldDatalog: 'q(X) :- a(X).',
+    ...over,
+  });
+
+  it('passes when the rows cover every expected entity and no forbidden one', () => {
+    expect(
+      gradeQueryRows(q({ expect: ['liam', 'ava'] }), [
+        { M: 'liam' },
+        { M: 'ava' },
+        { M: 'dana' },
+      ]).passed,
+    ).toBe(true);
+    expect(
+      gradeQueryRows(q({ expect: ['liam', 'ava'] }), [{ M: 'liam' }]).passed,
+    ).toBe(false);
+    expect(
+      gradeQueryRows(q({ expect: ['liam'], forbid: ['dana'] }), [
+        { M: 'liam' },
+        { M: 'dana' },
+      ]).passed,
+    ).toBe(false);
+  });
+
+  it('treats yes/no expectations as row presence and matches underscored entities', () => {
+    expect(
+      gradeQueryRows(q({ expect: ['yes'] }), [{ X: 'procurement_freeze' }])
+        .passed,
+    ).toBe(true);
+    expect(gradeQueryRows(q({ expect: ['yes'] }), []).passed).toBe(false);
+    expect(gradeQueryRows(q({ expect: ['no'] }), []).passed).toBe(true);
+    expect(
+      gradeQueryRows(q({ expect: ['procurement freeze'] }), [
+        { R: 'procurement_freeze' },
+      ]).passed,
+    ).toBe(true);
   });
 });

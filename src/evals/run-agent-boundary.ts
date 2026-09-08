@@ -30,6 +30,7 @@ import {
   datalogSystemPrompt,
   entitiesFromRows,
   gradeAnswerV2,
+  gradeQueryRows,
   sqlSystemPrompt,
   stripFences,
   type AgentBoundaryCondition,
@@ -55,7 +56,9 @@ import {
 const CHAT_BACKEND = resolveChatBackend(process.argv, process.env);
 const CHAT_URL =
   process.env.OLLAMA_URL ??
-  (CHAT_BACKEND === 'openai' ? 'http://127.0.0.1:7462' : 'http://127.0.0.1:11434');
+  (CHAT_BACKEND === 'openai'
+    ? 'http://127.0.0.1:7462'
+    : 'http://127.0.0.1:11434');
 const MAX_RESULT_ROWS = 30;
 const MAX_ATTEMPTS = 2;
 
@@ -63,7 +66,10 @@ async function chat(
   model: string,
   messages: ChatMessage[],
   seed: number,
-  leg: { backend: ChatBackend; url: string } = { backend: CHAT_BACKEND, url: CHAT_URL },
+  leg: { backend: ChatBackend; url: string } = {
+    backend: CHAT_BACKEND,
+    url: CHAT_URL,
+  },
 ): Promise<string> {
   const request = chatRequest(leg.backend, leg.url, model, messages, seed);
   const response = await fetch(request.url, {
@@ -80,7 +86,8 @@ async function chat(
 }
 
 // Answer leg: defaults to the query model; --answer-model overrides (see resolveAnswerLeg).
-let ANSWER_LEG: { model: string; backend: ChatBackend; url: string } | undefined;
+let ANSWER_LEG:
+  { model: string; backend: ChatBackend; url: string } | undefined;
 
 interface QuestionOutcome {
   id: string;
@@ -88,6 +95,8 @@ interface QuestionOutcome {
   condition: AgentBoundaryCondition;
   seed: number;
   passed: boolean;
+  /** Query-leg verdict: the returned rows cover the gold answer set (answer model excluded). */
+  queryCorrect: boolean;
   toolErrors: number;
   gateRefusedTrap?: boolean;
   query: string;
@@ -195,6 +204,7 @@ async function runQuestion(
         condition,
         seed,
         passed: false,
+        queryCorrect: false,
         toolErrors,
         ...(gateRefusedTrap === undefined ? {} : { gateRefusedTrap }),
         query,
@@ -206,7 +216,11 @@ async function runQuestion(
     }
 
     const shown = rows.slice(0, MAX_RESULT_ROWS);
-    const answerLeg = ANSWER_LEG ?? { model, backend: CHAT_BACKEND, url: CHAT_URL };
+    const answerLeg = ANSWER_LEG ?? {
+      model,
+      backend: CHAT_BACKEND,
+      url: CHAT_URL,
+    };
     const answer = await chat(
       answerLeg.model,
       [
@@ -221,16 +235,19 @@ async function runQuestion(
     );
     const grade = gradeAnswerV2(question, answer, goldEntities);
     // A control write violates no rule: a gate refusal is itself the failure.
-    const passed =
-      question.control === true && gateRefusedTrap === true
-        ? false
-        : grade.passed;
+    const controlRefused =
+      question.control === true && gateRefusedTrap === true;
+    const passed = controlRefused ? false : grade.passed;
+    const queryCorrect = controlRefused
+      ? false
+      : gradeQueryRows(question, rows).passed;
     return {
       id: question.id,
       category: question.category,
       condition,
       seed,
       passed,
+      queryCorrect,
       toolErrors,
       ...(gateRefusedTrap === undefined ? {} : { gateRefusedTrap }),
       query,
@@ -247,6 +264,8 @@ async function runQuestion(
 interface ConditionSeedStats {
   seed: number;
   passed: number;
+  /** Query-leg passes (rows cover the gold set), independent of the answer model. */
+  queryCorrect: number;
   total: number;
   toolErrors: number;
 }
@@ -255,6 +274,8 @@ interface ConditionStats {
   perSeed: ConditionSeedStats[];
   /** Mean questions passed per seed. */
   mean: number;
+  /** Mean query-leg passes per seed (rows cover the gold set; answer model excluded). */
+  queryMean: number;
   /** max minus min of per-seed passes — run-variance visibility (ADR 0003). */
   spread: number;
   toolErrors: number;
@@ -280,16 +301,21 @@ function conditionStats(
     return {
       seed,
       passed: seedRows.filter((row) => row.passed).length,
+      queryCorrect: seedRows.filter((row) => row.queryCorrect).length,
       total: seedRows.length,
       toolErrors: seedRows.reduce((sum, row) => sum + row.toolErrors, 0),
     };
   });
   const passes = perSeed.map((row) => row.passed);
+  const queryPasses = perSeed.map((row) => row.queryCorrect);
   return {
     perSeed,
     mean:
       passes.reduce((sum, value) => sum + value, 0) /
       Math.max(passes.length, 1),
+    queryMean:
+      queryPasses.reduce((sum, value) => sum + value, 0) /
+      Math.max(queryPasses.length, 1),
     spread: passes.length > 0 ? Math.max(...passes) - Math.min(...passes) : 0,
     toolErrors: rows.reduce((sum, row) => sum + row.toolErrors, 0),
   };
@@ -346,7 +372,12 @@ function summarize(
 async function main(): Promise<void> {
   const modelFlag = process.argv.indexOf('--model');
   const model = modelFlag >= 0 ? process.argv[modelFlag + 1] : 'llama3.2:3b';
-  const resolvedAnswer = resolveAnswerLeg(process.argv, process.env, model, CHAT_BACKEND);
+  const resolvedAnswer = resolveAnswerLeg(
+    process.argv,
+    process.env,
+    model,
+    CHAT_BACKEND,
+  );
   ANSWER_LEG = { ...resolvedAnswer, url: resolvedAnswer.url ?? CHAT_URL };
   const seedsFlag = process.argv.indexOf('--seeds');
   const seeds =
@@ -409,24 +440,39 @@ async function main(): Promise<void> {
     '\ncategory                mean passed per seed (per-seed counts)',
   );
   for (const row of summary.byCategory) {
-    const cells = conditions.map((condition) => {
-      const stats = row.conditions[condition];
+    const cells = conditions
+      .map((condition) => {
+        const stats = row.conditions[condition];
+        const detail = stats.perSeed.map((seedRow) => seedRow.passed).join(',');
+        const total = stats.perSeed[0]?.total ?? 0;
+        return `${condition} ${stats.mean.toFixed(1)}/${total} (${detail})`;
+      })
+      .join('  ');
+    console.log(`${row.category.padEnd(24)}${cells}`);
+  }
+  const totalCells = conditions
+    .map((condition) => {
+      const stats = summary.totals[condition];
       const detail = stats.perSeed.map((seedRow) => seedRow.passed).join(',');
       const total = stats.perSeed[0]?.total ?? 0;
       return `${condition} ${stats.mean.toFixed(1)}/${total} (${detail})`;
-    }).join('  ');
-    console.log(`${row.category.padEnd(24)}${cells}`);
-  }
-  const totalCells = conditions.map((condition) => {
-    const stats = summary.totals[condition];
-    const detail = stats.perSeed.map((seedRow) => seedRow.passed).join(',');
-    const total = stats.perSeed[0]?.total ?? 0;
-    return `${condition} ${stats.mean.toFixed(1)}/${total} (${detail})`;
-  }).join('  ');
+    })
+    .join('  ');
   console.log(`${'TOTAL'.padEnd(24)}${totalCells}`);
-  const errorCells = conditions.map(
-    (condition) => `${condition} ${summary.totals[condition].toolErrors}`,
-  ).join('  ');
+  const queryCells = conditions
+    .map((condition) => {
+      const stats = summary.totals[condition];
+      const detail = stats.perSeed
+        .map((seedRow) => seedRow.queryCorrect)
+        .join(',');
+      const total = stats.perSeed[0]?.total ?? 0;
+      return `${condition} ${stats.queryMean.toFixed(1)}/${total} (${detail})`;
+    })
+    .join('  ');
+  console.log(`${'query-correct'.padEnd(24)}${queryCells}`);
+  const errorCells = conditions
+    .map((condition) => `${condition} ${summary.totals[condition].toolErrors}`)
+    .join('  ');
   console.log(`${'tool errors'.padEnd(24)}${errorCells}`);
 
   const projectRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');

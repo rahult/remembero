@@ -238,6 +238,40 @@ export function generateCandidates(world: World, rng: Rng): Candidate[] {
       (x) => reachable(x, false).length > oneHopOf(x, false).length,
     );
 
+    // one-hop edge lookups: the direct neighbour only, no closure. Teaches the
+    // model that "direct" / "immediately" / "one step" means the base predicate.
+    const argUp = lower(edge.args[edge.orientation === 'child-first' ? 1 : 0]);
+    const argDown = lower(
+      edge.args[edge.orientation === 'child-first' ? 0 : 1],
+    );
+    for (const x of rng.shuffle(nodes).slice(0, 2)) {
+      for (const upward of [true, false]) {
+        if (
+          evaluate(clauses, parseQuery(`${oneHop(edge, x, 'Y', upward)}.`))
+            .length === 0
+        )
+          continue;
+        const literal = oneHop(edge, x, 'Y', upward);
+        const direction: Direction = literal.startsWith(`${edge.name}(${x},`)
+          ? 'anchor-first'
+          : 'anchor-second';
+        const role = upward ? argUp : argDown;
+        add({
+          category: 'direct',
+          direction,
+          template: 'edge-one-hop',
+          expectEmpty: false,
+          requiresClosure: false,
+          question: rng.pick([
+            `What is the direct ${role} of ${x} via ${edge.name}? One step only.`,
+            `Immediately via ${edge.name}, which ${role} does ${x} connect to? Not the whole chain.`,
+            `Give ${x}'s direct ${role} under ${edge.name}, one hop.`,
+          ]),
+          program: `q(Y) :- ${literal}.`,
+        });
+      }
+    }
+
     for (const x of ups.slice(0, 3)) {
       const [up, upDir] = chainLiteral(edge, x, 'Y', true);
       add({
