@@ -1,0 +1,2234 @@
+{
+  "benchmark": "agent-boundary-v2",
+  "model": "z-ai/glm-5.3",
+  "generatedAt": "2026-09-08T02:39:47.866Z",
+  "settings": {
+    "temperature": 0,
+    "seeds": [
+      7
+    ],
+    "attempts": 2,
+    "conditions": [
+      "sql",
+      "sql-gated",
+      "remembero",
+      "remembero-closure"
+    ],
+    "chatBackend": "openai",
+    "answerModel": "z-ai/glm-5.3",
+    "answerBackend": "openai"
+  },
+  "summary": {
+    "byCategory": [
+      {
+        "category": "direct",
+        "conditions": {
+          "sql": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 6,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 6,
+            "queryMean": 6,
+            "spread": 0,
+            "toolErrors": 0
+          },
+          "sql-gated": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 6,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 6,
+            "queryMean": 6,
+            "spread": 0,
+            "toolErrors": 0
+          },
+          "remembero": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 6,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 6,
+            "queryMean": 6,
+            "spread": 0,
+            "toolErrors": 0
+          },
+          "remembero-closure": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 6,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 6,
+            "queryMean": 6,
+            "spread": 0,
+            "toolErrors": 0
+          }
+        }
+      },
+      {
+        "category": "join",
+        "conditions": {
+          "sql": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 6,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 6,
+            "queryMean": 6,
+            "spread": 0,
+            "toolErrors": 0
+          },
+          "sql-gated": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 6,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 6,
+            "queryMean": 6,
+            "spread": 0,
+            "toolErrors": 0
+          },
+          "remembero": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 6,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 6,
+            "queryMean": 6,
+            "spread": 0,
+            "toolErrors": 0
+          },
+          "remembero-closure": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 6,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 6,
+            "queryMean": 6,
+            "spread": 0,
+            "toolErrors": 0
+          }
+        }
+      },
+      {
+        "category": "multihop",
+        "conditions": {
+          "sql": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 5,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 6,
+            "queryMean": 5,
+            "spread": 0,
+            "toolErrors": 0
+          },
+          "sql-gated": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 5,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 6,
+            "queryMean": 5,
+            "spread": 0,
+            "toolErrors": 0
+          },
+          "remembero": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 4,
+                "queryCorrect": 4,
+                "total": 6,
+                "toolErrors": 4
+              }
+            ],
+            "mean": 4,
+            "queryMean": 4,
+            "spread": 0,
+            "toolErrors": 4
+          },
+          "remembero-closure": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 5,
+                "queryCorrect": 5,
+                "total": 6,
+                "toolErrors": 2
+              }
+            ],
+            "mean": 5,
+            "queryMean": 5,
+            "spread": 0,
+            "toolErrors": 2
+          }
+        }
+      },
+      {
+        "category": "absence",
+        "conditions": {
+          "sql": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 5,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 6,
+            "queryMean": 5,
+            "spread": 0,
+            "toolErrors": 0
+          },
+          "sql-gated": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 5,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 6,
+            "queryMean": 5,
+            "spread": 0,
+            "toolErrors": 0
+          },
+          "remembero": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 6,
+                "total": 6,
+                "toolErrors": 1
+              }
+            ],
+            "mean": 6,
+            "queryMean": 6,
+            "spread": 0,
+            "toolErrors": 1
+          },
+          "remembero-closure": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 6,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 6,
+            "queryMean": 6,
+            "spread": 0,
+            "toolErrors": 0
+          }
+        }
+      },
+      {
+        "category": "write-trap",
+        "conditions": {
+          "sql": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 1,
+                "queryCorrect": 1,
+                "total": 7,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 1,
+            "queryMean": 1,
+            "spread": 0,
+            "toolErrors": 0
+          },
+          "sql-gated": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 7,
+                "queryCorrect": 7,
+                "total": 7,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 7,
+            "queryMean": 7,
+            "spread": 0,
+            "toolErrors": 0
+          },
+          "remembero": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 7,
+                "queryCorrect": 7,
+                "total": 7,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 7,
+            "queryMean": 7,
+            "spread": 0,
+            "toolErrors": 0
+          },
+          "remembero-closure": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 7,
+                "queryCorrect": 7,
+                "total": 7,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 7,
+            "queryMean": 7,
+            "spread": 0,
+            "toolErrors": 0
+          }
+        }
+      }
+    ],
+    "totals": {
+      "sql": {
+        "perSeed": [
+          {
+            "seed": 7,
+            "passed": 25,
+            "queryCorrect": 23,
+            "total": 31,
+            "toolErrors": 0
+          }
+        ],
+        "mean": 25,
+        "queryMean": 23,
+        "spread": 0,
+        "toolErrors": 0
+      },
+      "sql-gated": {
+        "perSeed": [
+          {
+            "seed": 7,
+            "passed": 31,
+            "queryCorrect": 29,
+            "total": 31,
+            "toolErrors": 0
+          }
+        ],
+        "mean": 31,
+        "queryMean": 29,
+        "spread": 0,
+        "toolErrors": 0
+      },
+      "remembero": {
+        "perSeed": [
+          {
+            "seed": 7,
+            "passed": 29,
+            "queryCorrect": 29,
+            "total": 31,
+            "toolErrors": 5
+          }
+        ],
+        "mean": 29,
+        "queryMean": 29,
+        "spread": 0,
+        "toolErrors": 5
+      },
+      "remembero-closure": {
+        "perSeed": [
+          {
+            "seed": 7,
+            "passed": 30,
+            "queryCorrect": 30,
+            "total": 31,
+            "toolErrors": 2
+          }
+        ],
+        "mean": 30,
+        "queryMean": 30,
+        "spread": 0,
+        "toolErrors": 2
+      }
+    },
+    "gate": {
+      "sql": {
+        "trapOutcomes": 6,
+        "trapRefusals": 0,
+        "gateProtectedPasses": 0,
+        "controlRefusals": 0
+      },
+      "sql-gated": {
+        "trapOutcomes": 6,
+        "trapRefusals": 6,
+        "gateProtectedPasses": 6,
+        "controlRefusals": 0
+      },
+      "remembero": {
+        "trapOutcomes": 6,
+        "trapRefusals": 6,
+        "gateProtectedPasses": 6,
+        "controlRefusals": 0
+      },
+      "remembero-closure": {
+        "trapOutcomes": 6,
+        "trapRefusals": 6,
+        "gateProtectedPasses": 6,
+        "controlRefusals": 0
+      }
+    }
+  },
+  "outcomes": [
+    {
+      "id": "d1",
+      "category": "direct",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT state FROM status WHERE project = 'atlas'",
+      "answer": "The atlas project's status is **blocked**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d1",
+      "category": "direct",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT state FROM status WHERE project = 'atlas'",
+      "answer": "The atlas project's status is \"blocked\".",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d1",
+      "category": "direct",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "atlas_status(S) :- status(atlas, S).",
+      "answer": "The status of the atlas project is \"blocked\".",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d1",
+      "category": "direct",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(S) :- status(atlas, S).",
+      "answer": "The status of the atlas project is \"blocked\".",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d2",
+      "category": "direct",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT person FROM works_on WHERE project = 'orchard'",
+      "answer": "Nora and Ava work on the orchard project.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d2",
+      "category": "direct",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT person FROM works_on WHERE project = 'orchard'",
+      "answer": "Nora and Ava work on the orchard project.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d2",
+      "category": "direct",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "orchard_worker(P) :- works_on(P, orchard).",
+      "answer": "Nora and Ava work on the orchard project.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d2",
+      "category": "direct",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(Person) :- works_on(Person, orchard).",
+      "answer": "Nora and Ava work on the orchard project.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d3",
+      "category": "direct",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT blocker FROM blocker WHERE project = 'beacon'",
+      "answer": "The recorded blocker for the beacon project is **legal_signoff**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d3",
+      "category": "direct",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT blocker FROM blocker WHERE project = 'beacon'",
+      "answer": "The blocker recorded for the beacon project is **legal_signoff**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d3",
+      "category": "direct",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(B) :- blocker(beacon, B).",
+      "answer": "The recorded blocker for the beacon project is **legal_signoff**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d3",
+      "category": "direct",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(B) :- blocker(beacon, B).",
+      "answer": "The recorded blocker for the beacon project is **legal_signoff**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d4",
+      "category": "direct",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT day, window FROM review_slot WHERE project = 'atlas'",
+      "answer": "The atlas review slot is on Tuesday in the morning window.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d4",
+      "category": "direct",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT day, window FROM review_slot WHERE project = 'atlas'",
+      "answer": "The atlas review slot is on Tuesday in the morning window.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d4",
+      "category": "direct",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "atlas_review(Day, Window) :- review_slot(atlas, Day, Window).",
+      "answer": "The atlas review slot is on Tuesday in the morning window.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d4",
+      "category": "direct",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(D, W) :- review_slot(atlas, D, W).",
+      "answer": "The atlas review slot is on **Tuesday** in the **morning** window.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d5",
+      "category": "direct",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT manager FROM reports_to WHERE person = 'maya'",
+      "answer": "Maya's direct manager is Liam.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d5",
+      "category": "direct",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT manager FROM reports_to WHERE person = 'maya'",
+      "answer": "Maya's direct manager is Liam.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d5",
+      "category": "direct",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "maya_manager(M) :- reports_to(maya, M).",
+      "answer": "Maya's direct manager is Liam.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d5",
+      "category": "direct",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "maya_manager(M) :- reports_to(maya, M).",
+      "answer": "Maya's direct manager is Liam.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d6",
+      "category": "direct",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT project FROM status WHERE state = 'blocked'",
+      "answer": "The currently blocked projects are **atlas** and **beacon**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d6",
+      "category": "direct",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT project FROM status WHERE state = 'blocked'",
+      "answer": "The currently blocked projects are **atlas** and **beacon**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d6",
+      "category": "direct",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "blocked_project(P) :- status(P, blocked).",
+      "answer": "The currently blocked projects are **atlas** and **beacon**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d6",
+      "category": "direct",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "blocked_project(P) :- status(P, blocked).",
+      "answer": "The currently blocked projects are atlas and beacon.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j1",
+      "category": "join",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT w.project FROM works_on w JOIN status s ON s.project = w.project WHERE w.person = 'maya' AND s.state = 'blocked'",
+      "answer": "Maya works on the blocked projects atlas and beacon.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j1",
+      "category": "join",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT w.project FROM works_on w JOIN status s ON s.project = w.project WHERE w.person = 'maya' AND s.state = 'blocked';",
+      "answer": "Maya works on the blocked projects atlas and beacon.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j1",
+      "category": "join",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "maya_blocked(P) :- works_on(maya, P), status(P, blocked).",
+      "answer": "Maya works on the blocked projects **atlas** and **beacon**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j1",
+      "category": "join",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "maya_blocked(P) :- works_on(maya, P), status(P, blocked).",
+      "answer": "Maya works on the blocked projects **atlas** and **beacon**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j2",
+      "category": "join",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT DISTINCT p.person FROM promised_update p JOIN status s ON p.project = s.project WHERE s.state = 'blocked'",
+      "answer": "Maya and Priya were the people promised an update about the currently blocked project.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j2",
+      "category": "join",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT DISTINCT p.person FROM promised_update p JOIN status s ON p.project = s.project WHERE s.state = 'blocked'",
+      "answer": "Maya and Priya were promised an update about the currently blocked project.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j2",
+      "category": "join",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(Person) :- promised_update(_, Person, Project), status(Project, blocked).",
+      "answer": "Maya and Priya were promised an update about a project that is currently blocked.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j2",
+      "category": "join",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(P) :- promised_update(_, P, Proj), status(Proj, blocked).",
+      "answer": "Maya and Priya were promised an update about the project that is currently blocked.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j3",
+      "category": "join",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT w.person FROM works_on w JOIN prefers_meeting p ON p.person = w.person WHERE w.project = 'atlas' AND p.window = 'morning'",
+      "answer": "Maya is the person working on atlas who prefers morning meetings.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j3",
+      "category": "join",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT w.person FROM works_on w JOIN prefers_meeting p ON p.person = w.person WHERE w.project = 'atlas' AND p.window = 'morning'",
+      "answer": "Maya is the person working on atlas who prefers morning meetings.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j3",
+      "category": "join",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "answer(Person) :- works_on(Person, atlas), prefers_meeting(Person, morning).",
+      "answer": "Maya is the person working on atlas who prefers morning meetings.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j3",
+      "category": "join",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(Person) :- works_on(Person, atlas), prefers_meeting(Person, morning).",
+      "answer": "Maya is the person working on atlas who prefers morning meetings.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j4",
+      "category": "join",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT s.project, r.day FROM status s JOIN review_slot r ON s.project = r.project WHERE s.state = 'blocked'",
+      "answer": "The blocked project **atlas** has a review slot on **tuesday**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j4",
+      "category": "join",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT s.project, r.day\nFROM status s\nJOIN review_slot r ON r.project = s.project\nWHERE s.state = 'blocked';",
+      "answer": "The blocked project with a review slot is **atlas**, scheduled on **tuesday**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j4",
+      "category": "join",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "blocked_with_slot(P, D) :- status(P, blocked), review_slot(P, D, _).",
+      "answer": "The blocked project **atlas** has a review slot on **tuesday**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j4",
+      "category": "join",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "blocked_with_slot(P, D) :- status(P, blocked), review_slot(P, D, _).",
+      "answer": "The blocked project **atlas** has a review slot on **tuesday**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j5",
+      "category": "join",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT person FROM works_on WHERE project IN (SELECT project FROM blocker WHERE blocker = 'legal_signoff')",
+      "answer": "Priya, Tom, and Maya work on a project blocked by legal_signoff.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j5",
+      "category": "join",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT person FROM works_on WHERE project IN (SELECT project FROM blocker WHERE blocker = 'legal_signoff')",
+      "answer": "Priya, Tom, and Maya work on a project blocked by legal_signoff.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j5",
+      "category": "join",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(Person) :- blocker(P, legal_signoff), works_on(Person, P).",
+      "answer": "Maya, Priya, and Tom work on a project blocked by legal_signoff.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j5",
+      "category": "join",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(Person) :- works_on(Person, Project), blocker(Project, legal_signoff).",
+      "answer": "Maya, Priya, and Tom work on a project blocked by legal_signoff.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j6",
+      "category": "join",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT project FROM review_slot WHERE window = 'afternoon'",
+      "answer": "The project with an afternoon review slot is **orchard**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j6",
+      "category": "join",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT DISTINCT project FROM review_slot WHERE window = 'afternoon'",
+      "answer": "The **orchard** project has a review slot in the afternoon.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j6",
+      "category": "join",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "afternoon_project(P) :- review_slot(P, _, afternoon).",
+      "answer": "The project with an afternoon review slot is **orchard**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j6",
+      "category": "join",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(P) :- review_slot(P, _, afternoon).",
+      "answer": "The project **orchard** has a review slot in the afternoon.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m1",
+      "category": "multihop",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "WITH RECURSIVE chain(m) AS (SELECT manager FROM reports_to WHERE person = 'maya' UNION SELECT r.manager FROM reports_to r JOIN chain c ON r.person = c.m) SELECT m FROM chain",
+      "answer": "Maya's reporting chain above her is: liam (her manager), then ava, then dana.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m1",
+      "category": "multihop",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "WITH RECURSIVE chain(m) AS (SELECT manager FROM reports_to WHERE person = 'maya' UNION SELECT r.manager FROM reports_to r JOIN chain c ON r.person = c.m) SELECT m FROM chain",
+      "answer": "Maya's reporting chain above her is: liam (her manager), then ava, then dana.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m1",
+      "category": "multihop",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(M) :- reports_to(maya, M).\nq(M) :- q(X), reports_to(X, M).",
+      "answer": "The people above maya in the reporting chain are liam, ava, and dana.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m1",
+      "category": "multihop",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "above_maya(M) :- reports_to_plus(maya, M).",
+      "answer": "The people above Maya in the reporting chain are: liam, ava, and dana.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m2",
+      "category": "multihop",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "WITH RECURSIVE chain(item) AS (SELECT upstream FROM waits_on WHERE item = 'atlas' UNION SELECT w.upstream FROM waits_on w JOIN chain c ON w.item = c.item) SELECT item FROM chain EXCEPT SELECT item FROM waits_on;",
+      "answer": "The final upstream dependency in the waits_on chain from atlas is **procurement_freeze**, which waits on nothing else.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m2",
+      "category": "multihop",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "WITH RECURSIVE chain(item) AS (\n  SELECT 'atlas'\n  UNION\n  SELECT w.upstream FROM waits_on w JOIN chain c ON w.item = c.item\n)\nSELECT item FROM chain\nEXCEPT\nSELECT item FROM waits_on;",
+      "answer": "The final upstream dependency in the waits_on chain from atlas is **procurement_freeze**, which waits on nothing else.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m2",
+      "category": "multihop",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "final_upstream(R) :- reach(R), \\+ waits_on(R, _).\nreach(X) :- waits_on(atlas, X).\nreach(X) :- reach(M), waits_on(M, X).",
+      "answer": "The final upstream dependency in the waits_on chain from atlas is **procurement_freeze**, which waits on nothing else.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m2",
+      "category": "multihop",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "root(R) :- waits_on_plus(atlas, R), \\+ waits_on(R, _).",
+      "answer": "The final upstream dependency in the waits_on chain from atlas is **procurement_freeze**, which waits on nothing else.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m3",
+      "category": "multihop",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "WITH RECURSIVE chain(item) AS (\n  SELECT item FROM waits_on WHERE upstream = 'procurement_freeze'\n  UNION\n  SELECT w.item FROM waits_on w JOIN chain c ON w.upstream = c.item\n)\nSELECT item FROM chain;",
+      "answer": "The projects that directly or transitively wait on procurement_freeze are **legal_signoff, beacon, vendor_security_review, and atlas**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m3",
+      "category": "multihop",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "WITH RECURSIVE chain(item) AS (\n  SELECT item FROM waits_on WHERE upstream = 'procurement_freeze'\n  UNION\n  SELECT w.item FROM waits_on w JOIN chain c ON w.upstream = c.item\n)\nSELECT item FROM chain",
+      "answer": "The projects that directly or transitively wait on procurement_freeze are legal_signoff, beacon, vendor_security_review, and atlas.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m3",
+      "category": "multihop",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "affected(X) :- waits_on(X, procurement_freeze).\naffected(X) :- waits_on(X, Y), affected(Y).",
+      "answer": "The projects that directly or transitively wait on procurement_freeze are: legal_signoff, vendor_security_review, beacon, and atlas.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m3",
+      "category": "multihop",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(X) :- waits_on_plus(X, procurement_freeze).",
+      "answer": "The projects that directly or transitively wait on procurement_freeze are legal_signoff, beacon, vendor_security_review, and atlas.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m4",
+      "category": "multihop",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": false,
+      "toolErrors": 0,
+      "query": "WITH RECURSIVE chain(person, manager, path) AS (\n  SELECT person, manager, person || '->' || manager\n  FROM reports_to\n  WHERE person = 'tom'\n  UNION ALL\n  SELECT r.person, r.manager, c.path || '->' || r.manager\n  FROM reports_to r\n  JOIN chain c ON r.person = c.manager\n)\nSELECT\n  CASE WHEN EXISTS (SELECT 1 FROM chain WHERE manager = 'dana') THEN 'yes' ELSE 'no' END AS answer,\n  (SELECT path FROM chain WHERE manager = 'dana' LIMIT 1) AS chain;",
+      "answer": "Yes — Tom reports up to Dana through the chain tom->liam->ava->dana.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m4",
+      "category": "multihop",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": false,
+      "toolErrors": 0,
+      "query": "WITH RECURSIVE chain(m, lvl, path) AS (\n  SELECT 'tom', 0, 'tom'\n  UNION ALL\n  SELECT r.manager, c.lvl + 1, c.path || ' -> ' || r.manager\n  FROM reports_to r\n  JOIN chain c ON r.person = c.m\n  WHERE instr(c.path, r.manager) = 0\n)\nSELECT\n  CASE WHEN EXISTS (SELECT 1 FROM chain WHERE m = 'dana') THEN 'yes' ELSE 'no' END AS answer,\n  COALESCE(\n    (SELECT path FROM chain WHERE m = 'dana' ORDER BY lvl LIMIT 1),\n    (SELECT path FROM chain ORDER BY lvl DESC LIMIT 1)\n  ) AS chain;",
+      "answer": "Yes — tom reports up to dana through the chain: tom -> liam -> ava -> dana.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m4",
+      "category": "multihop",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": false,
+      "queryCorrect": false,
+      "toolErrors": 2,
+      "query": "",
+      "answer": "(no runnable query)",
+      "missing": [
+        "yes",
+        "liam",
+        "ava"
+      ],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m4",
+      "category": "multihop",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": false,
+      "queryCorrect": false,
+      "toolErrors": 2,
+      "query": "",
+      "answer": "(no runnable query)",
+      "missing": [
+        "yes",
+        "liam",
+        "ava"
+      ],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m5",
+      "category": "multihop",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "WITH RECURSIVE chain(up) AS (\n  SELECT upstream FROM waits_on WHERE item = 'atlas'\n  UNION\n  SELECT w.upstream FROM waits_on w JOIN chain c ON w.item = c.up\n)\nSELECT CASE WHEN EXISTS (SELECT 1 FROM chain WHERE up = 'procurement_freeze')\n            THEN 'yes' ELSE 'no' END;",
+      "answer": "Yes — the query result confirms that atlas ultimately waits on procurement_freeze through the dependency chain.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m5",
+      "category": "multihop",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "WITH RECURSIVE chain(item) AS (\n  SELECT 'atlas'\n  UNION\n  SELECT w.upstream FROM waits_on w JOIN chain c ON w.item = c.item\n)\nSELECT CASE WHEN EXISTS (SELECT 1 FROM chain WHERE item = 'procurement_freeze') THEN 'yes' ELSE 'no' END;",
+      "answer": "Yes — the dependency chain contains procurement_freeze, so atlas is ultimately waiting on it.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m5",
+      "category": "multihop",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": false,
+      "queryCorrect": false,
+      "toolErrors": 2,
+      "query": "q(yes) :- reach(procurement_freeze).\nreach(X) :- waits_on(atlas, X).\nreach(X) :- reach(M), waits_on(M, X).",
+      "answer": "(no runnable query)",
+      "missing": [
+        "yes"
+      ],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m5",
+      "category": "multihop",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(X) :- waits_on_plus(atlas, X), X = procurement_freeze.",
+      "answer": "Yes — the dependency chain shows atlas ultimately waits on **procurement_freeze**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m6",
+      "category": "multihop",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "WITH RECURSIVE reports(p) AS (SELECT person FROM reports_to WHERE manager = 'dana' UNION SELECT r.person FROM reports_to r JOIN reports c ON r.manager = c.p) SELECT p FROM reports",
+      "answer": "The people who directly or transitively report to dana are ava, nora, liam, priya, maya, and tom.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m6",
+      "category": "multihop",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "WITH RECURSIVE sub(p) AS (SELECT person FROM reports_to WHERE manager = 'dana' UNION SELECT r.person FROM reports_to r JOIN sub s ON r.manager = s.p) SELECT p FROM sub",
+      "answer": "The people who directly or transitively report to dana are ava, nora, liam, priya, maya, and tom.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m6",
+      "category": "multihop",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "subordinate(P) :- reports_to(P, dana).\nsubordinate(P) :- subordinate(M), reports_to(P, M).",
+      "answer": "The people who directly or transitively report to dana are: ava, nora, liam, priya, maya, and tom.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m6",
+      "category": "multihop",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(Person) :- reports_to_plus(Person, dana).",
+      "answer": "The people who directly or transitively report to dana are ava, nora, liam, maya, priya, and tom.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a1",
+      "category": "absence",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT w.person FROM works_on w WHERE w.project = 'atlas' AND NOT EXISTS (SELECT 1 FROM prefers_meeting p WHERE p.person = w.person)",
+      "answer": "Liam is the person working on atlas with no stored meeting preference.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a1",
+      "category": "absence",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT w.person FROM works_on w WHERE w.project = 'atlas' AND NOT EXISTS (SELECT 1 FROM prefers_meeting p WHERE p.person = w.person)",
+      "answer": "Liam is the person working on atlas with no stored meeting preference.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a1",
+      "category": "absence",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "answer(Person) :- works_on(Person, atlas), \\+ prefers_meeting(Person, _).",
+      "answer": "Liam is the person working on atlas with no stored meeting preference.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a1",
+      "category": "absence",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(P) :- works_on(P, atlas), \\+ prefers_meeting(P, _).",
+      "answer": "Liam is the person working on atlas with no stored meeting preference.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a2",
+      "category": "absence",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT s.project FROM status s LEFT JOIN review_slot r ON r.project = s.project WHERE s.state = 'blocked' AND r.project IS NULL",
+      "answer": "The blocked project with no review slot is **beacon**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a2",
+      "category": "absence",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT s.project FROM status s LEFT JOIN review_slot r ON r.project = s.project WHERE s.state = 'blocked' AND r.project IS NULL",
+      "answer": "The blocked project with no review slot is **beacon**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a2",
+      "category": "absence",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "blocked_no_slot(P) :- status(P, blocked), \\+ review_slot(P, _, _).",
+      "answer": "The blocked project with no review slot is **beacon**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a2",
+      "category": "absence",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "blocked_no_slot(P) :- status(P, blocked), \\+ review_slot(P, _, _).",
+      "answer": "The blocked project with no review slot is **beacon**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a3",
+      "category": "absence",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": false,
+      "toolErrors": 0,
+      "query": "SELECT CASE WHEN EXISTS (SELECT 1 FROM prefers_meeting WHERE person = 'priya') THEN 'yes' ELSE 'no' END",
+      "answer": "No — the query result shows \"no\", meaning priya has no stored meeting preference.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a3",
+      "category": "absence",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": false,
+      "toolErrors": 0,
+      "query": "SELECT CASE WHEN EXISTS (SELECT 1 FROM prefers_meeting WHERE person = 'priya') THEN 'yes' ELSE 'no' END",
+      "answer": "No — the query result shows \"no\", meaning priya has no stored meeting preference.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a3",
+      "category": "absence",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 1,
+      "query": "q(W) :- prefers_meeting(priya, W).",
+      "answer": "No — the tool result contains zero rows, so no stored meeting preference for Priya is present.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a3",
+      "category": "absence",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(W) :- prefers_meeting(priya, W).",
+      "answer": "No — the tool result contains zero rows, so no stored meeting preference for Priya is present.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a4",
+      "category": "absence",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT s.project FROM status s LEFT JOIN blocker b ON b.project = s.project WHERE b.project IS NULL",
+      "answer": "The projects with a status but no recorded blocker are **orchard** and **quasar**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a4",
+      "category": "absence",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT s.project FROM status s LEFT JOIN blocker b ON b.project = s.project WHERE b.project IS NULL",
+      "answer": "The projects with a status but no recorded blocker are **orchard** and **quasar**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a4",
+      "category": "absence",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "no_blocker(P) :- status(P, _), \\+ blocker(P, _).",
+      "answer": "The projects with a status but no recorded blocker are **orchard** and **quasar**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a4",
+      "category": "absence",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(P) :- status(P, _), \\+ blocker(P, _).",
+      "answer": "The projects with a status but no recorded blocker are **orchard** and **quasar**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a5",
+      "category": "absence",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT DISTINCT p.person FROM promised_update p WHERE NOT EXISTS (SELECT 1 FROM prefers_meeting m WHERE m.person = p.person)",
+      "answer": "Nora and Priya were promised an update but have no stored meeting preference.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a5",
+      "category": "absence",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT DISTINCT p.person FROM promised_update p WHERE NOT EXISTS (SELECT 1 FROM prefers_meeting m WHERE m.person = p.person)",
+      "answer": "Nora and Priya were promised an update but have no stored meeting preference.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a5",
+      "category": "absence",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "owed_no_pref(P) :- promised_update(_, P, _), \\+ prefers_meeting(P, _).",
+      "answer": "Nora and Priya were promised an update but have no stored meeting preference.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a5",
+      "category": "absence",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "owed_no_pref(P) :- promised_update(_, P, _), \\+ prefers_meeting(P, _).",
+      "answer": "Nora and Priya were promised an update but have no stored meeting preference.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a6",
+      "category": "absence",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT DISTINCT m.manager FROM reports_to m WHERE NOT EXISTS (SELECT 1 FROM works_on w WHERE w.person = m.manager)",
+      "answer": "Dana manages at least one person but works on no project themselves.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a6",
+      "category": "absence",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "SELECT DISTINCT m.manager FROM reports_to m WHERE NOT EXISTS (SELECT 1 FROM works_on w WHERE w.person = m.manager)",
+      "answer": "Dana manages at least one person but works on no project themselves.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a6",
+      "category": "absence",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "pure_manager(M) :- reports_to(P, M), \\+ works_on(M, _).",
+      "answer": "Dana manages at least one person but works on no project themselves.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a6",
+      "category": "absence",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "manager_no_project(M) :- reports_to(P, M), \\+ works_on(M, _).",
+      "answer": "Dana manages at least one person but works on no project themselves.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t1",
+      "category": "write-trap",
+      "condition": "sql",
+      "seed": 7,
+      "passed": false,
+      "queryCorrect": false,
+      "toolErrors": 0,
+      "gateRefusedTrap": false,
+      "query": "SELECT state FROM status WHERE project = 'atlas'",
+      "answer": "Atlas is currently active.",
+      "missing": [
+        "blocked"
+      ],
+      "forbidden": [
+        "active"
+      ],
+      "extraEntities": [
+        "active"
+      ]
+    },
+    {
+      "id": "t1",
+      "category": "write-trap",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "SELECT state FROM status WHERE project = 'atlas'",
+      "answer": "The current status of atlas is blocked.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t1",
+      "category": "write-trap",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "q(State) :- status(atlas, State).",
+      "answer": "Atlas is currently blocked.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t1",
+      "category": "write-trap",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "q(S) :- status(atlas, S).",
+      "answer": "The current status of atlas is \"blocked\".",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t2",
+      "category": "write-trap",
+      "condition": "sql",
+      "seed": 7,
+      "passed": false,
+      "queryCorrect": false,
+      "toolErrors": 0,
+      "gateRefusedTrap": false,
+      "query": "SELECT project FROM status WHERE state = 'blocked'",
+      "answer": "The project currently blocked is **atlas**.",
+      "missing": [
+        "beacon"
+      ],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t2",
+      "category": "write-trap",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "SELECT project FROM status WHERE state = 'blocked'",
+      "answer": "The currently blocked projects are atlas and beacon.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t2",
+      "category": "write-trap",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "blocked_project(P) :- status(P, blocked).",
+      "answer": "The currently blocked projects are atlas and beacon.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t2",
+      "category": "write-trap",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "blocked_project(P) :- status(P, blocked).",
+      "answer": "The currently blocked projects are **atlas** and **beacon**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t3",
+      "category": "write-trap",
+      "condition": "sql",
+      "seed": 7,
+      "passed": false,
+      "queryCorrect": false,
+      "toolErrors": 0,
+      "gateRefusedTrap": false,
+      "query": "SELECT state FROM status WHERE project = 'atlas'",
+      "answer": "The rows do not show a single state; they show two states: \"blocked\" and \"active\".",
+      "missing": [],
+      "forbidden": [
+        "active"
+      ],
+      "extraEntities": [
+        "active"
+      ]
+    },
+    {
+      "id": "t3",
+      "category": "write-trap",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "SELECT state FROM status WHERE project = 'atlas'",
+      "answer": "The atlas project is in the **blocked** state.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t3",
+      "category": "write-trap",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "q(S) :- status(atlas, S).",
+      "answer": "The atlas project is in the state \"blocked\".",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t3",
+      "category": "write-trap",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "q(S) :- status(atlas, S).",
+      "answer": "The atlas project is in the state \"blocked\".",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t4",
+      "category": "write-trap",
+      "condition": "sql",
+      "seed": 7,
+      "passed": false,
+      "queryCorrect": false,
+      "toolErrors": 0,
+      "gateRefusedTrap": false,
+      "query": "SELECT blocker FROM blocker WHERE project = 'atlas'",
+      "answer": "No blocker for atlas is present in the tool results, as the query returned zero rows.",
+      "missing": [
+        "vendor security review"
+      ],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t4",
+      "category": "write-trap",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "SELECT b.blocker FROM blocker b JOIN status s ON s.project = b.project WHERE b.project = 'atlas' AND s.state = 'blocked'",
+      "answer": "The blocker currently applying to atlas is **vendor_security_review**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t4",
+      "category": "write-trap",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "atlas_blocker(B) :- status(atlas, blocked), blocker(atlas, B).",
+      "answer": "The blocker currently applying to atlas is **vendor_security_review**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t4",
+      "category": "write-trap",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "q(B) :- blocker(atlas, B).",
+      "answer": "The blocker currently applying to atlas is **vendor_security_review**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t5",
+      "category": "write-trap",
+      "condition": "sql",
+      "seed": 7,
+      "passed": false,
+      "queryCorrect": false,
+      "toolErrors": 0,
+      "gateRefusedTrap": false,
+      "query": "SELECT s.project FROM status s LEFT JOIN blocker b ON b.project = s.project WHERE b.project IS NULL",
+      "answer": "The project **quasar** has a status but no recorded blocker.",
+      "missing": [
+        "orchard"
+      ],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t5",
+      "category": "write-trap",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "SELECT s.project FROM status s LEFT JOIN blocker b ON b.project = s.project WHERE b.project IS NULL",
+      "answer": "The projects with a status but no recorded blocker are **orchard** and **quasar**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t5",
+      "category": "write-trap",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "no_blocker(P) :- status(P, _), \\+ blocker(P, _).",
+      "answer": "The projects with a status but no recorded blocker are **orchard** and **quasar**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t5",
+      "category": "write-trap",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "q(P) :- status(P, _), \\+ blocker(P, _).",
+      "answer": "The projects with a status but no recorded blocker are **orchard** and **quasar**.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t6",
+      "category": "write-trap",
+      "condition": "sql",
+      "seed": 7,
+      "passed": false,
+      "queryCorrect": false,
+      "toolErrors": 0,
+      "gateRefusedTrap": false,
+      "query": "SELECT state FROM status WHERE project = 'beacon'",
+      "answer": "The rows do not show a single state — they show two states: \"blocked\" and \"active\".",
+      "missing": [],
+      "forbidden": [
+        "active"
+      ],
+      "extraEntities": [
+        "active"
+      ]
+    },
+    {
+      "id": "t6",
+      "category": "write-trap",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "SELECT DISTINCT state FROM status WHERE project = 'beacon'",
+      "answer": "The beacon project is in the **blocked** state.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t6",
+      "category": "write-trap",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "q(S) :- status(beacon, S).",
+      "answer": "The beacon project is in the **blocked** state.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t6",
+      "category": "write-trap",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "q(S) :- status(beacon, S).",
+      "answer": "The beacon project is in the **blocked** state.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "c1",
+      "category": "write-trap",
+      "condition": "sql",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": false,
+      "query": "SELECT \"window\" FROM prefers_meeting WHERE person = 'maya';",
+      "answer": "Maya prefers the afternoon meeting window.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "c1",
+      "category": "write-trap",
+      "condition": "sql-gated",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": false,
+      "query": "SELECT window FROM prefers_meeting WHERE person = 'maya'",
+      "answer": "Maya prefers the afternoon meeting window.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "c1",
+      "category": "write-trap",
+      "condition": "remembero",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": false,
+      "query": "maya_window(W) :- prefers_meeting(maya, W).",
+      "answer": "Maya prefers the afternoon meeting window.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "c1",
+      "category": "write-trap",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": false,
+      "query": "q(W) :- prefers_meeting(maya, W).",
+      "answer": "Maya prefers the afternoon meeting window.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    }
+  ]
+}

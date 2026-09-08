@@ -2,8 +2,9 @@
 
 Status: first results · 2026-09-08 · single seed, one model family
 Evidence: `results/agent-boundary-v2-finetune-llama3.2-3b-r{1,2,3}-remembero-closure-summary.json`,
-`results/agent-boundary-v2-*-remembero-closure-summary.json` (untuned baselines), and the
-published four-model matrix ([findings](AGENT-BOUNDARY-FINDINGS.md)).
+`results/agent-boundary-v2-*-remembero-closure-summary.json` (untuned baselines),
+`results/agent-boundary-v2-{z-ai-glm-5.3,openai-gpt-5.6-luna}-summary.json` (frontier, all
+four conditions), and the published four-model matrix ([findings](AGENT-BOUNDARY-FINDINGS.md)).
 Method: [closure predicates](../CLOSURE-PREDICATES.md), [training-data design](../superpowers/specs/2026-09-08-query-dialect-training-data-design.md),
 [benchmarks/tinker/README.md](../../benchmarks/tinker/README.md).
 
@@ -47,6 +48,10 @@ fine-tuned on that data author correct queries on the benchmark's unseen schema?
 | **Llama-3.2-3B fine-tune, round 1** | remembero-closure            |            24 |         23 |                 3 |
 | **Llama-3.2-3B fine-tune, round 2** | remembero-closure            |            27 |         21 |                 5 |
 | **Llama-3.2-3B fine-tune, round 3** | remembero-closure            |        **27** |     **25** |             **5** |
+| openai/gpt-5.6-luna (frontier)      | sql-gated                    |            29 |         31 |                 6 |
+| openai/gpt-5.6-luna (frontier)      | remembero-closure            |            29 |         29 |                 5 |
+| z-ai/glm-5.3 (frontier)             | sql-gated                    |            29 |         31 |                 6 |
+| z-ai/glm-5.3 (frontier)             | remembero-closure            |            30 |         30 |                 5 |
 
 Every fine-tuned round refused all six trap writes and made zero or one tool error across
 31 questions; every program parsed and ran.
@@ -77,7 +82,17 @@ Every fine-tuned round refused all six trap writes and made zero or one tool err
    Held-out-world NLL was 0.007 or lower every round: the dialect itself is learned; what
    is left is coverage.
 
-5. **Cost.** Each round trained in about seven minutes on 3 to 4.3 million tokens; the
+5. **The frontier gap on query authoring is two to three questions.** GLM 5.3 and Luna,
+   run through the same harness via OpenRouter (`--chat-api openai`), score 30 and 29
+   query-correct on the closure arm against the fine-tune's 27. All three miss the same
+   multi-hop question, m4, which asks for yes/no _and_ the chain: the prompt's yes/no
+   pattern filters to one row, so the chain names never appear. That is a prompt-and-grading
+   interaction shared by every model, not a capability difference. Untuned, the same 3B
+   size scored 13. Frontier models still make Datalog tool errors on the published
+   `remembero` arm (GLM 5.3: 5 across 31 questions) and none on SQL, which is the
+   training-prior effect the v1 analysis predicted.
+
+6. **Cost.** Each round trained in about seven minutes on 3 to 4.3 million tokens; the
    three rounds together were a few dollars of Tinker time plus roughly 5,000 cached Luna
    paraphrase calls.
 
