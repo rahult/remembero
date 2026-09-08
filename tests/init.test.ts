@@ -52,6 +52,8 @@ describe('remembero init', () => {
         'user',
         '-e',
         'REMBERO_VALID_TIME_MODE=archive_until',
+        '-e',
+        'REMBERO_INTEGRITY_MODE=strict',
         '--',
         '/usr/local/bin/node',
         '/opt/rembero/dist/cli.js',

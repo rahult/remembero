@@ -6,7 +6,7 @@ import {
 
 export type InitExec = (
   command: string,
-  args: string[]
+  args: string[],
 ) => { status: number | null; stdout: string; stderr: string };
 
 export interface InitOptions {
@@ -35,7 +35,11 @@ export interface InitResult {
 function defaultExec(command: string, args: string[]): ReturnType<InitExec> {
   const run = spawnSync(command, args, { encoding: 'utf8', timeout: 30_000 });
   if (run.error) throw run.error;
-  return { status: run.status, stdout: run.stdout ?? '', stderr: run.stderr ?? '' };
+  return {
+    status: run.status,
+    stdout: run.stdout ?? '',
+    stderr: run.stderr ?? '',
+  };
 }
 
 export function claudeMdSnippet(namespace: string): string {
@@ -65,7 +69,13 @@ export function runInit(options: InitOptions): InitResult {
   });
 
   const env = options.env ?? process.env;
-  const envFlags = ['-e', 'REMBERO_VALID_TIME_MODE=archive_until'];
+  const envFlags = [
+    '-e',
+    'REMBERO_VALID_TIME_MODE=archive_until',
+    // strict: a write that violates a stored integrity constraint is refused
+    '-e',
+    'REMBERO_INTEGRITY_MODE=strict',
+  ];
   if (env.LLM_API_KEY !== undefined && env.LLM_API_KEY !== '') {
     envFlags.push('-e', `LLM_API_KEY=${env.LLM_API_KEY}`);
   }
@@ -93,9 +103,17 @@ export function runInit(options: InitOptions): InitResult {
   try {
     const run = exec(command[0], command.slice(1));
     if (run.status === 0) {
-      registration = { command, ok: true, detail: 'registered with Claude Code' };
+      registration = {
+        command,
+        ok: true,
+        detail: 'registered with Claude Code',
+      };
     } else if (/already exists/i.test(`${run.stdout}\n${run.stderr}`)) {
-      registration = { command, ok: true, detail: 'already registered with Claude Code' };
+      registration = {
+        command,
+        ok: true,
+        detail: 'already registered with Claude Code',
+      };
     } else {
       registration = {
         command,

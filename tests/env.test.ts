@@ -89,8 +89,12 @@ describe('recallSchemaPredicateLimitFromEnv', () => {
 });
 
 describe('integrityEnforcementFromEnv', () => {
-  it('defaults to audit-only and parses both enforcement modes', () => {
-    expect(integrityEnforcementFromEnv({})).toBeUndefined();
+  it('defaults to no_new_violations, allows an explicit off, and parses both modes', () => {
+    // The gate is the highest-value feature the benchmarks measured; it must be on
+    // for a default install. no_new_violations is migration-safe for stores that
+    // already contain violations.
+    expect(integrityEnforcementFromEnv({})).toEqual({ mode: 'no_new_violations' });
+    expect(integrityEnforcementFromEnv({ REMBERO_INTEGRITY_MODE: 'off' })).toBeUndefined();
     expect(
       integrityEnforcementFromEnv({ REMBERO_INTEGRITY_MODE: 'strict' })
     ).toEqual({ mode: 'strict' });

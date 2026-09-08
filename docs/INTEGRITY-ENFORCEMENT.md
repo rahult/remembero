@@ -21,7 +21,7 @@ proposed sources, and query-scoped graph evidence.
   be removed, but the write cannot introduce another identity. Identity is the stable
   alpha-normalized constraint ID plus its ordered bound values; renaming variables does
   not make a legacy violation look new.
-- `off` is the default and retains the 0.9 audit-only behavior.
+- `no_new_violations` is the default since 0.57; `off` is an explicit opt-out that retains the 0.9 audit-only behavior. `remembero init` registers the MCP server with `strict`.
 
 Configure a CLI or MCP server process with:
 
