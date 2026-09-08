@@ -27,9 +27,25 @@ import {
   type Example,
   type Rejection,
 } from './verify.js';
-import { generateWorld } from './worlds.js';
+import { generateWorld, type World } from './worlds.js';
+import {
+  generateExtractionExamples,
+  renderRequestText,
+  toExtractionConversation,
+  type ExtractionExample,
+  type Renderer,
+} from './extraction-data.js';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
+import type { LlmClient } from '../llm/client.js';
+
+export type TrainingTask = 'query' | 'extraction';
 
 export interface RunOptions {
+  /** Which task families to generate (default: both). */
+  tasks?: TrainingTask[];
+  /** Self atom used in extraction examples (default 'user'). */
+  selfAtom?: string;
   /** Target number of verified templated examples before paraphrasing (ignored when rounds is set). */
   examples: number;
   /** Draw exactly this many candidate rounds per world; keeps data size comparable across runs. */
@@ -43,9 +59,65 @@ export interface RunOptions {
 
 const MAX_ROUNDS = 50;
 
+/** Luna renders facts to text; results are cached by request so reruns are free. */
+export function createLlmRenderer(
+  client: LlmClient,
+  cacheDir: string,
+): Renderer {
+  mkdirSync(cacheDir, { recursive: true });
+  return async (request) => {
+    const instruction = renderRequestText(request);
+    const key = createHash('sha256')
+      .update(`${PARAPHRASE_MODEL}\n${instruction}`)
+      .digest('hex');
+    const path = join(cacheDir, `render-${key}.txt`);
+    if (existsSync(path)) return readFileSync(path, 'utf8');
+    const text = (
+      await client.complete([{ role: 'user', content: instruction }])
+    ).trim();
+    writeFileSync(path, text);
+    return text;
+  };
+}
+
+async function extractionLines(
+  worlds: World[],
+  options: RunOptions,
+  renderer: Renderer | undefined,
+  heldout: Set<string>,
+): Promise<{
+  train: string[];
+  heldout: string[];
+  count: number;
+  byKind: Record<string, number>;
+}> {
+  const selfAtom = options.selfAtom ?? 'user';
+  const train: string[] = [];
+  const held: string[] = [];
+  const byKind: Record<string, number> = {};
+  if (renderer === undefined) return { train, heldout: held, count: 0, byKind };
+  for (const world of worlds) {
+    const examples: ExtractionExample[] = await generateExtractionExamples(
+      world,
+      createRng(options.seed * 104729 + world.seed),
+      renderer,
+      { selfAtom, perKind: 2 },
+    );
+    for (const example of examples) {
+      byKind[example.kind] = (byKind[example.kind] ?? 0) + 1;
+      const line = JSON.stringify(
+        toExtractionConversation(world, example, selfAtom),
+      );
+      (heldout.has(world.id) ? held : train).push(line);
+    }
+  }
+  return { train, heldout: held, count: train.length + held.length, byKind };
+}
+
 export async function generateTrainingData(
   options: RunOptions,
   paraphraser?: Paraphraser,
+  extractionRenderer?: Renderer,
 ): Promise<Manifest> {
   const worlds = Array.from({ length: options.worlds }, (_, i) =>
     generateWorld(options.seed * 1000 + i + 1),
@@ -118,14 +190,40 @@ export async function generateTrainingData(
     paraphrasesPerExample: model ? options.paraphrases : 0,
     rounds: roundsDrawn,
   });
+  const tasks = options.tasks ?? ['query', 'extraction'];
+  let trainText = tasks.includes('query') ? train : '';
+  let heldText = tasks.includes('query') ? held : '';
+  let extraction: Awaited<ReturnType<typeof extractionLines>> | undefined;
+  if (tasks.includes('extraction')) {
+    let renderer = extractionRenderer;
+    if (renderer === undefined && options.paraphrase) {
+      loadEnv();
+      renderer = createLlmRenderer(
+        clientFromEnv({ ...process.env, LLM_MODEL: PARAPHRASE_MODEL }),
+        join(options.out, 'cache'),
+      );
+    }
+    extraction = await extractionLines(worlds, options, renderer, heldout);
+    trainText += extraction.train.map((l) => `${l}\n`).join('');
+    heldText += extraction.heldout.map((l) => `${l}\n`).join('');
+  }
+  const finalManifest: Manifest = {
+    ...manifest,
+    train: trainText.split('\n').filter(Boolean).length,
+    heldout: heldText.split('\n').filter(Boolean).length,
+    tasks,
+    ...(extraction === undefined
+      ? {}
+      : { extraction: { count: extraction.count, byKind: extraction.byKind } }),
+  };
   mkdirSync(options.out, { recursive: true });
-  writeFileSync(join(options.out, 'conversations.jsonl'), train);
-  writeFileSync(join(options.out, 'heldout.jsonl'), held);
+  writeFileSync(join(options.out, 'conversations.jsonl'), trainText);
+  writeFileSync(join(options.out, 'heldout.jsonl'), heldText);
   writeFileSync(
     join(options.out, 'manifest.json'),
-    `${JSON.stringify(manifest, null, 2)}\n`,
+    `${JSON.stringify(finalManifest, null, 2)}\n`,
   );
-  return manifest;
+  return finalManifest;
 }
 
 function flag(name: string, fallback: string): string {
@@ -150,6 +248,8 @@ if (invokedDirectly) {
     seed: Number(flag('--seed', '7')),
     out: flag('--out', 'data/training'),
     paraphrase: !process.argv.includes('--no-paraphrase'),
+    tasks: flag('--tasks', 'query,extraction').split(',') as TrainingTask[],
+    selfAtom: flag('--self', 'user'),
   });
   console.log(JSON.stringify(manifest, null, 2));
 }

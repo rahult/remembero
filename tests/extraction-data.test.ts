@@ -1,0 +1,195 @@
+import { describe, expect, it } from 'vitest';
+import { parseProgram, serializeClause } from '../src/engine/index.js';
+import {
+  generateExtractionExamples,
+  renderRequestText,
+  toExtractionConversation,
+  verifyRendering,
+  type Renderer,
+} from '../src/training/extraction-data.js';
+import { createRng } from '../src/training/rng.js';
+import { generateWorld } from '../src/training/worlds.js';
+
+/** Fake renderer: states each fact as "<subj> <pred words> <obj>." and honours first person. */
+const fakeRenderer: Renderer = async (request) => {
+  const sentences = request.facts.map((fact) => {
+    const [subject, ...rest] = fact.args;
+    const words = fact.predicate.replaceAll('_', ' ');
+    const subj =
+      request.firstPerson && subject === request.selfAtom ? 'I' : subject;
+    return `${subj} ${words} ${rest.join(' ')}.`;
+  });
+  if (request.negated)
+    return sentences
+      .map((s) => s.replace(/^(\S+) /, '$1 no longer '))
+      .join(' ');
+  if (request.hedged)
+    return sentences.map((s) => s.replace(/^(\S+) /, '$1 might ')).join(' ');
+  return `${request.distractor ?? ''}${sentences.join(' ')}`.trim();
+};
+
+describe('extraction training data', () => {
+  it('verifies a rendering mentions every constant and no other world entity', () => {
+    const world = generateWorld(2);
+    const [a, b] = world.entities;
+    const facts = parseProgram(`${world.relations[0].name}(${a}, ${b}).`);
+    expect(
+      verifyRendering(
+        `${a} ${world.relations[0].name.replaceAll('_', ' ')} ${b}.`,
+        facts,
+        world,
+        'user',
+      ),
+    ).toBe(true);
+    expect(verifyRendering(`${a} does something.`, facts, world, 'user')).toBe(
+      false,
+    );
+    const c = world.entities[2];
+    expect(verifyRendering(`${a} and ${c}: ${b}.`, facts, world, 'user')).toBe(
+      false,
+    );
+  });
+
+  it('generates every example kind with exact gold and verified text', async () => {
+    const world = generateWorld(3);
+    const examples = await generateExtractionExamples(
+      world,
+      createRng(3),
+      fakeRenderer,
+      { selfAtom: 'rahul' },
+    );
+    const kinds = new Set(examples.map((e) => e.kind));
+    for (const kind of [
+      'state',
+      'first_person',
+      'supersession',
+      'negation',
+      'hedge',
+      'distractor',
+    ]) {
+      expect(kinds.has(kind as never), kind).toBe(true);
+    }
+    for (const example of examples) {
+      expect(example.input.length).toBeGreaterThan(0);
+      expect(() => parseProgram(example.initialProgram)).not.toThrow();
+      expect(() =>
+        parseProgram(example.expectedAdded.join('\n')),
+      ).not.toThrow();
+      if (example.kind === 'negation' || example.kind === 'hedge') {
+        expect(example.expectedAdded).toEqual([]);
+      }
+      if (example.kind === 'supersession') {
+        expect(example.expectedRetract.length).toBe(1);
+        expect(example.initialProgram).not.toBe('');
+      }
+      if (example.kind === 'first_person') {
+        expect(example.expectedAdded.join(' ')).toContain('(rahul,');
+        expect(example.input).toMatch(/\bI\b/);
+      }
+    }
+  });
+
+  it('exports a conversation with the product extraction prompt and clause lines as the answer', () => {
+    const world = generateWorld(3);
+    const conversation = toExtractionConversation(
+      world,
+      {
+        world: world.id,
+        kind: 'supersession',
+        input: 'Mira now works at Initech.',
+        initialProgram: 'works_at(mira, acme).',
+        expectedAdded: ['works_at(mira, initech).'],
+        expectedRetract: ['works_at(mira, _)'],
+        mode: 'text',
+      },
+      'rahul',
+    );
+    expect(conversation.messages.map((m) => m.role)).toEqual([
+      'system',
+      'user',
+      'assistant',
+    ]);
+    expect(conversation.messages[0].content).toContain('Datalog clauses');
+    expect(conversation.messages[0].content).toContain('rahul');
+    expect(conversation.messages[2].content).toBe(
+      'retract works_at(mira, _).\nworks_at(mira, initech).',
+    );
+    const nothing = toExtractionConversation(
+      world,
+      {
+        world: world.id,
+        kind: 'hedge',
+        input: 'Mira might move.',
+        initialProgram: '',
+        expectedAdded: [],
+        expectedRetract: [],
+        mode: 'text',
+      },
+      'rahul',
+    );
+    expect(nothing.messages[2].content).toBe('% nothing');
+  });
+
+  it('renders a request into an unambiguous instruction for the rendering model', () => {
+    const world = generateWorld(3);
+    const text = renderRequestText({
+      facts: parseProgram(
+        `${world.relations[0].name}(${world.entities[0]}, ${world.entities[1]}).`,
+      ).map((c) => ({
+        predicate: c.head.predicate,
+        args: c.head.args.map((t) => String((t as { value: string }).value)),
+      })),
+      argNames: world.relations[0].args,
+      firstPerson: false,
+      selfAtom: 'user',
+      negated: false,
+      hedged: false,
+    });
+    expect(text).toContain(world.entities[0]);
+    expect(text).toContain('exactly');
+    void serializeClause;
+  });
+});
+
+describe('training run with both tasks', () => {
+  it('writes extraction conversations alongside query ones and records them in the manifest', async () => {
+    const { mkdtempSync, readFileSync } = await import('node:fs');
+    const { tmpdir } = await import('node:os');
+    const { join } = await import('node:path');
+    const { generateTrainingData } = await import('../src/training/run.js');
+    const out = mkdtempSync(join(tmpdir(), 'train-both-'));
+    const manifest = await generateTrainingData(
+      {
+        examples: 0,
+        rounds: 1,
+        worlds: 4,
+        paraphrases: 0,
+        seed: 21,
+        out,
+        paraphrase: false,
+        selfAtom: 'rahul',
+      },
+      undefined,
+      fakeRenderer,
+    );
+    expect(manifest.tasks).toEqual(['query', 'extraction']);
+    expect(manifest.extraction?.count).toBeGreaterThan(0);
+    const lines = readFileSync(join(out, 'conversations.jsonl'), 'utf8')
+      .trim()
+      .split('\n')
+      .map((l) => JSON.parse(l));
+    const extraction = lines.filter((l) =>
+      l.messages[0].content.includes('Datalog clauses'),
+    );
+    const query = lines.filter((l) => l.messages[0].content.includes('p_plus'));
+    expect(extraction.length).toBeGreaterThan(0);
+    expect(query.length).toBeGreaterThan(0);
+    expect(manifest.train + manifest.heldout).toBe(
+      lines.length +
+        readFileSync(join(out, 'heldout.jsonl'), 'utf8')
+          .trim()
+          .split('\n')
+          .filter(Boolean).length,
+    );
+  });
+});

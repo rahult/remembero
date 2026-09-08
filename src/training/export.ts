@@ -55,6 +55,10 @@ export interface Manifest {
   paraphrasesPerExample: number;
   /** Candidate rounds drawn per world. */
   rounds: number;
+  /** Task families in the file. */
+  tasks?: string[];
+  /** Extraction examples rendered and verified, by kind. */
+  extraction?: { count: number; byKind: Record<string, number> };
 }
 
 /** Deterministic holdout: the highest-seeded worlds. */
