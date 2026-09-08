@@ -147,6 +147,33 @@ points at the data, not at run variance or model size: the round-6 kinds as rend
 something other than what the benchmark asks. Diagnosing that is the next step, with the
 round-5 six-kind data as the control.
 
+### Round 7: the distractor bug, found and fixed
+
+Inspecting the round-6 training file showed **zero distractor examples**: the noise sentence
+was passed to the renderer as a request field the real renderer never read, so the 120
+"distractor" lines were plain facts (the test renderer had honoured the field itself and
+masked the bug). With the prose prepended deterministically (108 lines carry it), the same
+Qwen3.5-4B recipe gives:
+
+| checkpoint                         | extraction (closed) | query-correct /31 | multi-hop /6 |
+| ---------------------------------- | ------------------: | ----------------: | -----------: |
+| Qwen3.5-4B unified r6 (bug)        |               67.0% |                28 |            6 |
+| **Qwen3.5-4B unified r7**          |           **77.7%** |            **29** |            5 |
+| qwen2.5-coder:7b, untuned + guards |               81.6% |                26 |            3 |
+| Luna                               |               84.5% |                29 |            5 |
+
+Distractors 5/8 → 8/8, coreference 1/8 → 7/8, negation 10/10, one pipeline error. On the
+query side 29/31 ties Luna and is one behind GLM 5.3.
+
+The remaining extraction misses are mostly a convention conflict in the training data, not a
+capability gap: the normalization kind teaches "DB Primary → `db_primary`" because world
+atoms are snake_case, while the product prompt (and the benchmark) quote _new_ multi-word
+names, `'Blue Harbour Analytics'`, `'New York'`. Both are right in context; the data teaches
+only the first, so the model writes `blue_harbour_analytics` and truncates to `chen`,
+`dark`, `ledger`. Dates come out unquoted (`20261031`) and first-person subjects are
+sometimes dropped. Next data change: a kind with a multi-word entity that is _not_ in the
+schema, expected quoted, and quoted ISO dates in more than one relation.
+
 ## What the failures are (first run, before guards)
 
 - **First person has no name.** Luna wrote `the_user`, `me`, `you` and `user` for "I" across
