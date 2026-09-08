@@ -108,6 +108,32 @@ goal with only a wildcard, `waits_on_plus(_, procurement_freeze)`, which the eng
 rejects with a fix). Whether the extraction data interferes with query authoring needs more
 than one seed to answer.
 
+### Round 6: three more kinds, and a lesson about single runs
+
+The generator gained coreference (a second sentence pronominal), normalized constants (the
+text shows `DB Primary` or `check-out`, the fact keeps `db_primary`) and numeric/date
+relations (1,177 extraction examples across nine kinds; 20,658 lines total). Trained the
+same way on `Llama-3.2-3B`:
+
+| checkpoint              | extraction (closed) | query-correct /31 |
+| ----------------------- | ------------------: | ----------------: |
+| unified r5 (six kinds)  |               70.9% |                24 |
+| unified r6 (nine kinds) |               61.2% |            **27** |
+
+The query side reached the best 3B score in the series, so the mixed data does not hurt
+query authoring and r5's 24 was variance. The extraction side fell: coreference 4/8 → 0/8,
+distractor 8/8 → 3/8, competitor 6/8 → 2/8, while negation reached 10/10. The raw outputs
+show over-abstention (`% nothing` on "Mira joined Acme last year. She lives in Melbourne."),
+the schema sample's subject copied into a date fact (`filing_deadline(zed, ...)`), and an
+unquoted `new_york`. Whether this is a regression caused by the new kinds or LoRA run
+variance cannot be told from one run each; the honest reading is that single fine-tuning
+runs on 100-question benchmarks move by ten points on their own, and the next experiment
+needs an ablation (r6 data without the new kinds) and repeated seeds before any claim.
+
+A `Qwen3.5-4B` run on the same data was started to separate base-model quality from data
+effects; it aborted after the Tinker account balance ran out (HTTP 402) and saved no
+checkpoint.
+
 ## What the failures are (first run, before guards)
 
 - **First person has no name.** Luna wrote `the_user`, `me`, `you` and `user` for "I" across
