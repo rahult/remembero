@@ -47,22 +47,24 @@ the superset and negative-value rules; it inflated several cells by one or two (
 fine-tune rounds 2 and 3 read 27, the coder model's gated-SQL arm read 26). The numbers
 below are the corrected ones and are reproducible from the committed result files.
 
-| model                               | condition             | query-correct | end-to-end | multi-hop (query) |
-| ----------------------------------- | --------------------- | ------------: | ---------: | ----------------: |
-| llama3.2:3b instruct                | remembero (published) |            11 |         10 |                 2 |
-| llama3.2:3b instruct                | remembero-closure     |            19 |         17 |                 4 |
-| llama3.1:8b instruct                | remembero-closure     |            19 |         20 |                 4 |
-| qwen2.5-coder:7b                    | sql-gated             |            24 |         23 |                 2 |
-| qwen2.5-coder:7b                    | remembero-closure     |            26 |         25 |                 3 |
-| **Llama-3.2-3B fine-tune, round 1** | remembero-closure     |            24 |         23 |                 3 |
-| **Llama-3.2-3B fine-tune, round 2** | remembero-closure     |            26 |         21 |                 5 |
-| Llama-3.2-3B fine-tune, round 3     | remembero-closure     |            26 |         25 |                 5 |
-| Llama-3.2-3B fine-tune, round 3     | closure, v2 prompt    |            24 |         23 |                 4 |
-| **Llama-3.2-3B fine-tune, round 4** | closure, v2 prompt    |        **26** |     **26** |             **5** |
-| openai/gpt-5.6-luna (frontier)      | sql-gated             |            30 |         31 |                 6 |
-| openai/gpt-5.6-luna (frontier)      | remembero-closure     |            29 |         29 |                 5 |
-| z-ai/glm-5.3 (frontier)             | sql-gated             |            30 |         31 |                 6 |
-| z-ai/glm-5.3 (frontier)             | remembero-closure     |            30 |         30 |                 5 |
+| model                                        | condition             | query-correct | end-to-end | multi-hop (query) |
+| -------------------------------------------- | --------------------- | ------------: | ---------: | ----------------: |
+| llama3.2:3b instruct                         | remembero (published) |            11 |         10 |                 2 |
+| llama3.2:3b instruct                         | remembero-closure     |            19 |         17 |                 4 |
+| llama3.1:8b instruct                         | remembero-closure     |            19 |         20 |                 4 |
+| qwen2.5-coder:7b                             | sql-gated             |            24 |         23 |                 2 |
+| qwen2.5-coder:7b                             | remembero-closure     |            26 |         25 |                 3 |
+| **Llama-3.2-3B fine-tune, round 1**          | remembero-closure     |            24 |         23 |                 3 |
+| **Llama-3.2-3B fine-tune, round 2**          | remembero-closure     |            26 |         21 |                 5 |
+| Llama-3.2-3B fine-tune, round 3              | remembero-closure     |            26 |         25 |                 5 |
+| Llama-3.2-3B fine-tune, round 3              | closure, v2 prompt    |            24 |         23 |                 4 |
+| **Llama-3.2-3B fine-tune, round 4**          | closure, v2 prompt    |            26 |         26 |                 5 |
+| Llama-3.2-3B unified r6 (query+extraction)   | closure, v2 prompt    |            27 |         27 |                 5 |
+| **Qwen3.5-4B unified r6 (query+extraction)** | closure, v2 prompt    |        **28** |     **27** |             **6** |
+| openai/gpt-5.6-luna (frontier)               | sql-gated             |            30 |         31 |                 6 |
+| openai/gpt-5.6-luna (frontier)               | remembero-closure     |            29 |         29 |                 5 |
+| z-ai/glm-5.3 (frontier)                      | sql-gated             |            30 |         31 |                 6 |
+| z-ai/glm-5.3 (frontier)                      | remembero-closure     |            30 |         30 |                 5 |
 
 Every fine-tuned round refused all six trap writes and made zero or one tool error across
 31 questions; every program parsed and ran.

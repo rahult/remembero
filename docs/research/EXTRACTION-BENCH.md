@@ -130,9 +130,22 @@ variance cannot be told from one run each; the honest reading is that single fin
 runs on 100-question benchmarks move by ten points on their own, and the next experiment
 needs an ablation (r6 data without the new kinds) and repeated seeds before any claim.
 
-A `Qwen3.5-4B` run on the same data was started to separate base-model quality from data
-effects; it aborted after the Tinker account balance ran out (HTTP 402) and saved no
-checkpoint.
+A `Qwen3.5-4B` run on the same round-6 data (after the Tinker balance was topped up):
+
+| checkpoint                         | extraction (closed) | query-correct /31 | multi-hop /6 |
+| ---------------------------------- | ------------------: | ----------------: | -----------: |
+| Llama-3.2-3B unified r6            |               61.2% |                27 |            5 |
+| **Qwen3.5-4B unified r6**          |               67.0% |            **28** |        **6** |
+| qwen2.5-coder:7b, untuned + guards |               81.6% |                26 |            3 |
+| GLM 5.3 / Luna                     |           — / 84.5% |           30 / 29 |        5 / 5 |
+
+Two readings. On the query side the 4B fine-tune is the best small model measured and sits
+within one to two questions of the frontier on a schema it never saw. On the extraction side
+both base models trained on the round-6 data fail the same three phenomena the same way
+(coreference 0–1/8, distractor 3–5/8, date_number 0–1/8, all with over-abstention), which
+points at the data, not at run variance or model size: the round-6 kinds as rendered teach
+something other than what the benchmark asks. Diagnosing that is the next step, with the
+round-5 six-kind data as the control.
 
 ## What the failures are (first run, before guards)
 
