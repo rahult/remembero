@@ -294,3 +294,94 @@ export function assertKnownVocabulary(
     );
   }
 }
+
+// ---- functional dependencies ------------------------------------------------------------
+
+export const FUNCTIONAL_PREDICATE = 'rembero_functional';
+
+/**
+ * `rembero_functional(pred, k).` declarations: the first `k` arguments of
+ * `pred` determine the rest, so a new fact with the same key supersedes the
+ * stored one. Returned as predicate -> key arity.
+ */
+export function functionalKeysFrom(
+  clauses: readonly Clause[],
+): Map<string, number> {
+  const keys = new Map<string, number>();
+  for (const clause of clauses) {
+    if (isIntegrityConstraint(clause) || clause.body.length > 0) continue;
+    if (
+      clause.head.predicate !== FUNCTIONAL_PREDICATE ||
+      clause.head.args.length !== 2
+    )
+      continue;
+    const [pred, arity] = clause.head.args;
+    if (pred.type === 'atom' && arity.type === 'num' && arity.value >= 1) {
+      keys.set(pred.value, Math.floor(arity.value));
+    }
+  }
+  return keys;
+}
+
+function groundKey(terms: readonly Term[]): string | undefined {
+  const parts: string[] = [];
+  for (const term of terms) {
+    if (term.type !== 'atom' && term.type !== 'num') return undefined;
+    parts.push(`${term.type}:${String(term.value)}`);
+  }
+  return parts.join('|');
+}
+
+/**
+ * Retraction patterns implied by functional dependencies: for every added
+ * ground fact whose predicate is functional, if a stored fact shares its key
+ * but differs afterwards, retract `pred(key..., _...)`. Restating an identical
+ * fact implies nothing (the store reports a duplicate).
+ */
+export function impliedSupersessions(
+  existing: readonly Clause[],
+  added: readonly Clause[],
+  keys: ReadonlyMap<string, number>,
+): Goal[][] {
+  if (keys.size === 0) return [];
+  const stored = new Map<string, Set<string>>(); // predicate|key -> full-tuple keys
+  for (const clause of existing) {
+    if (isIntegrityConstraint(clause) || clause.body.length > 0) continue;
+    const k = keys.get(clause.head.predicate);
+    if (k === undefined || clause.head.args.length <= k) continue;
+    const key = groundKey(clause.head.args.slice(0, k));
+    const full = groundKey(clause.head.args);
+    if (key === undefined || full === undefined) continue;
+    const id = `${clause.head.predicate}|${key}`;
+    const set = stored.get(id) ?? new Set<string>();
+    set.add(full);
+    stored.set(id, set);
+  }
+  const patterns: Goal[][] = [];
+  const emitted = new Set<string>();
+  for (const clause of added) {
+    if (isIntegrityConstraint(clause) || clause.body.length > 0) continue;
+    const k = keys.get(clause.head.predicate);
+    if (k === undefined || clause.head.args.length <= k) continue;
+    const keyTerms = clause.head.args.slice(0, k);
+    const key = groundKey(keyTerms);
+    const full = groundKey(clause.head.args);
+    if (key === undefined || full === undefined) continue;
+    const id = `${clause.head.predicate}|${key}`;
+    const values = stored.get(id);
+    if (!values || emitted.has(id)) continue;
+    const changed = [...values].some((v) => v !== full);
+    if (!changed) continue;
+    emitted.add(id);
+    patterns.push([
+      {
+        predicate: clause.head.predicate,
+        args: [
+          ...keyTerms,
+          ...clause.head.args.slice(k).map((): Term => ({ type: 'wildcard' })),
+        ],
+      },
+    ]);
+  }
+  return patterns;
+}

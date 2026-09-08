@@ -70,6 +70,8 @@ import {
   applyPredicateAliasesToGoals,
   assertGroundedConstants,
   assertKnownVocabulary,
+  functionalKeysFrom,
+  impliedSupersessions,
   normalizeExtractionOutput,
   predicateAliasesFrom,
   rewriteSelfAtoms,
@@ -719,8 +721,21 @@ export async function rememberText(
     ...(integrity === undefined ? {} : { integrity }),
     ...(checks === undefined ? {} : { checks }),
   };
-  if (extraction.retractions.length > 0) {
-    const patterns = extraction.retractions.map((goals) =>
+  // Functional dependencies (rembero_functional(pred, k)) supersede on key
+  // collision whether or not the model emitted a retract line.
+  const implied = impliedSupersessions(
+    deps.store.load(namespace),
+    extraction.clauses,
+    functionalKeysFrom(deps.store.load(namespace)),
+  );
+  const retractions = [...extraction.retractions, ...implied];
+  if (retractions.length > 0 && trust === 'tentative') {
+    throw new Error(
+      'tentative memory is additive; it cannot retract accepted facts',
+    );
+  }
+  if (retractions.length > 0) {
+    const patterns = retractions.map((goals) =>
       goals.map(serializeGoal).join(', '),
     );
     const result =

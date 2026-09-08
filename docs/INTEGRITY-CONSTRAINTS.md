@@ -112,3 +112,18 @@ and adds opt-in atomic enforcement across supported portable-store mutation path
 reuses this exact constraint and evidence contract under a global writer lock; it still
 does not infer or automatically repair conflicts. See
 [INTEGRITY-ENFORCEMENT.md](INTEGRITY-ENFORCEMENT.md).
+
+## Functional dependencies (single-valued predicates)
+
+Declare that the first `k` arguments of a predicate determine the rest:
+
+```prolog
+rembero_functional(works_at, 1).      % one employer per person
+rembero_functional(started_at, 2).    % one start date per (person, company)
+```
+
+When natural-language `remember` extracts `works_at(mira, initech).` and the store holds
+`works_at(mira, acme).`, the pipeline retracts the old value itself (or archives it under
+`archive_until`) whether or not the model emitted a `retract` line. Restating the same value
+is a duplicate, not a supersession. Predicate aliases (`rembero_predicate_alias(from, to).`)
+are applied before the check, so `employed_by(mira, initech).` supersedes `works_at` too.

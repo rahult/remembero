@@ -228,3 +228,65 @@ describe('rememberText integration', () => {
     );
   });
 });
+
+describe('functional dependencies supersede on key collision', () => {
+  it('reads rembero_functional declarations and derives retractions for changed values', async () => {
+    const { functionalKeysFrom, impliedSupersessions } =
+      await import('../src/llm/extraction-guard.js');
+    const store = parseProgram(
+      'rembero_functional(works_at, 1). rembero_functional(started_at, 2). works_at(mira, acme). started_at(mira, acme, 2020). lives_in(mira, osaka).',
+    );
+    const keys = functionalKeysFrom(store);
+    expect(keys.get('works_at')).toBe(1);
+    const added = parseProgram(
+      'works_at(mira, initech). started_at(mira, acme, 2021). lives_in(mira, lisbon). works_at(tom, acme).',
+    );
+    const patterns = impliedSupersessions(store, added, keys).map((goals) =>
+      goals
+        .map((g) =>
+          'predicate' in g
+            ? `${g.predicate}(${g.args.map((a) => (a.type === 'atom' ? a.value : a.type === 'num' ? a.value : '_')).join(', ')})`
+            : '',
+        )
+        .join(', '),
+    );
+    // works_at changed for mira; started_at changed for (mira, acme); lives_in is not functional; tom is new
+    expect(patterns.sort()).toEqual([
+      'started_at(mira, acme, _)',
+      'works_at(mira, _)',
+    ]);
+  });
+
+  it('rememberText retracts the superseded value even when the model forgot to', async () => {
+    const store = new MemoryStore(mkdtempSync(join(tmpdir(), 'rembero-fd-')));
+    store.assert(
+      'default',
+      'rembero_functional(works_at, 1). works_at(mira, acme).',
+      { opId: 'seed' },
+    );
+    const llm = new ScriptedLlm(['works_at(mira, initech).']);
+    const result = await rememberText(
+      { store, llm },
+      'Mira now works at Initech.',
+    );
+    expect(result.retracted).toBe(1);
+    const facts = store
+      .load('default')
+      .map(serializeClause)
+      .filter((c) => c.startsWith('works_at'));
+    expect(facts).toEqual(['works_at(mira, initech).']);
+  });
+
+  it('does not retract when the same value is restated', async () => {
+    const store = new MemoryStore(mkdtempSync(join(tmpdir(), 'rembero-fd-')));
+    store.assert(
+      'default',
+      'rembero_functional(works_at, 1). works_at(mira, acme).',
+      { opId: 'seed' },
+    );
+    const llm = new ScriptedLlm(['works_at(mira, acme).']);
+    const result = await rememberText({ store, llm }, 'Mira works at Acme.');
+    expect(result.retracted).toBe(0);
+    expect(result.duplicates).toBe(1);
+  });
+});
