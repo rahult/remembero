@@ -285,6 +285,8 @@ all single-session-user and scored 38/40 raw, which left nothing to measure.
 | hybrid (r13)          | **35/48** | **76.8%**        | 6/8      | 2/8   | 6/8     | 6/8     | 8/8     | 7/8      |
 | extracted only (r12)  | 22/48     | 46.2%            | 6/8      | 0/8   | 2/8     | 3/8     | 8/8     | 3/8      |
 | extracted only (r13)  | 23/48     | 38.5%            | 5/8      | 5/8   | 1/8     | 4/8     | 5/8     | 3/8      |
+| hybrid (r14)          | **37/48** | **80.3%**        | 7/8      | 4/8   | 6/8     | 6/8     | 8/8     | 6/8      |
+| extracted only (r14)  | 29/48     | 66.2%            | 5/8      | 3/8   | 4/8     | 4/8     | 7/8     | 6/8      |
 
 Extraction cost per formation: about 2,450 calls (one per session), 1,100–1,400 facts from
 680–830 sessions, 40–46 refused or malformed (under 2%; the first round-11 attempt had 39%
@@ -307,11 +309,14 @@ error:
   have I bought") went from 2/8 raw to 5/8 with r13's facts alone, because five
   `bought(user, …)` facts across five sessions are retrievable together while five long
   transcripts are not.
-- **The extractor was the bottleneck, and the data fixed part of it.** Probing r12 on the
+- **The extractor was the bottleneck, and the data fixed most of it.** Probing r12 on the
   evidence sessions showed the misses were asides ("By the way, I just got back from a
-  three-day trip to Big Sur") and an absent vocabulary for events; r13 (facts embedded in
-  long requests, empty schemas) doubled multi-session, and round 14 adds an event kind for
-  exactly these asides.
+  three-day trip to Big Sur") and an absent vocabulary for events. r13 (facts embedded in
+  long requests, empty schemas) doubled multi-session; r14 added an event kind for exactly
+  these asides and extracted facts from 63% of sessions instead of 28%, taking
+  extracted-only from 23 to 29 of 48 (recall 38% to 66%) and hybrid from 35 to 37, five
+  answers above raw. Round over round on the same slice: extracted-only 22 → 23 → 29,
+  hybrid 32 (raw) → 35 → 37.
 
 ## Evidence boundary
 

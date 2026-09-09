@@ -272,7 +272,15 @@ digits or punctuation stay quoted. Luna is unaffected by the guard (93.2% either
 | r11                   |               76.7% |                27 | r10 data, Modal                        |
 | r12                   |               87.4% |                27 | implicit subjects, transcripts, v1.1   |
 | r13                   |               91.3% |                28 | embedded facts, empty schemas, + guard |
+| r14                   |               88.3% |                27 | + event asides (best on LongMemEval)   |
 | openai/gpt-5.6-luna   |               93.2% |                29 | v1.1, same prompt and guards           |
+
+Round 14 added the event kind (first-person asides such as "by the way, I just got back
+from a three-day trip to Big Sur", half as text and half as transcripts) for the LongMemEval
+shape. On this benchmark it sits three cases under r13, inside the noise band, trading three
+fixes for a few argument-order swaps and one multi-word name written snake_case instead of
+quoted; on LongMemEval it is clearly the better extractor (see that document), so it is the
+served default.
 
 The remaining nine r13 misses are one-offs: a dropped word (`dark` for `dark_mode`), a
 hallucinated fact from CI noise, a manager/report direction, two generic-subject choices
