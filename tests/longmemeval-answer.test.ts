@@ -276,6 +276,52 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     expect(sent.length).toBeLessThan(600);
   });
 
+  it('counts top-k in distinct sessions when a session yields several matching facts', async () => {
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    const extractor = new ScriptedCompletionClient('dialect', [
+      // grounded in the noise session's words, and sharing the question's word "degree"
+      'degree_interest(user, travel).\ndegree_plan(user, rewards).\ndegree_notes(user, credit).',
+      'degree(user, business_administration).',
+    ]);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      instance(),
+      reader,
+      judge,
+      { topK: 2, contextBytes: 4_096, formation: 'extracted', extractor },
+    );
+    // three noise facts would fill top-2 on their own; de-duplicated by session, both sessions fit
+    expect(observation.retrievedSessionIds).toEqual(
+      expect.arrayContaining(['evidence', 'noise']),
+    );
+    expect(observation.retrievedSessionIds).toHaveLength(2);
+  });
+
+  it('hybrid formation stores extracted facts under their own operation id next to the raw session fact', async () => {
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    const extractor = new ScriptedCompletionClient('dialect', [
+      '% nothing',
+      'degree(user, business_administration).',
+    ]);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      instance(),
+      reader,
+      judge,
+      { topK: 1, contextBytes: 4_096, formation: 'hybrid', extractor },
+    );
+    expect(observation.extraction).toMatchObject({
+      calls: 2,
+      facts: 1,
+      errors: 0,
+    });
+    expect(observation.retrievedSessionIds).toEqual(['evidence']);
+  });
+
   it('hybrid formation keeps the raw session fact so sessions without extracted facts stay retrievable', async () => {
     const reader = new ScriptedCompletionClient('reader', [
       'Business Administration',

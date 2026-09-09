@@ -587,6 +587,15 @@ export async function evaluateLongMemEvalAnswerInstance(
         });
       }
       if (extractorLlm !== undefined && stats !== undefined) {
+        // hybrid keeps the raw fact under the session's id; the extracted facts need
+        // their own id (the store refuses to reuse one) that still maps to the session
+        const factsOperationId =
+          formation === 'hybrid' ? `${operationId}:facts` : operationId;
+        sourceSessionIds.set(
+          factsOperationId,
+          instance.haystack_session_ids[index]!,
+        );
+        userSourceText.set(factsOperationId, userSourceText.get(operationId)!);
         const budget =
           options.extractionCharacters ??
           DEFAULT_LONGMEMEVAL_EXTRACTION_CHARACTERS;
@@ -602,7 +611,7 @@ export async function evaluateLongMemEvalAnswerInstance(
             'longmemeval',
             {
               captureId: operationId,
-              opId: operationId,
+              opId: factsOperationId,
               sourceText: sessionText,
               origin: 'manual',
               at,
@@ -629,7 +638,9 @@ export async function evaluateLongMemEvalAnswerInstance(
       instance.question,
       snapshot.sources,
       {
-        limit: effectiveTopK,
+        // extracted formations hold several facts per session; fetch more so top-k
+        // still counts distinct sessions after de-duplication below
+        limit: formation === 'raw' ? effectiveTopK : effectiveTopK * 8,
         minimumScore: 1,
         kinds: ['fact'],
         sourceCharacterLimit: LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
@@ -680,7 +691,7 @@ export async function evaluateLongMemEvalAnswerInstance(
         snapshot.sources,
         options.embeddings!,
         {
-          limit: effectiveTopK,
+          limit: formation === 'raw' ? effectiveTopK : effectiveTopK * 8,
           candidateLimit: 100,
           kinds: ['fact'],
           cache: semanticCache,
@@ -698,6 +709,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       0,
       performance.now() - retrievalStarted - semanticPreparationMs,
     );
+    const seenSessions = new Set<string>();
     const rankedSources = search.results.flatMap((result) => {
       const source = result.sources[0];
       return source === undefined
@@ -721,6 +733,16 @@ export async function evaluateLongMemEvalAnswerInstance(
             },
           ];
     });
+    // one entry per session, best rank first, then the usual top-k
+    const dedupedSources = rankedSources
+      .filter(({ opId }) => {
+        if (seenSessions.has(opId)) return false;
+        seenSessions.add(opId);
+        return true;
+      })
+      .slice(0, effectiveTopK);
+    rankedSources.length = 0;
+    rankedSources.push(...dedupedSources);
     retrievedSessionIds = rankedSources.map(({ opId }) => opId);
     const firstResult = search.results[0];
     const topScore =
