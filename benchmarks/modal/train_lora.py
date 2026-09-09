@@ -314,7 +314,7 @@ def serve() -> None:
         "--dtype",
         "bfloat16",
         "--max-model-len",
-        "4096",
+        "8192",
         "--gpu-memory-utilization",
         "0.90",
         # Qwen3.5's template opens a <think> block in the generation prompt; the parser moves
