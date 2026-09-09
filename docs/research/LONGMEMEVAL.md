@@ -287,17 +287,25 @@ all single-session-user and scored 38/40 raw, which left nothing to measure.
 | extracted only (r13)  | 23/48     | 38.5%            | 5/8      | 5/8   | 1/8     | 4/8     | 5/8     | 3/8      |
 | hybrid (r14)          | **37/48** | **80.3%**        | 7/8      | 4/8   | 6/8     | 6/8     | 8/8     | 6/8      |
 | extracted only (r14)  | 29/48     | 66.2%            | 5/8      | 3/8   | 4/8     | 4/8     | 7/8     | 6/8      |
+| hybrid (Luna)         | 33/48     | 77.4%            | 6/8      | 2/8   | 5/8     | 5/8     | 8/8     | 7/8      |
 
 Extraction cost per formation: about 2,450 calls (one per session), 1,100–1,400 facts from
 680–830 sessions, 40–46 refused or malformed (under 2%; the first round-11 attempt had 39%
 failing, mostly a 4096-token context limit since raised to 8192 and an operation-id collision
 in hybrid since fixed).
 
+The Luna row is the frontier model doing the same job under the same guards and prompt, with
+a 4,096-token completion budget so its reasoning has room (at the 512-token default it
+returned no content on 533 of 2,841 calls and scored 32/48). It wrote 8,474 facts against
+r14's 2,329, 71 were refused, and the extraction alone cost $2.35 for the slice; r14's cost
+is L4 time, about thirty cents.
+
 What this says, with the caveat that 48 questions make three answers about one standard
 error:
 
-- **Hybrid beats raw.** Adding the small model's facts to the raw memory lifted three answers
-  and retrieval recall by 2.7 points; the gains are in preference and knowledge-update
+- **Hybrid beats raw, and the 4B fine-tune beats Luna at it.** Adding the small model's
+  facts to the raw memory lifted five answers (r14) and retrieval recall by 6.2 points, four
+  answers and 2.9 recall points more than Luna's facts managed; the gains are in preference and knowledge-update
   questions, where a stored `prefers(user, …)` or the latest value matches the question's
   words better than the transcript does.
 - **Facts alone are not enough for this benchmark, and never will be for two of its types.**
