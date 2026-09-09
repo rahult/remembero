@@ -63,6 +63,7 @@ below are the corrected ones and are reproducible from the committed result file
 | Qwen3.5-4B unified r6 (query+extraction)     | closure, v2 prompt    |            28 |         27 |                 6 |
 | **Qwen3.5-4B unified r7 (query+extraction)** | closure, v2 prompt    |        **29** |         26 |                 5 |
 | Qwen3.5-4B unified r10 (query+extraction)    | closure, v2 prompt    |            27 |         27 |                 5 |
+| Qwen3.5-4B r11 (r10 data, Modal H100)        | closure, v2 prompt    |            27 |         27 |                 5 |
 | openai/gpt-5.6-luna (frontier)               | sql-gated             |            30 |         31 |                 6 |
 | openai/gpt-5.6-luna (frontier)               | remembero-closure     |            29 |         29 |                 5 |
 | z-ai/glm-5.3 (frontier)                      | sql-gated             |            30 |         31 |                 6 |
@@ -171,7 +172,15 @@ npm run train:data -- --examples 3000 --worlds 60 --paraphrases 3 --seed 7 --out
 .venv/bin/python benchmarks/tinker/sl_query_dialect.py --data data/training/conversations.jsonl \
   --model Llama-3.2-3B --log-path runs/tinker/llama-3.2-3b-dialect
 # then serve and evaluate per benchmarks/tinker/README.md
+
+# or self-managed on Modal (r11 was trained this way; ~23 min and ~$1.50 on an H100):
+.venv/bin/modal run benchmarks/modal/train_lora.py --run r11 \
+  --data data/training/conversations.jsonl --heldout data/training/heldout.jsonl
+.venv/bin/modal deploy benchmarks/modal/train_lora.py   # vLLM endpoint, see benchmarks/modal/README.md
 ```
+
+Round 11 is r10's data retrained on Modal and scored the same 27/31 with three of four
+failures in common; it is the first measure of training-run variance (about one question).
 
 Checkpoints (Tinker, 7-day TTL): round 3 `tinker://4488229d-504c-5294-a3dc-d0274d214c9d:train:0/sampler_weights/final`,
 round 4 `tinker://f428ffcf-055e-523b-9a19-297897eeaf7b:train:0/sampler_weights/final`.

@@ -201,18 +201,37 @@ best held-out loss in the series (0.0022). Entity normalization rose from 1/8 to
 convention landed; a few capitalized single words are still quoted (`'Globex'`, `'Liam'`) and
 first person slipped to 3/8.
 
-| Qwen3.5-4B checkpoint | extraction (closed) | query-correct /31 |
-| --------------------- | ------------------: | ----------------: |
-| r6 (generator bug)    |               67.0% |                28 |
-| r7                    |           **77.7%** |            **29** |
-| r8                    |               49.5% |                28 |
-| r9                    |               64.1% |                26 |
-| r10                   |               74.8% |                27 |
+| Qwen3.5-4B checkpoint   | extraction (closed) | query-correct /31 |
+| ----------------------- | ------------------: | ----------------: |
+| r6 (generator bug)      |               67.0% |                28 |
+| r7                      |           **77.7%** |            **29** |
+| r8                      |               49.5% |                28 |
+| r9                      |               64.1% |                26 |
+| r10                     |               74.8% |                27 |
+| r11 (= r10 data, Modal) |               76.7% |                27 |
 
 Rounds 7 and 10 are the two coherent data sets and land within three points of each other on
 extraction and two on queries. Data rounds have reached diminishing returns on this
 benchmark; the gap to the untuned 7B coder (81.6%) and Luna (84.5%) is now first-person
 naming, transcript mode, and dates, each a handful of cases.
+
+### Round 11: the same data trained twice
+
+Round 11 is not a data round. It is r10's exact training file trained again on a different
+stack (a self-managed H100 on Modal, TRL + PEFT, merged weights served by vLLM; see
+`benchmarks/modal/README.md`) instead of Tinker. It is therefore the first sample of the
+training-run variance the paragraph below said was missing: **extraction 76.7% vs 74.8%,
+query-correct 27 vs 27**, with 19 of the two runs' 24 and 26 extraction failures shared and
+three of four query failures shared (j2, j5, m4; r10 also missed j4, r11 also missed a6).
+Per phenomenon the two runs agree except for a case or two in negation, first person, and
+entity normalization. Two consequences:
+
+- The run-to-run noise on this benchmark is about two points of extraction and one query,
+  so r7's 77.7% / 29 is not distinguishable from r10 and r11. The whole r7–r11 series is one
+  plateau, and the next gain has to come from the data kinds the failures name (transcript
+  mode 2/8, dates 1/8, first person 5/8), not from another retrain.
+- The two training stacks agree closely enough that the cheaper one can be used from here:
+  the Modal run cost about $1.50 of H100 time for 23 minutes wall, against about $5 on Tinker.
 
 **Seeds.** Three evaluation seeds (7, 42, 123) on the query benchmark gave identical results
 for both checkpoints (r7: 29, 29, 29; r10: 27, 27, 27) because the served model samples
