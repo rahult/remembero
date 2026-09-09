@@ -148,6 +148,54 @@ export function rewriteSelfAtomsInGoals(
   );
 }
 
+// ---- atom canonicalization ----------------------------------------------------------
+
+/**
+ * The quoting convention (rahul, not 'Rahul'; api_gateway, not 'api gateway'; 'New York'
+ * kept) is fragile in small models and flips between training runs. Enforce the two
+ * unambiguous halves deterministically: a quoted single capitalized word becomes a
+ * lowercase atom, and a quoted phrase of lowercase words becomes snake_case. Multi-word
+ * proper names, all-caps acronyms, and anything with digits or punctuation stay quoted.
+ */
+export function canonicalAtomValue(value: string): string {
+  if (/^[A-Z][a-z]+$/.test(value)) return value.toLowerCase();
+  if (/^[a-z][a-z0-9]*( [a-z][a-z0-9]*)+$/.test(value))
+    return value.replaceAll(' ', '_');
+  return value;
+}
+
+function canonicalTerm(term: Term): Term {
+  if (term.type !== 'atom') return term;
+  const value = canonicalAtomValue(term.value);
+  return value === term.value ? term : { type: 'atom', value };
+}
+
+function canonicalGoal(goal: Goal): Goal {
+  if (isComparison(goal)) return goal;
+  if (isNegation(goal)) {
+    return {
+      ...goal,
+      not: { ...goal.not, args: goal.not.args.map(canonicalTerm) },
+    };
+  }
+  return { ...goal, args: goal.args.map(canonicalTerm) };
+}
+
+export function canonicalizeAtoms(clauses: Clause[]): Clause[] {
+  return clauses.map((clause) => {
+    if (isIntegrityConstraint(clause)) return clause;
+    return {
+      ...clause,
+      head: { ...clause.head, args: clause.head.args.map(canonicalTerm) },
+      body: clause.body.map(canonicalGoal),
+    } as Clause;
+  });
+}
+
+export function canonicalizeAtomsInGoals(patterns: Goal[][]): Goal[][] {
+  return patterns.map((goals) => goals.map(canonicalGoal));
+}
+
 // ---- constant grounding ------------------------------------------------------------
 
 function looseTokens(text: string): Set<string> {

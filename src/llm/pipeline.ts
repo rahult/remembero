@@ -76,6 +76,8 @@ import {
   predicateAliasesFrom,
   rewriteSelfAtoms,
   rewriteSelfAtomsInGoals,
+  canonicalizeAtoms,
+  canonicalizeAtomsInGoals,
 } from './extraction-guard.js';
 import {
   NOTHING_SENTINEL,
@@ -672,11 +674,13 @@ export async function extractRememberText(
       // configured self atom, aliased predicates are renamed, every new constant
       // must be present in the input, and a closed vocabulary rejects unknowns.
       const guarded = applyPredicateAliases(
-        rewriteSelfAtoms(clauses, selfAtom),
+        canonicalizeAtoms(rewriteSelfAtoms(clauses, selfAtom)),
         aliases,
       );
       const guardedRetractions = applyPredicateAliasesToGoals(
-        rewriteSelfAtomsInGoals(retractions, selfAtom),
+        canonicalizeAtomsInGoals(
+          rewriteSelfAtomsInGoals(retractions, selfAtom),
+        ),
         aliases,
       );
       assertGroundedConstants(guarded, text, {
@@ -860,7 +864,7 @@ export async function rememberTranscriptText(
         );
       }
       const guarded = applyPredicateAliases(
-        rewriteSelfAtoms(parsed, selfAtom),
+        canonicalizeAtoms(rewriteSelfAtoms(parsed, selfAtom)),
         aliases,
       );
       assertGroundedConstants(guarded, transcript, {

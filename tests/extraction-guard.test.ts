@@ -103,6 +103,34 @@ describe('rewriteSelfAtoms', () => {
   });
 });
 
+describe('canonicalizeAtoms: the quoting convention is enforced, not hoped for', () => {
+  it('lowercases a quoted single capitalized word and snake-cases a quoted lowercase phrase', async () => {
+    const { canonicalizeAtoms } =
+      await import('../src/llm/extraction-guard.js');
+    const clauses = parseProgram(
+      "lives_in('Toronto', x). reports_to(user, 'Liam'). on_call_for(tom, 'api gateway'). works_at(ava, 'ACME Corp'). speaks(ava, 'Mandarin Chinese'). team(x, 'API'). city(x, 'New York').",
+    );
+    expect(canonicalizeAtoms(clauses).map(serializeClause)).toEqual([
+      'lives_in(toronto, x).',
+      'reports_to(user, liam).',
+      'on_call_for(tom, api_gateway).',
+      "works_at(ava, 'ACME Corp').",
+      "speaks(ava, 'Mandarin Chinese').",
+      "team(x, 'API').",
+      "city(x, 'New York').",
+    ]);
+  });
+
+  it('applies inside rememberText so a model that quotes names still stores lowercase atoms', async () => {
+    const store = new MemoryStore(
+      mkdtempSync(join(tmpdir(), 'rembero-canon-')),
+    );
+    const llm = new ScriptedLlm(["lives_in(dana, 'Nairobi')."]);
+    const result = await rememberText({ store, llm }, 'Dana lives in Nairobi.');
+    expect(result.added).toEqual(['lives_in(dana, nairobi).']);
+  });
+});
+
 describe('assertGroundedConstants: every new constant must appear in the input', () => {
   it('accepts constants present in the input, in the schema, or the self atom', () => {
     const input = 'Tom turns 40 in 2027 and works at Blue Harbour Analytics.';
