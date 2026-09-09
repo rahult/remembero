@@ -12,7 +12,7 @@ Usage (after `modal setup` once, which opens a browser login):
 
   .venv/bin/modal run benchmarks/modal/train_lora.py --run r11 \
       --data data/training/conversations.jsonl --heldout data/training/heldout.jsonl
-  .venv/bin/modal deploy benchmarks/modal/train_lora.py        # prints the serve URL
+  .venv/bin/modal deploy benchmarks/modal/train_lora.py        # prints the serve URL; requests need Authorization: Bearer $MODAL_SERVE_API_KEY
   OLLAMA_URL=<url> node dist/evals/run-agent-boundary.js --chat-api openai \
       --model dialect --conditions remembero-closure --seeds 7
   node dist/evals/run-extraction-bench.js --base-url <url>/v1 --api-key x --models dialect --vocabulary closed
@@ -277,6 +277,10 @@ def train(
     image=serve_image,
     gpu=SERVE_GPU,
     volumes={VOL: volume},
+    # VLLM_API_KEY: the bearer token vLLM requires on every request. Create once with
+    #   modal secret create rembero-vllm VLLM_API_KEY=<random>
+    # and keep the same value in .env as MODAL_SERVE_API_KEY for the harness.
+    secrets=[modal.Secret.from_name("rembero-vllm")],
     scaledown_window=5 * 60,
     timeout=60 * 60,
 )
@@ -290,6 +294,9 @@ def serve() -> None:
     merged = Path(VOL) / "runs" / run / "merged"
     if not merged.exists():
         raise RuntimeError(f"no merged weights at {merged}; train with merge=True first")
+    api_key = os.environ.get("VLLM_API_KEY")
+    if not api_key:
+        raise RuntimeError("VLLM_API_KEY missing: the endpoint is public without it; see the rembero-vllm secret")
     cmd = [
         "python",
         "-m",
@@ -318,6 +325,8 @@ def serve() -> None:
         # the exact token prefix the model was trained on and it answers without deliberating.
         "--default-chat-template-kwargs",
         json.dumps({"enable_thinking": False}),
+        "--api-key",
+        api_key,
     ]
     subprocess.Popen(cmd)
 

@@ -9,6 +9,9 @@ from the same volume. Cost model and alternatives: `docs/research/FINETUNE-PROVI
 ```bash
 VIRTUAL_ENV=.venv uv pip install modal      # already done
 .venv/bin/modal setup                         # opens a browser login; writes ~/.modal.toml
+# bearer key for the serve endpoint: one random value, kept in a Modal secret and in .env
+.venv/bin/modal secret create rembero-vllm VLLM_API_KEY=<random>
+echo 'MODAL_SERVE_API_KEY=<the same value>' >> .env
 ```
 
 ## Check the data locally (no credentials, no GPU)
@@ -38,15 +41,21 @@ cheaper and roughly three times slower), `BASE_MODEL`.
 ```
 
 vLLM serves the merged weights of the latest run (or `SERVE_RUN=r11`) as model `dialect`
-on an L4, OpenAI-compatible, scaling to zero after five idle minutes. The existing harness
+(alias `finetune/<base>-<run>-modal`, which is what names the result files) on an L4,
+OpenAI-compatible, scaling to zero after five idle minutes. Every request must carry
+`Authorization: Bearer $MODAL_SERVE_API_KEY`; anything else gets 401. The existing harness
 runs unchanged:
 
 ```bash
-OLLAMA_URL=https://<app>.modal.run node dist/evals/run-agent-boundary.js \
-  --chat-api openai --model dialect --conditions remembero-closure --seeds 7
+set -a; . ./.env; set +a
+OLLAMA_URL=https://<app>.modal.run CHAT_API_KEY=$MODAL_SERVE_API_KEY node dist/evals/run-agent-boundary.js \
+  --chat-api openai --model finetune/qwen3.5-4b-r11-modal --conditions remembero-closure --seeds 7
 node dist/evals/run-extraction-bench.js --base-url https://<app>.modal.run/v1 \
-  --api-key x --models dialect --vocabulary closed
+  --api-key $MODAL_SERVE_API_KEY --models finetune/qwen3.5-4b-r11-modal --vocabulary closed
 ```
+
+A redeploy does not evict a container that is still receiving requests; if the old version
+keeps answering, stop it with `modal container list` and `modal container stop -y <id>`.
 
 ## Differences from the Tinker recipe
 
