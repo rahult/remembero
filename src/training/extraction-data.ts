@@ -51,7 +51,8 @@ export type ExtractionKind =
   | 'date_number'
   | 'quoted_name'
   | 'implicit_subject'
-  | 'transcript';
+  | 'transcript'
+  | 'event';
 
 export interface FactSpec {
   predicate: string;
@@ -242,6 +243,120 @@ const ASSISTANT_ADVICE = [
   'Building a reading habit usually works best when the bar is low: ten minutes a day, same time, same chair. Keep the book visible and the phone in another room for that window. Many people also find that starting with shorter books or essays helps momentum, and that tracking pages read, even roughly, is surprisingly motivating. If evenings are hard, an audiobook during a commute or a walk can count too.',
 ];
 
+/**
+ * Episodic events people mention in passing ("by the way, I just got back from a
+ * three-day trip to Big Sur"). Real transcripts carry most of their memorable facts
+ * this way, and the speaker is always the subject.
+ */
+const EVENT_PLACES = [
+  'Big Sur',
+  'Yosemite',
+  'Lisbon',
+  'Cape Town',
+  'Kyoto',
+  'Banff',
+  'Hobart',
+  'Tulum',
+];
+const EVENT_ITEMS = [
+  'espresso_machine',
+  'road_bike',
+  'standing_desk',
+  'air_fryer',
+  'record_player',
+  'sewing_machine',
+  'kayak',
+  'telescope',
+];
+const EVENT_OUTINGS = [
+  'jazz_concert',
+  'pottery_class',
+  'book_launch',
+  'marathon',
+  'wine_tasting',
+  'film_festival',
+];
+const EVENT_PEOPLE = [
+  'cousin',
+  'sister',
+  'coworker',
+  'neighbour',
+  'aunt',
+  'brother',
+];
+const EVENT_TASKS = [
+  'baby_shower_shopping',
+  'nursery_painting',
+  'moving_house',
+  'job_application',
+  'wedding_planning',
+];
+const EVENT_ACTIVITIES = [
+  'pottery',
+  'rock_climbing',
+  'spanish_lessons',
+  'sourdough_baking',
+  'swimming',
+];
+const EVENT_TEMPLATES: Array<{
+  predicate: string;
+  argNames: string[];
+  args: (rng: Rng) => string[];
+}> = [
+  {
+    predicate: 'visited',
+    argNames: ['Person', 'Place'],
+    args: (rng) => [rng.pick(EVENT_PLACES)],
+  },
+  {
+    predicate: 'trip_days',
+    argNames: ['Person', 'Place', 'NumberOfDays'],
+    args: (rng) => [rng.pick(EVENT_PLACES), String(2 + rng.int(9))],
+  },
+  {
+    predicate: 'bought',
+    argNames: ['Person', 'Item'],
+    args: (rng) => [rng.pick(EVENT_ITEMS)],
+  },
+  {
+    predicate: 'finished',
+    argNames: ['Person', 'Item'],
+    args: (rng) => [rng.pick(EVENT_ITEMS)],
+  },
+  {
+    predicate: 'attended',
+    argNames: ['Person', 'Event'],
+    args: (rng) => [rng.pick(EVENT_OUTINGS)],
+  },
+  {
+    predicate: 'helped',
+    argNames: ['Person', 'WhoWasHelped', 'Task'],
+    args: (rng) => [rng.pick(EVENT_PEOPLE), rng.pick(EVENT_TASKS)],
+  },
+  {
+    predicate: 'ordered',
+    argNames: ['Person', 'Item', 'Recipient'],
+    args: (rng) => [rng.pick(EVENT_ITEMS), rng.pick(EVENT_PEOPLE)],
+  },
+  {
+    predicate: 'started',
+    argNames: ['Person', 'Activity'],
+    args: (rng) => [rng.pick(EVENT_ACTIVITIES)],
+  },
+  {
+    predicate: 'met',
+    argNames: ['Person', 'Who'],
+    args: (rng) => [rng.pick(EVENT_PEOPLE)],
+  },
+];
+const ASIDE_LEADINS = [
+  'By the way,',
+  'Also,',
+  'Oh, and',
+  'Incidentally,',
+  'Speaking of which,',
+];
+
 const ASSISTANT_ACKS = [
   'Got it. Shall I look at anything else?',
   'Noted.',
@@ -381,6 +496,8 @@ function factText(predicate: string, args: readonly string[]): string {
 
 /** "Mira works at Acme." -> "mira works at Acme." for splicing after a lead-in; names stay as rendered otherwise. */
 function lowerFirst(text: string): string {
+  // "I" stays capitalized: "By the way, I attended ..." not "i attended"
+  if (/^I\b/.test(text)) return text;
   return text.charAt(0).toLowerCase() + text.slice(1);
 }
 
@@ -1054,6 +1171,55 @@ export async function generateExtractionExamples(
           });
         }
       }
+    }
+
+    // event: an episodic aside inside a request, in the first person. Half the examples
+    // are plain text (the remember path), half are USER/ASSISTANT transcripts. Two per
+    // round because real transcripts carry most memorable facts this way.
+    for (let k = 0; k < 2; k += 1) {
+      const template = rng.pick(EVENT_TEMPLATES);
+      const values = template.args(rng);
+      const quoted = values.map((v) => (/\s|[A-Z]/.test(v) ? `'${v}'` : v));
+      const fact = parseProgram(
+        factText(template.predicate, [options.selfAtom, ...quoted]),
+      )[0];
+      const relation: Relation = {
+        name: template.predicate,
+        kind: 'attribute',
+        args: [...template.argNames],
+      };
+      // proper names keep their capitals; common nouns are spoken as words
+      const display: Record<string, string> = {};
+      for (const v of values)
+        display[v] = v.includes('_') ? v.replaceAll('_', ' ') : v;
+      const sentence = await renderVerified([fact], relation, {
+        firstPerson: true,
+        negated: false,
+        hedged: false,
+        display,
+      });
+      if (sentence === undefined) continue;
+      const userTurn = `${rng.pick(USER_REQUESTS)} ${rng.pick(ASIDE_LEADINS)} ${lowerFirst(sentence)} ${rng.pick(USER_FOLLOWUPS)}`;
+      const otherSubject = rng.pick(world.entities);
+      const seed = `${template.predicate}(${otherSubject}, ${template
+        .args(rng)
+        .map((v) => (/\s|[A-Z]/.test(v) ? `'${v}'` : v))
+        .join(', ')}).`;
+      const transcript = rng.next() < 0.5;
+      out.push({
+        world: world.id,
+        kind: 'event',
+        input: transcript
+          ? [
+              `USER: ${userTurn}`,
+              `ASSISTANT: ${rng.pick(ASSISTANT_ADVICE)}`,
+            ].join('\n\n')
+          : userTurn,
+        initialProgram: bareSchema('event', []) ? '' : seed,
+        expectedAdded: [serializeClause(fact)],
+        expectedRetract: [],
+        mode: transcript ? 'transcript' : 'text',
+      });
     }
 
     // distractor: one real fact preceded by noise prose

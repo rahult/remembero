@@ -144,6 +144,8 @@ describe('extraction training data', () => {
         expect(example.input).toMatch(/^USER: |^ASSISTANT: /m);
         expect(example.input).toMatch(/\nASSISTANT: |^ASSISTANT: /);
         expect(example.expectedRetract).toEqual([]);
+      } else if (example.kind === 'event') {
+        expect(['text', 'transcript']).toContain(example.mode);
       } else {
         expect(example.mode).toBe('text');
       }
@@ -171,7 +173,7 @@ describe('extraction training data', () => {
 
   it('writes some first-person examples over relations ("my manager is ..."), not only attributes', async () => {
     let relational = false;
-    for (let seed = 1; seed <= 6 && !relational; seed += 1) {
+    for (let seed = 1; seed <= 3 && !relational; seed += 1) {
       const world = generateWorld(seed);
       const attributes = new Set(
         world.relations
@@ -182,7 +184,7 @@ describe('extraction training data', () => {
         world,
         createRng(seed),
         fakeRenderer,
-        { selfAtom: 'rahul', perKind: 3 },
+        { selfAtom: 'rahul', perKind: 24 },
       );
       relational = examples.some(
         (e) =>
@@ -286,6 +288,52 @@ describe('extraction training data', () => {
     }
     expect(empty / total).toBeGreaterThan(0.12);
     expect(empty / total).toBeLessThan(0.4);
+  });
+
+  it('teaches episodic asides: "by the way, I just ..." events with the self atom as subject', async () => {
+    let asides = 0;
+    for (let seed = 1; seed <= 3; seed += 1) {
+      const world = generateWorld(seed);
+      const examples = await generateExtractionExamples(
+        world,
+        createRng(seed),
+        fakeRenderer,
+        { selfAtom: 'rahul', perKind: 12 },
+      );
+      for (const e of examples.filter((x) => x.kind === 'event')) {
+        asides += 1;
+        expect(e.input).toMatch(
+          /\b(By the way|Also|Oh, and|Incidentally|Speaking of which)\b/,
+        );
+        expect(e.expectedAdded.length).toBeGreaterThan(0);
+        // every event fact is about the speaker, and its constants are in the user's words
+        for (const fact of e.expectedAdded) {
+          expect(fact).toMatch(/^[a-z_]+\(rahul, /);
+          const constants = fact
+            .slice(fact.indexOf('(') + 1, fact.lastIndexOf(')'))
+            .split(', ')
+            .slice(1)
+            .map((c) =>
+              c
+                .replace(/'/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, ''),
+            );
+          const userText = (
+            e.mode === 'transcript'
+              ? e.input
+                  .split(/\n\n(?=USER: |ASSISTANT: )/)
+                  .filter((t) => t.startsWith('USER: '))
+                  .join(' ')
+              : e.input
+          )
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '');
+          for (const c of constants) expect(userText, e.input).toContain(c);
+        }
+      }
+    }
+    expect(asides).toBeGreaterThan(10);
   });
 
   it('exports transcript examples with the transcript prompt and additive facts only', () => {
