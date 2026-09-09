@@ -47,7 +47,10 @@ volume = modal.Volume.from_name(VOLUME_NAME, create_if_missing=True)
 train_image = (
     modal.Image.debian_slim(python_version="3.12")
     .pip_install(
-        "torch==2.8.0",
+        "torch>=2.8",
+        # Qwen3.5 is 3/4 Gated DeltaNet layers; without these Triton kernels transformers
+        # falls back to a pure-torch path that ran at ~60 s/step on an A10G (5+ hours).
+        "flash-linear-attention>=0.3",
         "transformers>=5.0,<6",
         "trl>=0.24",
         "peft>=0.17",
@@ -130,6 +133,13 @@ def train(
     from transformers import AutoModelForCausalLM, AutoTokenizer
     from trl import SFTConfig, SFTTrainer
 
+    try:
+        import fla  # noqa: F401
+
+        print("flash-linear-attention: available (fast Gated DeltaNet path)")
+    except ImportError:
+        print("flash-linear-attention: MISSING; Gated DeltaNet layers will run the slow torch fallback")
+
     run_dir = Path(VOL) / "runs" / run
     data_dir = Path(VOL) / "data" / run
     started = time.time()
@@ -169,7 +179,10 @@ def train(
         save_strategy="no",
         eval_strategy="epoch" if eval_ds is not None else "no",
         report_to=[],
-        gradient_checkpointing=True,
+        # Recompute activations only where memory is tight (24 GB cards); it costs ~30% speed.
+        gradient_checkpointing=TRAIN_GPU.upper().split(":")[0] in {"A10G", "A10", "L4", "T4"},
+        # Query and extraction prompts differ a lot in length; length-sorted batches cut padding.
+        group_by_length=True,
         packing=False,
         # conversational prompt/completion rows: TRL puts the loss on the completion only
         completion_only_loss=True,
@@ -248,6 +261,10 @@ def serve() -> None:
         "4096",
         "--gpu-memory-utilization",
         "0.90",
+        # Qwen3.5's template opens a <think> block in the generation prompt; the parser moves
+        # everything up to </think> into reasoning_content so the harness sees only the answer.
+        "--reasoning-parser",
+        "qwen3",
     ]
     subprocess.Popen(cmd)
 

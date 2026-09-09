@@ -268,6 +268,13 @@ Notes:
 - Modal Starter plan: "$30 / month free credits" → ~30 H100 runs or ~20 A100 runs per month at
   $0. CPU $0.0000131/core/s and memory $0.00000222/GiB/s add a few cents. Modal is also the
   easiest place to keep a scale-to-zero vLLM endpoint for the eval.
+- Observed 2026-09-09: on a fresh Starter account Modal refuses H100 functions until a payment
+  method is added ("Please add a payment method to use H100 GPU functions"), while A10G runs
+  without one. So the free credit is usable card-free only on the smaller GPUs.
+- Observed 2026-09-09: Qwen3.5-4B is 24/32 Gated DeltaNet layers. Without the
+  `flash-linear-attention` Triton kernels, transformers 5 runs a pure-torch fallback that trained
+  at ~60 s/step on an A10G (5+ hours for one epoch, ~$6). The estimates in this table assume
+  the fast kernels are installed; the Modal app now installs them.
 - RunPod lists no A10; storage $0.10/GB/mo container, $0.07/GB/mo network volume. Vast.ai prices
   are set by hosts ("Prices are set by the market, not by Vast"), per-second billing; the query
   filtered to `verified` hosts, `on-demand`, `num_gpus = 1`, sorted by price, 30-offer cap — the
