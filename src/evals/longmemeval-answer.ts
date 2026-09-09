@@ -306,12 +306,19 @@ function sourceWindow(
 /** USER:/ASSISTANT: blocks, the shape the product's transcript capture and its training data use. */
 export function longMemEvalTranscript(
   session: LongMemEvalInstance['haystack_sessions'][number],
+  options: { assistantCharacters?: number } = {},
 ): string {
+  // Assistant turns are ~87% of the characters and, by the extraction contract, never a
+  // source of facts; keeping only their head leaves the user's words in a small prompt.
+  const limit = options.assistantCharacters;
   return session
-    .map(
-      ({ role, content }) =>
-        `${role === 'user' ? 'USER' : 'ASSISTANT'}: ${content}`,
-    )
+    .map(({ role, content }) => {
+      const text =
+        role !== 'user' && limit !== undefined && content.length > limit
+          ? `${content.slice(0, limit)} […]`
+          : content;
+      return `${role === 'user' ? 'USER' : 'ASSISTANT'}: ${text}`;
+    })
     .join('\n\n');
 }
 
@@ -469,6 +476,8 @@ export async function evaluateLongMemEvalAnswerInstance(
     extractor?: LongMemEvalCompletionClient;
     extractionCharacters?: number;
     extractionMaxTokens?: number;
+    /** Cut each assistant turn to this many characters before extraction (default: no cut). */
+    extractionAssistantCharacters?: number;
   } = {},
 ): Promise<LongMemEvalAnswerObservation> {
   const formation = options.formation ?? 'raw';
@@ -581,7 +590,11 @@ export async function evaluateLongMemEvalAnswerInstance(
         const budget =
           options.extractionCharacters ??
           DEFAULT_LONGMEMEVAL_EXTRACTION_CHARACTERS;
-        const transcript = longMemEvalTranscript(session).slice(0, budget);
+        const transcript = longMemEvalTranscript(session, {
+          ...(options.extractionAssistantCharacters === undefined
+            ? {}
+            : { assistantCharacters: options.extractionAssistantCharacters }),
+        }).slice(0, budget);
         try {
           const result = await rememberTranscriptText(
             { store, llm: extractorLlm },

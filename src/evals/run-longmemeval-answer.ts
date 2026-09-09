@@ -49,6 +49,7 @@ interface Args {
   extractionBaseUrl: string | undefined;
   extractionApiKey: string | undefined;
   extractionCharacters: number | undefined;
+  extractionAssistantCharacters: number | undefined;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -65,6 +66,8 @@ Options:
   --extraction-base-url <url>  OpenAI-compatible endpoint for it (default: LLM_BASE_URL)
   --extraction-api-key <key>   Key for it (default: MODAL_SERVE_API_KEY, else LLM_API_KEY)
   --extraction-characters <n>  Cut each session to n characters before extraction (default 16000)
+  --extraction-assistant-characters <n>  Keep only the first n characters of each assistant
+                         turn in the extraction input (user turns stay whole; default: no cut)
   --top-k <count>        Retrieved sessions per question (default: 4)
   --multi-session-top-k <count>  Retrieved sessions for multi-session questions (default: 5)
   --temporal-top-k <count>  Retrieved sessions for temporal questions (default: 5)
@@ -132,6 +135,7 @@ function parseArgs(argv: string[]): Args {
     extractionBaseUrl: undefined,
     extractionApiKey: undefined,
     extractionCharacters: undefined,
+    extractionAssistantCharacters: undefined,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -249,6 +253,10 @@ function parseArgs(argv: string[]): Args {
       );
     } else if (arg === '--extraction-api-key') {
       args.extractionApiKey = requiredValue(argv, index++, arg);
+    } else if (arg === '--extraction-assistant-characters') {
+      args.extractionAssistantCharacters = Number(
+        requiredValue(argv, index++, arg),
+      );
     } else if (arg === '--extraction-characters') {
       args.extractionCharacters = Number(requiredValue(argv, index++, arg));
     } else if (arg === '--local-only' || arg === '--no-semantic-preferences') {
@@ -361,6 +369,12 @@ async function main(): Promise<void> {
           ...(args.extractionCharacters === undefined
             ? {}
             : { extractionCharacters: args.extractionCharacters }),
+          ...(args.extractionAssistantCharacters === undefined
+            ? {}
+            : {
+                extractionAssistantCharacters:
+                  args.extractionAssistantCharacters,
+              }),
         },
       );
       completed++;

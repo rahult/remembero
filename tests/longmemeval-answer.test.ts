@@ -229,6 +229,53 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     });
   });
 
+  it('compacts long assistant turns before extraction while keeping user turns whole', async () => {
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    const extractor = new ScriptedCompletionClient('dialect', [
+      '% nothing',
+      'degree(user, business_administration).',
+    ]);
+    const long = 'x'.repeat(2_000);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      instance({
+        haystack_sessions: [
+          [
+            {
+              role: 'user',
+              content: 'Compare credit card rewards for travel.',
+            },
+            { role: 'assistant', content: long },
+          ],
+          [
+            {
+              role: 'user',
+              content: 'My degree was in Business Administration.',
+              has_answer: true,
+            },
+            { role: 'assistant', content: long },
+          ],
+        ],
+      }),
+      reader,
+      judge,
+      {
+        topK: 1,
+        contextBytes: 4_096,
+        formation: 'extracted',
+        extractor,
+        extractionAssistantCharacters: 300,
+      },
+    );
+    expect(observation.status).toBe('judged');
+    const sent = extractor.calls[1]?.messages.at(-1)?.content ?? '';
+    expect(sent).toContain('USER: My degree was in Business Administration.');
+    expect(sent).toContain('ASSISTANT: ' + 'x'.repeat(300) + ' […]');
+    expect(sent.length).toBeLessThan(600);
+  });
+
   it('hybrid formation keeps the raw session fact so sessions without extracted facts stay retrievable', async () => {
     const reader = new ScriptedCompletionClient('reader', [
       'Business Administration',
