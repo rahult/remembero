@@ -214,6 +214,34 @@ const IMPLICIT_SUBJECT_FACTS: Array<{
   },
 ];
 
+/** Long, entity-free user requests: real transcripts bury a fact inside a paragraph like these. */
+const USER_REQUESTS = [
+  "I'm trying to get a bit more organized this quarter and could use some help thinking through how to structure my week. There is a lot going on between work and home and I keep dropping small things.",
+  'Can you help me plan a short trip for next month? I want something relaxed, not too far, and ideally cheap. I have been meaning to take a break for ages.',
+  "I've been struggling to keep up with reading lately and would love some suggestions for building a habit again. Evenings are usually when I have time, but I get distracted easily.",
+  'Could you recommend a few task management apps that help with prioritizing work and personal tasks? I have tried a couple before and never stuck with them.',
+  "I'm putting together a budget and want to track spending better. Any advice on categories that actually work in practice rather than in theory?",
+  'I need to prepare for a presentation next week and I am nervous about the question-and-answer part. How do people usually rehearse for that?',
+  "We're redoing the onboarding docs at work and I want them to be genuinely useful rather than a wall of text. What structure tends to work?",
+  'I want to start cooking more at home instead of ordering in. Could you suggest a way to plan meals for the week without spending my whole Sunday on it?',
+];
+
+const USER_FOLLOWUPS = [
+  'Any thoughts on where to start?',
+  'What would you suggest?',
+  'Does that change your recommendation?',
+  'Anyway, what do you think?',
+  'Could you sketch a plan for me?',
+];
+
+/** Long, entity-free assistant advice, the bulk of a real transcript and never a source of facts. */
+const ASSISTANT_ADVICE = [
+  'Happy to help. A good starting point is to write down everything competing for your attention, then sort it into three buckets: must happen this week, should happen this month, and nice to have. Most people find the first bucket is much smaller than it feels. From there, block two or three fixed slots in your calendar for the must-do items and protect them. Review the list briefly each evening so nothing sits unnoticed for long, and expect to adjust the buckets as the week unfolds.',
+  'There are a few approaches that tend to work. First, pick a single place where every task lives, whether that is an app or a notebook, so you never have to wonder where something was written down. Second, decide once a day what the three most important items are and do those before anything else. Third, keep a separate list for ideas and someday items so they do not clutter the daily view. The tools matter less than the habit of reviewing them.',
+  'That is a very reasonable plan. For a relaxed trip, I would look at places two to three hours away, book somewhere with a kitchen so you can eat in a few times, and leave at least one day completely unplanned. Check whether midweek dates are cheaper, and pack light so the travel itself is not a chore. If you tell me roughly what you enjoy, I can suggest a couple of specific options.',
+  'Building a reading habit usually works best when the bar is low: ten minutes a day, same time, same chair. Keep the book visible and the phone in another room for that window. Many people also find that starting with shorter books or essays helps momentum, and that tracking pages read, even roughly, is surprisingly motivating. If evenings are hard, an audiobook during a commute or a walk can count too.',
+];
+
 const ASSISTANT_ACKS = [
   'Got it. Shall I look at anything else?',
   'Noted.',
@@ -356,6 +384,10 @@ function lowerFirst(text: string): string {
   return text.charAt(0).toLowerCase() + text.slice(1);
 }
 
+function capitalFirst(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 function edgeRelations(world: World): Relation[] {
   return [
     ...relationsOfKind(world, 'hierarchy'),
@@ -482,12 +514,23 @@ export async function generateExtractionExamples(
       world: world.id,
       kind,
       input: text,
-      initialProgram: expected.initial.join('\n'),
+      initialProgram: bareSchema(kind, expected.retract)
+        ? ''
+        : expected.initial.join('\n'),
       expectedAdded: expected.added,
       expectedRetract: expected.retract,
       mode: 'text',
     });
   };
+
+  // A real store starts empty, and the model must then name predicates from the text
+  // alone; a quarter of the examples show that situation. Kinds that retract need the
+  // stored fact, so they always keep their schema.
+  const bareSchema = (kind: ExtractionKind, retract: string[]): boolean =>
+    retract.length === 0 &&
+    kind !== 'supersession' &&
+    kind !== 'negation' &&
+    rng.next() < 0.25;
 
   // schedules are three-place, so the model sees argument order beyond subject/value
   const schedules = relationsOfKind(world, 'schedule');
@@ -923,6 +966,7 @@ export async function generateExtractionExamples(
               ]),
             ),
           ];
+          // embedded twice: the fact inside a long request is the common real shape
           const variant = rng.pick([
             'ack',
             'guess',
@@ -930,6 +974,8 @@ export async function generateExtractionExamples(
             'tool',
             'confirm',
             'code',
+            'embedded',
+            'embedded',
           ] as const);
           const turns: string[] = [];
           let added = userFacts.map(serializeClause);
@@ -976,12 +1022,32 @@ export async function generateExtractionExamples(
                 `ASSISTANT: ${rng.pick(ASSISTANT_ACKS)}`,
               );
               break;
+            case 'embedded': {
+              // the fact sits inside a long request; the assistant answers at length,
+              // sometimes mentioning an unrelated fact of its own that must not be stored
+              const advice = rng.pick(ASSISTANT_ADVICE);
+              const aside =
+                rng.next() < 0.5 ? ` ${capitalFirst(guessText)}` : '';
+              turns.push(
+                `USER: ${rng.pick(USER_REQUESTS)} ${userText} ${rng.pick(USER_FOLLOWUPS)}`,
+                `ASSISTANT: ${advice}${aside}`,
+              );
+              if (rng.next() < 0.5) {
+                turns.push(
+                  `USER: ${rng.pick(USER_FOLLOWUPS)}`,
+                  `ASSISTANT: ${rng.pick(ASSISTANT_ADVICE)}`,
+                );
+              }
+              break;
+            }
           }
           out.push({
             world: world.id,
             kind: 'transcript',
             input: turns.join('\n\n'),
-            initialProgram: initial.join('\n'),
+            initialProgram: bareSchema('transcript', [])
+              ? ''
+              : initial.join('\n'),
             expectedAdded: added,
             expectedRetract: [],
             mode: 'transcript',

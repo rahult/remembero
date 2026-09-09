@@ -1,0 +1,4519 @@
+{
+  "schemaVersion": "remembero.longmemeval-answer.v1",
+  "generatedAt": "2026-09-09T12:30:55.390Z",
+  "dataset": {
+    "id": "xiaowu0162/longmemeval-cleaned",
+    "split": "longmemeval_s_cleaned",
+    "selection": "dev",
+    "commit": "98d7416c24c778c2fee6e6f3006e7a073259d48f",
+    "sha256": "d6f21ea9d60a0d56f34a05b609c79c88a451d2ae03597821ea3d5a9678c3a442"
+  },
+  "readerModel": "openai/gpt-5.6-luna",
+  "judgeModel": "openai/gpt-4o-2024-08-06",
+  "embeddingModel": null,
+  "judgeProtocol": "longmemeval-official-compatible-v1",
+  "formation": "extracted-transcript-facts",
+  "extractionModel": "finetune/qwen3.5-4b-r11-modal",
+  "retrieval": "remembero-local-source-search",
+  "answerContextPolicy": "user-turns-except-assistant-memory",
+  "semanticQuestionTypes": [],
+  "multiSessionSemanticMaximumLexicalScore": 315,
+  "semanticPreparation": "cold",
+  "topK": 4,
+  "multiSessionTopK": 5,
+  "temporalTopK": 5,
+  "sourceCharacters": 16384,
+  "contextBytes": 57344,
+  "summary": {
+    "questions": 40,
+    "judgedQuestions": 40,
+    "errors": 0,
+    "correct": 17,
+    "accuracy": 0.425,
+    "judgedAccuracy": 0.425,
+    "abstentionAccuracy": 1,
+    "fullContextEvidenceAccuracy": 1,
+    "incompleteContextEvidenceAccuracy": 0.34285714285714286,
+    "retrievalRecallAtK": 0.1388888888888889,
+    "contextRecallAtK": 0.1388888888888889,
+    "redactedRetrievedSessions": 0,
+    "medianFormationMs": 110907.14754199993,
+    "p95FormationMs": 515269.486041,
+    "medianSemanticPreparationMs": 0,
+    "p95SemanticPreparationMs": 0,
+    "medianRetrievalMs": 19.58408300008159,
+    "p95RetrievalMs": 33.95404199999757,
+    "medianReaderMs": 1756.5067499999423,
+    "p95ReaderMs": 2383.741833999986,
+    "medianJudgeMs": 829.7400830000406,
+    "p95JudgeMs": 1729.7232500000391,
+    "medianTotalMs": 113286.66379200004,
+    "p95TotalMs": 517285.137959,
+    "medianUserTurnMs": 2618.7354990004096,
+    "p95UserTurnMs": 3517.2982499999925,
+    "readerUsage": {
+      "calls": 40,
+      "usageResponses": 40,
+      "costResponses": 40,
+      "promptTokens": 48363,
+      "completionTokens": 1287,
+      "totalTokens": 49650,
+      "cachedPromptTokens": 0,
+      "reasoningTokens": 571,
+      "costUsd": 0.01312845
+    },
+    "judgeUsage": {
+      "calls": 40,
+      "usageResponses": 40,
+      "costResponses": 40,
+      "promptTokens": 3089,
+      "completionTokens": 60,
+      "totalTokens": 3149,
+      "cachedPromptTokens": 0,
+      "reasoningTokens": 0,
+      "costUsd": 0.008322499999999997
+    },
+    "extractionUsage": {
+      "calls": 2122,
+      "usageResponses": 40,
+      "costResponses": 0,
+      "promptTokens": 3191207,
+      "completionTokens": 52005,
+      "totalTokens": 3243212,
+      "cachedPromptTokens": 0,
+      "reasoningTokens": 0,
+      "costUsd": 0,
+      "sessionsWithFacts": 437,
+      "facts": 1138,
+      "errors": 823
+    },
+    "embeddingUsage": {
+      "calls": 0,
+      "promptTokens": 0,
+      "totalTokens": 0,
+      "costResponses": 0,
+      "costUsd": 0
+    },
+    "semanticPreparationUsage": {
+      "calls": 0,
+      "promptTokens": 0,
+      "totalTokens": 0,
+      "costResponses": 0,
+      "costUsd": 0
+    }
+  },
+  "byQuestionType": {
+    "multi-session": {
+      "questions": 1,
+      "judgedQuestions": 1,
+      "errors": 0,
+      "correct": 0,
+      "accuracy": 0,
+      "judgedAccuracy": 0,
+      "abstentionAccuracy": 0,
+      "fullContextEvidenceAccuracy": 0,
+      "incompleteContextEvidenceAccuracy": 0,
+      "retrievalRecallAtK": 0,
+      "contextRecallAtK": 0,
+      "redactedRetrievedSessions": 0,
+      "medianFormationMs": 100892.02454200014,
+      "p95FormationMs": 100892.02454200014,
+      "medianSemanticPreparationMs": 0,
+      "p95SemanticPreparationMs": 0,
+      "medianRetrievalMs": 15.273999999975786,
+      "p95RetrievalMs": 15.273999999975786,
+      "medianReaderMs": 1843.266874999972,
+      "p95ReaderMs": 1843.266874999972,
+      "medianJudgeMs": 752.8006659999955,
+      "p95JudgeMs": 752.8006659999955,
+      "medianTotalMs": 103509.19716700003,
+      "p95TotalMs": 103509.19716700003,
+      "medianUserTurnMs": 2611.3415409999434,
+      "p95UserTurnMs": 2611.3415409999434,
+      "readerUsage": {
+        "calls": 1,
+        "usageResponses": 1,
+        "costResponses": 1,
+        "promptTokens": 359,
+        "completionTokens": 40,
+        "totalTokens": 399,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 19,
+        "costUsd": 0.0001198
+      },
+      "judgeUsage": {
+        "calls": 1,
+        "usageResponses": 1,
+        "costResponses": 1,
+        "promptTokens": 144,
+        "completionTokens": 1,
+        "totalTokens": 145,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00037
+      },
+      "extractionUsage": {
+        "calls": 52,
+        "usageResponses": 1,
+        "costResponses": 0,
+        "promptTokens": 73428,
+        "completionTokens": 1395,
+        "totalTokens": 74823,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "sessionsWithFacts": 7,
+        "facts": 38,
+        "errors": 20
+      },
+      "embeddingUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      },
+      "semanticPreparationUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      }
+    },
+    "single-session-user": {
+      "questions": 39,
+      "judgedQuestions": 39,
+      "errors": 0,
+      "correct": 17,
+      "accuracy": 0.4358974358974359,
+      "judgedAccuracy": 0.4358974358974359,
+      "abstentionAccuracy": 1,
+      "fullContextEvidenceAccuracy": 1,
+      "incompleteContextEvidenceAccuracy": 0.35294117647058826,
+      "retrievalRecallAtK": 0.14285714285714285,
+      "contextRecallAtK": 0.14285714285714285,
+      "redactedRetrievedSessions": 0,
+      "medianFormationMs": 110907.14754199993,
+      "p95FormationMs": 515269.486041,
+      "medianSemanticPreparationMs": 0,
+      "p95SemanticPreparationMs": 0,
+      "medianRetrievalMs": 19.58408300008159,
+      "p95RetrievalMs": 33.95404199999757,
+      "medianReaderMs": 1728.1522500000428,
+      "p95ReaderMs": 2383.741833999986,
+      "medianJudgeMs": 829.7400830000406,
+      "p95JudgeMs": 1729.7232500000391,
+      "medianTotalMs": 113286.66379200004,
+      "p95TotalMs": 517285.137959,
+      "medianUserTurnMs": 2618.7354990004096,
+      "p95UserTurnMs": 3517.2982499999925,
+      "readerUsage": {
+        "calls": 39,
+        "usageResponses": 39,
+        "costResponses": 39,
+        "promptTokens": 48004,
+        "completionTokens": 1247,
+        "totalTokens": 49251,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 552,
+        "costUsd": 0.01300865
+      },
+      "judgeUsage": {
+        "calls": 39,
+        "usageResponses": 39,
+        "costResponses": 39,
+        "promptTokens": 2945,
+        "completionTokens": 59,
+        "totalTokens": 3004,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.007952499999999996
+      },
+      "extractionUsage": {
+        "calls": 2070,
+        "usageResponses": 39,
+        "costResponses": 0,
+        "promptTokens": 3117779,
+        "completionTokens": 50610,
+        "totalTokens": 3168389,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "sessionsWithFacts": 430,
+        "facts": 1100,
+        "errors": 803
+      },
+      "embeddingUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      },
+      "semanticPreparationUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      }
+    }
+  },
+  "observations": [
+    {
+      "questionId": "e47becba",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [],
+      "contextSessionIds": [],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "e47becba",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_280352e9"
+        ],
+        "retrievedSessionIds": [],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": true,
+        "topScore": 0,
+        "wallMs": 21.816791000019293
+      },
+      "context": {
+        "questionId": "e47becba",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_280352e9"
+        ],
+        "retrievedSessionIds": [],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": true,
+        "topScore": 0,
+        "wallMs": 21.816791000019293
+      },
+      "hypothesis": "I don’t know.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 79,
+        "completionTokens": 9,
+        "totalTokens": 88,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0000266
+      },
+      "judgeUsage": {
+        "promptTokens": 61,
+        "completionTokens": 1,
+        "totalTokens": 62,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001625
+      },
+      "extraction": {
+        "calls": 59,
+        "sessionsWithFacts": 13,
+        "facts": 37,
+        "errors": 22,
+        "usage": {
+          "promptTokens": 102775,
+          "completionTokens": 1504,
+          "totalTokens": 104279,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 515269.486041,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 21.816791000019293,
+      "readerMs": 1176.9853340000263,
+      "judgeMs": 808.8432909999974,
+      "totalMs": 517285.137959,
+      "userTurnMs": 2007.645416000043
+    },
+    {
+      "questionId": "58bf7951",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_355c48bb",
+        "answer_355c48bb",
+        "answer_355c48bb",
+        "ultrachat_268434"
+      ],
+      "contextSessionIds": [
+        "answer_355c48bb",
+        "answer_355c48bb",
+        "answer_355c48bb",
+        "ultrachat_268434"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "58bf7951",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_355c48bb"
+        ],
+        "retrievedSessionIds": [
+          "answer_355c48bb",
+          "answer_355c48bb",
+          "answer_355c48bb",
+          "ultrachat_268434"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 225,
+        "wallMs": 37.070792000042275
+      },
+      "context": {
+        "questionId": "58bf7951",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_355c48bb"
+        ],
+        "retrievedSessionIds": [
+          "answer_355c48bb",
+          "answer_355c48bb",
+          "answer_355c48bb",
+          "ultrachat_268434"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 225,
+        "wallMs": 37.070792000042275
+      },
+      "hypothesis": "You attended a production of *The Glass Menagerie*.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1015,
+        "completionTokens": 15,
+        "totalTokens": 1030,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000221
+      },
+      "judgeUsage": {
+        "promptTokens": 74,
+        "completionTokens": 1,
+        "totalTokens": 75,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000195
+      },
+      "extraction": {
+        "calls": 68,
+        "sessionsWithFacts": 22,
+        "facts": 73,
+        "errors": 19,
+        "usage": {
+          "promptTokens": 116481,
+          "completionTokens": 2091,
+          "totalTokens": 118572,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 555114.021459,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 37.070792000042275,
+      "readerMs": 1454.1145000000251,
+      "judgeMs": 790.0992090000072,
+      "totalMs": 557402.025834,
+      "userTurnMs": 2281.2845010000747
+    },
+    {
+      "questionId": "c5e8278d",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "sharegpt_DB8U4oH_9",
+        "aaf71ce2_2",
+        "193c23bd_2",
+        "f58317c6"
+      ],
+      "contextSessionIds": [
+        "sharegpt_DB8U4oH_9",
+        "aaf71ce2_2",
+        "193c23bd_2",
+        "f58317c6"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "c5e8278d",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f6168136"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_DB8U4oH_9",
+          "aaf71ce2_2",
+          "193c23bd_2",
+          "f58317c6"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 23.83358400000725
+      },
+      "context": {
+        "questionId": "c5e8278d",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f6168136"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_DB8U4oH_9",
+          "aaf71ce2_2",
+          "193c23bd_2",
+          "f58317c6"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 23.83358400000725
+      },
+      "hypothesis": "I don’t know; your previous last name isn’t mentioned in the provided history.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1204,
+        "completionTokens": 42,
+        "totalTokens": 1246,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 19,
+        "costUsd": 0.00035125
+      },
+      "judgeUsage": {
+        "promptTokens": 75,
+        "completionTokens": 1,
+        "totalTokens": 76,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001975
+      },
+      "extraction": {
+        "calls": 47,
+        "sessionsWithFacts": 9,
+        "facts": 11,
+        "errors": 22,
+        "usage": {
+          "promptTokens": 58912,
+          "completionTokens": 659,
+          "totalTokens": 59571,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 461194.41283399996,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 23.83358400000725,
+      "readerMs": 2383.741833999986,
+      "judgeMs": 799.8211660000379,
+      "totalMs": 464412.285208,
+      "userTurnMs": 3207.396584000031
+    },
+    {
+      "questionId": "6ade9755",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_9398da02",
+        "answer_9398da02",
+        "answer_9398da02",
+        "a200b713_4"
+      ],
+      "contextSessionIds": [
+        "answer_9398da02",
+        "answer_9398da02",
+        "answer_9398da02",
+        "a200b713_4"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "6ade9755",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_9398da02"
+        ],
+        "retrievedSessionIds": [
+          "answer_9398da02",
+          "answer_9398da02",
+          "answer_9398da02",
+          "a200b713_4"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 170,
+        "wallMs": 8.915500000002794
+      },
+      "context": {
+        "questionId": "6ade9755",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_9398da02"
+        ],
+        "retrievedSessionIds": [
+          "answer_9398da02",
+          "answer_9398da02",
+          "answer_9398da02",
+          "a200b713_4"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 170,
+        "wallMs": 8.915500000002794
+      },
+      "hypothesis": "Serenity Yoga.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1570,
+        "completionTokens": 8,
+        "totalTokens": 1578,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00040195
+      },
+      "judgeUsage": {
+        "promptTokens": 59,
+        "completionTokens": 2,
+        "totalTokens": 61,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001675
+      },
+      "extraction": {
+        "calls": 55,
+        "sessionsWithFacts": 12,
+        "facts": 14,
+        "errors": 19,
+        "usage": {
+          "promptTokens": 88972,
+          "completionTokens": 695,
+          "totalTokens": 89667,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 471383.057292,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 8.915500000002794,
+      "readerMs": 1137.0454169999575,
+      "judgeMs": 1736.7033749999828,
+      "totalMs": 474267.52158299997,
+      "userTurnMs": 2882.664291999943
+    },
+    {
+      "questionId": "5d3d2817",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [],
+      "contextSessionIds": [],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "5d3d2817",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_235eb6fb"
+        ],
+        "retrievedSessionIds": [],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": true,
+        "topScore": 0,
+        "wallMs": 31.184666999964975
+      },
+      "context": {
+        "questionId": "5d3d2817",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_235eb6fb"
+        ],
+        "retrievedSessionIds": [],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": true,
+        "topScore": 0,
+        "wallMs": 31.184666999964975
+      },
+      "hypothesis": "I don’t know.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 78,
+        "completionTokens": 9,
+        "totalTokens": 87,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0000264
+      },
+      "judgeUsage": {
+        "promptTokens": 64,
+        "completionTokens": 1,
+        "totalTokens": 65,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00017
+      },
+      "extraction": {
+        "calls": 59,
+        "sessionsWithFacts": 14,
+        "facts": 53,
+        "errors": 18,
+        "usage": {
+          "promptTokens": 103955,
+          "completionTokens": 1782,
+          "totalTokens": 105737,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 163210.192583,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 31.184666999964975,
+      "readerMs": 2365.5392909999937,
+      "judgeMs": 1008.8870000001043,
+      "totalMs": 166624.82575000002,
+      "userTurnMs": 3405.610958000063
+    },
+    {
+      "questionId": "726462e0",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "29e76903_1",
+        "cdd9704d_1",
+        "cdd9704d_1",
+        "cdd9704d_1"
+      ],
+      "contextSessionIds": [
+        "29e76903_1",
+        "cdd9704d_1",
+        "cdd9704d_1",
+        "cdd9704d_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "726462e0",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f38f679b"
+        ],
+        "retrievedSessionIds": [
+          "29e76903_1",
+          "cdd9704d_1",
+          "cdd9704d_1",
+          "cdd9704d_1"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 25.300458000041544
+      },
+      "context": {
+        "questionId": "726462e0",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f38f679b"
+        ],
+        "retrievedSessionIds": [
+          "29e76903_1",
+          "cdd9704d_1",
+          "cdd9704d_1",
+          "cdd9704d_1"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 25.300458000041544
+      },
+      "hypothesis": "I don’t know; the history doesn’t mention a first purchase from a new clothing brand or its discount.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1631,
+        "completionTokens": 51,
+        "totalTokens": 1682,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 23,
+        "costUsd": 0.0004688
+      },
+      "judgeUsage": {
+        "promptTokens": 87,
+        "completionTokens": 2,
+        "totalTokens": 89,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002375
+      },
+      "extraction": {
+        "calls": 51,
+        "sessionsWithFacts": 10,
+        "facts": 26,
+        "errors": 19,
+        "usage": {
+          "promptTokens": 80988,
+          "completionTokens": 1103,
+          "totalTokens": 82091,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 120391.95958299999,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 25.300458000041544,
+      "readerMs": 1496.970541000017,
+      "judgeMs": 1537.5764160000253,
+      "totalMs": 123459.69208299997,
+      "userTurnMs": 3059.847415000084
+    },
+    {
+      "questionId": "94f70d80",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "sharegpt_6fTnCnw_76",
+        "09b651aa_3",
+        "09b651aa_3",
+        "09b651aa_3"
+      ],
+      "contextSessionIds": [
+        "sharegpt_6fTnCnw_76",
+        "09b651aa_3",
+        "09b651aa_3",
+        "09b651aa_3"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "94f70d80",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_c63c0458"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_6fTnCnw_76",
+          "09b651aa_3",
+          "09b651aa_3",
+          "09b651aa_3"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 21.904291999991983
+      },
+      "context": {
+        "questionId": "94f70d80",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_c63c0458"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_6fTnCnw_76",
+          "09b651aa_3",
+          "09b651aa_3",
+          "09b651aa_3"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 21.904291999991983
+      },
+      "hypothesis": "I don’t know.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1441,
+        "completionTokens": 25,
+        "totalTokens": 1466,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 14,
+        "costUsd": 0.0003901
+      },
+      "judgeUsage": {
+        "promptTokens": 67,
+        "completionTokens": 2,
+        "totalTokens": 69,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001875
+      },
+      "extraction": {
+        "calls": 52,
+        "sessionsWithFacts": 9,
+        "facts": 31,
+        "errors": 18,
+        "usage": {
+          "promptTokens": 70242,
+          "completionTokens": 1242,
+          "totalTokens": 71484,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 123753.49395799998,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 21.904291999991983,
+      "readerMs": 2066.3517500000307,
+      "judgeMs": 1484.219584000064,
+      "totalMs": 127334.68633399997,
+      "userTurnMs": 3572.475626000087
+    },
+    {
+      "questionId": "8ebdbe50",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "407dd888",
+        "407dd888",
+        "407dd888",
+        "407dd888"
+      ],
+      "contextSessionIds": [
+        "407dd888",
+        "407dd888",
+        "407dd888",
+        "407dd888"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "8ebdbe50",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_8ad8a34f"
+        ],
+        "retrievedSessionIds": [
+          "407dd888",
+          "407dd888",
+          "407dd888",
+          "407dd888"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 13.076499999966472
+      },
+      "context": {
+        "questionId": "8ebdbe50",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_8ad8a34f"
+        ],
+        "retrievedSessionIds": [
+          "407dd888",
+          "407dd888",
+          "407dd888",
+          "407dd888"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 13.076499999966472
+      },
+      "hypothesis": "I don’t know; the history does not mention any certification.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1309,
+        "completionTokens": 46,
+        "totalTokens": 1355,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 27,
+        "costUsd": 0.0003823
+      },
+      "judgeUsage": {
+        "promptTokens": 70,
+        "completionTokens": 2,
+        "totalTokens": 72,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000195
+      },
+      "extraction": {
+        "calls": 56,
+        "sessionsWithFacts": 9,
+        "facts": 14,
+        "errors": 23,
+        "usage": {
+          "promptTokens": 91148,
+          "completionTokens": 3211,
+          "totalTokens": 94359,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 214225.61062499997,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 13.076499999966472,
+      "readerMs": 1809.77649999992,
+      "judgeMs": 1406.2741659999592,
+      "totalMs": 217460.80150000006,
+      "userTurnMs": 3229.1271659998456
+    },
+    {
+      "questionId": "6b168ec8",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "ultrachat_499691",
+        "ultrachat_353985",
+        "ultrachat_353985",
+        "ultrachat_353985"
+      ],
+      "contextSessionIds": [
+        "ultrachat_499691",
+        "ultrachat_353985",
+        "ultrachat_353985",
+        "ultrachat_353985"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "6b168ec8",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_e623ae87"
+        ],
+        "retrievedSessionIds": [
+          "ultrachat_499691",
+          "ultrachat_353985",
+          "ultrachat_353985",
+          "ultrachat_353985"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 9.31008299998939
+      },
+      "context": {
+        "questionId": "6b168ec8",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_e623ae87"
+        ],
+        "retrievedSessionIds": [
+          "ultrachat_499691",
+          "ultrachat_353985",
+          "ultrachat_353985",
+          "ultrachat_353985"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 9.31008299998939
+      },
+      "hypothesis": "I don’t know.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 807,
+        "completionTokens": 9,
+        "totalTokens": 816,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001722
+      },
+      "judgeUsage": {
+        "promptTokens": 60,
+        "completionTokens": 1,
+        "totalTokens": 61,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00016
+      },
+      "extraction": {
+        "calls": 53,
+        "sessionsWithFacts": 5,
+        "facts": 11,
+        "errors": 20,
+        "usage": {
+          "promptTokens": 74396,
+          "completionTokens": 1201,
+          "totalTokens": 75597,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 107219.28766699997,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 9.31008299998939,
+      "readerMs": 1432.2082499999087,
+      "judgeMs": 829.7400830000406,
+      "totalMs": 109497.39275,
+      "userTurnMs": 2271.2584159999387
+    },
+    {
+      "questionId": "853b0a1d",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "sharegpt_n3MgsgL_0",
+        "ebb5bc7c_2",
+        "ebb5bc7c_2",
+        "ebb5bc7c_2"
+      ],
+      "contextSessionIds": [
+        "sharegpt_n3MgsgL_0",
+        "ebb5bc7c_2",
+        "ebb5bc7c_2",
+        "ebb5bc7c_2"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "853b0a1d",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_69811d4a"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_n3MgsgL_0",
+          "ebb5bc7c_2",
+          "ebb5bc7c_2",
+          "ebb5bc7c_2"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 6.603541999938898
+      },
+      "context": {
+        "questionId": "853b0a1d",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_69811d4a"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_n3MgsgL_0",
+          "ebb5bc7c_2",
+          "ebb5bc7c_2",
+          "ebb5bc7c_2"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 6.603541999938898
+      },
+      "hypothesis": "I don’t know.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1519,
+        "completionTokens": 31,
+        "totalTokens": 1550,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 20,
+        "costUsd": 0.0004168
+      },
+      "judgeUsage": {
+        "promptTokens": 67,
+        "completionTokens": 2,
+        "totalTokens": 69,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001875
+      },
+      "extraction": {
+        "calls": 61,
+        "sessionsWithFacts": 14,
+        "facts": 23,
+        "errors": 22,
+        "usage": {
+          "promptTokens": 108666,
+          "completionTokens": 2263,
+          "totalTokens": 110929,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 159799.98033300007,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 6.603541999938898,
+      "readerMs": 1635.9345419999445,
+      "judgeMs": 1631.7853749999776,
+      "totalMs": 163077.57666600007,
+      "userTurnMs": 3274.323458999861
+    },
+    {
+      "questionId": "b86304ba",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "2dbfff2f",
+        "sharegpt_4ulV7Nm_4",
+        "sharegpt_4ulV7Nm_4",
+        "sharegpt_4ulV7Nm_4"
+      ],
+      "contextSessionIds": [
+        "2dbfff2f",
+        "sharegpt_4ulV7Nm_4",
+        "sharegpt_4ulV7Nm_4",
+        "sharegpt_4ulV7Nm_4"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "b86304ba",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_645b0329"
+        ],
+        "retrievedSessionIds": [
+          "2dbfff2f",
+          "sharegpt_4ulV7Nm_4",
+          "sharegpt_4ulV7Nm_4",
+          "sharegpt_4ulV7Nm_4"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 75,
+        "wallMs": 16.253665999975055
+      },
+      "context": {
+        "questionId": "b86304ba",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_645b0329"
+        ],
+        "retrievedSessionIds": [
+          "2dbfff2f",
+          "sharegpt_4ulV7Nm_4",
+          "sharegpt_4ulV7Nm_4",
+          "sharegpt_4ulV7Nm_4"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 75,
+        "wallMs": 16.253665999975055
+      },
+      "hypothesis": "I don’t know; the history does not mention the painting’s price or how much you paid for it.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 5787,
+        "completionTokens": 47,
+        "totalTokens": 5834,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 19,
+        "costUsd": 0.001503
+      },
+      "judgeUsage": {
+        "promptTokens": 98,
+        "completionTokens": 1,
+        "totalTokens": 99,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000255
+      },
+      "extraction": {
+        "calls": 45,
+        "sessionsWithFacts": 8,
+        "facts": 14,
+        "errors": 22,
+        "usage": {
+          "promptTokens": 56415,
+          "completionTokens": 819,
+          "totalTokens": 57234,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 70098.97124999994,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 16.253665999975055,
+      "readerMs": 2195.5352079999866,
+      "judgeMs": 576.9003750000848,
+      "totalMs": 72894.75,
+      "userTurnMs": 2788.6892490000464
+    },
+    {
+      "questionId": "25e5aa4f",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "48f804a3",
+        "48f804a3",
+        "ultrachat_381447",
+        "47183c60_2"
+      ],
+      "contextSessionIds": [
+        "48f804a3",
+        "48f804a3",
+        "ultrachat_381447",
+        "47183c60_2"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "25e5aa4f",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_986de8c3"
+        ],
+        "retrievedSessionIds": [
+          "48f804a3",
+          "48f804a3",
+          "ultrachat_381447",
+          "47183c60_2"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 21.554417000035755
+      },
+      "context": {
+        "questionId": "25e5aa4f",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_986de8c3"
+        ],
+        "retrievedSessionIds": [
+          "48f804a3",
+          "48f804a3",
+          "ultrachat_381447",
+          "47183c60_2"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 21.554417000035755
+      },
+      "hypothesis": "I don’t know.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1172,
+        "completionTokens": 24,
+        "totalTokens": 1196,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 13,
+        "costUsd": 0.00032165
+      },
+      "judgeUsage": {
+        "promptTokens": 72,
+        "completionTokens": 1,
+        "totalTokens": 73,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00019
+      },
+      "extraction": {
+        "calls": 49,
+        "sessionsWithFacts": 10,
+        "facts": 20,
+        "errors": 22,
+        "usage": {
+          "promptTokens": 70640,
+          "completionTokens": 932,
+          "totalTokens": 71572,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 81256.07845800009,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 21.554417000035755,
+      "readerMs": 1560.5903330000583,
+      "judgeMs": 718.9160409999313,
+      "totalMs": 83563.49420800002,
+      "userTurnMs": 2301.0607910000253
+    },
+    {
+      "questionId": "caf9ead2",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "ca5f0505",
+        "cd568521_2",
+        "ca5f0505",
+        "ca5f0505"
+      ],
+      "contextSessionIds": [
+        "ca5f0505",
+        "cd568521_2",
+        "ca5f0505",
+        "ca5f0505"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "caf9ead2",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_0714183a"
+        ],
+        "retrievedSessionIds": [
+          "ca5f0505",
+          "cd568521_2",
+          "ca5f0505",
+          "ca5f0505"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 215,
+        "wallMs": 21.644124999991618
+      },
+      "context": {
+        "questionId": "caf9ead2",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_0714183a"
+        ],
+        "retrievedSessionIds": [
+          "ca5f0505",
+          "cd568521_2",
+          "ca5f0505",
+          "ca5f0505"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 215,
+        "wallMs": 21.644124999991618
+      },
+      "hypothesis": "I don’t know; the history doesn’t mention moving to a new apartment.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1172,
+        "completionTokens": 41,
+        "totalTokens": 1213,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 19,
+        "costUsd": 0.00034205
+      },
+      "judgeUsage": {
+        "promptTokens": 78,
+        "completionTokens": 1,
+        "totalTokens": 79,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000205
+      },
+      "extraction": {
+        "calls": 45,
+        "sessionsWithFacts": 8,
+        "facts": 24,
+        "errors": 21,
+        "usage": {
+          "promptTokens": 63954,
+          "completionTokens": 750,
+          "totalTokens": 64704,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 69429.55608299992,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 21.644124999991618,
+      "readerMs": 2626.155167000019,
+      "judgeMs": 601.2661670000525,
+      "totalMs": 72683.64666600002,
+      "userTurnMs": 3249.065459000063
+    },
+    {
+      "questionId": "8550ddae",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "sharegpt_r4EToob_0",
+        "sharegpt_r4EToob_0",
+        "sharegpt_r4EToob_0",
+        "sharegpt_r4EToob_0"
+      ],
+      "contextSessionIds": [
+        "sharegpt_r4EToob_0",
+        "sharegpt_r4EToob_0",
+        "sharegpt_r4EToob_0",
+        "sharegpt_r4EToob_0"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "8550ddae",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_c8354ae9"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_r4EToob_0",
+          "sharegpt_r4EToob_0",
+          "sharegpt_r4EToob_0",
+          "sharegpt_r4EToob_0"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 15.17324999999255
+      },
+      "context": {
+        "questionId": "8550ddae",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_c8354ae9"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_r4EToob_0",
+          "sharegpt_r4EToob_0",
+          "sharegpt_r4EToob_0",
+          "sharegpt_r4EToob_0"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 15.17324999999255
+      },
+      "hypothesis": "I don’t know; the supplied history does not mention a cocktail recipe.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1136,
+        "completionTokens": 38,
+        "totalTokens": 1174,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 17,
+        "costUsd": 0.00032945
+      },
+      "judgeUsage": {
+        "promptTokens": 76,
+        "completionTokens": 2,
+        "totalTokens": 78,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00021
+      },
+      "extraction": {
+        "calls": 47,
+        "sessionsWithFacts": 4,
+        "facts": 18,
+        "errors": 24,
+        "usage": {
+          "promptTokens": 67791,
+          "completionTokens": 1208,
+          "totalTokens": 68999,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 97065.2685,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 15.17324999999255,
+      "readerMs": 2214.7426660000347,
+      "judgeMs": 829.6829999999609,
+      "totalMs": 100130.85045899998,
+      "userTurnMs": 3059.598915999988
+    },
+    {
+      "questionId": "60d45044",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "fcc6d66d_1",
+        "fcc6d66d_1",
+        "fcc6d66d_1",
+        "fcc6d66d_1"
+      ],
+      "contextSessionIds": [
+        "fcc6d66d_1",
+        "fcc6d66d_1",
+        "fcc6d66d_1",
+        "fcc6d66d_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "60d45044",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_9cddca88"
+        ],
+        "retrievedSessionIds": [
+          "fcc6d66d_1",
+          "fcc6d66d_1",
+          "fcc6d66d_1",
+          "fcc6d66d_1"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 25.652624999987893
+      },
+      "context": {
+        "questionId": "60d45044",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_9cddca88"
+        ],
+        "retrievedSessionIds": [
+          "fcc6d66d_1",
+          "fcc6d66d_1",
+          "fcc6d66d_1",
+          "fcc6d66d_1"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 25.652624999987893
+      },
+      "hypothesis": "I don’t know.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1969,
+        "completionTokens": 24,
+        "totalTokens": 1993,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 13,
+        "costUsd": 0.0005209
+      },
+      "judgeUsage": {
+        "promptTokens": 65,
+        "completionTokens": 1,
+        "totalTokens": 66,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001725
+      },
+      "extraction": {
+        "calls": 54,
+        "sessionsWithFacts": 9,
+        "facts": 39,
+        "errors": 24,
+        "usage": {
+          "promptTokens": 74597,
+          "completionTokens": 1055,
+          "totalTokens": 75652,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 92001.30950000009,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 25.652624999987893,
+      "readerMs": 1818.0679999999702,
+      "judgeMs": 928.6510840000119,
+      "totalMs": 94777.80637500004,
+      "userTurnMs": 2772.37170899997
+    },
+    {
+      "questionId": "3f1e9474",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "3aac691d_2",
+        "3aac691d_2",
+        "3aac691d_2",
+        "f67d993a_4"
+      ],
+      "contextSessionIds": [
+        "3aac691d_2",
+        "3aac691d_2",
+        "3aac691d_2",
+        "f67d993a_4"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "3f1e9474",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_57fc1954"
+        ],
+        "retrievedSessionIds": [
+          "3aac691d_2",
+          "3aac691d_2",
+          "3aac691d_2",
+          "f67d993a_4"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 18.723708000034094
+      },
+      "context": {
+        "questionId": "3f1e9474",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_57fc1954"
+        ],
+        "retrievedSessionIds": [
+          "3aac691d_2",
+          "3aac691d_2",
+          "3aac691d_2",
+          "f67d993a_4"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 18.723708000034094
+      },
+      "hypothesis": "I don’t know; the supplied history doesn’t mention a conversation about destiny.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1004,
+        "completionTokens": 41,
+        "totalTokens": 1045,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 19,
+        "costUsd": 0.00025
+      },
+      "judgeUsage": {
+        "promptTokens": 74,
+        "completionTokens": 2,
+        "totalTokens": 76,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000205
+      },
+      "extraction": {
+        "calls": 55,
+        "sessionsWithFacts": 12,
+        "facts": 25,
+        "errors": 21,
+        "usage": {
+          "promptTokens": 76382,
+          "completionTokens": 1013,
+          "totalTokens": 77395,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 90615.88887499995,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 18.723708000034094,
+      "readerMs": 1534.4092919999966,
+      "judgeMs": 937.4542919999221,
+      "totalMs": 93111.90487500001,
+      "userTurnMs": 2490.587291999953
+    },
+    {
+      "questionId": "86b68151",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_dc11c1eb",
+        "sharegpt_jgqCFKi_37",
+        "4e671700",
+        "answer_dc11c1eb"
+      ],
+      "contextSessionIds": [
+        "answer_dc11c1eb",
+        "sharegpt_jgqCFKi_37",
+        "4e671700",
+        "answer_dc11c1eb"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "86b68151",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_dc11c1eb"
+        ],
+        "retrievedSessionIds": [
+          "answer_dc11c1eb",
+          "sharegpt_jgqCFKi_37",
+          "4e671700",
+          "answer_dc11c1eb"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 19.58408300008159
+      },
+      "context": {
+        "questionId": "86b68151",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_dc11c1eb"
+        ],
+        "retrievedSessionIds": [
+          "answer_dc11c1eb",
+          "sharegpt_jgqCFKi_37",
+          "4e671700",
+          "answer_dc11c1eb"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 19.58408300008159
+      },
+      "hypothesis": "You bought your new bookshelf from IKEA.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1038,
+        "completionTokens": 12,
+        "totalTokens": 1050,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00027375
+      },
+      "judgeUsage": {
+        "promptTokens": 65,
+        "completionTokens": 1,
+        "totalTokens": 66,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001725
+      },
+      "extraction": {
+        "calls": 50,
+        "sessionsWithFacts": 15,
+        "facts": 24,
+        "errors": 19,
+        "usage": {
+          "promptTokens": 73904,
+          "completionTokens": 539,
+          "totalTokens": 74443,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 62620.86737500003,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 19.58408300008159,
+      "readerMs": 1352.7412089999998,
+      "judgeMs": 869.7489999999525,
+      "totalMs": 64870.09791599994,
+      "userTurnMs": 2242.074292000034
+    },
+    {
+      "questionId": "577d4d32",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "sharegpt_AtPlMJm_45",
+        "ultrachat_461151",
+        "ultrachat_266033",
+        "ultrachat_266033"
+      ],
+      "contextSessionIds": [
+        "sharegpt_AtPlMJm_45",
+        "ultrachat_461151",
+        "ultrachat_266033",
+        "ultrachat_266033"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "577d4d32",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_0dd4d99a"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_AtPlMJm_45",
+          "ultrachat_461151",
+          "ultrachat_266033",
+          "ultrachat_266033"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 7.80316699994728
+      },
+      "context": {
+        "questionId": "577d4d32",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_0dd4d99a"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_AtPlMJm_45",
+          "ultrachat_461151",
+          "ultrachat_266033",
+          "ultrachat_266033"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 7.80316699994728
+      },
+      "hypothesis": "I don’t know.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 539,
+        "completionTokens": 29,
+        "totalTokens": 568,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 18,
+        "costUsd": 0.0001426
+      },
+      "judgeUsage": {
+        "promptTokens": 66,
+        "completionTokens": 1,
+        "totalTokens": 67,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000175
+      },
+      "extraction": {
+        "calls": 48,
+        "sessionsWithFacts": 5,
+        "facts": 11,
+        "errors": 21,
+        "usage": {
+          "promptTokens": 62044,
+          "completionTokens": 738,
+          "totalTokens": 62782,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 71134.71454100008,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 7.80316699994728,
+      "readerMs": 1822.624666000018,
+      "judgeMs": 911.6415839999681,
+      "totalMs": 73882.91058300005,
+      "userTurnMs": 2742.0694169999333
+    },
+    {
+      "questionId": "ec81a493",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "sharegpt_ST22P5t_0",
+        "sharegpt_ST22P5t_0",
+        "sharegpt_ST22P5t_0",
+        "sharegpt_ST22P5t_0"
+      ],
+      "contextSessionIds": [
+        "sharegpt_ST22P5t_0",
+        "sharegpt_ST22P5t_0",
+        "sharegpt_ST22P5t_0",
+        "sharegpt_ST22P5t_0"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "ec81a493",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_ed1982fc"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_ST22P5t_0",
+          "sharegpt_ST22P5t_0",
+          "sharegpt_ST22P5t_0",
+          "sharegpt_ST22P5t_0"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 21.5027499999851
+      },
+      "context": {
+        "questionId": "ec81a493",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_ed1982fc"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_ST22P5t_0",
+          "sharegpt_ST22P5t_0",
+          "sharegpt_ST22P5t_0",
+          "sharegpt_ST22P5t_0"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 21.5027499999851
+      },
+      "hypothesis": "I don’t know. The history does not identify your favorite artist or their debut album.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 523,
+        "completionTokens": 46,
+        "totalTokens": 569,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 22,
+        "costUsd": 0.0001598
+      },
+      "judgeUsage": {
+        "promptTokens": 81,
+        "completionTokens": 2,
+        "totalTokens": 83,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002225
+      },
+      "extraction": {
+        "calls": 53,
+        "sessionsWithFacts": 10,
+        "facts": 31,
+        "errors": 20,
+        "usage": {
+          "promptTokens": 77323,
+          "completionTokens": 1378,
+          "totalTokens": 78701,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 106218.83066700003,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 21.5027499999851,
+      "readerMs": 1756.5067499999423,
+      "judgeMs": 822.7716250000522,
+      "totalMs": 108828.30866600003,
+      "userTurnMs": 2600.7811249999795
+    },
+    {
+      "questionId": "15745da0",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "sharegpt_jnrxuVu_0",
+        "sharegpt_KUXG6gY_2",
+        "sharegpt_IzpzBot_0",
+        "a4f22269"
+      ],
+      "contextSessionIds": [
+        "sharegpt_jnrxuVu_0",
+        "sharegpt_KUXG6gY_2",
+        "sharegpt_IzpzBot_0",
+        "a4f22269"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "15745da0",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_586de428"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_jnrxuVu_0",
+          "sharegpt_KUXG6gY_2",
+          "sharegpt_IzpzBot_0",
+          "a4f22269"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 19.03058400005102
+      },
+      "context": {
+        "questionId": "15745da0",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_586de428"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_jnrxuVu_0",
+          "sharegpt_KUXG6gY_2",
+          "sharegpt_IzpzBot_0",
+          "a4f22269"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 19.03058400005102
+      },
+      "hypothesis": "I don’t know.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 2770,
+        "completionTokens": 24,
+        "totalTokens": 2794,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 13,
+        "costUsd": 0.00072115
+      },
+      "judgeUsage": {
+        "promptTokens": 63,
+        "completionTokens": 2,
+        "totalTokens": 65,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001775
+      },
+      "extraction": {
+        "calls": 48,
+        "sessionsWithFacts": 11,
+        "facts": 19,
+        "errors": 20,
+        "usage": {
+          "promptTokens": 65080,
+          "completionTokens": 934,
+          "totalTokens": 66014,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 80902.35837499995,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 19.03058400005102,
+      "readerMs": 1616.5759170000674,
+      "judgeMs": 949.2253329999512,
+      "totalMs": 83494.03666700004,
+      "userTurnMs": 2584.8318340000696
+    },
+    {
+      "questionId": "e01b8e2f",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "ultrachat_433104",
+        "sharegpt_mALN6lK_0",
+        "sharegpt_mALN6lK_0",
+        "sharegpt_mALN6lK_0"
+      ],
+      "contextSessionIds": [
+        "ultrachat_433104",
+        "sharegpt_mALN6lK_0",
+        "sharegpt_mALN6lK_0",
+        "sharegpt_mALN6lK_0"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "e01b8e2f",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_5ca6cd28"
+        ],
+        "retrievedSessionIds": [
+          "ultrachat_433104",
+          "sharegpt_mALN6lK_0",
+          "sharegpt_mALN6lK_0",
+          "sharegpt_mALN6lK_0"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 17.211292000021785
+      },
+      "context": {
+        "questionId": "e01b8e2f",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_5ca6cd28"
+        ],
+        "retrievedSessionIds": [
+          "ultrachat_433104",
+          "sharegpt_mALN6lK_0",
+          "sharegpt_mALN6lK_0",
+          "sharegpt_mALN6lK_0"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 17.211292000021785
+      },
+      "hypothesis": "I don’t know. The history only mentions plans and interest in visiting Venice.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 420,
+        "completionTokens": 73,
+        "totalTokens": 493,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 51,
+        "costUsd": 0.0001716
+      },
+      "judgeUsage": {
+        "promptTokens": 77,
+        "completionTokens": 1,
+        "totalTokens": 78,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002025
+      },
+      "extraction": {
+        "calls": 59,
+        "sessionsWithFacts": 8,
+        "facts": 24,
+        "errors": 24,
+        "usage": {
+          "promptTokens": 81701,
+          "completionTokens": 1484,
+          "totalTokens": 83185,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 116014.44862499996,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 17.211292000021785,
+      "readerMs": 2210.634874999989,
+      "judgeMs": 763.6723749999655,
+      "totalMs": 119013.75162499992,
+      "userTurnMs": 2991.518541999976
+    },
+    {
+      "questionId": "bc8a6e93",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "ultrachat_322154",
+        "sharegpt_qyWsgp8_13",
+        "sharegpt_qyWsgp8_13",
+        "sharegpt_qyWsgp8_13"
+      ],
+      "contextSessionIds": [
+        "ultrachat_322154",
+        "sharegpt_qyWsgp8_13",
+        "sharegpt_qyWsgp8_13",
+        "sharegpt_qyWsgp8_13"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "bc8a6e93",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_e6143162"
+        ],
+        "retrievedSessionIds": [
+          "ultrachat_322154",
+          "sharegpt_qyWsgp8_13",
+          "sharegpt_qyWsgp8_13",
+          "sharegpt_qyWsgp8_13"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 25.515416000038385
+      },
+      "context": {
+        "questionId": "bc8a6e93",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_e6143162"
+        ],
+        "retrievedSessionIds": [
+          "ultrachat_322154",
+          "sharegpt_qyWsgp8_13",
+          "sharegpt_qyWsgp8_13",
+          "sharegpt_qyWsgp8_13"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 25.515416000038385
+      },
+      "hypothesis": "I don’t know.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 723,
+        "completionTokens": 24,
+        "totalTokens": 747,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 13,
+        "costUsd": 0.0001734
+      },
+      "judgeUsage": {
+        "promptTokens": 67,
+        "completionTokens": 2,
+        "totalTokens": 69,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001875
+      },
+      "extraction": {
+        "calls": 56,
+        "sessionsWithFacts": 11,
+        "facts": 39,
+        "errors": 20,
+        "usage": {
+          "promptTokens": 97530,
+          "completionTokens": 1934,
+          "totalTokens": 99464,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 138862.718292,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 25.515416000038385,
+      "readerMs": 1924.3786670002155,
+      "judgeMs": 668.8414160001557,
+      "totalMs": 141489.12949999992,
+      "userTurnMs": 2618.7354990004096
+    },
+    {
+      "questionId": "001be529",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "sharegpt_o3cfukb_0",
+        "sharegpt_o3cfukb_0",
+        "sharegpt_PKXxlMF_0",
+        "sharegpt_o3cfukb_0"
+      ],
+      "contextSessionIds": [
+        "sharegpt_o3cfukb_0",
+        "sharegpt_o3cfukb_0",
+        "sharegpt_PKXxlMF_0",
+        "sharegpt_o3cfukb_0"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "001be529",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_530960c1"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_o3cfukb_0",
+          "sharegpt_o3cfukb_0",
+          "sharegpt_PKXxlMF_0",
+          "sharegpt_o3cfukb_0"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 125,
+        "wallMs": 15.879542000126094
+      },
+      "context": {
+        "questionId": "001be529",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_530960c1"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_o3cfukb_0",
+          "sharegpt_o3cfukb_0",
+          "sharegpt_PKXxlMF_0",
+          "sharegpt_o3cfukb_0"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 125,
+        "wallMs": 15.879542000126094
+      },
+      "hypothesis": "I don’t know; the supplied history does not mention your asylum application or waiting time.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1052,
+        "completionTokens": 43,
+        "totalTokens": 1095,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 19,
+        "costUsd": 0.00031445
+      },
+      "judgeUsage": {
+        "promptTokens": 81,
+        "completionTokens": 2,
+        "totalTokens": 83,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002225
+      },
+      "extraction": {
+        "calls": 56,
+        "sessionsWithFacts": 10,
+        "facts": 32,
+        "errors": 19,
+        "usage": {
+          "promptTokens": 90709,
+          "completionTokens": 1479,
+          "totalTokens": 92188,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 110907.14754199993,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 15.879542000126094,
+      "readerMs": 1547.5843340000138,
+      "judgeMs": 812.2106660001446,
+      "totalMs": 113286.66379200004,
+      "userTurnMs": 2375.6745420002844
+    },
+    {
+      "questionId": "19b5f2b3",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "ultrachat_138083",
+        "ultrachat_440262"
+      ],
+      "contextSessionIds": [
+        "ultrachat_138083",
+        "ultrachat_440262"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "19b5f2b3",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_5ff494b9"
+        ],
+        "retrievedSessionIds": [
+          "ultrachat_138083",
+          "ultrachat_440262"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 13.853499999968335
+      },
+      "context": {
+        "questionId": "19b5f2b3",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_5ff494b9"
+        ],
+        "retrievedSessionIds": [
+          "ultrachat_138083",
+          "ultrachat_440262"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 13.853499999968335
+      },
+      "hypothesis": "I don’t know; the supplied history doesn’t mention your time in Japan.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 508,
+        "completionTokens": 41,
+        "totalTokens": 549,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 19,
+        "costUsd": 0.0001508
+      },
+      "judgeUsage": {
+        "promptTokens": 73,
+        "completionTokens": 1,
+        "totalTokens": 74,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001925
+      },
+      "extraction": {
+        "calls": 49,
+        "sessionsWithFacts": 7,
+        "facts": 15,
+        "errors": 22,
+        "usage": {
+          "promptTokens": 75240,
+          "completionTokens": 1152,
+          "totalTokens": 76392,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 91700.02283400006,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 13.853499999968335,
+      "readerMs": 1825.3098750000354,
+      "judgeMs": 771.9529999999795,
+      "totalMs": 94315.62587500003,
+      "userTurnMs": 2611.1163749999832
+    },
+    {
+      "questionId": "4fd1909e",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "ultrachat_59418",
+        "65bc93cf_7",
+        "ultrachat_186237",
+        "65bc93cf_7"
+      ],
+      "contextSessionIds": [
+        "ultrachat_59418",
+        "65bc93cf_7",
+        "ultrachat_186237",
+        "65bc93cf_7"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "4fd1909e",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_2952aee4"
+        ],
+        "retrievedSessionIds": [
+          "ultrachat_59418",
+          "65bc93cf_7",
+          "ultrachat_186237",
+          "65bc93cf_7"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 26.519458000082523
+      },
+      "context": {
+        "questionId": "4fd1909e",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_2952aee4"
+        ],
+        "retrievedSessionIds": [
+          "ultrachat_59418",
+          "65bc93cf_7",
+          "ultrachat_186237",
+          "65bc93cf_7"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 26.519458000082523
+      },
+      "hypothesis": "I don’t know. The supplied history does not mention where you attended an Imagine Dragons concert.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 893,
+        "completionTokens": 42,
+        "totalTokens": 935,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 17,
+        "costUsd": 0.000229
+      },
+      "judgeUsage": {
+        "promptTokens": 78,
+        "completionTokens": 2,
+        "totalTokens": 80,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000215
+      },
+      "extraction": {
+        "calls": 64,
+        "sessionsWithFacts": 15,
+        "facts": 43,
+        "errors": 18,
+        "usage": {
+          "promptTokens": 114760,
+          "completionTokens": 1876,
+          "totalTokens": 116636,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 147086.09424999997,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 26.519458000082523,
+      "readerMs": 2147.0767500000075,
+      "judgeMs": 1343.7020419999026,
+      "totalMs": 150610.1192500001,
+      "userTurnMs": 3517.2982499999925
+    },
+    {
+      "questionId": "8a137a7f",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "d298714d_2",
+        "sharegpt_o1SCEXR_23",
+        "sharegpt_o1SCEXR_23",
+        "ultrachat_501742"
+      ],
+      "contextSessionIds": [
+        "d298714d_2",
+        "sharegpt_o1SCEXR_23",
+        "sharegpt_o1SCEXR_23",
+        "ultrachat_501742"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "8a137a7f",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_15d63a22"
+        ],
+        "retrievedSessionIds": [
+          "d298714d_2",
+          "sharegpt_o1SCEXR_23",
+          "sharegpt_o1SCEXR_23",
+          "ultrachat_501742"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 13.136332999914885
+      },
+      "context": {
+        "questionId": "8a137a7f",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_15d63a22"
+        ],
+        "retrievedSessionIds": [
+          "d298714d_2",
+          "sharegpt_o1SCEXR_23",
+          "sharegpt_o1SCEXR_23",
+          "ultrachat_501742"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 13.136332999914885
+      },
+      "hypothesis": "I don’t know.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 660,
+        "completionTokens": 24,
+        "totalTokens": 684,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 13,
+        "costUsd": 0.0001608
+      },
+      "judgeUsage": {
+        "promptTokens": 67,
+        "completionTokens": 2,
+        "totalTokens": 69,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001875
+      },
+      "extraction": {
+        "calls": 55,
+        "sessionsWithFacts": 11,
+        "facts": 41,
+        "errors": 20,
+        "usage": {
+          "promptTokens": 87192,
+          "completionTokens": 1320,
+          "totalTokens": 88512,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 114803.27641699999,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 13.136332999914885,
+      "readerMs": 1516.063707999885,
+      "judgeMs": 953.4142080000602,
+      "totalMs": 117289.72512499988,
+      "userTurnMs": 2482.61424899986
+    },
+    {
+      "questionId": "76d63226",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_bbdc7b0a",
+        "b0729ec8_1",
+        "b0729ec8_1",
+        "b0729ec8_1"
+      ],
+      "contextSessionIds": [
+        "answer_bbdc7b0a",
+        "b0729ec8_1",
+        "b0729ec8_1",
+        "b0729ec8_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "76d63226",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_bbdc7b0a"
+        ],
+        "retrievedSessionIds": [
+          "answer_bbdc7b0a",
+          "b0729ec8_1",
+          "b0729ec8_1",
+          "b0729ec8_1"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 180,
+        "wallMs": 21.621749999932945
+      },
+      "context": {
+        "questionId": "76d63226",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_bbdc7b0a"
+        ],
+        "retrievedSessionIds": [
+          "answer_bbdc7b0a",
+          "b0729ec8_1",
+          "b0729ec8_1",
+          "b0729ec8_1"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 180,
+        "wallMs": 21.621749999932945
+      },
+      "hypothesis": "Your new Samsung TV is 55 inches.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1449,
+        "completionTokens": 13,
+        "totalTokens": 1462,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0003777
+      },
+      "judgeUsage": {
+        "promptTokens": 67,
+        "completionTokens": 2,
+        "totalTokens": 69,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001875
+      },
+      "extraction": {
+        "calls": 49,
+        "sessionsWithFacts": 8,
+        "facts": 23,
+        "errors": 17,
+        "usage": {
+          "promptTokens": 79579,
+          "completionTokens": 811,
+          "totalTokens": 80390,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 79438.80891699996,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 21.621749999932945,
+      "readerMs": 1202.8825000000652,
+      "judgeMs": 910.142375000054,
+      "totalMs": 81580.84000000008,
+      "userTurnMs": 2134.646625000052
+    },
+    {
+      "questionId": "86f00804",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "sharegpt_K3jwzdd_0",
+        "0424a40a_2",
+        "sharegpt_ErOTMZ3_277",
+        "60153a02_1"
+      ],
+      "contextSessionIds": [
+        "sharegpt_K3jwzdd_0",
+        "0424a40a_2",
+        "sharegpt_ErOTMZ3_277",
+        "60153a02_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "86f00804",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_96b8c9ee"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_K3jwzdd_0",
+          "0424a40a_2",
+          "sharegpt_ErOTMZ3_277",
+          "60153a02_1"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 185,
+        "wallMs": 15.733292000135407
+      },
+      "context": {
+        "questionId": "86f00804",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_96b8c9ee"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_K3jwzdd_0",
+          "0424a40a_2",
+          "sharegpt_ErOTMZ3_277",
+          "60153a02_1"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 185,
+        "wallMs": 15.733292000135407
+      },
+      "hypothesis": "I don’t know the book’s title. You mentioned you were reading a book about the Impressionist exhibit that you bought at the museum gift shop.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1137,
+        "completionTokens": 80,
+        "totalTokens": 1217,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 44,
+        "costUsd": 0.0003801
+      },
+      "judgeUsage": {
+        "promptTokens": 91,
+        "completionTokens": 1,
+        "totalTokens": 92,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002375
+      },
+      "extraction": {
+        "calls": 49,
+        "sessionsWithFacts": 9,
+        "facts": 20,
+        "errors": 20,
+        "usage": {
+          "promptTokens": 82002,
+          "completionTokens": 1588,
+          "totalTokens": 83590,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 121218.77554100007,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 15.733292000135407,
+      "readerMs": 2340.9113330000546,
+      "judgeMs": 715.186207999941,
+      "totalMs": 124294.44187500002,
+      "userTurnMs": 3071.830833000131
+    },
+    {
+      "questionId": "311778f1",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "63daca23",
+        "4fe91719_1",
+        "63daca23",
+        "63daca23"
+      ],
+      "contextSessionIds": [
+        "63daca23",
+        "4fe91719_1",
+        "63daca23",
+        "63daca23"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "311778f1",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_e40b054e"
+        ],
+        "retrievedSessionIds": [
+          "63daca23",
+          "4fe91719_1",
+          "63daca23",
+          "63daca23"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 10.631208000006154
+      },
+      "context": {
+        "questionId": "311778f1",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_e40b054e"
+        ],
+        "retrievedSessionIds": [
+          "63daca23",
+          "4fe91719_1",
+          "63daca23",
+          "63daca23"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 10.631208000006154
+      },
+      "hypothesis": "I don’t know.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1308,
+        "completionTokens": 24,
+        "totalTokens": 1332,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 13,
+        "costUsd": 0.00035565
+      },
+      "judgeUsage": {
+        "promptTokens": 67,
+        "completionTokens": 1,
+        "totalTokens": 68,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001775
+      },
+      "extraction": {
+        "calls": 57,
+        "sessionsWithFacts": 8,
+        "facts": 21,
+        "errors": 18,
+        "usage": {
+          "promptTokens": 83531,
+          "completionTokens": 1326,
+          "totalTokens": 84857,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 109424.99437500001,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 10.631208000006154,
+      "readerMs": 1436.4788750000298,
+      "judgeMs": 645.9094589999877,
+      "totalMs": 111522.04837500001,
+      "userTurnMs": 2093.0195420000236
+    },
+    {
+      "questionId": "c19f7a0b",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "58ab5fc5",
+        "sharegpt_6ZeW9Vb_0",
+        "1b0d77b0",
+        "1b0d77b0"
+      ],
+      "contextSessionIds": [
+        "58ab5fc5",
+        "sharegpt_6ZeW9Vb_0",
+        "1b0d77b0",
+        "1b0d77b0"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "c19f7a0b",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f442ccbe"
+        ],
+        "retrievedSessionIds": [
+          "58ab5fc5",
+          "sharegpt_6ZeW9Vb_0",
+          "1b0d77b0",
+          "1b0d77b0"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 225,
+        "wallMs": 16.396875000093132
+      },
+      "context": {
+        "questionId": "c19f7a0b",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f442ccbe"
+        ],
+        "retrievedSessionIds": [
+          "58ab5fc5",
+          "sharegpt_6ZeW9Vb_0",
+          "1b0d77b0",
+          "1b0d77b0"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 225,
+        "wallMs": 16.396875000093132
+      },
+      "hypothesis": "I don’t know; the history does not mention what time you usually get home from work on weeknights.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 2240,
+        "completionTokens": 27,
+        "totalTokens": 2267,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00059225
+      },
+      "judgeUsage": {
+        "promptTokens": 89,
+        "completionTokens": 2,
+        "totalTokens": 91,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002425
+      },
+      "extraction": {
+        "calls": 47,
+        "sessionsWithFacts": 12,
+        "facts": 16,
+        "errors": 22,
+        "usage": {
+          "promptTokens": 51563,
+          "completionTokens": 239,
+          "totalTokens": 51802,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 38120.50916699995,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 16.396875000093132,
+      "readerMs": 1282.9642920000479,
+      "judgeMs": 738.0873330000322,
+      "totalMs": 40163.94604200008,
+      "userTurnMs": 2037.4485000001732
+    },
+    {
+      "questionId": "4100d0a0",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [],
+      "contextSessionIds": [],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "4100d0a0",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_83c13ff9"
+        ],
+        "retrievedSessionIds": [],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": true,
+        "topScore": 0,
+        "wallMs": 16.498582999920473
+      },
+      "context": {
+        "questionId": "4100d0a0",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_83c13ff9"
+        ],
+        "retrievedSessionIds": [],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": true,
+        "topScore": 0,
+        "wallMs": 16.498582999920473
+      },
+      "hypothesis": "I don’t know.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 77,
+        "completionTokens": 9,
+        "totalTokens": 86,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0000262
+      },
+      "judgeUsage": {
+        "promptTokens": 63,
+        "completionTokens": 2,
+        "totalTokens": 65,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001775
+      },
+      "extraction": {
+        "calls": 53,
+        "sessionsWithFacts": 12,
+        "facts": 33,
+        "errors": 18,
+        "usage": {
+          "promptTokens": 84491,
+          "completionTokens": 1751,
+          "totalTokens": 86242,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 132128.18154200003,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 16.498582999920473,
+      "readerMs": 1407.5362919999752,
+      "judgeMs": 853.1838750001043,
+      "totalMs": 134411.79691699985,
+      "userTurnMs": 2277.21875
+    },
+    {
+      "questionId": "1faac195",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "d2905eb6_2",
+        "ultrachat_404463"
+      ],
+      "contextSessionIds": [
+        "d2905eb6_2",
+        "ultrachat_404463"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "1faac195",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_d01949bf"
+        ],
+        "retrievedSessionIds": [
+          "d2905eb6_2",
+          "ultrachat_404463"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 3.4706669999286532
+      },
+      "context": {
+        "questionId": "1faac195",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_d01949bf"
+        ],
+        "retrievedSessionIds": [
+          "d2905eb6_2",
+          "ultrachat_404463"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 3.4706669999286532
+      },
+      "hypothesis": "I don’t know where your sister Emily lives.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 575,
+        "completionTokens": 46,
+        "totalTokens": 621,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 30,
+        "costUsd": 0.0001702
+      },
+      "judgeUsage": {
+        "promptTokens": 65,
+        "completionTokens": 1,
+        "totalTokens": 66,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001725
+      },
+      "extraction": {
+        "calls": 47,
+        "sessionsWithFacts": 9,
+        "facts": 12,
+        "errors": 23,
+        "usage": {
+          "promptTokens": 53671,
+          "completionTokens": 495,
+          "totalTokens": 54166,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 53986.93816700019,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 3.4706669999286532,
+      "readerMs": 2071.467999999877,
+      "judgeMs": 804.9578329999931,
+      "totalMs": 56869.34108299995,
+      "userTurnMs": 2879.896499999799
+    },
+    {
+      "questionId": "faba32e5",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "67045503",
+        "67045503",
+        "67045503",
+        "67045503"
+      ],
+      "contextSessionIds": [
+        "67045503",
+        "67045503",
+        "67045503",
+        "67045503"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "faba32e5",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_39b12014"
+        ],
+        "retrievedSessionIds": [
+          "67045503",
+          "67045503",
+          "67045503",
+          "67045503"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 22.935624999925494
+      },
+      "context": {
+        "questionId": "faba32e5",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_39b12014"
+        ],
+        "retrievedSessionIds": [
+          "67045503",
+          "67045503",
+          "67045503",
+          "67045503"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 22.935624999925494
+      },
+      "hypothesis": "I don’t know.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1606,
+        "completionTokens": 24,
+        "totalTokens": 1630,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 13,
+        "costUsd": 0.00043015
+      },
+      "judgeUsage": {
+        "promptTokens": 68,
+        "completionTokens": 1,
+        "totalTokens": 69,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00018
+      },
+      "extraction": {
+        "calls": 45,
+        "sessionsWithFacts": 9,
+        "facts": 28,
+        "errors": 21,
+        "usage": {
+          "promptTokens": 57606,
+          "completionTokens": 593,
+          "totalTokens": 58199,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 61206.02983299992,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 22.935624999925494,
+      "readerMs": 1790.217292000074,
+      "judgeMs": 721.3981670001522,
+      "totalMs": 63744.820499999914,
+      "userTurnMs": 2534.5510840001516
+    },
+    {
+      "questionId": "36580ce8",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "ultrachat_106408",
+        "ultrachat_32917",
+        "sharegpt_rAlDk6n_0",
+        "fc9a271e_2"
+      ],
+      "contextSessionIds": [
+        "ultrachat_106408",
+        "ultrachat_32917",
+        "sharegpt_rAlDk6n_0",
+        "fc9a271e_2"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "36580ce8",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_93e1bd22"
+        ],
+        "retrievedSessionIds": [
+          "ultrachat_106408",
+          "ultrachat_32917",
+          "sharegpt_rAlDk6n_0",
+          "fc9a271e_2"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 33.95404199999757
+      },
+      "context": {
+        "questionId": "36580ce8",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_93e1bd22"
+        ],
+        "retrievedSessionIds": [
+          "ultrachat_106408",
+          "ultrachat_32917",
+          "sharegpt_rAlDk6n_0",
+          "fc9a271e_2"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 33.95404199999757
+      },
+      "hypothesis": "I don’t know—the supplied history does not mention a health issue initially mistaken for a cold.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 848,
+        "completionTokens": 45,
+        "totalTokens": 893,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 20,
+        "costUsd": 0.0002236
+      },
+      "judgeUsage": {
+        "promptTokens": 80,
+        "completionTokens": 2,
+        "totalTokens": 82,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00022
+      },
+      "extraction": {
+        "calls": 62,
+        "sessionsWithFacts": 22,
+        "facts": 78,
+        "errors": 18,
+        "usage": {
+          "promptTokens": 105484,
+          "completionTokens": 2344,
+          "totalTokens": 107828,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 163492.61258299998,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 33.95404199999757,
+      "readerMs": 1810.6636250000447,
+      "judgeMs": 1580.57566699991,
+      "totalMs": 166926.32879199996,
+      "userTurnMs": 3425.1933339999523
+    },
+    {
+      "questionId": "a82c026e",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "ccaabf0b_1",
+        "answer_787e6a6d",
+        "answer_787e6a6d",
+        "answer_787e6a6d"
+      ],
+      "contextSessionIds": [
+        "ccaabf0b_1",
+        "answer_787e6a6d",
+        "answer_787e6a6d",
+        "answer_787e6a6d"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "a82c026e",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_787e6a6d"
+        ],
+        "retrievedSessionIds": [
+          "ccaabf0b_1",
+          "answer_787e6a6d",
+          "answer_787e6a6d",
+          "answer_787e6a6d"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 1,
+        "reciprocalRank": 0.5,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 24.624041999923065
+      },
+      "context": {
+        "questionId": "a82c026e",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_787e6a6d"
+        ],
+        "retrievedSessionIds": [
+          "ccaabf0b_1",
+          "answer_787e6a6d",
+          "answer_787e6a6d",
+          "answer_787e6a6d"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 1,
+        "reciprocalRank": 0.5,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 24.624041999923065
+      },
+      "hypothesis": "You finally beat the last boss in the **Dark Souls 3 DLC**.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1412,
+        "completionTokens": 20,
+        "totalTokens": 1432,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00037685
+      },
+      "judgeUsage": {
+        "promptTokens": 77,
+        "completionTokens": 1,
+        "totalTokens": 78,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002025
+      },
+      "extraction": {
+        "calls": 52,
+        "sessionsWithFacts": 15,
+        "facts": 28,
+        "errors": 20,
+        "usage": {
+          "promptTokens": 84487,
+          "completionTokens": 1664,
+          "totalTokens": 86151,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 119699.38166700001,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 24.624041999923065,
+      "readerMs": 1163.255208000075,
+      "judgeMs": 848.5083749999758,
+      "totalMs": 121742.52795900009,
+      "userTurnMs": 2036.387624999974
+    },
+    {
+      "questionId": "bc8a6e93_abs",
+      "questionType": "single-session-user",
+      "abstention": true,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "375354d1_2",
+        "375354d1_2",
+        "375354d1_2",
+        "375354d1_2"
+      ],
+      "contextSessionIds": [
+        "375354d1_2",
+        "375354d1_2",
+        "375354d1_2",
+        "375354d1_2"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "bc8a6e93_abs",
+        "questionType": "single-session-user",
+        "abstention": true,
+        "evidenceSessionIds": [
+          "answer_e6143162_abs"
+        ],
+        "retrievedSessionIds": [
+          "375354d1_2",
+          "375354d1_2",
+          "375354d1_2",
+          "375354d1_2"
+        ],
+        "precisionAtK": null,
+        "recallAtK": null,
+        "reciprocalRank": null,
+        "strictEvidenceCoverage": null,
+        "empty": false,
+        "topScore": 170,
+        "wallMs": 19.910875000059605
+      },
+      "context": {
+        "questionId": "bc8a6e93_abs",
+        "questionType": "single-session-user",
+        "abstention": true,
+        "evidenceSessionIds": [
+          "answer_e6143162_abs"
+        ],
+        "retrievedSessionIds": [
+          "375354d1_2",
+          "375354d1_2",
+          "375354d1_2",
+          "375354d1_2"
+        ],
+        "precisionAtK": null,
+        "recallAtK": null,
+        "reciprocalRank": null,
+        "strictEvidenceCoverage": null,
+        "empty": false,
+        "topScore": 170,
+        "wallMs": 19.910875000059605
+      },
+      "hypothesis": "I don’t know; the history doesn’t mention what you baked for your uncle’s birthday party.",
+      "judgeResponse": "Yes.",
+      "readerUsage": {
+        "promptTokens": 1376,
+        "completionTokens": 39,
+        "totalTokens": 1415,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 13,
+        "costUsd": 0.00039065
+      },
+      "judgeUsage": {
+        "promptTokens": 107,
+        "completionTokens": 2,
+        "totalTokens": 109,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002875
+      },
+      "extraction": {
+        "calls": 51,
+        "sessionsWithFacts": 15,
+        "facts": 20,
+        "errors": 21,
+        "usage": {
+          "promptTokens": 77823,
+          "completionTokens": 1133,
+          "totalTokens": 78956,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 90708.95504199993,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 19.910875000059605,
+      "readerMs": 1675.0537080001086,
+      "judgeMs": 964.5363749999087,
+      "totalMs": 93375.79854099988,
+      "userTurnMs": 2659.500958000077
+    },
+    {
+      "questionId": "19b5f2b3_abs",
+      "questionType": "single-session-user",
+      "abstention": true,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "529af165_2",
+        "529af165_2",
+        "529af165_2",
+        "529af165_2"
+      ],
+      "contextSessionIds": [
+        "529af165_2",
+        "529af165_2",
+        "529af165_2",
+        "529af165_2"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "19b5f2b3_abs",
+        "questionType": "single-session-user",
+        "abstention": true,
+        "evidenceSessionIds": [
+          "answer_5ff494b9_abs"
+        ],
+        "retrievedSessionIds": [
+          "529af165_2",
+          "529af165_2",
+          "529af165_2",
+          "529af165_2"
+        ],
+        "precisionAtK": null,
+        "recallAtK": null,
+        "reciprocalRank": null,
+        "strictEvidenceCoverage": null,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 26.184208000078797
+      },
+      "context": {
+        "questionId": "19b5f2b3_abs",
+        "questionType": "single-session-user",
+        "abstention": true,
+        "evidenceSessionIds": [
+          "answer_5ff494b9_abs"
+        ],
+        "retrievedSessionIds": [
+          "529af165_2",
+          "529af165_2",
+          "529af165_2",
+          "529af165_2"
+        ],
+        "precisionAtK": null,
+        "recallAtK": null,
+        "reciprocalRank": null,
+        "strictEvidenceCoverage": null,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 26.184208000078797
+      },
+      "hypothesis": "I don’t know; the supplied history does not mention a trip to Korea.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1437,
+        "completionTokens": 20,
+        "totalTokens": 1457,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0003831
+      },
+      "judgeUsage": {
+        "promptTokens": 96,
+        "completionTokens": 1,
+        "totalTokens": 97,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00025
+      },
+      "extraction": {
+        "calls": 55,
+        "sessionsWithFacts": 10,
+        "facts": 28,
+        "errors": 22,
+        "usage": {
+          "promptTokens": 81571,
+          "completionTokens": 1640,
+          "totalTokens": 83211,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 116886.21054200013,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 26.184208000078797,
+      "readerMs": 1487.7558329999447,
+      "judgeMs": 767.7692919999827,
+      "totalMs": 119176.51295800018,
+      "userTurnMs": 2281.709333000006
+    },
+    {
+      "questionId": "29f2956b_abs",
+      "questionType": "single-session-user",
+      "abstention": true,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "60f10fd3",
+        "ultrachat_70054",
+        "ultrachat_13007",
+        "ultrachat_441324"
+      ],
+      "contextSessionIds": [
+        "60f10fd3",
+        "ultrachat_70054",
+        "ultrachat_13007",
+        "ultrachat_441324"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "29f2956b_abs",
+        "questionType": "single-session-user",
+        "abstention": true,
+        "evidenceSessionIds": [
+          "answer_7cc5362f_abs"
+        ],
+        "retrievedSessionIds": [
+          "60f10fd3",
+          "ultrachat_70054",
+          "ultrachat_13007",
+          "ultrachat_441324"
+        ],
+        "precisionAtK": null,
+        "recallAtK": null,
+        "reciprocalRank": null,
+        "strictEvidenceCoverage": null,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 14.810874999966472
+      },
+      "context": {
+        "questionId": "29f2956b_abs",
+        "questionType": "single-session-user",
+        "abstention": true,
+        "evidenceSessionIds": [
+          "answer_7cc5362f_abs"
+        ],
+        "retrievedSessionIds": [
+          "60f10fd3",
+          "ultrachat_70054",
+          "ultrachat_13007",
+          "ultrachat_441324"
+        ],
+        "precisionAtK": null,
+        "recallAtK": null,
+        "reciprocalRank": null,
+        "strictEvidenceCoverage": null,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 14.810874999966472
+      },
+      "hypothesis": "I don’t know; the history doesn’t mention how much time you practice violin each day.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 957,
+        "completionTokens": 43,
+        "totalTokens": 1000,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 18,
+        "costUsd": 0.000243
+      },
+      "judgeUsage": {
+        "promptTokens": 103,
+        "completionTokens": 2,
+        "totalTokens": 105,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002775
+      },
+      "extraction": {
+        "calls": 55,
+        "sessionsWithFacts": 15,
+        "facts": 40,
+        "errors": 21,
+        "usage": {
+          "promptTokens": 73532,
+          "completionTokens": 1612,
+          "totalTokens": 75144,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 115278.23616699991,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 14.810874999966472,
+      "readerMs": 1758.1940830000676,
+      "judgeMs": 649.0825420001056,
+      "totalMs": 117704.98212499986,
+      "userTurnMs": 2422.0875000001397
+    },
+    {
+      "questionId": "f4f1d8a4_abs",
+      "questionType": "single-session-user",
+      "abstention": true,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "1dd13331_1",
+        "1dd13331_1",
+        "1dd13331_1",
+        "sharegpt_jerQm7S_17"
+      ],
+      "contextSessionIds": [
+        "1dd13331_1",
+        "1dd13331_1",
+        "1dd13331_1",
+        "sharegpt_jerQm7S_17"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "f4f1d8a4_abs",
+        "questionType": "single-session-user",
+        "abstention": true,
+        "evidenceSessionIds": [
+          "answer_f5b33470_abs"
+        ],
+        "retrievedSessionIds": [
+          "1dd13331_1",
+          "1dd13331_1",
+          "1dd13331_1",
+          "sharegpt_jerQm7S_17"
+        ],
+        "precisionAtK": null,
+        "recallAtK": null,
+        "reciprocalRank": null,
+        "strictEvidenceCoverage": null,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 24.90920800017193
+      },
+      "context": {
+        "questionId": "f4f1d8a4_abs",
+        "questionType": "single-session-user",
+        "abstention": true,
+        "evidenceSessionIds": [
+          "answer_f5b33470_abs"
+        ],
+        "retrievedSessionIds": [
+          "1dd13331_1",
+          "1dd13331_1",
+          "1dd13331_1",
+          "sharegpt_jerQm7S_17"
+        ],
+        "precisionAtK": null,
+        "recallAtK": null,
+        "reciprocalRank": null,
+        "strictEvidenceCoverage": null,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 24.90920800017193
+      },
+      "hypothesis": "I don’t know; the supplied history doesn’t mention what your dad gave you for your birthday.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1563,
+        "completionTokens": 39,
+        "totalTokens": 1602,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 13,
+        "costUsd": 0.0004374
+      },
+      "judgeUsage": {
+        "promptTokens": 107,
+        "completionTokens": 2,
+        "totalTokens": 109,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002875
+      },
+      "extraction": {
+        "calls": 54,
+        "sessionsWithFacts": 15,
+        "facts": 41,
+        "errors": 23,
+        "usage": {
+          "promptTokens": 70642,
+          "completionTokens": 1052,
+          "totalTokens": 71694,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 84867.92550000013,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 24.90920800017193,
+      "readerMs": 1728.1522500000428,
+      "judgeMs": 1729.7232500000391,
+      "totalMs": 88359.71949999989,
+      "userTurnMs": 3482.784708000254
+    },
+    {
+      "questionId": "gpt4_59c863d7",
+      "questionType": "multi-session",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "sharegpt_MNdE67E_17",
+        "sharegpt_IqVOMs0_0",
+        "sharegpt_MNdE67E_17",
+        "sharegpt_MNdE67E_17",
+        "sharegpt_MNdE67E_17"
+      ],
+      "contextSessionIds": [
+        "sharegpt_MNdE67E_17",
+        "sharegpt_IqVOMs0_0",
+        "sharegpt_MNdE67E_17",
+        "sharegpt_MNdE67E_17",
+        "sharegpt_MNdE67E_17"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "gpt4_59c863d7",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_593bdffd_4",
+          "answer_593bdffd_1",
+          "answer_593bdffd_3",
+          "answer_593bdffd_2"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_MNdE67E_17",
+          "sharegpt_IqVOMs0_0",
+          "sharegpt_MNdE67E_17",
+          "sharegpt_MNdE67E_17",
+          "sharegpt_MNdE67E_17"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 15.273999999975786
+      },
+      "context": {
+        "questionId": "gpt4_59c863d7",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_593bdffd_4",
+          "answer_593bdffd_1",
+          "answer_593bdffd_3",
+          "answer_593bdffd_2"
+        ],
+        "retrievedSessionIds": [
+          "sharegpt_MNdE67E_17",
+          "sharegpt_IqVOMs0_0",
+          "sharegpt_MNdE67E_17",
+          "sharegpt_MNdE67E_17",
+          "sharegpt_MNdE67E_17"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 15.273999999975786
+      },
+      "hypothesis": "I don’t know; the supplied history does not mention any model kits.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 359,
+        "completionTokens": 40,
+        "totalTokens": 399,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 19,
+        "costUsd": 0.0001198
+      },
+      "judgeUsage": {
+        "promptTokens": 144,
+        "completionTokens": 1,
+        "totalTokens": 145,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00037
+      },
+      "extraction": {
+        "calls": 52,
+        "sessionsWithFacts": 7,
+        "facts": 38,
+        "errors": 20,
+        "usage": {
+          "promptTokens": 73428,
+          "completionTokens": 1395,
+          "totalTokens": 74823,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 100892.02454200014,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 15.273999999975786,
+      "readerMs": 1843.266874999972,
+      "judgeMs": 752.8006659999955,
+      "totalMs": 103509.19716700003,
+      "userTurnMs": 2611.3415409999434
+    }
+  ]
+}

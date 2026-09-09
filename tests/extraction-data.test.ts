@@ -113,7 +113,10 @@ describe('extraction training data', () => {
       }
       if (example.kind === 'date_number') {
         expect(example.expectedAdded.join(' ')).toMatch(/\d/);
-        expect(example.initialProgram).toMatch(/headcount|started_on|deadline/);
+        if (example.initialProgram !== '')
+          expect(example.initialProgram).toMatch(
+            /headcount|started_on|deadline/,
+          );
         if (/started_on|deadline/.test(example.expectedAdded.join(' '))) {
           expect(example.expectedAdded.join(' ')).toMatch(
             /'\d{4}-\d{2}-\d{2}'/,
@@ -148,22 +151,22 @@ describe('extraction training data', () => {
   });
 
   it('puts three-place schedule facts into state examples so argument order is learned', async () => {
-    let seen = false;
-    for (let seed = 1; seed <= 6 && !seen; seed += 1) {
-      const world = generateWorld(seed);
-      const examples = await generateExtractionExamples(
-        world,
-        createRng(seed),
-        fakeRenderer,
-        { selfAtom: 'rahul', perKind: 3 },
-      );
-      seen = examples.some(
+    // world 1 has a schedule relation; with enough draws a state example uses it
+    const world = generateWorld(1);
+    expect(world.relations.some((r) => r.kind === 'schedule')).toBe(true);
+    const examples = await generateExtractionExamples(
+      world,
+      createRng(1),
+      fakeRenderer,
+      { selfAtom: 'rahul', perKind: 48 },
+    );
+    expect(
+      examples.some(
         (e) =>
           e.kind === 'state' &&
           e.expectedAdded.some((f) => f.split(',').length === 3),
-      );
-    }
-    expect(seen).toBe(true);
+      ),
+    ).toBe(true);
   });
 
   it('writes some first-person examples over relations ("my manager is ..."), not only attributes', async () => {
@@ -231,6 +234,58 @@ describe('extraction training data', () => {
             );
       }
     }
+  });
+
+  it('embeds facts inside long chatty user turns with long assistant replies, like real transcripts', async () => {
+    let embedded = 0;
+    let longAssistant = 0;
+    for (let seed = 1; seed <= 3; seed += 1) {
+      const world = generateWorld(seed);
+      const examples = await generateExtractionExamples(
+        world,
+        createRng(seed),
+        fakeRenderer,
+        { selfAtom: 'rahul', perKind: 12 },
+      );
+      for (const e of examples.filter((x) => x.kind === 'transcript')) {
+        const userTurns = e.input
+          .split(/\n\n(?=USER: |ASSISTANT: )/)
+          .filter((t) => t.startsWith('USER: '));
+        const assistantTurns = e.input
+          .split(/\n\n(?=USER: |ASSISTANT: )/)
+          .filter((t) => t.startsWith('ASSISTANT: '));
+        if (userTurns.some((t) => t.length > 220) && e.expectedAdded.length > 0)
+          embedded += 1;
+        if (assistantTurns.some((t) => t.length > 250)) longAssistant += 1;
+      }
+    }
+    expect(embedded).toBeGreaterThan(3);
+    expect(longAssistant).toBeGreaterThan(3);
+  });
+
+  it('leaves the schema empty in a share of examples so predicate naming is learned from the text', async () => {
+    let empty = 0;
+    let total = 0;
+    for (let seed = 1; seed <= 3; seed += 1) {
+      const world = generateWorld(seed);
+      const examples = await generateExtractionExamples(
+        world,
+        createRng(seed),
+        fakeRenderer,
+        { selfAtom: 'rahul', perKind: 3 },
+      );
+      for (const e of examples) {
+        total += 1;
+        if (e.initialProgram === '') {
+          empty += 1;
+          // an empty store cannot hold anything to retract or supersede
+          expect(e.expectedRetract).toEqual([]);
+          expect(['supersession', 'negation']).not.toContain(e.kind);
+        }
+      }
+    }
+    expect(empty / total).toBeGreaterThan(0.12);
+    expect(empty / total).toBeLessThan(0.4);
   });
 
   it('exports transcript examples with the transcript prompt and additive facts only', () => {
