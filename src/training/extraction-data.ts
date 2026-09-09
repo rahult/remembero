@@ -1040,7 +1040,9 @@ export async function generateExtractionExamples(
       const relation = rng.pick(pool);
       const facts = rng.shuffle(factsOf(relation)).slice(0, 1 + rng.int(2));
       const guessRelation = rng.pick(pool);
-      const guessFact = rng.pick(factsOf(guessRelation));
+      const guessCandidates = factsOf(guessRelation);
+      const guessFact =
+        guessCandidates.length > 0 ? rng.pick(guessCandidates) : undefined;
       if (facts.length > 0 && guessFact) {
         const speaker = rng.next() < 0.4 && attr ? 'first' : 'third';
         let userFacts = facts;
