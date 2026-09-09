@@ -64,7 +64,8 @@ Options:
                          hybrid: both. extracted/hybrid make one extraction call per session
   --extraction-model <id>      Model for the extraction (default: the reader model)
   --extraction-base-url <url>  OpenAI-compatible endpoint for it (default: LLM_BASE_URL)
-  --extraction-api-key <key>   Key for it (default: MODAL_SERVE_API_KEY, else LLM_API_KEY)
+  --extraction-api-key <key>   Key for it (default: EXTRACTION_API_KEY, else MODAL_SERVE_API_KEY,
+                         else LLM_API_KEY; prefer the environment, a flag shows in process lists)
   --extraction-characters <n>  Cut each session to n characters before extraction (default 16000)
   --extraction-assistant-characters <n>  Keep only the first n characters of each assistant
                          turn in the extraction input (user turns stay whole; default: no cut)
@@ -339,7 +340,11 @@ async function main(): Promise<void> {
       ? undefined
       : new OpenRouterClient({
           apiKey:
-            args.extractionApiKey ?? process.env.MODAL_SERVE_API_KEY ?? apiKey,
+            // prefer environment variables: a key on the command line shows up in process lists
+            args.extractionApiKey ??
+            process.env.EXTRACTION_API_KEY ??
+            process.env.MODAL_SERVE_API_KEY ??
+            apiKey,
           baseUrl: args.extractionBaseUrl ?? baseUrl,
           model: args.extractionModel ?? args.readerModel,
         });
