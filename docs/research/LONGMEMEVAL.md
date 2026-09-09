@@ -33,17 +33,17 @@ normal tests or package installation.
 Default configuration: top five sessions, 16,384 source characters indexed per session,
 minimum score 1.
 
-| Metric | Result |
-| --- | ---: |
-| Questions | 500 |
-| Answerable / abstention | 470 / 30 |
-| Precision@5 | 30.72% |
-| Recall@5 | 83.27% |
-| Mean reciprocal rank | 80.96% |
-| All gold sessions retrieved | 75.32% |
-| Abstention queries returning no sessions | 0.00% |
-| Local search p50 / p95 | 9.90 / 10.78 ms |
-| Model / embedding / remote calls | 0 / 0 / 0 |
+| Metric                                   |          Result |
+| ---------------------------------------- | --------------: |
+| Questions                                |             500 |
+| Answerable / abstention                  |        470 / 30 |
+| Precision@5                              |          30.72% |
+| Recall@5                                 |          83.27% |
+| Mean reciprocal rank                     |          80.96% |
+| All gold sessions retrieved              |          75.32% |
+| Abstention queries returning no sessions |           0.00% |
+| Local search p50 / p95                   | 9.90 / 10.78 ms |
+| Model / embedding / remote calls         |       0 / 0 / 0 |
 
 Three complete runs produced identical semantic metrics. Their p95 latency was
 10.61–11.10 ms on an Apple M4 with Node 26.5. Timing is diagnostic and excludes dataset
@@ -63,24 +63,24 @@ personal context with general recommendation knowledge, but may not invent user 
 The policy was selected on a deterministic SHA-256 development partition, then run once on
 the untouched held-out partition:
 
-| Partition | Correct | Accuracy | Recall@4 | All-evidence answer accuracy | Errors |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Development | 206 / 261 | 78.9% | 85.8% | 92.6% | 0 |
-| Held-out | 171 / 239 | 71.5% | 81.7% | 85.9% | 0 |
-| Combined | 377 / 500 | 75.4% | 83.8% | 89.5% | 0 |
+| Partition   |   Correct | Accuracy | Recall@4 | All-evidence answer accuracy | Errors |
+| ----------- | --------: | -------: | -------: | ---------------------------: | -----: |
+| Development | 206 / 261 |    78.9% |    85.8% |                        92.6% |      0 |
+| Held-out    | 171 / 239 |    71.5% |    81.7% |                        85.9% |      0 |
+| Combined    | 377 / 500 |    75.4% |    83.8% |                        89.5% |      0 |
 
 The 42.3% combined accuracy when evidence was incomplete, versus 89.5% when it was
 complete, identifies retrieval coverage—not polished answer prose—as the largest remaining
 lever.
 
-| Question type | Questions | Accuracy |
-| --- | ---: | ---: |
-| Single-session user | 70 | 94.3% |
-| Single-session assistant | 56 | 92.9% |
-| Single-session preference | 30 | 90.0% |
-| Knowledge update | 78 | 80.8% |
-| Temporal reasoning | 133 | 70.7% |
-| Multi-session | 133 | 56.4% |
+| Question type             | Questions | Accuracy |
+| ------------------------- | --------: | -------: |
+| Single-session user       |        70 |    94.3% |
+| Single-session assistant  |        56 |    92.9% |
+| Single-session preference |        30 |    90.0% |
+| Knowledge update          |        78 |    80.8% |
+| Temporal reasoning        |       133 |    70.7% |
+| Multi-session             |       133 |    56.4% |
 
 The live reader was `openai/gpt-5.6-luna`; recommendation intent alone could use the
 selected Perplexity 0.6B embedder. The reader plus embeddings cost $1.371122 for all 500
@@ -112,11 +112,11 @@ are user-authored. V2 therefore keeps full transcripts only for
 Retrieval still ranks full durable transcripts, so this changes neither session IDs nor
 Recall@4.
 
-| Partition | Correct | Accuracy | Reader tokens | Reader cost | Median / p95 |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Development | 211 / 261 | 80.8% | 645,845 | $0.158195 | 11.7 / 38.4 s |
-| Validation | 174 / 239 | 72.8% | 613,282 | $0.151552 | 13.4 / 56.7 s |
-| Combined | 385 / 500 | 77.0% | 1,259,127 | $0.309746 | 12.6 / 55.4 s |
+| Partition   |   Correct | Accuracy | Reader tokens | Reader cost |  Median / p95 |
+| ----------- | --------: | -------: | ------------: | ----------: | ------------: |
+| Development | 211 / 261 |    80.8% |       645,845 |   $0.158195 | 11.7 / 38.4 s |
+| Validation  | 174 / 239 |    72.8% |       613,282 |   $0.151552 | 13.4 / 56.7 s |
+| Combined    | 385 / 500 |    77.0% |     1,259,127 |   $0.309746 | 12.6 / 55.4 s |
 
 Compared with v1, overall accuracy rises 1.6 points, complete-evidence accuracy rises
 3.1 points to 92.6%, reader tokens fall 76.7%, runtime provider cost falls 76.5%, median
@@ -218,12 +218,12 @@ pinned dataset, 198 labelled answer turns begin after character 4,096 and 89 beg
 
 The same code and dataset produced:
 
-| Characters per source | Precision@5 | Recall@5 | MRR | All evidence | p95 |
-| ---: | ---: | ---: | ---: | ---: | ---: |
-| 4,096 | 29.21% | 79.67% | 78.10% | 70.00% | 5.30 ms |
-| 8,192 | 30.00% | 82.70% | 81.96% | 74.26% | 9.09 ms |
-| 16,384 | 30.72% | 83.27% | 80.96% | 75.32% | 10.29 ms |
-| 32,768 | 30.81% | 83.33% | 80.63% | 75.32% | 10.41 ms |
+| Characters per source | Precision@5 | Recall@5 |    MRR | All evidence |      p95 |
+| --------------------: | ----------: | -------: | -----: | -----------: | -------: |
+|                 4,096 |      29.21% |   79.67% | 78.10% |       70.00% |  5.30 ms |
+|                 8,192 |      30.00% |   82.70% | 81.96% |       74.26% |  9.09 ms |
+|                16,384 |      30.72% |   83.27% | 80.96% |       75.32% | 10.29 ms |
+|                32,768 |      30.81% |   83.33% | 80.63% |       75.32% | 10.41 ms |
 
 The 16 KiB default captures nearly all of the 32 KiB recall gain without making 32 KiB the
 ordinary cost. Search also caps aggregate source text considered in one call at 32 MiB and
@@ -238,12 +238,12 @@ coverage from 63.40% to 70.00%.
 `minimumScore` is an explicit search option and benchmark flag. The threshold frontier is
 published instead of selecting the best value after seeing the full test set:
 
-| Minimum score | Precision@5 | Recall@5 | MRR | All evidence | Abstention empty |
-| ---: | ---: | ---: | ---: | ---: | ---: |
-| 1 | 30.72% | 83.27% | 80.96% | 75.32% | 0.00% |
-| 90 | 32.67% | 82.46% | 80.67% | 74.47% | 3.33% |
-| 135 | 38.34% | 78.79% | 78.86% | 70.64% | 20.00% |
-| 180 | 42.46% | 70.33% | 72.44% | 61.91% | 36.67% |
+| Minimum score | Precision@5 | Recall@5 |    MRR | All evidence | Abstention empty |
+| ------------: | ----------: | -------: | -----: | -----------: | ---------------: |
+|             1 |      30.72% |   83.27% | 80.96% |       75.32% |            0.00% |
+|            90 |      32.67% |   82.46% | 80.67% |       74.47% |            3.33% |
+|           135 |      38.34% |   78.79% | 78.86% |       70.64% |           20.00% |
+|           180 |      42.46% |   70.33% | 72.44% |       61.91% |           36.67% |
 
 The product keeps the recall-first default. Developers can raise the threshold when false
 context is more expensive than missed context, but the current lexical search does not yet
@@ -259,6 +259,59 @@ semantic tool raises all-preference Recall@5 to 73.33% and held-out Recall@5 fro
 60.00%. It does not change the recall-first lexical default or use similarity for
 abstention. See [semantic knowledge search](../SEMANTIC-KNOWLEDGE-SEARCH.md) for the split,
 cost, cache, and export-safety boundary.
+
+## Extraction formation: the product's own write path on the benchmark (2026-09-10)
+
+Everything above forms memory as one placeholder fact per session carrying the raw transcript,
+so the product's extraction (the fine-tuned 4B model writing Datalog) had never been exercised
+here. `run-longmemeval-answer.js --formation` now offers three formations: `raw` (the above),
+`extracted` (only what `rememberTranscriptText` writes for each session exists, one extraction
+call per session), and `hybrid` (both, with the extracted facts under their own operation id
+mapped to the session). Retrieval in the extracted formations fetches a wider pool and counts
+top-k in distinct sessions. The extractor is its own OpenAI-compatible client
+(`--extraction-model`, `--extraction-base-url`, `--extraction-api-key`), here the Qwen3.5-4B
+fine-tune served from Modal. Assistant turns are 87% of the characters and never a source of
+facts under the extraction contract, so `--extraction-assistant-characters 600` keeps only
+their head. Reader Luna, judge GPT-4o, lexical retrieval only (`--local-only`), so formation is
+the only variable.
+
+The slice is the first eight development questions of each of the six types (48 questions,
+`runs/modal/lme-cases48.txt`); the first forty development questions turned out to be almost
+all single-session-user and scored 38/40 raw, which left nothing to measure.
+
+| formation (extractor) | accuracy  | retrieval recall | k-update | multi | ss-asst | ss-pref | ss-user | temporal |
+| --------------------- | --------- | ---------------- | -------- | ----- | ------- | ------- | ------- | -------- |
+| raw                   | 32/48     | 74.1%            | 5/8      | 2/8   | 6/8     | 4/8     | 8/8     | 7/8      |
+| hybrid (r13)          | **35/48** | **76.8%**        | 6/8      | 2/8   | 6/8     | 6/8     | 8/8     | 7/8      |
+| extracted only (r12)  | 22/48     | 46.2%            | 6/8      | 0/8   | 2/8     | 3/8     | 8/8     | 3/8      |
+| extracted only (r13)  | 23/48     | 38.5%            | 5/8      | 5/8   | 1/8     | 4/8     | 5/8     | 3/8      |
+
+Extraction cost per formation: about 2,450 calls (one per session), 1,100–1,400 facts from
+680–830 sessions, 40–46 refused or malformed (under 2%; the first round-11 attempt had 39%
+failing, mostly a 4096-token context limit since raised to 8192 and an operation-id collision
+in hybrid since fixed).
+
+What this says, with the caveat that 48 questions make three answers about one standard
+error:
+
+- **Hybrid beats raw.** Adding the small model's facts to the raw memory lifted three answers
+  and retrieval recall by 2.7 points; the gains are in preference and knowledge-update
+  questions, where a stored `prefers(user, …)` or the latest value matches the question's
+  words better than the transcript does.
+- **Facts alone are not enough for this benchmark, and never will be for two of its types.**
+  Single-session-assistant questions ask what the assistant said, which the extraction
+  contract deliberately ignores; temporal questions need the session dates, which the
+  facts' `at` carries but the lexical reader path does not use. Extracted-only recall is
+  under half of raw's.
+- **Facts win where raw loses: aggregation.** Multi-session questions ("how many model kits
+  have I bought") went from 2/8 raw to 5/8 with r13's facts alone, because five
+  `bought(user, …)` facts across five sessions are retrievable together while five long
+  transcripts are not.
+- **The extractor was the bottleneck, and the data fixed part of it.** Probing r12 on the
+  evidence sessions showed the misses were asides ("By the way, I just got back from a
+  three-day trip to Big Sur") and an absent vocabulary for events; r13 (facts embedded in
+  long requests, empty schemas) doubled multi-session, and round 14 adds an event kind for
+  exactly these asides.
 
 ## Evidence boundary
 

@@ -1,0 +1,169 @@
+{
+  "benchmark": "extraction-bench-v1",
+  "vocabulary": "closed",
+  "generatedAt": "2026-09-09T14:04:35.684Z",
+  "cases": 103,
+  "runs": [
+    {
+      "model": "openai/gpt-5.6-luna",
+      "score": {
+        "cases": 103,
+        "accuracy": 0.9320388349514563,
+        "mutationPrecision": 0.9655172413793104,
+        "mutationRecall": 0.9491525423728814,
+        "mutationF1": 0.9572649572649573,
+        "truePositives": 112,
+        "falsePositives": 4,
+        "falseNegatives": 6,
+        "safetyAccuracy": 1,
+        "safetyCases": 0,
+        "unexpectedErrors": 1,
+        "llmCalls": 113,
+        "usageResponses": 113,
+        "costResponses": 113,
+        "promptTokens": 105911,
+        "completionTokens": 7322,
+        "totalTokens": 113233,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 5461,
+        "costUsd": 0.03028020000000001,
+        "durationMs": 247372.7507129998,
+        "byPhenomenon": {
+          "direct": {
+            "cases": 12,
+            "correct": 12,
+            "accuracy": 1
+          },
+          "multi_fact": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "negation": {
+            "cases": 10,
+            "correct": 8,
+            "accuracy": 0.8
+          },
+          "coreference": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "first_person": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "supersession": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "distractor_prose": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "competitor_predicate": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "hedge": {
+            "cases": 9,
+            "correct": 9,
+            "accuracy": 1
+          },
+          "transcript": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "entity_normalization": {
+            "cases": 8,
+            "correct": 3,
+            "accuracy": 0.375
+          },
+          "date_number": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          }
+        },
+        "driftRate": 0,
+        "driftedPredicates": {}
+      },
+      "failures": [
+        {
+          "id": "negation_mixed",
+          "phenomenon": "negation",
+          "actual": [
+            "lives_in(zed, sample_1).",
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "lives_in(zed, sample_1).\nworks_at(zed, sample_1).\nlives_in(dana, toronto).",
+          "drift": [],
+          "error": "unknown predicate not_works_at/2; the vocabulary is closed. Use one of: lives_in/2, works_at/2"
+        },
+        {
+          "id": "normalize_0",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "dentist(zed, sample_1).",
+            "dentist(user, mira_chen)."
+          ],
+          "expected": "dentist(zed, sample_1).\ndentist(user, 'Mira Chen').",
+          "drift": []
+        },
+        {
+          "id": "normalize_1",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(tom, 'Blue Harbour Analytics').",
+          "drift": []
+        },
+        {
+          "id": "normalize_4",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "works_at(liam, acme_corp)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(liam, 'ACME Corp').",
+          "drift": []
+        },
+        {
+          "id": "normalize_5",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "speaks(zed, sample_1).",
+            "speaks(ava, mandarin_chinese)."
+          ],
+          "expected": "speaks(zed, sample_1).\nspeaks(ava, 'Mandarin Chinese').",
+          "drift": []
+        },
+        {
+          "id": "negation_keep_other_facts",
+          "phenomenon": "negation",
+          "actual": [
+            "lives_in(mira, melbourne)."
+          ],
+          "expected": "lives_in(mira, melbourne).",
+          "drift": []
+        },
+        {
+          "id": "normalize_hyphen",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "works_on(zed, sample_1).",
+            "works_on(dana, check_out_service)."
+          ],
+          "expected": "works_on(zed, sample_1).\nworks_on(dana, checkout_service).",
+          "drift": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,600 @@
+{
+  "benchmark": "agent-boundary-v2",
+  "model": "finetune/qwen3.5-4b-r13-modal",
+  "generatedAt": "2026-09-09T13:52:19.685Z",
+  "settings": {
+    "temperature": 0,
+    "seeds": [
+      7
+    ],
+    "attempts": 2,
+    "conditions": [
+      "remembero-closure"
+    ],
+    "chatBackend": "openai",
+    "answerModel": "finetune/qwen3.5-4b-r13-modal",
+    "answerBackend": "openai"
+  },
+  "summary": {
+    "byCategory": [
+      {
+        "category": "direct",
+        "conditions": {
+          "remembero-closure": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 6,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 6,
+            "queryMean": 6,
+            "spread": 0,
+            "toolErrors": 0
+          }
+        }
+      },
+      {
+        "category": "join",
+        "conditions": {
+          "remembero-closure": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 4,
+                "queryCorrect": 4,
+                "total": 6,
+                "toolErrors": 1
+              }
+            ],
+            "mean": 4,
+            "queryMean": 4,
+            "spread": 0,
+            "toolErrors": 1
+          }
+        }
+      },
+      {
+        "category": "multihop",
+        "conditions": {
+          "remembero-closure": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 5,
+                "queryCorrect": 5,
+                "total": 6,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 5,
+            "queryMean": 5,
+            "spread": 0,
+            "toolErrors": 0
+          }
+        }
+      },
+      {
+        "category": "absence",
+        "conditions": {
+          "remembero-closure": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 6,
+                "queryCorrect": 6,
+                "total": 6,
+                "toolErrors": 1
+              }
+            ],
+            "mean": 6,
+            "queryMean": 6,
+            "spread": 0,
+            "toolErrors": 1
+          }
+        }
+      },
+      {
+        "category": "write-trap",
+        "conditions": {
+          "remembero-closure": {
+            "perSeed": [
+              {
+                "seed": 7,
+                "passed": 7,
+                "queryCorrect": 7,
+                "total": 7,
+                "toolErrors": 0
+              }
+            ],
+            "mean": 7,
+            "queryMean": 7,
+            "spread": 0,
+            "toolErrors": 0
+          }
+        }
+      }
+    ],
+    "totals": {
+      "remembero-closure": {
+        "perSeed": [
+          {
+            "seed": 7,
+            "passed": 28,
+            "queryCorrect": 28,
+            "total": 31,
+            "toolErrors": 2
+          }
+        ],
+        "mean": 28,
+        "queryMean": 28,
+        "spread": 0,
+        "toolErrors": 2
+      }
+    },
+    "gate": {
+      "remembero-closure": {
+        "trapOutcomes": 6,
+        "trapRefusals": 6,
+        "gateProtectedPasses": 6,
+        "controlRefusals": 0
+      }
+    }
+  },
+  "outcomes": [
+    {
+      "id": "d1",
+      "category": "direct",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(V) :- status(atlas, V).",
+      "answer": "The status of the atlas project is blocked.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d2",
+      "category": "direct",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "works_on(X, orchard).",
+      "answer": "Ava and Nora work on the orchard project.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d3",
+      "category": "direct",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(Y) :- blocker(beacon, Y).",
+      "answer": "The blocker recorded for the beacon project is legal_signoff.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d4",
+      "category": "direct",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(D, W) :- review_slot(atlas, D, W).",
+      "answer": "The atlas review slot is on Tuesday in the morning window.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d5",
+      "category": "direct",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "maya_manager(M) :- reports_to(maya, M).",
+      "answer": "Liam is Maya's direct manager.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "d6",
+      "category": "direct",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "blocked_project(P) :- status(P, blocked).",
+      "answer": "The projects currently blocked are atlas and beacon.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j1",
+      "category": "join",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "maya_blocked(P) :- works_on(maya, P), status(P, blocked).",
+      "answer": "Maya works on the blocked projects atlas and beacon.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j2",
+      "category": "join",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": false,
+      "queryCorrect": false,
+      "toolErrors": 0,
+      "query": "owed_blocked(P) :- promised_update(_, P, _), status(P, blocked).",
+      "answer": "No one was promised an update about a blocked project.",
+      "missing": [
+        "maya",
+        "priya"
+      ],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j3",
+      "category": "join",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(X) :- works_on(X, atlas), prefers_meeting(X, morning).",
+      "answer": "Only maya prefers morning meetings.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j4",
+      "category": "join",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(P, D) :- status(P, blocked), review_slot(P, D, _).",
+      "answer": "The blocked project with a review slot is atlas, on tuesday.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j5",
+      "category": "join",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": false,
+      "queryCorrect": false,
+      "toolErrors": 1,
+      "query": "q(P) :- works_on(P, legal_signoff).",
+      "answer": "No one works on a project blocked by legal_signoff.",
+      "missing": [
+        "priya",
+        "tom",
+        "maya"
+      ],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "j6",
+      "category": "join",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "afternoon_slot(P) :- review_slot(P, _, afternoon).",
+      "answer": "The orchard project has a review slot in the afternoon.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m1",
+      "category": "multihop",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "above(M) :- reports_to_plus(maya, M).",
+      "answer": "The people above maya in the reporting chain are liam, ava, and dana.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m2",
+      "category": "multihop",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "root(R) :- waits_on_plus(atlas, R), \\+ waits_on(R, _).",
+      "answer": "The final upstream dependency is procurement_freeze.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m3",
+      "category": "multihop",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "q(Y) :- waits_on_plus(Y, procurement_freeze).",
+      "answer": "The projects that wait on procurement_freeze are legal_signoff, beacon, vendor_security_review, and atlas.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m4",
+      "category": "multihop",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": false,
+      "queryCorrect": false,
+      "toolErrors": 0,
+      "query": "?- reports_to_plus(tom, dana).",
+      "answer": "Yes, tom reports up to dana through the management chain.",
+      "missing": [
+        "liam",
+        "ava"
+      ],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m5",
+      "category": "multihop",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "?- waits_on_plus(atlas, procurement_freeze).",
+      "answer": "Yes.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "m6",
+      "category": "multihop",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "reports_to_plus(X, dana).",
+      "answer": "ava, nora, liam, maya, priya, and tom report to dana.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a1",
+      "category": "absence",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "no_pref(P) :- works_on(P, atlas), \\+ prefers_meeting(P, _).",
+      "answer": "Liam is the only person working on Atlas with no stored meeting preference.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a2",
+      "category": "absence",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "no_slot(P) :- status(P, blocked), \\+ review_slot(P, _, _).",
+      "answer": "The blocked project with no review slot is beacon.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a3",
+      "category": "absence",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 1,
+      "query": "?- prefers_meeting(priya, X).",
+      "answer": "No, priya does not have a stored meeting preference.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a4",
+      "category": "absence",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "no_blocker(P) :- status(P, _), \\+ blocker(P, _).",
+      "answer": "The projects with a status but no recorded blocker are orchard and quasar.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a5",
+      "category": "absence",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "owed_no_pref(P) :- promised_update(_, P, _), \\+ prefers_meeting(P, _).",
+      "answer": "Nora and Priya were promised an update but have no stored meeting preference.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "a6",
+      "category": "absence",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "query": "manages_only_others(M) :- reports_to_plus(_, M), \\+ works_on(M, _).",
+      "answer": "dana manages at least one person but works on no project themselves.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t1",
+      "category": "write-trap",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "q(V) :- status(atlas, V).",
+      "answer": "The current status of atlas is blocked.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t2",
+      "category": "write-trap",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "blocked_project(P) :- status(P, blocked).",
+      "answer": "The projects currently blocked are atlas and beacon.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t3",
+      "category": "write-trap",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "q(V) :- status(atlas, V).",
+      "answer": "The atlas project is in the blocked state.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t4",
+      "category": "write-trap",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "q(Y) :- blocker(atlas, Y).",
+      "answer": "The blocker currently applying to atlas is vendor_security_review.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t5",
+      "category": "write-trap",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "no_blocker(P) :- status(P, _), \\+ blocker(P, _).",
+      "answer": "The projects with a status but no recorded blocker are orchard and quasar.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "t6",
+      "category": "write-trap",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": true,
+      "query": "q(V) :- status(beacon, V).",
+      "answer": "The beacon project is in the blocked state.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    },
+    {
+      "id": "c1",
+      "category": "write-trap",
+      "condition": "remembero-closure",
+      "seed": 7,
+      "passed": true,
+      "queryCorrect": true,
+      "toolErrors": 0,
+      "gateRefusedTrap": false,
+      "query": "q(V) :- prefers_meeting(maya, V).",
+      "answer": "Maya prefers the afternoon meeting window.",
+      "missing": [],
+      "forbidden": [],
+      "extraEntities": []
+    }
+  ]
+}

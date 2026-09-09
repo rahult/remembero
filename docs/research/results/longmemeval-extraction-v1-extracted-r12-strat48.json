@@ -1,0 +1,6125 @@
+{
+  "schemaVersion": "remembero.longmemeval-answer.v1",
+  "generatedAt": "2026-09-09T13:37:38.499Z",
+  "dataset": {
+    "id": "xiaowu0162/longmemeval-cleaned",
+    "split": "longmemeval_s_cleaned",
+    "selection": "dev",
+    "commit": "98d7416c24c778c2fee6e6f3006e7a073259d48f",
+    "sha256": "d6f21ea9d60a0d56f34a05b609c79c88a451d2ae03597821ea3d5a9678c3a442"
+  },
+  "readerModel": "openai/gpt-5.6-luna",
+  "judgeModel": "openai/gpt-4o-2024-08-06",
+  "embeddingModel": null,
+  "judgeProtocol": "longmemeval-official-compatible-v1",
+  "formation": "extracted-transcript-facts",
+  "extractionModel": "finetune/qwen3.5-4b-r12-modal",
+  "retrieval": "remembero-local-source-search",
+  "answerContextPolicy": "user-turns-except-assistant-memory",
+  "semanticQuestionTypes": [],
+  "multiSessionSemanticMaximumLexicalScore": 315,
+  "semanticPreparation": "cold",
+  "topK": 4,
+  "multiSessionTopK": 5,
+  "temporalTopK": 5,
+  "sourceCharacters": 16384,
+  "contextBytes": 57344,
+  "summary": {
+    "questions": 48,
+    "judgedQuestions": 48,
+    "errors": 0,
+    "correct": 22,
+    "accuracy": 0.4583333333333333,
+    "judgedAccuracy": 0.4583333333333333,
+    "abstentionAccuracy": 0,
+    "fullContextEvidenceAccuracy": 0.9333333333333333,
+    "incompleteContextEvidenceAccuracy": 0.24242424242424243,
+    "retrievalRecallAtK": 0.4621527777777778,
+    "contextRecallAtK": 0.4621527777777778,
+    "redactedRetrievedSessions": 0,
+    "medianFormationMs": 89104.809875,
+    "p95FormationMs": 145445.04983300006,
+    "medianSemanticPreparationMs": 0,
+    "p95SemanticPreparationMs": 0,
+    "medianRetrievalMs": 30.308124999981374,
+    "p95RetrievalMs": 52.51033399999142,
+    "medianReaderMs": 2106.1792909999494,
+    "p95ReaderMs": 5472.833167000092,
+    "medianJudgeMs": 935.934042000008,
+    "p95JudgeMs": 1591.2987910000375,
+    "medianTotalMs": 91814.340667,
+    "p95TotalMs": 157218.02658299997,
+    "medianUserTurnMs": 3142.7988749999786,
+    "p95UserTurnMs": 6496.816999999806,
+    "readerUsage": {
+      "calls": 48,
+      "usageResponses": 48,
+      "costResponses": 48,
+      "promptTokens": 151758,
+      "completionTokens": 5301,
+      "totalTokens": 157059,
+      "cachedPromptTokens": 0,
+      "reasoningTokens": 2078,
+      "costUsd": 0.044254150000000006
+    },
+    "judgeUsage": {
+      "calls": 48,
+      "usageResponses": 48,
+      "costResponses": 48,
+      "promptTokens": 7182,
+      "completionTokens": 74,
+      "totalTokens": 7256,
+      "cachedPromptTokens": 0,
+      "reasoningTokens": 0,
+      "costUsd": 0.018695
+    },
+    "extractionUsage": {
+      "calls": 2549,
+      "usageResponses": 48,
+      "costResponses": 0,
+      "promptTokens": 4483976,
+      "completionTokens": 49502,
+      "totalTokens": 4533478,
+      "cachedPromptTokens": 0,
+      "reasoningTokens": 0,
+      "costUsd": 0,
+      "sessionsWithFacts": 1081,
+      "facts": 1981,
+      "errors": 104,
+      "errorKinds": {
+        "constant '…' is not in the input": 53,
+        "facts must be ground: '…' contains variable D at line N": 1,
+        "expected '…' but found '…' at line N": 18,
+        "constants '…', '…' are not in the input": 7,
+        "refusing to send sensitive transcript to the external LLM": 4,
+        "unexpected character '…' at line N": 7,
+        "constants '…', '…', '…', '…', '…' are not in the input": 1,
+        "auto-capture accepts at most N additive ground facts": 1,
+        "constants '…', '…', '…' are not in the input": 4,
+        "facts must be ground: '…' contains variable EST at line N": 1,
+        "expected '…' but found '": 1,
+        "LLM request failed with status N: This model's maximum context length is N tokens. However": 1,
+        "unterminated quoted atom at line N": 2,
+        "facts must be ground: '…' contains variable _ at line N": 1,
+        "constants '…', '…', '…', '…', '…', '…' are not in the input": 1,
+        "facts must be ground: '…' contains variable JIGSAWS at line N": 1
+      }
+    },
+    "embeddingUsage": {
+      "calls": 0,
+      "promptTokens": 0,
+      "totalTokens": 0,
+      "costResponses": 0,
+      "costUsd": 0
+    },
+    "semanticPreparationUsage": {
+      "calls": 0,
+      "promptTokens": 0,
+      "totalTokens": 0,
+      "costResponses": 0,
+      "costUsd": 0
+    }
+  },
+  "byQuestionType": {
+    "knowledge-update": {
+      "questions": 8,
+      "judgedQuestions": 8,
+      "errors": 0,
+      "correct": 6,
+      "accuracy": 0.75,
+      "judgedAccuracy": 0.75,
+      "abstentionAccuracy": 0,
+      "fullContextEvidenceAccuracy": 1,
+      "incompleteContextEvidenceAccuracy": 0.6,
+      "retrievalRecallAtK": 0.625,
+      "contextRecallAtK": 0.625,
+      "redactedRetrievedSessions": 0,
+      "medianFormationMs": 80718.88058300002,
+      "p95FormationMs": 118927.349958,
+      "medianSemanticPreparationMs": 0,
+      "p95SemanticPreparationMs": 0,
+      "medianRetrievalMs": 28.074999999953434,
+      "p95RetrievalMs": 72.28541699994821,
+      "medianReaderMs": 1501.2396670000162,
+      "p95ReaderMs": 2448.6965840000194,
+      "medianJudgeMs": 948.6582499999786,
+      "p95JudgeMs": 1534.2415420000907,
+      "medianTotalMs": 83868.13116700004,
+      "p95TotalMs": 120833.62704099994,
+      "medianUserTurnMs": 2572.63420900004,
+      "p95UserTurnMs": 3463.03187600011,
+      "readerUsage": {
+        "calls": 8,
+        "usageResponses": 8,
+        "costResponses": 8,
+        "promptTokens": 11608,
+        "completionTokens": 211,
+        "totalTokens": 11819,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 73,
+        "costUsd": 0.003154
+      },
+      "judgeUsage": {
+        "calls": 8,
+        "usageResponses": 8,
+        "costResponses": 8,
+        "promptTokens": 577,
+        "completionTokens": 14,
+        "totalTokens": 591,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0015824999999999997
+      },
+      "extractionUsage": {
+        "calls": 415,
+        "usageResponses": 8,
+        "costResponses": 0,
+        "promptTokens": 745181,
+        "completionTokens": 6907,
+        "totalTokens": 752088,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "sessionsWithFacts": 181,
+        "facts": 307,
+        "errors": 13,
+        "errorKinds": {
+          "constant '…' is not in the input": 6,
+          "expected '…' but found '…' at line N": 2,
+          "constants '…', '…', '…', '…', '…', '…' are not in the input": 1,
+          "constants '…', '…' are not in the input": 1,
+          "constants '…', '…', '…' are not in the input": 1,
+          "refusing to send sensitive transcript to the external LLM": 1,
+          "unexpected character '…' at line N": 1
+        }
+      },
+      "embeddingUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      },
+      "semanticPreparationUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      }
+    },
+    "multi-session": {
+      "questions": 8,
+      "judgedQuestions": 8,
+      "errors": 0,
+      "correct": 0,
+      "accuracy": 0,
+      "judgedAccuracy": 0,
+      "abstentionAccuracy": 0,
+      "fullContextEvidenceAccuracy": 0,
+      "incompleteContextEvidenceAccuracy": 0,
+      "retrievalRecallAtK": 0.46041666666666664,
+      "contextRecallAtK": 0.46041666666666664,
+      "redactedRetrievedSessions": 0,
+      "medianFormationMs": 102746.36479199998,
+      "p95FormationMs": 111375.01133299997,
+      "medianSemanticPreparationMs": 0,
+      "p95SemanticPreparationMs": 0,
+      "medianRetrievalMs": 32.82474999997066,
+      "p95RetrievalMs": 35.833625000028405,
+      "medianReaderMs": 2762.574790999992,
+      "p95ReaderMs": 3791.4212919999845,
+      "medianJudgeMs": 995.3394590000389,
+      "p95JudgeMs": 1647.6978750000126,
+      "medianTotalMs": 107916.3065,
+      "p95TotalMs": 115174.66283400002,
+      "medianUserTurnMs": 3986.9554179999977,
+      "p95UserTurnMs": 5164.400583000039,
+      "readerUsage": {
+        "calls": 8,
+        "usageResponses": 8,
+        "costResponses": 8,
+        "promptTokens": 15836,
+        "completionTokens": 804,
+        "totalTokens": 16640,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 612,
+        "costUsd": 0.0049226
+      },
+      "judgeUsage": {
+        "calls": 8,
+        "usageResponses": 8,
+        "costResponses": 8,
+        "promptTokens": 748,
+        "completionTokens": 11,
+        "totalTokens": 759,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00198
+      },
+      "extractionUsage": {
+        "calls": 410,
+        "usageResponses": 8,
+        "costResponses": 0,
+        "promptTokens": 747819,
+        "completionTokens": 8113,
+        "totalTokens": 755932,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "sessionsWithFacts": 159,
+        "facts": 325,
+        "errors": 17,
+        "errorKinds": {
+          "constants '…', '…', '…' are not in the input": 2,
+          "unexpected character '…' at line N": 2,
+          "constant '…' is not in the input": 9,
+          "expected '…' but found '…' at line N": 3,
+          "constants '…', '…' are not in the input": 1
+        }
+      },
+      "embeddingUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      },
+      "semanticPreparationUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      }
+    },
+    "single-session-assistant": {
+      "questions": 8,
+      "judgedQuestions": 8,
+      "errors": 0,
+      "correct": 2,
+      "accuracy": 0.25,
+      "judgedAccuracy": 0.25,
+      "abstentionAccuracy": 0,
+      "fullContextEvidenceAccuracy": 1,
+      "incompleteContextEvidenceAccuracy": 0.14285714285714285,
+      "retrievalRecallAtK": 0.125,
+      "contextRecallAtK": 0.125,
+      "redactedRetrievedSessions": 0,
+      "medianFormationMs": 88046.35416699992,
+      "p95FormationMs": 127652.07633300009,
+      "medianSemanticPreparationMs": 0,
+      "p95SemanticPreparationMs": 0,
+      "medianRetrievalMs": 27.75374999991618,
+      "p95RetrievalMs": 41.68837499991059,
+      "medianReaderMs": 1579.7187910000794,
+      "p95ReaderMs": 5365.43029199983,
+      "medianJudgeMs": 929.4210420001764,
+      "p95JudgeMs": 1403.4259580001235,
+      "medianTotalMs": 90223.38699999987,
+      "p95TotalMs": 133079.56379100005,
+      "medianUserTurnMs": 2602.8563340001274,
+      "p95UserTurnMs": 6496.816999999806,
+      "readerUsage": {
+        "calls": 8,
+        "usageResponses": 8,
+        "costResponses": 8,
+        "promptTokens": 85411,
+        "completionTokens": 368,
+        "totalTokens": 85779,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 155,
+        "costUsd": 0.02179315
+      },
+      "judgeUsage": {
+        "calls": 8,
+        "usageResponses": 8,
+        "costResponses": 8,
+        "promptTokens": 911,
+        "completionTokens": 11,
+        "totalTokens": 922,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0023875
+      },
+      "extractionUsage": {
+        "calls": 437,
+        "usageResponses": 8,
+        "costResponses": 0,
+        "promptTokens": 736873,
+        "completionTokens": 8079,
+        "totalTokens": 744952,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "sessionsWithFacts": 167,
+        "facts": 287,
+        "errors": 16,
+        "errorKinds": {
+          "constants '…', '…' are not in the input": 1,
+          "constant '…' is not in the input": 7,
+          "constants '…', '…', '…' are not in the input": 1,
+          "expected '…' but found '…' at line N": 6,
+          "facts must be ground: '…' contains variable JIGSAWS at line N": 1
+        }
+      },
+      "embeddingUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      },
+      "semanticPreparationUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      }
+    },
+    "single-session-preference": {
+      "questions": 8,
+      "judgedQuestions": 8,
+      "errors": 0,
+      "correct": 3,
+      "accuracy": 0.375,
+      "judgedAccuracy": 0.375,
+      "abstentionAccuracy": 0,
+      "fullContextEvidenceAccuracy": 0,
+      "incompleteContextEvidenceAccuracy": 0.42857142857142855,
+      "retrievalRecallAtK": 0.125,
+      "contextRecallAtK": 0.125,
+      "redactedRetrievedSessions": 0,
+      "medianFormationMs": 80705.84275000001,
+      "p95FormationMs": 145445.04983300006,
+      "medianSemanticPreparationMs": 0,
+      "p95SemanticPreparationMs": 0,
+      "medianRetrievalMs": 36.57366600004025,
+      "p95RetrievalMs": 56.02945799997542,
+      "medianReaderMs": 5175.552290999913,
+      "p95ReaderMs": 10971.779000000097,
+      "medianJudgeMs": 881.562750000041,
+      "p95JudgeMs": 1558.7069580000243,
+      "medianTotalMs": 85933.85929100006,
+      "p95TotalMs": 157218.02658299997,
+      "medianUserTurnMs": 6280.96408299997,
+      "p95UserTurnMs": 11765.761000000057,
+      "readerUsage": {
+        "calls": 8,
+        "usageResponses": 8,
+        "costResponses": 8,
+        "promptTokens": 11425,
+        "completionTokens": 3129,
+        "totalTokens": 14554,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 764,
+        "costUsd": 0.00660985
+      },
+      "judgeUsage": {
+        "calls": 8,
+        "usageResponses": 8,
+        "costResponses": 8,
+        "promptTokens": 3310,
+        "completionTokens": 14,
+        "totalTokens": 3324,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.008414999999999999
+      },
+      "extractionUsage": {
+        "calls": 409,
+        "usageResponses": 8,
+        "costResponses": 0,
+        "promptTokens": 711083,
+        "completionTokens": 8264,
+        "totalTokens": 719347,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "sessionsWithFacts": 201,
+        "facts": 361,
+        "errors": 16,
+        "errorKinds": {
+          "constant '…' is not in the input": 10,
+          "facts must be ground: '…' contains variable EST at line N": 1,
+          "unexpected character '…' at line N": 1,
+          "expected '…' but found '": 1,
+          "LLM request failed with status N: This model's maximum context length is N tokens. However": 1,
+          "refusing to send sensitive transcript to the external LLM": 1,
+          "expected '…' but found '…' at line N": 1
+        }
+      },
+      "embeddingUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      },
+      "semanticPreparationUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      }
+    },
+    "single-session-user": {
+      "questions": 8,
+      "judgedQuestions": 8,
+      "errors": 0,
+      "correct": 8,
+      "accuracy": 1,
+      "judgedAccuracy": 1,
+      "abstentionAccuracy": 0,
+      "fullContextEvidenceAccuracy": 1,
+      "incompleteContextEvidenceAccuracy": 0,
+      "retrievalRecallAtK": 1,
+      "contextRecallAtK": 1,
+      "redactedRetrievedSessions": 0,
+      "medianFormationMs": 90972.698666,
+      "p95FormationMs": 207318.24075,
+      "medianSemanticPreparationMs": 0,
+      "p95SemanticPreparationMs": 0,
+      "medianRetrievalMs": 30.880750000011176,
+      "p95RetrievalMs": 44.79049999998824,
+      "medianReaderMs": 1254.050166000001,
+      "p95ReaderMs": 2493.095125000007,
+      "medianJudgeMs": 938.1634999999951,
+      "p95JudgeMs": 1595.5096670000057,
+      "medianTotalMs": 93071.503083,
+      "p95TotalMs": 209509.837833,
+      "medianUserTurnMs": 2180.3800409999967,
+      "p95UserTurnMs": 4133.395292000001,
+      "readerUsage": {
+        "calls": 8,
+        "usageResponses": 8,
+        "costResponses": 8,
+        "promptTokens": 11891,
+        "completionTokens": 130,
+        "totalTokens": 12021,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 41,
+        "costUsd": 0.0030882
+      },
+      "judgeUsage": {
+        "calls": 8,
+        "usageResponses": 8,
+        "costResponses": 8,
+        "promptTokens": 533,
+        "completionTokens": 12,
+        "totalTokens": 545,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0014525
+      },
+      "extractionUsage": {
+        "calls": 441,
+        "usageResponses": 8,
+        "costResponses": 0,
+        "promptTokens": 788617,
+        "completionTokens": 10311,
+        "totalTokens": 798928,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "sessionsWithFacts": 178,
+        "facts": 331,
+        "errors": 20,
+        "errorKinds": {
+          "constant '…' is not in the input": 9,
+          "facts must be ground: '…' contains variable D at line N": 1,
+          "expected '…' but found '…' at line N": 2,
+          "constants '…', '…' are not in the input": 3,
+          "refusing to send sensitive transcript to the external LLM": 1,
+          "unexpected character '…' at line N": 2,
+          "constants '…', '…', '…', '…', '…' are not in the input": 1,
+          "auto-capture accepts at most N additive ground facts": 1
+        }
+      },
+      "embeddingUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      },
+      "semanticPreparationUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      }
+    },
+    "temporal-reasoning": {
+      "questions": 8,
+      "judgedQuestions": 8,
+      "errors": 0,
+      "correct": 3,
+      "accuracy": 0.375,
+      "judgedAccuracy": 0.375,
+      "abstentionAccuracy": 0,
+      "fullContextEvidenceAccuracy": 1,
+      "incompleteContextEvidenceAccuracy": 0.16666666666666666,
+      "retrievalRecallAtK": 0.43749999999999994,
+      "contextRecallAtK": 0.43749999999999994,
+      "redactedRetrievedSessions": 0,
+      "medianFormationMs": 101460.9437500001,
+      "p95FormationMs": 120067.50520800008,
+      "medianSemanticPreparationMs": 0,
+      "p95SemanticPreparationMs": 0,
+      "medianRetrievalMs": 35.23499999998603,
+      "p95RetrievalMs": 44.12974999996368,
+      "medianReaderMs": 2739.8066660000477,
+      "p95ReaderMs": 3109.7049170000246,
+      "medianJudgeMs": 1405.515291000018,
+      "p95JudgeMs": 1587.0495830000145,
+      "medianTotalMs": 104437.59379100008,
+      "p95TotalMs": 124037.768958,
+      "medianUserTurnMs": 3409.535373000079,
+      "p95UserTurnMs": 4724.981542000081,
+      "readerUsage": {
+        "calls": 8,
+        "usageResponses": 8,
+        "costResponses": 8,
+        "promptTokens": 15587,
+        "completionTokens": 659,
+        "totalTokens": 16246,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 433,
+        "costUsd": 0.00468635
+      },
+      "judgeUsage": {
+        "calls": 8,
+        "usageResponses": 8,
+        "costResponses": 8,
+        "promptTokens": 1103,
+        "completionTokens": 12,
+        "totalTokens": 1115,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0028775
+      },
+      "extractionUsage": {
+        "calls": 437,
+        "usageResponses": 8,
+        "costResponses": 0,
+        "promptTokens": 754403,
+        "completionTokens": 7828,
+        "totalTokens": 762231,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "sessionsWithFacts": 195,
+        "facts": 370,
+        "errors": 22,
+        "errorKinds": {
+          "constant '…' is not in the input": 12,
+          "unterminated quoted atom at line N": 2,
+          "expected '…' but found '…' at line N": 4,
+          "constants '…', '…' are not in the input": 1,
+          "refusing to send sensitive transcript to the external LLM": 1,
+          "unexpected character '…' at line N": 1,
+          "facts must be ground: '…' contains variable _ at line N": 1
+        }
+      },
+      "embeddingUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      },
+      "semanticPreparationUsage": {
+        "calls": 0,
+        "promptTokens": 0,
+        "totalTokens": 0,
+        "costResponses": 0,
+        "costUsd": 0
+      }
+    }
+  },
+  "observations": [
+    {
+      "questionId": "e47becba",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_280352e9",
+        "02bd2b90_3"
+      ],
+      "contextSessionIds": [
+        "answer_280352e9",
+        "02bd2b90_3"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "e47becba",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_280352e9"
+        ],
+        "retrievedSessionIds": [
+          "answer_280352e9",
+          "02bd2b90_3"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 28.11312499998894
+      },
+      "context": {
+        "questionId": "e47becba",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_280352e9"
+        ],
+        "retrievedSessionIds": [
+          "answer_280352e9",
+          "02bd2b90_3"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 28.11312499998894
+      },
+      "hypothesis": "You graduated with a degree in Business Administration.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 790,
+        "completionTokens": 13,
+        "totalTokens": 803,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001736
+      },
+      "judgeUsage": {
+        "promptTokens": 65,
+        "completionTokens": 2,
+        "totalTokens": 67,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001825
+      },
+      "extraction": {
+        "calls": 57,
+        "sessionsWithFacts": 25,
+        "facts": 40,
+        "errors": 2,
+        "errorKinds": {
+          "constant '…' is not in the input": 2
+        },
+        "usage": {
+          "promptTokens": 96159,
+          "completionTokens": 885,
+          "totalTokens": 97044,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 89104.809875,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 28.11312499998894,
+      "readerMs": 1737.730291999993,
+      "judgeMs": 938.1634999999951,
+      "totalMs": 91814.340667,
+      "userTurnMs": 2704.006916999977
+    },
+    {
+      "questionId": "58bf7951",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_355c48bb",
+        "ultrachat_366731",
+        "sharegpt_DGiqvVv_270",
+        "08469b58"
+      ],
+      "contextSessionIds": [
+        "answer_355c48bb",
+        "ultrachat_366731",
+        "sharegpt_DGiqvVv_270",
+        "08469b58"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "58bf7951",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_355c48bb"
+        ],
+        "retrievedSessionIds": [
+          "answer_355c48bb",
+          "ultrachat_366731",
+          "sharegpt_DGiqvVv_270",
+          "08469b58"
+        ],
+        "precisionAtK": 0.25,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 225,
+        "wallMs": 32.58499999999185
+      },
+      "context": {
+        "questionId": "58bf7951",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_355c48bb"
+        ],
+        "retrievedSessionIds": [
+          "answer_355c48bb",
+          "ultrachat_366731",
+          "sharegpt_DGiqvVv_270",
+          "08469b58"
+        ],
+        "precisionAtK": 0.25,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 225,
+        "wallMs": 32.58499999999185
+      },
+      "hypothesis": "You attended a production of *The Glass Menagerie*.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1243,
+        "completionTokens": 15,
+        "totalTokens": 1258,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0003286
+      },
+      "judgeUsage": {
+        "promptTokens": 74,
+        "completionTokens": 1,
+        "totalTokens": 75,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000195
+      },
+      "extraction": {
+        "calls": 67,
+        "sessionsWithFacts": 28,
+        "facts": 58,
+        "errors": 5,
+        "errorKinds": {
+          "facts must be ground: '…' contains variable D at line N": 1,
+          "expected '…' but found '…' at line N": 1,
+          "constant '…' is not in the input": 3
+        },
+        "usage": {
+          "promptTokens": 137924,
+          "completionTokens": 2819,
+          "totalTokens": 140743,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 207318.24075,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 32.58499999999185,
+      "readerMs": 1118.6215410000004,
+      "judgeMs": 1029.1735000000044,
+      "totalMs": 209509.837833,
+      "userTurnMs": 2180.3800409999967
+    },
+    {
+      "questionId": "c5e8278d",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_f6168136",
+        "answer_f6168136",
+        "89b1028d_1",
+        "d777e7da_1"
+      ],
+      "contextSessionIds": [
+        "answer_f6168136",
+        "answer_f6168136",
+        "89b1028d_1",
+        "d777e7da_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "c5e8278d",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f6168136"
+        ],
+        "retrievedSessionIds": [
+          "answer_f6168136",
+          "answer_f6168136",
+          "89b1028d_1",
+          "d777e7da_1"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 320,
+        "wallMs": 28.9069579999923
+      },
+      "context": {
+        "questionId": "c5e8278d",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f6168136"
+        ],
+        "retrievedSessionIds": [
+          "answer_f6168136",
+          "answer_f6168136",
+          "89b1028d_1",
+          "d777e7da_1"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 320,
+        "wallMs": 28.9069579999923
+      },
+      "hypothesis": "Johnson",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1559,
+        "completionTokens": 5,
+        "totalTokens": 1564,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0003956
+      },
+      "judgeUsage": {
+        "promptTokens": 60,
+        "completionTokens": 1,
+        "totalTokens": 61,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00016
+      },
+      "extraction": {
+        "calls": 48,
+        "sessionsWithFacts": 24,
+        "facts": 41,
+        "errors": 1,
+        "errorKinds": {
+          "constants '…', '…' are not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 92690,
+          "completionTokens": 1030,
+          "totalTokens": 93720,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 90709.16712499999,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 28.9069579999923,
+      "readerMs": 1077.0873330000031,
+      "judgeMs": 670.3072079999984,
+      "totalMs": 92489.967667,
+      "userTurnMs": 1776.3014989999938
+    },
+    {
+      "questionId": "6ade9755",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_9398da02",
+        "7c5ab02a_2",
+        "answer_9398da02",
+        "ec8fa65d_2"
+      ],
+      "contextSessionIds": [
+        "answer_9398da02",
+        "7c5ab02a_2",
+        "answer_9398da02",
+        "ec8fa65d_2"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "6ade9755",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_9398da02"
+        ],
+        "retrievedSessionIds": [
+          "answer_9398da02",
+          "7c5ab02a_2",
+          "answer_9398da02",
+          "ec8fa65d_2"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 44.79049999998824
+      },
+      "context": {
+        "questionId": "6ade9755",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_9398da02"
+        ],
+        "retrievedSessionIds": [
+          "answer_9398da02",
+          "7c5ab02a_2",
+          "answer_9398da02",
+          "ec8fa65d_2"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 90,
+        "wallMs": 44.79049999998824
+      },
+      "hypothesis": "You take yoga classes at Serenity Yoga.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1507,
+        "completionTokens": 55,
+        "totalTokens": 1562,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 41,
+        "costUsd": 0.0004426
+      },
+      "judgeUsage": {
+        "promptTokens": 64,
+        "completionTokens": 2,
+        "totalTokens": 66,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00018
+      },
+      "extraction": {
+        "calls": 54,
+        "sessionsWithFacts": 17,
+        "facts": 26,
+        "errors": 4,
+        "errorKinds": {
+          "constant '…' is not in the input": 2,
+          "refusing to send sensitive transcript to the external LLM": 1,
+          "unexpected character '…' at line N": 1
+        },
+        "usage": {
+          "promptTokens": 82493,
+          "completionTokens": 643,
+          "totalTokens": 83136,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 75999.232666,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 44.79049999998824,
+      "readerMs": 2493.095125000007,
+      "judgeMs": 1595.5096670000057,
+      "totalMs": 80138.71245800001,
+      "userTurnMs": 4133.395292000001
+    },
+    {
+      "questionId": "5d3d2817",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_235eb6fb",
+        "sharegpt_ipLglky_48",
+        "e93efd9a_1",
+        "e93efd9a_1"
+      ],
+      "contextSessionIds": [
+        "answer_235eb6fb",
+        "sharegpt_ipLglky_48",
+        "e93efd9a_1",
+        "e93efd9a_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "5d3d2817",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_235eb6fb"
+        ],
+        "retrievedSessionIds": [
+          "answer_235eb6fb",
+          "sharegpt_ipLglky_48",
+          "e93efd9a_1",
+          "e93efd9a_1"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 21.393874999979744
+      },
+      "context": {
+        "questionId": "5d3d2817",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_235eb6fb"
+        ],
+        "retrievedSessionIds": [
+          "answer_235eb6fb",
+          "sharegpt_ipLglky_48",
+          "e93efd9a_1",
+          "e93efd9a_1"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 45,
+        "wallMs": 21.393874999979744
+      },
+      "hypothesis": "Marketing specialist at a small startup.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 2638,
+        "completionTokens": 11,
+        "totalTokens": 2649,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00067255
+      },
+      "judgeUsage": {
+        "promptTokens": 66,
+        "completionTokens": 2,
+        "totalTokens": 68,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000185
+      },
+      "extraction": {
+        "calls": 58,
+        "sessionsWithFacts": 21,
+        "facts": 40,
+        "errors": 3,
+        "errorKinds": {
+          "constant '…' is not in the input": 2,
+          "expected '…' but found '…' at line N": 1
+        },
+        "usage": {
+          "promptTokens": 105298,
+          "completionTokens": 1121,
+          "totalTokens": 106419,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 102668.40520800001,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 21.393874999979744,
+      "readerMs": 1003.0557919999992,
+      "judgeMs": 901.6347079999978,
+      "totalMs": 104599.10262500001,
+      "userTurnMs": 1926.0843749999767
+    },
+    {
+      "questionId": "726462e0",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "741c6781_1",
+        "ce144f08",
+        "answer_f38f679b",
+        "741c6781_1"
+      ],
+      "contextSessionIds": [
+        "741c6781_1",
+        "ce144f08",
+        "answer_f38f679b",
+        "741c6781_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "726462e0",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f38f679b"
+        ],
+        "retrievedSessionIds": [
+          "741c6781_1",
+          "ce144f08",
+          "answer_f38f679b",
+          "741c6781_1"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 1,
+        "reciprocalRank": 0.3333333333333333,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 365,
+        "wallMs": 30.880750000011176
+      },
+      "context": {
+        "questionId": "726462e0",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f38f679b"
+        ],
+        "retrievedSessionIds": [
+          "741c6781_1",
+          "ce144f08",
+          "answer_f38f679b",
+          "741c6781_1"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 1,
+        "reciprocalRank": 0.3333333333333333,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 365,
+        "wallMs": 30.880750000011176
+      },
+      "hypothesis": "10% discount.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1441,
+        "completionTokens": 8,
+        "totalTokens": 1449,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0003697
+      },
+      "judgeUsage": {
+        "promptTokens": 70,
+        "completionTokens": 1,
+        "totalTokens": 71,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000185
+      },
+      "extraction": {
+        "calls": 51,
+        "sessionsWithFacts": 25,
+        "facts": 31,
+        "errors": 2,
+        "errorKinds": {
+          "unexpected character '…' at line N": 1,
+          "constants '…', '…' are not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 81047,
+          "completionTokens": 979,
+          "totalTokens": 82026,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 90972.698666,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 30.880750000011176,
+      "readerMs": 1254.050166000001,
+      "judgeMs": 805.4927920000046,
+      "totalMs": 93071.503083,
+      "userTurnMs": 2090.4237080000166
+    },
+    {
+      "questionId": "94f70d80",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_c63c0458",
+        "answer_c63c0458",
+        "58de8f9b",
+        "67045503"
+      ],
+      "contextSessionIds": [
+        "answer_c63c0458",
+        "answer_c63c0458",
+        "58de8f9b",
+        "67045503"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "94f70d80",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_c63c0458"
+        ],
+        "retrievedSessionIds": [
+          "answer_c63c0458",
+          "answer_c63c0458",
+          "58de8f9b",
+          "67045503"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 305,
+        "wallMs": 17.636250000010477
+      },
+      "context": {
+        "questionId": "94f70d80",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_c63c0458"
+        ],
+        "retrievedSessionIds": [
+          "answer_c63c0458",
+          "answer_c63c0458",
+          "58de8f9b",
+          "67045503"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 305,
+        "wallMs": 17.636250000010477
+      },
+      "hypothesis": "It took you 4 hours.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1444,
+        "completionTokens": 11,
+        "totalTokens": 1455,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00037405
+      },
+      "judgeUsage": {
+        "promptTokens": 69,
+        "completionTokens": 2,
+        "totalTokens": 71,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001925
+      },
+      "extraction": {
+        "calls": 50,
+        "sessionsWithFacts": 17,
+        "facts": 29,
+        "errors": 0,
+        "errorKinds": {},
+        "usage": {
+          "promptTokens": 80331,
+          "completionTokens": 812,
+          "totalTokens": 81143,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 80074.995875,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 17.636250000010477,
+      "readerMs": 1804.7490830000024,
+      "judgeMs": 935.934042000008,
+      "totalMs": 82838.80233399999,
+      "userTurnMs": 2758.319375000021
+    },
+    {
+      "questionId": "8ebdbe50",
+      "questionType": "single-session-user",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_8ad8a34f",
+        "01e806f0_1",
+        "b53f447a_1",
+        "b53f447a_1"
+      ],
+      "contextSessionIds": [
+        "answer_8ad8a34f",
+        "01e806f0_1",
+        "b53f447a_1",
+        "b53f447a_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "8ebdbe50",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_8ad8a34f"
+        ],
+        "retrievedSessionIds": [
+          "answer_8ad8a34f",
+          "01e806f0_1",
+          "b53f447a_1",
+          "b53f447a_1"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 180,
+        "wallMs": 42.396583000023384
+      },
+      "context": {
+        "questionId": "8ebdbe50",
+        "questionType": "single-session-user",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_8ad8a34f"
+        ],
+        "retrievedSessionIds": [
+          "answer_8ad8a34f",
+          "01e806f0_1",
+          "b53f447a_1",
+          "b53f447a_1"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 180,
+        "wallMs": 42.396583000023384
+      },
+      "hypothesis": "You completed a certification in Data Science.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1269,
+        "completionTokens": 12,
+        "totalTokens": 1281,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0003315
+      },
+      "judgeUsage": {
+        "promptTokens": 65,
+        "completionTokens": 1,
+        "totalTokens": 66,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001725
+      },
+      "extraction": {
+        "calls": 56,
+        "sessionsWithFacts": 21,
+        "facts": 66,
+        "errors": 3,
+        "errorKinds": {
+          "constants '…', '…' are not in the input": 1,
+          "constants '…', '…', '…', '…', '…' are not in the input": 1,
+          "auto-capture accepts at most N additive ground facts": 1
+        },
+        "usage": {
+          "promptTokens": 112675,
+          "completionTokens": 2022,
+          "totalTokens": 114697,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 155291.830333,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 42.396583000023384,
+      "readerMs": 1047.62408400001,
+      "judgeMs": 989.2147910000058,
+      "totalMs": 157376.39375,
+      "userTurnMs": 2079.235458000039
+    },
+    {
+      "questionId": "gpt4_59c863d7",
+      "questionType": "multi-session",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "answer_593bdffd_1",
+        "9ef698bc_2",
+        "a7d014e4_1",
+        "de5f2701_1",
+        "5b9c49f7"
+      ],
+      "contextSessionIds": [
+        "answer_593bdffd_1",
+        "9ef698bc_2",
+        "a7d014e4_1",
+        "de5f2701_1",
+        "5b9c49f7"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "gpt4_59c863d7",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_593bdffd_4",
+          "answer_593bdffd_1",
+          "answer_593bdffd_3",
+          "answer_593bdffd_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_593bdffd_1",
+          "9ef698bc_2",
+          "a7d014e4_1",
+          "de5f2701_1",
+          "5b9c49f7"
+        ],
+        "precisionAtK": 0.2,
+        "recallAtK": 0.25,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 275,
+        "wallMs": 34.05845899996348
+      },
+      "context": {
+        "questionId": "gpt4_59c863d7",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_593bdffd_4",
+          "answer_593bdffd_1",
+          "answer_593bdffd_3",
+          "answer_593bdffd_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_593bdffd_1",
+          "9ef698bc_2",
+          "a7d014e4_1",
+          "de5f2701_1",
+          "5b9c49f7"
+        ],
+        "precisionAtK": 0.2,
+        "recallAtK": 0.25,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 275,
+        "wallMs": 34.05845899996348
+      },
+      "hypothesis": "1 model kit—the Revell F-15 Eagle.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1717,
+        "completionTokens": 159,
+        "totalTokens": 1876,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 142,
+        "costUsd": 0.0006199
+      },
+      "judgeUsage": {
+        "promptTokens": 141,
+        "completionTokens": 1,
+        "totalTokens": 142,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0003625
+      },
+      "extraction": {
+        "calls": 51,
+        "sessionsWithFacts": 23,
+        "facts": 37,
+        "errors": 2,
+        "errorKinds": {
+          "constants '…', '…', '…' are not in the input": 1,
+          "unexpected character '…' at line N": 1
+        },
+        "usage": {
+          "promptTokens": 90584,
+          "completionTokens": 821,
+          "totalTokens": 91405,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 83622.350041,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 34.05845899996348,
+      "readerMs": 3791.4212919999845,
+      "judgeMs": 745.4180829999968,
+      "totalMs": 88200.82566600002,
+      "userTurnMs": 4570.897833999945
+    },
+    {
+      "questionId": "b5ef892d",
+      "questionType": "multi-session",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "answer_a8b4290f_1",
+        "0a5cbc79_1",
+        "0a5cbc79_1",
+        "e60407fd_2",
+        "sharegpt_hfWd2FK_0"
+      ],
+      "contextSessionIds": [
+        "answer_a8b4290f_1",
+        "0a5cbc79_1",
+        "0a5cbc79_1",
+        "e60407fd_2",
+        "sharegpt_hfWd2FK_0"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "b5ef892d",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_a8b4290f_3",
+          "answer_a8b4290f_1",
+          "answer_a8b4290f_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_a8b4290f_1",
+          "0a5cbc79_1",
+          "0a5cbc79_1",
+          "e60407fd_2",
+          "sharegpt_hfWd2FK_0"
+        ],
+        "precisionAtK": 0.25,
+        "recallAtK": 0.3333333333333333,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 180,
+        "wallMs": 23.15166599996155
+      },
+      "context": {
+        "questionId": "b5ef892d",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_a8b4290f_3",
+          "answer_a8b4290f_1",
+          "answer_a8b4290f_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_a8b4290f_1",
+          "0a5cbc79_1",
+          "0a5cbc79_1",
+          "e60407fd_2",
+          "sharegpt_hfWd2FK_0"
+        ],
+        "precisionAtK": 0.25,
+        "recallAtK": 0.3333333333333333,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 180,
+        "wallMs": 23.15166599996155
+      },
+      "hypothesis": "You spent 5 days on camping trips in the United States this year.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1576,
+        "completionTokens": 67,
+        "totalTokens": 1643,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 46,
+        "costUsd": 0.00047425
+      },
+      "judgeUsage": {
+        "promptTokens": 81,
+        "completionTokens": 1,
+        "totalTokens": 82,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002125
+      },
+      "extraction": {
+        "calls": 55,
+        "sessionsWithFacts": 12,
+        "facts": 36,
+        "errors": 2,
+        "errorKinds": {
+          "constant '…' is not in the input": 2
+        },
+        "usage": {
+          "promptTokens": 104971,
+          "completionTokens": 1229,
+          "totalTokens": 106200,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 109352.61187499997,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 23.15166599996155,
+      "readerMs": 2043.176833000034,
+      "judgeMs": 775.0502500000293,
+      "totalMs": 112198.85766699997,
+      "userTurnMs": 2841.378749000025
+    },
+    {
+      "questionId": "3a704032",
+      "questionType": "multi-session",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "answer_c2204106_1",
+        "7712aded",
+        "f5c7d070_4",
+        "d729b790_2",
+        "5cfdb3bc"
+      ],
+      "contextSessionIds": [
+        "answer_c2204106_1",
+        "7712aded",
+        "f5c7d070_4",
+        "d729b790_2",
+        "5cfdb3bc"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "3a704032",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_c2204106_2",
+          "answer_c2204106_3",
+          "answer_c2204106_1"
+        ],
+        "retrievedSessionIds": [
+          "answer_c2204106_1",
+          "7712aded",
+          "f5c7d070_4",
+          "d729b790_2",
+          "5cfdb3bc"
+        ],
+        "precisionAtK": 0.2,
+        "recallAtK": 0.3333333333333333,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 320,
+        "wallMs": 29.506292000005487
+      },
+      "context": {
+        "questionId": "3a704032",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_c2204106_2",
+          "answer_c2204106_3",
+          "answer_c2204106_1"
+        ],
+        "retrievedSessionIds": [
+          "answer_c2204106_1",
+          "7712aded",
+          "f5c7d070_4",
+          "d729b790_2",
+          "5cfdb3bc"
+        ],
+        "precisionAtK": 0.2,
+        "recallAtK": 0.3333333333333333,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 320,
+        "wallMs": 29.506292000005487
+      },
+      "hypothesis": "You acquired **1 plant**: the snake plant you got from your sister last month.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1912,
+        "completionTokens": 82,
+        "totalTokens": 1994,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 58,
+        "costUsd": 0.00057625
+      },
+      "judgeUsage": {
+        "promptTokens": 78,
+        "completionTokens": 1,
+        "totalTokens": 79,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000205
+      },
+      "extraction": {
+        "calls": 53,
+        "sessionsWithFacts": 19,
+        "facts": 31,
+        "errors": 3,
+        "errorKinds": {
+          "constant '…' is not in the input": 3
+        },
+        "usage": {
+          "promptTokens": 91575,
+          "completionTokens": 771,
+          "totalTokens": 92346,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 84273.28870800001,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 29.506292000005487,
+      "readerMs": 3240.4437920000055,
+      "judgeMs": 717.0053339999868,
+      "totalMs": 88268.54416700001,
+      "userTurnMs": 3986.9554179999977
+    },
+    {
+      "questionId": "aae3761f",
+      "questionType": "multi-session",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "answer_526354c8_1",
+        "answer_526354c8_1",
+        "answer_526354c8_1",
+        "answer_526354c8_1",
+        "answer_526354c8_2"
+      ],
+      "contextSessionIds": [
+        "answer_526354c8_1",
+        "answer_526354c8_1",
+        "answer_526354c8_1",
+        "answer_526354c8_1",
+        "answer_526354c8_2"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "aae3761f",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_526354c8_1",
+          "answer_526354c8_3",
+          "answer_526354c8_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_526354c8_1",
+          "answer_526354c8_1",
+          "answer_526354c8_1",
+          "answer_526354c8_1",
+          "answer_526354c8_2"
+        ],
+        "precisionAtK": 1,
+        "recallAtK": 0.6666666666666666,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 430,
+        "wallMs": 35.833625000028405
+      },
+      "context": {
+        "questionId": "aae3761f",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_526354c8_1",
+          "answer_526354c8_3",
+          "answer_526354c8_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_526354c8_1",
+          "answer_526354c8_1",
+          "answer_526354c8_1",
+          "answer_526354c8_1",
+          "answer_526354c8_2"
+        ],
+        "precisionAtK": 1,
+        "recallAtK": 0.6666666666666666,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 430,
+        "wallMs": 35.833625000028405
+      },
+      "hypothesis": "I don’t know—the history gives driving times for Outer Banks (4 hours) and Washington, D.C. (6 hours), but not for Tybee Island.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1859,
+        "completionTokens": 115,
+        "totalTokens": 1974,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 76,
+        "costUsd": 0.0006026
+      },
+      "judgeUsage": {
+        "promptTokens": 115,
+        "completionTokens": 1,
+        "totalTokens": 116,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002975
+      },
+      "extraction": {
+        "calls": 53,
+        "sessionsWithFacts": 29,
+        "facts": 53,
+        "errors": 2,
+        "errorKinds": {
+          "expected '…' but found '…' at line N": 1,
+          "constants '…', '…' are not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 96977,
+          "completionTokens": 1294,
+          "totalTokens": 98271,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 111375.01133299997,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 35.833625000028405,
+      "readerMs": 2762.574790999992,
+      "judgeMs": 995.3394590000389,
+      "totalMs": 115174.66283400002,
+      "userTurnMs": 3793.747875000059
+    },
+    {
+      "questionId": "dd2973ad",
+      "questionType": "multi-session",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "answer_f9de4602_1",
+        "22b912f4_1",
+        "41743aae_1",
+        "41743aae_1",
+        "41743aae_1"
+      ],
+      "contextSessionIds": [
+        "answer_f9de4602_1",
+        "22b912f4_1",
+        "41743aae_1",
+        "41743aae_1",
+        "41743aae_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "dd2973ad",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f9de4602_2",
+          "answer_f9de4602_1"
+        ],
+        "retrievedSessionIds": [
+          "answer_f9de4602_1",
+          "22b912f4_1",
+          "41743aae_1",
+          "41743aae_1",
+          "41743aae_1"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 0.5,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 270,
+        "wallMs": 33.53854099998716
+      },
+      "context": {
+        "questionId": "dd2973ad",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f9de4602_2",
+          "answer_f9de4602_1"
+        ],
+        "retrievedSessionIds": [
+          "answer_f9de4602_1",
+          "22b912f4_1",
+          "41743aae_1",
+          "41743aae_1",
+          "41743aae_1"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 0.5,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 270,
+        "wallMs": 33.53854099998716
+      },
+      "hypothesis": "I don’t know—the history doesn’t mention a doctor’s appointment.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 2445,
+        "completionTokens": 51,
+        "totalTokens": 2496,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 31,
+        "costUsd": 0.0006723
+      },
+      "judgeUsage": {
+        "promptTokens": 81,
+        "completionTokens": 1,
+        "totalTokens": 82,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002125
+      },
+      "extraction": {
+        "calls": 50,
+        "sessionsWithFacts": 22,
+        "facts": 40,
+        "errors": 1,
+        "errorKinds": {
+          "constant '…' is not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 86526,
+          "completionTokens": 736,
+          "totalTokens": 87262,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 77137.42070899997,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 33.53854099998716,
+      "readerMs": 2106.1792909999494,
+      "judgeMs": 935.9201659999671,
+      "totalMs": 80220.58345800004,
+      "userTurnMs": 3075.6379979999037
+    },
+    {
+      "questionId": "gpt4_a56e767c",
+      "questionType": "multi-session",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "answer_cf9e3940_3",
+        "answer_cf9e3940_3",
+        "88c8df0e_3",
+        "answer_cf9e3940_2",
+        "f56e6152_1"
+      ],
+      "contextSessionIds": [
+        "answer_cf9e3940_3",
+        "answer_cf9e3940_3",
+        "88c8df0e_3",
+        "answer_cf9e3940_2",
+        "f56e6152_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "gpt4_a56e767c",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_cf9e3940_2",
+          "answer_cf9e3940_1",
+          "answer_cf9e3940_3"
+        ],
+        "retrievedSessionIds": [
+          "answer_cf9e3940_3",
+          "answer_cf9e3940_3",
+          "88c8df0e_3",
+          "answer_cf9e3940_2",
+          "f56e6152_1"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 0.6666666666666666,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 30.308124999981374
+      },
+      "context": {
+        "questionId": "gpt4_a56e767c",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_cf9e3940_2",
+          "answer_cf9e3940_1",
+          "answer_cf9e3940_3"
+        ],
+        "retrievedSessionIds": [
+          "answer_cf9e3940_3",
+          "answer_cf9e3940_3",
+          "88c8df0e_3",
+          "answer_cf9e3940_2",
+          "f56e6152_1"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 0.6666666666666666,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 230,
+        "wallMs": 30.308124999981374
+      },
+      "hypothesis": "You attended or participated in **three film festivals**: Austin Film Festival, Seattle International Film Festival, and AFI Fest.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 2550,
+        "completionTokens": 144,
+        "totalTokens": 2694,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 113,
+        "costUsd": 0.00081015
+      },
+      "judgeUsage": {
+        "promptTokens": 85,
+        "completionTokens": 2,
+        "totalTokens": 87,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002325
+      },
+      "extraction": {
+        "calls": 52,
+        "sessionsWithFacts": 20,
+        "facts": 49,
+        "errors": 1,
+        "errorKinds": {
+          "unexpected character '…' at line N": 1
+        },
+        "usage": {
+          "promptTokens": 105797,
+          "completionTokens": 1155,
+          "totalTokens": 106952,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 102746.36479199998,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 30.308124999981374,
+      "readerMs": 3542.79366700002,
+      "judgeMs": 1591.2987910000375,
+      "totalMs": 107916.3065,
+      "userTurnMs": 5164.400583000039
+    },
+    {
+      "questionId": "28dc39ac",
+      "questionType": "multi-session",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "answer_8d015d9d_2",
+        "answer_8d015d9d_1",
+        "7b40cc76",
+        "answer_8d015d9d_4",
+        "bfa499f7"
+      ],
+      "contextSessionIds": [
+        "answer_8d015d9d_2",
+        "answer_8d015d9d_1",
+        "7b40cc76",
+        "answer_8d015d9d_4",
+        "bfa499f7"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "28dc39ac",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_8d015d9d_3",
+          "answer_8d015d9d_5",
+          "answer_8d015d9d_2",
+          "answer_8d015d9d_4",
+          "answer_8d015d9d_1"
+        ],
+        "retrievedSessionIds": [
+          "answer_8d015d9d_2",
+          "answer_8d015d9d_1",
+          "7b40cc76",
+          "answer_8d015d9d_4",
+          "bfa499f7"
+        ],
+        "precisionAtK": 0.6,
+        "recallAtK": 0.6,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 225,
+        "wallMs": 32.82474999997066
+      },
+      "context": {
+        "questionId": "28dc39ac",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_8d015d9d_3",
+          "answer_8d015d9d_5",
+          "answer_8d015d9d_2",
+          "answer_8d015d9d_4",
+          "answer_8d015d9d_1"
+        ],
+        "retrievedSessionIds": [
+          "answer_8d015d9d_2",
+          "answer_8d015d9d_1",
+          "7b40cc76",
+          "answer_8d015d9d_4",
+          "bfa499f7"
+        ],
+        "precisionAtK": 0.6,
+        "recallAtK": 0.6,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 225,
+        "wallMs": 32.82474999997066
+      },
+      "hypothesis": "65 hours.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1782,
+        "completionTokens": 64,
+        "totalTokens": 1846,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 55,
+        "costUsd": 0.00052215
+      },
+      "judgeUsage": {
+        "promptTokens": 65,
+        "completionTokens": 2,
+        "totalTokens": 67,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001825
+      },
+      "extraction": {
+        "calls": 48,
+        "sessionsWithFacts": 21,
+        "facts": 47,
+        "errors": 5,
+        "errorKinds": {
+          "constant '…' is not in the input": 3,
+          "expected '…' but found '…' at line N": 2
+        },
+        "usage": {
+          "promptTokens": 83355,
+          "completionTokens": 1222,
+          "totalTokens": 84577,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 104158.05979199999,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 32.82474999997066,
+      "readerMs": 2321.1117089999607,
+      "judgeMs": 1647.6978750000126,
+      "totalMs": 108163.91866700002,
+      "userTurnMs": 4001.634333999944
+    },
+    {
+      "questionId": "gpt4_2f8be40d",
+      "questionType": "multi-session",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "answer_e7b0637e_1",
+        "cbdbcfbc_1",
+        "cbdbcfbc_1",
+        "cbdbcfbc_1",
+        "cbdbcfbc_1"
+      ],
+      "contextSessionIds": [
+        "answer_e7b0637e_1",
+        "cbdbcfbc_1",
+        "cbdbcfbc_1",
+        "cbdbcfbc_1",
+        "cbdbcfbc_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "gpt4_2f8be40d",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_e7b0637e_2",
+          "answer_e7b0637e_1",
+          "answer_e7b0637e_3"
+        ],
+        "retrievedSessionIds": [
+          "answer_e7b0637e_1",
+          "cbdbcfbc_1",
+          "cbdbcfbc_1",
+          "cbdbcfbc_1",
+          "cbdbcfbc_1"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 0.3333333333333333,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 27.33904099999927
+      },
+      "context": {
+        "questionId": "gpt4_2f8be40d",
+        "questionType": "multi-session",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_e7b0637e_2",
+          "answer_e7b0637e_1",
+          "answer_e7b0637e_3"
+        ],
+        "retrievedSessionIds": [
+          "answer_e7b0637e_1",
+          "cbdbcfbc_1",
+          "cbdbcfbc_1",
+          "cbdbcfbc_1",
+          "cbdbcfbc_1"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 0.3333333333333333,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 27.33904099999927
+      },
+      "hypothesis": "I don’t know the exact number. You mentioned attending “a few” weddings recently, including Rachel’s and Emily’s.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1995,
+        "completionTokens": 122,
+        "totalTokens": 2117,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 91,
+        "costUsd": 0.000645
+      },
+      "judgeUsage": {
+        "promptTokens": 102,
+        "completionTokens": 2,
+        "totalTokens": 104,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000275
+      },
+      "extraction": {
+        "calls": 48,
+        "sessionsWithFacts": 13,
+        "facts": 32,
+        "errors": 1,
+        "errorKinds": {
+          "constants '…', '…', '…' are not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 88034,
+          "completionTokens": 885,
+          "totalTokens": 88919,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 85596.06700000004,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 27.33904099999927,
+      "readerMs": 2429.343583000009,
+      "judgeMs": 1443.5047079999931,
+      "totalMs": 89501.66283399996,
+      "userTurnMs": 3900.1873320000013
+    },
+    {
+      "questionId": "06878be2",
+      "questionType": "single-session-preference",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "a6074da9_1",
+        "3e9fce53_1",
+        "3e9fce53_1",
+        "ca929779_1"
+      ],
+      "contextSessionIds": [
+        "a6074da9_1",
+        "3e9fce53_1",
+        "3e9fce53_1",
+        "ca929779_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "06878be2",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_555dfb94"
+        ],
+        "retrievedSessionIds": [
+          "a6074da9_1",
+          "3e9fce53_1",
+          "3e9fce53_1",
+          "ca929779_1"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 270,
+        "wallMs": 19.35962499998277
+      },
+      "context": {
+        "questionId": "06878be2",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_555dfb94"
+        ],
+        "retrievedSessionIds": [
+          "a6074da9_1",
+          "3e9fce53_1",
+          "3e9fce53_1",
+          "ca929779_1"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 270,
+        "wallMs": 19.35962499998277
+      },
+      "hypothesis": "I don’t have details about your current photography setup yet, so the best accessories depend on your camera, lenses, and shooting style. In general, these are useful additions:\n\n- **Extra batteries and memory cards** — essential for longer shoots.\n- **Comfortable camera strap or sling** — especially useful for travel or outdoor photography.\n- **Tripod and remote shutter release** — helpful for landscapes, portraits, low-light work, and self-timer shots.\n- **Lens filters** — a clear/UV filter for protection and a circular polarizer for reducing reflections and enhancing skies.\n- **Camera bag or padded insert** — protects your equipment while keeping it organized.\n- **Portable reflector** — useful for softening shadows in portraits and food photography.\n- **External flash or LED light** — gives you more control indoors.\n- **Lens-cleaning kit and sensor blower** — for keeping images free of dust and smudges.\n- **Spare lens hood** — reduces flare and protects the front element.\n- **Portable power bank or battery charger** — convenient for travel and extended sessions.\n\nTell me your **camera body, lenses, and the type of photography you do**—for example, travel, portraits, landscapes, or low-light photography—and I can narrow this down to the most worthwhile accessories rather than suggesting things you may not need.",
+      "judgeResponse": "No.",
+      "readerUsage": {
+        "promptTokens": 1468,
+        "completionTokens": 332,
+        "totalTokens": 1800,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 53,
+        "costUsd": 0.00076525
+      },
+      "judgeUsage": {
+        "promptTokens": 372,
+        "completionTokens": 3,
+        "totalTokens": 375,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00096
+      },
+      "extraction": {
+        "calls": 50,
+        "sessionsWithFacts": 16,
+        "facts": 33,
+        "errors": 2,
+        "errorKinds": {
+          "constant '…' is not in the input": 2
+        },
+        "usage": {
+          "promptTokens": 80402,
+          "completionTokens": 654,
+          "totalTokens": 81056,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 72792.47674999997,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 19.35962499998277,
+      "readerMs": 4691.878916999965,
+      "judgeMs": 1558.7069580000243,
+      "totalMs": 79067.56683299999,
+      "userTurnMs": 6269.9454999999725
+    },
+    {
+      "questionId": "75832dbd",
+      "questionType": "single-session-preference",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "1ef63c66",
+        "47ec1674_2",
+        "d49b1a24_1",
+        "5f1f5891"
+      ],
+      "contextSessionIds": [
+        "1ef63c66",
+        "47ec1674_2",
+        "d49b1a24_1",
+        "5f1f5891"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "75832dbd",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_d87a6ef8"
+        ],
+        "retrievedSessionIds": [
+          "1ef63c66",
+          "47ec1674_2",
+          "d49b1a24_1",
+          "5f1f5891"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 410,
+        "wallMs": 44.83812500000931
+      },
+      "context": {
+        "questionId": "75832dbd",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_d87a6ef8"
+        ],
+        "retrievedSessionIds": [
+          "1ef63c66",
+          "47ec1674_2",
+          "d49b1a24_1",
+          "5f1f5891"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 410,
+        "wallMs": 44.83812500000931
+      },
+      "hypothesis": "Given your interests in **hiking and online communities, cycling, cocktails, skincare, and cooking**, these publications and conferences may be especially appealing:\n\n### Hiking, outdoors, and cycling\n- **Outside** — Outdoor culture, hiking, gear, travel, and wellness.\n- **Adventure Journal** — More story-driven coverage of outdoor activities and conservation.\n- **BikeRadar** and **Cycling Weekly** — Useful for road-bike equipment, maintenance, and reviews—particularly relevant if you’re comparing options for your Specialized Sirrus or old Cannondale.\n- **Bicycle Quarterly** — In-depth writing on bike design, touring, and practical cycling.\n- **Outdoor Retailer Summer Market** — A major outdoor-industry event, useful for discovering hiking gear, apparel, and emerging brands.\n- **Sea Otter Classic** — A strong choice if you’re interested in bikes, cycling technology, racing, and riding culture.\n\n### Social media and online communities\n- **Social Media Examiner** — Practical articles and reports on social strategy, content planning, and community engagement.\n- **The Tilt** — Focuses on building an audience and creating sustainable content businesses.\n- **Social Media Marketing World** — One of the better-known conferences for content strategy, social platforms, and creator marketing.\n- **INBOUND** — Broader marketing and community-building programming, with sessions on social media, content, and audience growth.\n\n### Cocktails and food\n- **Imbibe** — Excellent for cocktail recipes, spirits, bars, and ingredients; it would fit well with your Negroni experiments.\n- **Punch** — More focused on cocktail culture, technique, and thoughtful writing about drinks.\n- **Difford’s Guide** — Particularly useful for recipe variations, ratios, and spirit comparisons.\n- **Tales of the Cocktail** — A major cocktail-industry conference with seminars, tastings, and discussions of spirits and technique.\n- **International Association of Culinary Professionals conference** — Worth considering if your kitchen and cooking interests extend into culinary education or food media.\n- **Saveur** and **Serious Eats** — Reliable sources for cooking methods, equipment, and recipes.\n\n### Skincare and beauty\n- **Allure** and **Into The Gloss** — Product-focused beauty coverage and routine ideas.\n- **Dermatology Times** — More professional and science-oriented skincare news.\n- **Journal of the American Academy of Dermatology** — Best if you want research-based information rather than product reviews.\n- **Cosmoprof North America** — A large beauty-industry event covering skincare, formulation, and new product launches.\n- **American Academy of Dermatology Annual Meeting** — More clinically oriented, especially for evidence-based skincare and dry-skin concerns.\n\nIf I were narrowing this down for you, I’d start with **Outside**, **BikeRadar**, **Imbibe**, **Social Media Examiner**, and **Allure**, then consider **Tales of the Cocktail**, **Outdoor Retailer**, or **Social Media Marketing World** depending on which interest you want to pursue most.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1402,
+        "completionTokens": 909,
+        "totalTokens": 2311,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 283,
+        "costUsd": 0.00144115
+      },
+      "judgeUsage": {
+        "promptTokens": 733,
+        "completionTokens": 1,
+        "totalTokens": 734,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0018425
+      },
+      "extraction": {
+        "calls": 56,
+        "sessionsWithFacts": 30,
+        "facts": 79,
+        "errors": 4,
+        "errorKinds": {
+          "facts must be ground: '…' contains variable EST at line N": 1,
+          "constant '…' is not in the input": 3
+        },
+        "usage": {
+          "promptTokens": 111177,
+          "completionTokens": 1887,
+          "totalTokens": 113064,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 145445.04983300006,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 44.83812500000931,
+      "readerMs": 10971.779000000097,
+      "judgeMs": 749.1438749999506,
+      "totalMs": 157218.02658299997,
+      "userTurnMs": 11765.761000000057
+    },
+    {
+      "questionId": "0edc2aef",
+      "questionType": "single-session-preference",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "f20e72e4_1",
+        "6a747f2e",
+        "c6c3a982_1",
+        "8464304d_2"
+      ],
+      "contextSessionIds": [
+        "f20e72e4_1",
+        "6a747f2e",
+        "c6c3a982_1",
+        "8464304d_2"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "0edc2aef",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_d586e9cd"
+        ],
+        "retrievedSessionIds": [
+          "f20e72e4_1",
+          "6a747f2e",
+          "c6c3a982_1",
+          "8464304d_2"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 320,
+        "wallMs": 36.57366600004025
+      },
+      "context": {
+        "questionId": "0edc2aef",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_d586e9cd"
+        ],
+        "retrievedSessionIds": [
+          "f20e72e4_1",
+          "6a747f2e",
+          "c6c3a982_1",
+          "8464304d_2"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 320,
+        "wallMs": 36.57366600004025
+      },
+      "hypothesis": "Since you’re trying to pack light and prefer staying organized with a backpack-style carry-on, I’d suggest **citizenM Miami Worldcenter** as a strong all-around choice. It has compact, efficiently designed rooms, a central location near downtown and transit, and easy access to restaurants and attractions without requiring a car.\n\nA few other good options depending on your priorities:\n\n- **The Plymouth South Beach** — stylish, quieter, and close to the beach; good for a more relaxed stay.\n- **The Gabriel Miami South Beach** — convenient for South Beach sightseeing, with a boutique feel.\n- **YOTEL Miami** — practical, modern, and centrally located near downtown/Brickell; useful if you’ll be exploring different parts of Miami.\n- **Hampton Inn Miami Beach – Mid Beach** — a more straightforward option if you want value and included breakfast.\n\nFor a first visit, I’d choose based on neighborhood:\n\n- **South Beach:** beaches, nightlife, Art Deco architecture  \n- **Brickell:** restaurants, city atmosphere, and a more polished business-district feel  \n- **Coconut Grove:** quieter, leafy, and less touristy  \n- **Downtown:** convenient for transit and museums, but less beach-oriented  \n\nIf you tell me your budget, trip dates, and whether you want beach access or nightlife, I can narrow this to one specific hotel.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1531,
+        "completionTokens": 366,
+        "totalTokens": 1897,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 82,
+        "costUsd": 0.0008218
+      },
+      "judgeUsage": {
+        "promptTokens": 394,
+        "completionTokens": 2,
+        "totalTokens": 396,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.001005
+      },
+      "extraction": {
+        "calls": 50,
+        "sessionsWithFacts": 28,
+        "facts": 38,
+        "errors": 2,
+        "errorKinds": {
+          "unexpected character '…' at line N": 1,
+          "expected '…' but found '": 1
+        },
+        "usage": {
+          "promptTokens": 93300,
+          "completionTokens": 1482,
+          "totalTokens": 94782,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 116752.66533399996,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 36.57366600004025,
+      "readerMs": 5472.833167000092,
+      "judgeMs": 881.562750000041,
+      "totalMs": 123151.32600000006,
+      "userTurnMs": 6390.969583000173
+    },
+    {
+      "questionId": "32260d93",
+      "questionType": "single-session-preference",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "c4d370d3_2",
+        "answer_0250ae1c",
+        "6d3f5c68_4",
+        "b70358bc_2"
+      ],
+      "contextSessionIds": [
+        "c4d370d3_2",
+        "answer_0250ae1c",
+        "6d3f5c68_4",
+        "b70358bc_2"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "32260d93",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_0250ae1c"
+        ],
+        "retrievedSessionIds": [
+          "c4d370d3_2",
+          "answer_0250ae1c",
+          "6d3f5c68_4",
+          "b70358bc_2"
+        ],
+        "precisionAtK": 0.25,
+        "recallAtK": 1,
+        "reciprocalRank": 0.5,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 180,
+        "wallMs": 52.51033399999142
+      },
+      "context": {
+        "questionId": "32260d93",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_0250ae1c"
+        ],
+        "retrievedSessionIds": [
+          "c4d370d3_2",
+          "answer_0250ae1c",
+          "6d3f5c68_4",
+          "b70358bc_2"
+        ],
+        "precisionAtK": 0.25,
+        "recallAtK": 1,
+        "reciprocalRank": 0.5,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 180,
+        "wallMs": 52.51033399999142
+      },
+      "hypothesis": "Since you’re working on stand-up and enjoy John Mulaney–style storytelling, I’d recommend **_Hacks_** tonight. It’s a sharp, funny series about a veteran Las Vegas comedian and a young comedy writer, with plenty of insight into joke construction, stage presence, mentorship, and the business of comedy.\n\nIf you’d prefer a movie, try **_The Big Sick_**—a warm, genuinely funny story with strong personal storytelling and cultural elements.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1255,
+        "completionTokens": 237,
+        "totalTokens": 1492,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 135,
+        "costUsd": 0.000598
+      },
+      "judgeUsage": {
+        "promptTokens": 192,
+        "completionTokens": 2,
+        "totalTokens": 194,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0005
+      },
+      "extraction": {
+        "calls": 47,
+        "sessionsWithFacts": 30,
+        "facts": 62,
+        "errors": 1,
+        "errorKinds": {
+          "constant '…' is not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 75676,
+          "completionTokens": 839,
+          "totalTokens": 76515,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 80705.84275000001,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 52.51033399999142,
+      "readerMs": 4199.2481670000125,
+      "judgeMs": 969.0540419999743,
+      "totalMs": 85933.85929100006,
+      "userTurnMs": 5220.812542999978
+    },
+    {
+      "questionId": "afdc33df",
+      "questionType": "single-session-preference",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "afa0c2e7_2",
+        "0b0bc8ae_2",
+        "d5128b51",
+        "e58109ed_1"
+      ],
+      "contextSessionIds": [
+        "afa0c2e7_2",
+        "0b0bc8ae_2",
+        "d5128b51",
+        "e58109ed_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "afdc33df",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_8549e5e0"
+        ],
+        "retrievedSessionIds": [
+          "afa0c2e7_2",
+          "0b0bc8ae_2",
+          "d5128b51",
+          "e58109ed_1"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 270,
+        "wallMs": 20.585332999937236
+      },
+      "context": {
+        "questionId": "afdc33df",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_8549e5e0"
+        ],
+        "retrievedSessionIds": [
+          "afa0c2e7_2",
+          "0b0bc8ae_2",
+          "d5128b51",
+          "e58109ed_1"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 270,
+        "wallMs": 20.585332999937236
+      },
+      "hypothesis": "Since you’ve been cooking vegan pasta sauces and using ingredients like cremini mushrooms and oat milk, a few simple habits can keep the kitchen under control:\n\n- **Clean as you cook:** Put ingredients away, rinse utensils, and wipe spills while something simmers.\n- **Keep one “active” area clear:** Reserve a section of counter for chopping and return everything else to its place.\n- **Use a scrap bowl:** Collect mushroom stems, peels, and packaging in one bowl or compost container to reduce trips to the trash.\n- **Tackle dishes in batches:** Wash tools while the sauce cooks, then clean plates and the pan immediately after eating.\n- **Wipe high-use surfaces daily:** Counters, stovetop, sink, and cabinet handles usually make the biggest difference.\n- **Do a 10-minute reset each evening:** Put away food, load the dishwasher, sweep crumbs, and empty the sink.\n- **Organize pantry staples together:** Keep pasta, canned tomatoes, herbs, and plant-based ingredients grouped so cooking creates less clutter.\n- **Schedule one deeper clean weekly:** Clean the refrigerator, microwave, stovetop, and floors in rotation rather than all at once.\n\nA useful rule: **never leave the kitchen with a full sink or food left out**, unless you’re deliberately letting something cool.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1284,
+        "completionTokens": 305,
+        "totalTokens": 1589,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 35,
+        "costUsd": 0.00068685
+      },
+      "judgeUsage": {
+        "promptTokens": 426,
+        "completionTokens": 1,
+        "totalTokens": 427,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.001075
+      },
+      "extraction": {
+        "calls": 49,
+        "sessionsWithFacts": 23,
+        "facts": 23,
+        "errors": 1,
+        "errorKinds": {
+          "constant '…' is not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 81224,
+          "completionTokens": 473,
+          "totalTokens": 81697,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 62127.45658300008,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 20.585332999937236,
+      "readerMs": 6654.513917000033,
+      "judgeMs": 784.8813330000266,
+      "totalMs": 69592.72533399996,
+      "userTurnMs": 7459.980582999997
+    },
+    {
+      "questionId": "54026fce",
+      "questionType": "single-session-preference",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "ba4db050_1",
+        "ba4db050_1",
+        "670c49e6",
+        "670c49e6"
+      ],
+      "contextSessionIds": [
+        "ba4db050_1",
+        "ba4db050_1",
+        "670c49e6",
+        "670c49e6"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "54026fce",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f7b22c66"
+        ],
+        "retrievedSessionIds": [
+          "ba4db050_1",
+          "ba4db050_1",
+          "670c49e6",
+          "670c49e6"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 360,
+        "wallMs": 35.94366699992679
+      },
+      "context": {
+        "questionId": "54026fce",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f7b22c66"
+        ],
+        "retrievedSessionIds": [
+          "ba4db050_1",
+          "ba4db050_1",
+          "670c49e6",
+          "670c49e6"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 360,
+        "wallMs": 35.94366699992679
+      },
+      "hypothesis": "Since you’re still recovering and may have limited mobility and energy, low-pressure options could work best:\n\n- **Set up a brief virtual coffee or check-in** with one colleague at a time—15–20 minutes is enough.\n- **Use a group chat or team channel** to share occasional updates, interesting links, or encouragement without needing a full conversation.\n- **Attend meetings selectively**, joining by video or audio when you feel up to it and catching up through notes afterward.\n- **Send personal messages** to a few colleagues asking how they’re doing and sharing a small update about your recovery.\n- **Organize a casual online activity**, such as a trivia game, lunch chat, or “show us your pet” moment.\n- **Celebrate milestones together**—birthdays, project completions, or work anniversaries—with a shared card or short virtual gathering.\n- **Be open about your limits:** let people know you’d like to stay connected but may need to cancel or respond slowly while you heal.\n\nA simple message could be: *“I’ve been missing everyone and would love to stay in touch while I recover. Would anyone be up for a short virtual coffee sometime next week?”*",
+      "judgeResponse": "Yes.",
+      "readerUsage": {
+        "promptTokens": 1725,
+        "completionTokens": 304,
+        "totalTokens": 2029,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 57,
+        "costUsd": 0.0007959
+      },
+      "judgeUsage": {
+        "promptTokens": 384,
+        "completionTokens": 2,
+        "totalTokens": 386,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00098
+      },
+      "extraction": {
+        "calls": 52,
+        "sessionsWithFacts": 20,
+        "facts": 38,
+        "errors": 1,
+        "errorKinds": {
+          "LLM request failed with status N: This model's maximum context length is N tokens. However": 1
+        },
+        "usage": {
+          "promptTokens": 89137,
+          "completionTokens": 617,
+          "totalTokens": 89754,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 69066.96741599997,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 35.94366699992679,
+      "readerMs": 4691.59395800007,
+      "judgeMs": 644.5502080000006,
+      "totalMs": 74444.14058400004,
+      "userTurnMs": 5372.087832999998
+    },
+    {
+      "questionId": "06f04340",
+      "questionType": "single-session-preference",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "0844dea6",
+        "42924d15",
+        "91223fd5_1",
+        "sharegpt_MkLNumZ_0"
+      ],
+      "contextSessionIds": [
+        "0844dea6",
+        "42924d15",
+        "91223fd5_1",
+        "sharegpt_MkLNumZ_0"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "06f04340",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_92d5f7cd"
+        ],
+        "retrievedSessionIds": [
+          "0844dea6",
+          "42924d15",
+          "91223fd5_1",
+          "sharegpt_MkLNumZ_0"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 33.578333999961615
+      },
+      "context": {
+        "questionId": "06f04340",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_92d5f7cd"
+        ],
+        "retrievedSessionIds": [
+          "0844dea6",
+          "42924d15",
+          "91223fd5_1",
+          "sharegpt_MkLNumZ_0"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 33.578333999961615
+      },
+      "hypothesis": "I don’t know which homegrown ingredients you have available, so send me a quick list—vegetables, herbs, fruit, and any eggs or meat—and I can build a specific menu.\n\nFor a healthy, spring-inspired dinner like the meals you were considering for your mom’s birthday, you could use this flexible formula:\n\n- **Main:** grilled chicken, fish, or a vegetarian option such as white beans or lentil patties  \n- **Vegetable dish:** roasted or grilled garden vegetables with olive oil, garlic, and fresh herbs  \n- **Side:** a salad of leafy greens, cucumbers, tomatoes, and a lemon vinaigrette  \n- **Starch:** herbed new potatoes, brown rice, or quinoa  \n- **Dessert:** fresh berries with yogurt, or a light lemon-blueberry dessert\n\nIf you have abundant tomatoes, zucchini, or herbs, a **garden vegetable pasta or ratatouille with grilled fish or chicken** would also make an excellent weekend dinner.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1101,
+        "completionTokens": 278,
+        "totalTokens": 1379,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 73,
+        "costUsd": 0.0006087
+      },
+      "judgeUsage": {
+        "promptTokens": 314,
+        "completionTokens": 1,
+        "totalTokens": 315,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000795
+      },
+      "extraction": {
+        "calls": 56,
+        "sessionsWithFacts": 26,
+        "facts": 39,
+        "errors": 2,
+        "errorKinds": {
+          "refusing to send sensitive transcript to the external LLM": 1,
+          "expected '…' but found '…' at line N": 1
+        },
+        "usage": {
+          "promptTokens": 94602,
+          "completionTokens": 1545,
+          "totalTokens": 96147,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 126316.84712499997,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 33.578333999961615,
+      "readerMs": 4265.114416999975,
+      "judgeMs": 737.0322080000769,
+      "totalMs": 131360.941917,
+      "userTurnMs": 5035.724959000014
+    },
+    {
+      "questionId": "6b7dfb22",
+      "questionType": "single-session-preference",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "9ee69ca6_3",
+        "574df152_1",
+        "009c1517_1",
+        "009c1517_1"
+      ],
+      "contextSessionIds": [
+        "9ee69ca6_3",
+        "574df152_1",
+        "009c1517_1",
+        "009c1517_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "6b7dfb22",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f6502d0f"
+        ],
+        "retrievedSessionIds": [
+          "9ee69ca6_3",
+          "574df152_1",
+          "009c1517_1",
+          "009c1517_1"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 450,
+        "wallMs": 56.02945799997542
+      },
+      "context": {
+        "questionId": "6b7dfb22",
+        "questionType": "single-session-preference",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_f6502d0f"
+        ],
+        "retrievedSessionIds": [
+          "9ee69ca6_3",
+          "574df152_1",
+          "009c1517_1",
+          "009c1517_1"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 450,
+        "wallMs": 56.02945799997542
+      },
+      "hypothesis": "Since you’ve been painting as a solo activity but lately it hasn’t felt very fulfilling, try adding a little structure, novelty, or connection rather than simply waiting for inspiration.\n\n- **Combine your interests:** Paint your balcony herb garden, cocktail ingredients, ukulele, harmonica, or musical instruments. Try making a small series such as “three herbs, three moods.”\n- **Use music as a prompt:** Put on David Gilmour, Stevie Ray Vaughan, or a blues playlist and paint the sound—rhythm as lines, tone as color, and changes in volume as contrast.\n- **Change your limitations:** Use only two colors, paint with your non-dominant hand, work in a tiny format, or finish a piece in 20 minutes. Constraints can make starting easier.\n- **Work from ordinary details:** Choose an object nearby—a glass, plant, dinner plate, or game controller—and paint it from an unusual angle or under dramatic lighting.\n- **Try a different process:** Make a collage, paint over an old unfinished piece, use textured materials, or create several quick studies instead of one “important” painting.\n- **Take inspiration outside:** Visit a gallery, browse old book illustrations, photograph interesting shadows on a walk, or ask a friend to give you three random words as a prompt.\n- **Make it social without pressure:** Share a small work-in-progress with someone or invite a friend to do a casual parallel painting session. This could also gently support your goal of reconnecting with people.\n\nA simple exercise for today: pick one herb or household object, set a 15-minute timer, choose three colors, and make three tiny paintings of it—realistic, abstract, and emotionally expressive.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1659,
+        "completionTokens": 398,
+        "totalTokens": 2057,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 46,
+        "costUsd": 0.0008922
+      },
+      "judgeUsage": {
+        "promptTokens": 495,
+        "completionTokens": 2,
+        "totalTokens": 497,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0012575
+      },
+      "extraction": {
+        "calls": 49,
+        "sessionsWithFacts": 28,
+        "facts": 49,
+        "errors": 3,
+        "errorKinds": {
+          "constant '…' is not in the input": 3
+        },
+        "usage": {
+          "promptTokens": 85565,
+          "completionTokens": 767,
+          "totalTokens": 86332,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 78600.56791700004,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 56.02945799997542,
+      "readerMs": 5175.552290999913,
+      "judgeMs": 1049.3823340000818,
+      "totalMs": 84888.05304099992,
+      "userTurnMs": 6280.96408299997
+    },
+    {
+      "questionId": "gpt4_f49edff3",
+      "questionType": "temporal-reasoning",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "7d33fcb4_1",
+        "answer_3e9fce53_3",
+        "answer_3e9fce53_3",
+        "answer_3e9fce53_3",
+        "answer_3e9fce53_3"
+      ],
+      "contextSessionIds": [
+        "7d33fcb4_1",
+        "answer_3e9fce53_3",
+        "answer_3e9fce53_3",
+        "answer_3e9fce53_3",
+        "answer_3e9fce53_3"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "gpt4_f49edff3",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_3e9fce53_1",
+          "answer_3e9fce53_2",
+          "answer_3e9fce53_3"
+        ],
+        "retrievedSessionIds": [
+          "7d33fcb4_1",
+          "answer_3e9fce53_3",
+          "answer_3e9fce53_3",
+          "answer_3e9fce53_3",
+          "answer_3e9fce53_3"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 0.3333333333333333,
+        "reciprocalRank": 0.5,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 585,
+        "wallMs": 34.145125000039116
+      },
+      "context": {
+        "questionId": "gpt4_f49edff3",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_3e9fce53_1",
+          "answer_3e9fce53_2",
+          "answer_3e9fce53_3"
+        ],
+        "retrievedSessionIds": [
+          "7d33fcb4_1",
+          "answer_3e9fce53_3",
+          "answer_3e9fce53_3",
+          "answer_3e9fce53_3",
+          "answer_3e9fce53_3"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 0.3333333333333333,
+        "reciprocalRank": 0.5,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 585,
+        "wallMs": 34.145125000039116
+      },
+      "hypothesis": "I don’t know. The history only indicates that you ordered a customized phone case on February 20, 2023; it does not provide dates for helping prepare the nursery or picking out baby-shower items.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1236,
+        "completionTokens": 90,
+        "totalTokens": 1326,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 41,
+        "costUsd": 0.00041685
+      },
+      "judgeUsage": {
+        "promptTokens": 195,
+        "completionTokens": 2,
+        "totalTokens": 197,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0005075
+      },
+      "extraction": {
+        "calls": 52,
+        "sessionsWithFacts": 41,
+        "facts": 59,
+        "errors": 2,
+        "errorKinds": {
+          "constant '…' is not in the input": 2
+        },
+        "usage": {
+          "promptTokens": 79586,
+          "completionTokens": 781,
+          "totalTokens": 80367,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 80626.61158300005,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 34.145125000039116,
+      "readerMs": 2953.8343749999767,
+      "judgeMs": 1405.515291000018,
+      "totalMs": 85026.63820799999,
+      "userTurnMs": 4393.494791000034
+    },
+    {
+      "questionId": "71017276",
+      "questionType": "temporal-reasoning",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "4d6927c2_2",
+        "4a545031_2",
+        "4a545031_2",
+        "4a545031_2",
+        "4a545031_2"
+      ],
+      "contextSessionIds": [
+        "4d6927c2_2",
+        "4a545031_2",
+        "4a545031_2",
+        "4a545031_2",
+        "4a545031_2"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "71017276",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_0b4a8adc_1"
+        ],
+        "retrievedSessionIds": [
+          "4d6927c2_2",
+          "4a545031_2",
+          "4a545031_2",
+          "4a545031_2",
+          "4a545031_2"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 180,
+        "wallMs": 35.23499999998603
+      },
+      "context": {
+        "questionId": "71017276",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_0b4a8adc_1"
+        ],
+        "retrievedSessionIds": [
+          "4d6927c2_2",
+          "4a545031_2",
+          "4a545031_2",
+          "4a545031_2",
+          "4a545031_2"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 180,
+        "wallMs": 35.23499999998603
+      },
+      "hypothesis": "I don’t know; the supplied history doesn’t mention meeting your aunt or receiving a crystal chandelier.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 2255,
+        "completionTokens": 46,
+        "totalTokens": 2301,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 20,
+        "costUsd": 0.0006188
+      },
+      "judgeUsage": {
+        "promptTokens": 105,
+        "completionTokens": 2,
+        "totalTokens": 107,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002825
+      },
+      "extraction": {
+        "calls": 53,
+        "sessionsWithFacts": 27,
+        "facts": 56,
+        "errors": 2,
+        "errorKinds": {
+          "unterminated quoted atom at line N": 1,
+          "expected '…' but found '…' at line N": 1
+        },
+        "usage": {
+          "promptTokens": 96539,
+          "completionTokens": 805,
+          "totalTokens": 97344,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 82182.48004200007,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 35.23499999998603,
+      "readerMs": 1523.0988750000251,
+      "judgeMs": 1583.8011660000775,
+      "totalMs": 85330.69983300008,
+      "userTurnMs": 3142.1350410000887
+    },
+    {
+      "questionId": "9a707b81",
+      "questionType": "temporal-reasoning",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "answer_dba89487_2",
+        "990f3ef9_6",
+        "990f3ef9_6",
+        "990f3ef9_6",
+        "990f3ef9_6"
+      ],
+      "contextSessionIds": [
+        "answer_dba89487_2",
+        "990f3ef9_6",
+        "990f3ef9_6",
+        "990f3ef9_6",
+        "990f3ef9_6"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "9a707b81",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_dba89487_2",
+          "answer_dba89487_1"
+        ],
+        "retrievedSessionIds": [
+          "answer_dba89487_2",
+          "990f3ef9_6",
+          "990f3ef9_6",
+          "990f3ef9_6",
+          "990f3ef9_6"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 0.5,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 440,
+        "wallMs": 40.20250000001397
+      },
+      "context": {
+        "questionId": "9a707b81",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_dba89487_2",
+          "answer_dba89487_1"
+        ],
+        "retrievedSessionIds": [
+          "answer_dba89487_2",
+          "990f3ef9_6",
+          "990f3ef9_6",
+          "990f3ef9_6",
+          "990f3ef9_6"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 0.5,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 440,
+        "wallMs": 40.20250000001397
+      },
+      "hypothesis": "You attended the baking class 26 days ago, on March 20, 2022.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 2473,
+        "completionTokens": 137,
+        "totalTokens": 2610,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 112,
+        "costUsd": 0.0007825
+      },
+      "judgeUsage": {
+        "promptTokens": 124,
+        "completionTokens": 1,
+        "totalTokens": 125,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00032
+      },
+      "extraction": {
+        "calls": 59,
+        "sessionsWithFacts": 26,
+        "facts": 60,
+        "errors": 3,
+        "errorKinds": {
+          "constant '…' is not in the input": 2,
+          "constants '…', '…' are not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 106527,
+          "completionTokens": 1305,
+          "totalTokens": 107832,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 120067.50520800008,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 40.20250000001397,
+      "readerMs": 3089.9687080000294,
+      "judgeMs": 833.7796670000535,
+      "totalMs": 124037.768958,
+      "userTurnMs": 3963.950875000097
+    },
+    {
+      "questionId": "gpt4_1d4ab0c9",
+      "questionType": "temporal-reasoning",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_febde667_2",
+        "answer_febde667_1",
+        "3f1d1224_3",
+        "3f1d1224_3",
+        "3f1d1224_3"
+      ],
+      "contextSessionIds": [
+        "answer_febde667_2",
+        "answer_febde667_1",
+        "3f1d1224_3",
+        "3f1d1224_3",
+        "3f1d1224_3"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "gpt4_1d4ab0c9",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_febde667_1",
+          "answer_febde667_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_febde667_2",
+          "answer_febde667_1",
+          "3f1d1224_3",
+          "3f1d1224_3",
+          "3f1d1224_3"
+        ],
+        "precisionAtK": 0.6666666666666666,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 495,
+        "wallMs": 26.74645800003782
+      },
+      "context": {
+        "questionId": "gpt4_1d4ab0c9",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_febde667_1",
+          "answer_febde667_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_febde667_2",
+          "answer_febde667_1",
+          "3f1d1224_3",
+          "3f1d1224_3",
+          "3f1d1224_3"
+        ],
+        "precisionAtK": 0.6666666666666666,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 495,
+        "wallMs": 26.74645800003782
+      },
+      "hypothesis": "24 days.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1808,
+        "completionTokens": 56,
+        "totalTokens": 1864,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 47,
+        "costUsd": 0.00051905
+      },
+      "judgeUsage": {
+        "promptTokens": 111,
+        "completionTokens": 1,
+        "totalTokens": 112,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002875
+      },
+      "extraction": {
+        "calls": 53,
+        "sessionsWithFacts": 23,
+        "facts": 39,
+        "errors": 2,
+        "errorKinds": {
+          "constant '…' is not in the input": 1,
+          "refusing to send sensitive transcript to the external LLM": 1
+        },
+        "usage": {
+          "promptTokens": 81669,
+          "completionTokens": 503,
+          "totalTokens": 82172,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 68719.28133300005,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 26.74645800003782,
+      "readerMs": 1930.3677919999463,
+      "judgeMs": 936.4168340000324,
+      "totalMs": 71617.93045799993,
+      "userTurnMs": 2893.5310840000166
+    },
+    {
+      "questionId": "0db4c65d",
+      "questionType": "temporal-reasoning",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "answer_b9e32ff8_1",
+        "71dc2037_2",
+        "d36d11b9_2",
+        "667465d6_1",
+        "667465d6_1"
+      ],
+      "contextSessionIds": [
+        "answer_b9e32ff8_1",
+        "71dc2037_2",
+        "d36d11b9_2",
+        "667465d6_1",
+        "667465d6_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "0db4c65d",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_b9e32ff8_1",
+          "answer_b9e32ff8_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_b9e32ff8_1",
+          "71dc2037_2",
+          "d36d11b9_2",
+          "667465d6_1",
+          "667465d6_1"
+        ],
+        "precisionAtK": 0.25,
+        "recallAtK": 0.5,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 715,
+        "wallMs": 35.71879099996295
+      },
+      "context": {
+        "questionId": "0db4c65d",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_b9e32ff8_1",
+          "answer_b9e32ff8_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_b9e32ff8_1",
+          "71dc2037_2",
+          "d36d11b9_2",
+          "667465d6_1",
+          "667465d6_1"
+        ],
+        "precisionAtK": 0.25,
+        "recallAtK": 0.5,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 715,
+        "wallMs": 35.71879099996295
+      },
+      "hypothesis": "I don’t know—the history states you finished *The Seven Husbands of Evelyn Hugo* on December 28, 2022, but it does not give the date of the library reading event.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 2130,
+        "completionTokens": 114,
+        "totalTokens": 2244,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 68,
+        "costUsd": 0.00066915
+      },
+      "judgeUsage": {
+        "promptTokens": 168,
+        "completionTokens": 1,
+        "totalTokens": 169,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00043
+      },
+      "extraction": {
+        "calls": 51,
+        "sessionsWithFacts": 21,
+        "facts": 49,
+        "errors": 3,
+        "errorKinds": {
+          "expected '…' but found '…' at line N": 3
+        },
+        "usage": {
+          "promptTokens": 101844,
+          "completionTokens": 1119,
+          "totalTokens": 102963,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 102650.266083,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 35.71879099996295,
+      "readerMs": 2739.8066660000477,
+      "judgeMs": 634.0099160000682,
+      "totalMs": 106065.845875,
+      "userTurnMs": 3409.535373000079
+    },
+    {
+      "questionId": "gpt4_8279ba02",
+      "questionType": "temporal-reasoning",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "62b40a05_2",
+        "3a735bfa_1",
+        "1a037873_2",
+        "62b40a05_2",
+        "62b40a05_2"
+      ],
+      "contextSessionIds": [
+        "62b40a05_2",
+        "3a735bfa_1",
+        "1a037873_2",
+        "62b40a05_2",
+        "62b40a05_2"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "gpt4_8279ba02",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_56521e65_1"
+        ],
+        "retrievedSessionIds": [
+          "62b40a05_2",
+          "3a735bfa_1",
+          "1a037873_2",
+          "62b40a05_2",
+          "62b40a05_2"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 170,
+        "wallMs": 20.418957999907434
+      },
+      "context": {
+        "questionId": "gpt4_8279ba02",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_56521e65_1"
+        ],
+        "retrievedSessionIds": [
+          "62b40a05_2",
+          "3a735bfa_1",
+          "1a037873_2",
+          "62b40a05_2",
+          "62b40a05_2"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 170,
+        "wallMs": 20.418957999907434
+      },
+      "hypothesis": "I don’t know—the supplied history doesn’t mention buying a smoker.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1857,
+        "completionTokens": 39,
+        "totalTokens": 1896,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 19,
+        "costUsd": 0.0005109
+      },
+      "judgeUsage": {
+        "promptTokens": 107,
+        "completionTokens": 1,
+        "totalTokens": 108,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002775
+      },
+      "extraction": {
+        "calls": 53,
+        "sessionsWithFacts": 12,
+        "facts": 19,
+        "errors": 6,
+        "errorKinds": {
+          "constant '…' is not in the input": 4,
+          "unterminated quoted atom at line N": 1,
+          "unexpected character '…' at line N": 1
+        },
+        "usage": {
+          "promptTokens": 92441,
+          "completionTokens": 913,
+          "totalTokens": 93354,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 90053.81424999994,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 20.418957999907434,
+      "readerMs": 1648.7467500000494,
+      "judgeMs": 832.6615420000162,
+      "totalMs": 92563.233625,
+      "userTurnMs": 2501.827249999973
+    },
+    {
+      "questionId": "gpt4_a1b77f9c",
+      "questionType": "temporal-reasoning",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "answer_e9ad5914_5",
+        "answer_e9ad5914_5",
+        "answer_e9ad5914_5",
+        "answer_e9ad5914_5",
+        "answer_e9ad5914_5"
+      ],
+      "contextSessionIds": [
+        "answer_e9ad5914_5",
+        "answer_e9ad5914_5",
+        "answer_e9ad5914_5",
+        "answer_e9ad5914_5",
+        "answer_e9ad5914_5"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "gpt4_a1b77f9c",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_e9ad5914_1",
+          "answer_e9ad5914_2",
+          "answer_e9ad5914_3",
+          "answer_e9ad5914_4",
+          "answer_e9ad5914_5",
+          "answer_e9ad5914_6"
+        ],
+        "retrievedSessionIds": [
+          "answer_e9ad5914_5",
+          "answer_e9ad5914_5",
+          "answer_e9ad5914_5",
+          "answer_e9ad5914_5",
+          "answer_e9ad5914_5"
+        ],
+        "precisionAtK": 1,
+        "recallAtK": 0.16666666666666666,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 350,
+        "wallMs": 44.12974999996368
+      },
+      "context": {
+        "questionId": "gpt4_a1b77f9c",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_e9ad5914_1",
+          "answer_e9ad5914_2",
+          "answer_e9ad5914_3",
+          "answer_e9ad5914_4",
+          "answer_e9ad5914_5",
+          "answer_e9ad5914_6"
+        ],
+        "retrievedSessionIds": [
+          "answer_e9ad5914_5",
+          "answer_e9ad5914_5",
+          "answer_e9ad5914_5",
+          "answer_e9ad5914_5",
+          "answer_e9ad5914_5"
+        ],
+        "precisionAtK": 1,
+        "recallAtK": 0.16666666666666666,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 350,
+        "wallMs": 44.12974999996368
+      },
+      "hypothesis": "I don’t know—the history does not provide enough information about how many weeks you spent reading *The Nightingale* or listening to *Sapiens* and *The Power*.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 2051,
+        "completionTokens": 74,
+        "totalTokens": 2125,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 32,
+        "costUsd": 0.0006014
+      },
+      "judgeUsage": {
+        "promptTokens": 180,
+        "completionTokens": 2,
+        "totalTokens": 182,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00047
+      },
+      "extraction": {
+        "calls": 55,
+        "sessionsWithFacts": 26,
+        "facts": 55,
+        "errors": 2,
+        "errorKinds": {
+          "facts must be ground: '…' contains variable _ at line N": 1,
+          "constant '…' is not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 87152,
+          "completionTokens": 1136,
+          "totalTokens": 88288,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 101460.9437500001,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 44.12974999996368,
+      "readerMs": 1393.7804589999141,
+      "judgeMs": 1530.659250000026,
+      "totalMs": 104437.59379100008,
+      "userTurnMs": 2968.569458999904
+    },
+    {
+      "questionId": "gpt4_1916e0ea",
+      "questionType": "temporal-reasoning",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_447052a5_2",
+        "answer_447052a5_2",
+        "answer_447052a5_1",
+        "280352e9",
+        "280352e9"
+      ],
+      "contextSessionIds": [
+        "answer_447052a5_2",
+        "answer_447052a5_2",
+        "answer_447052a5_1",
+        "280352e9",
+        "280352e9"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "gpt4_1916e0ea",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_447052a5_2",
+          "answer_447052a5_1"
+        ],
+        "retrievedSessionIds": [
+          "answer_447052a5_2",
+          "answer_447052a5_2",
+          "answer_447052a5_1",
+          "280352e9",
+          "280352e9"
+        ],
+        "precisionAtK": 0.6666666666666666,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 545,
+        "wallMs": 28.227042000042275
+      },
+      "context": {
+        "questionId": "gpt4_1916e0ea",
+        "questionType": "temporal-reasoning",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_447052a5_2",
+          "answer_447052a5_1"
+        ],
+        "retrievedSessionIds": [
+          "answer_447052a5_2",
+          "answer_447052a5_2",
+          "answer_447052a5_1",
+          "280352e9",
+          "280352e9"
+        ],
+        "precisionAtK": 0.6666666666666666,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 545,
+        "wallMs": 28.227042000042275
+      },
+      "hypothesis": "54 days.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1777,
+        "completionTokens": 103,
+        "totalTokens": 1880,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 94,
+        "costUsd": 0.0005677
+      },
+      "judgeUsage": {
+        "promptTokens": 113,
+        "completionTokens": 2,
+        "totalTokens": 115,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0003025
+      },
+      "extraction": {
+        "calls": 61,
+        "sessionsWithFacts": 19,
+        "facts": 33,
+        "errors": 2,
+        "errorKinds": {
+          "constant '…' is not in the input": 2
+        },
+        "usage": {
+          "promptTokens": 108645,
+          "completionTokens": 1266,
+          "totalTokens": 109911,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 113979.19904099999,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 28.227042000042275,
+      "readerMs": 3109.7049170000246,
+      "judgeMs": 1587.0495830000145,
+      "totalMs": 118711.46175000002,
+      "userTurnMs": 4724.981542000081
+    },
+    {
+      "questionId": "830ce83f",
+      "questionType": "knowledge-update",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "47c5482a",
+        "8d77be9a_2",
+        "dfbda5e9",
+        "dfbda5e9"
+      ],
+      "contextSessionIds": [
+        "47c5482a",
+        "8d77be9a_2",
+        "dfbda5e9",
+        "dfbda5e9"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "830ce83f",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_0b1a0942_1",
+          "answer_0b1a0942_2"
+        ],
+        "retrievedSessionIds": [
+          "47c5482a",
+          "8d77be9a_2",
+          "dfbda5e9",
+          "dfbda5e9"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 125,
+        "wallMs": 21.682666999986395
+      },
+      "context": {
+        "questionId": "830ce83f",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_0b1a0942_1",
+          "answer_0b1a0942_2"
+        ],
+        "retrievedSessionIds": [
+          "47c5482a",
+          "8d77be9a_2",
+          "dfbda5e9",
+          "dfbda5e9"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 125,
+        "wallMs": 21.682666999986395
+      },
+      "hypothesis": "I don’t know; the history does not mention where Rachel moved.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1354,
+        "completionTokens": 42,
+        "totalTokens": 1396,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 22,
+        "costUsd": 0.00038875
+      },
+      "judgeUsage": {
+        "promptTokens": 71,
+        "completionTokens": 1,
+        "totalTokens": 72,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001875
+      },
+      "extraction": {
+        "calls": 51,
+        "sessionsWithFacts": 16,
+        "facts": 32,
+        "errors": 2,
+        "errorKinds": {
+          "constant '…' is not in the input": 2
+        },
+        "usage": {
+          "promptTokens": 93404,
+          "completionTokens": 1409,
+          "totalTokens": 94813,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 116648.6128329999,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 21.682666999986395,
+      "readerMs": 1501.2396670000162,
+      "judgeMs": 1049.7118750000373,
+      "totalMs": 119226.83779200003,
+      "userTurnMs": 2572.63420900004
+    },
+    {
+      "questionId": "852ce960",
+      "questionType": "knowledge-update",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "answer_3a6f1e82_1",
+        "answer_3a6f1e82_1",
+        "answer_3a6f1e82_1",
+        "answer_3a6f1e82_1"
+      ],
+      "contextSessionIds": [
+        "answer_3a6f1e82_1",
+        "answer_3a6f1e82_1",
+        "answer_3a6f1e82_1",
+        "answer_3a6f1e82_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "852ce960",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_3a6f1e82_1",
+          "answer_3a6f1e82_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_3a6f1e82_1",
+          "answer_3a6f1e82_1",
+          "answer_3a6f1e82_1",
+          "answer_3a6f1e82_1"
+        ],
+        "precisionAtK": 1,
+        "recallAtK": 0.5,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 475,
+        "wallMs": 28.398374999989755
+      },
+      "context": {
+        "questionId": "852ce960",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_3a6f1e82_1",
+          "answer_3a6f1e82_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_3a6f1e82_1",
+          "answer_3a6f1e82_1",
+          "answer_3a6f1e82_1",
+          "answer_3a6f1e82_1"
+        ],
+        "precisionAtK": 1,
+        "recallAtK": 0.5,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 475,
+        "wallMs": 28.398374999989755
+      },
+      "hypothesis": "You were pre-approved for **$350,000** by Wells Fargo.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 1323,
+        "completionTokens": 19,
+        "totalTokens": 1342,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0003534
+      },
+      "judgeUsage": {
+        "promptTokens": 82,
+        "completionTokens": 1,
+        "totalTokens": 83,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000215
+      },
+      "extraction": {
+        "calls": 39,
+        "sessionsWithFacts": 16,
+        "facts": 31,
+        "errors": 0,
+        "errorKinds": {},
+        "usage": {
+          "promptTokens": 66147,
+          "completionTokens": 381,
+          "totalTokens": 66528,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 52146.34608299995,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 28.398374999989755,
+      "readerMs": 2448.6965840000194,
+      "judgeMs": 814.8702500000363,
+      "totalMs": 55445.560834,
+      "userTurnMs": 3291.9652090000454
+    },
+    {
+      "questionId": "945e3d21",
+      "questionType": "knowledge-update",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_6a4f8626_2",
+        "sharegpt_E7VUcfj_0",
+        "answer_6a4f8626_1",
+        "5fcca8bc_1"
+      ],
+      "contextSessionIds": [
+        "answer_6a4f8626_2",
+        "sharegpt_E7VUcfj_0",
+        "answer_6a4f8626_1",
+        "5fcca8bc_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "945e3d21",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_6a4f8626_1",
+          "answer_6a4f8626_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_6a4f8626_2",
+          "sharegpt_E7VUcfj_0",
+          "answer_6a4f8626_1",
+          "5fcca8bc_1"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 260,
+        "wallMs": 72.28541699994821
+      },
+      "context": {
+        "questionId": "945e3d21",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_6a4f8626_1",
+          "answer_6a4f8626_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_6a4f8626_2",
+          "sharegpt_E7VUcfj_0",
+          "answer_6a4f8626_1",
+          "5fcca8bc_1"
+        ],
+        "precisionAtK": 0.5,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 260,
+        "wallMs": 72.28541699994821
+      },
+      "hypothesis": "Three times a week.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1759,
+        "completionTokens": 9,
+        "totalTokens": 1768,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0004504
+      },
+      "judgeUsage": {
+        "promptTokens": 67,
+        "completionTokens": 2,
+        "totalTokens": 69,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001875
+      },
+      "extraction": {
+        "calls": 53,
+        "sessionsWithFacts": 28,
+        "facts": 62,
+        "errors": 3,
+        "errorKinds": {
+          "expected '…' but found '…' at line N": 1,
+          "constants '…', '…', '…', '…', '…', '…' are not in the input": 1,
+          "constant '…' is not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 113355,
+          "completionTokens": 1369,
+          "totalTokens": 114724,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 118927.349958,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 72.28541699994821,
+      "readerMs": 929.5388749999693,
+      "judgeMs": 896.2521249999991,
+      "totalMs": 120833.62704099994,
+      "userTurnMs": 1898.0764169999165
+    },
+    {
+      "questionId": "d7c942c3",
+      "questionType": "knowledge-update",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_eecb10d9_2",
+        "sharegpt_ezPxUrC_0",
+        "sharegpt_OTILwRq_0",
+        "d15c9567_2"
+      ],
+      "contextSessionIds": [
+        "answer_eecb10d9_2",
+        "sharegpt_ezPxUrC_0",
+        "sharegpt_OTILwRq_0",
+        "d15c9567_2"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "d7c942c3",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_eecb10d9_1",
+          "answer_eecb10d9_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_eecb10d9_2",
+          "sharegpt_ezPxUrC_0",
+          "sharegpt_OTILwRq_0",
+          "d15c9567_2"
+        ],
+        "precisionAtK": 0.25,
+        "recallAtK": 0.5,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 270,
+        "wallMs": 26.17416699999012
+      },
+      "context": {
+        "questionId": "d7c942c3",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_eecb10d9_1",
+          "answer_eecb10d9_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_eecb10d9_2",
+          "sharegpt_ezPxUrC_0",
+          "sharegpt_OTILwRq_0",
+          "d15c9567_2"
+        ],
+        "precisionAtK": 0.25,
+        "recallAtK": 0.5,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 270,
+        "wallMs": 26.17416699999012
+      },
+      "hypothesis": "Yes. Your mom is using the same grocery list app as you, so you can share lists and track what you need together.",
+      "judgeResponse": "Yes.",
+      "readerUsage": {
+        "promptTokens": 1074,
+        "completionTokens": 30,
+        "totalTokens": 1104,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00030435
+      },
+      "judgeUsage": {
+        "promptTokens": 84,
+        "completionTokens": 3,
+        "totalTokens": 87,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00024
+      },
+      "extraction": {
+        "calls": 55,
+        "sessionsWithFacts": 27,
+        "facts": 34,
+        "errors": 3,
+        "errorKinds": {
+          "constant '…' is not in the input": 2,
+          "constants '…', '…' are not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 88612,
+          "completionTokens": 771,
+          "totalTokens": 89383,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 80598.96029199997,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 26.17416699999012,
+      "readerMs": 1095.8028750000522,
+      "judgeMs": 948.6582499999786,
+      "totalMs": 82674.98716700007,
+      "userTurnMs": 2070.635292000021
+    },
+    {
+      "questionId": "71315a70",
+      "questionType": "knowledge-update",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_c44b9df4_2",
+        "answer_c44b9df4_1",
+        "bcd5c30f_1",
+        "bcd5c30f_1"
+      ],
+      "contextSessionIds": [
+        "answer_c44b9df4_2",
+        "answer_c44b9df4_1",
+        "bcd5c30f_1",
+        "bcd5c30f_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "71315a70",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_c44b9df4_1",
+          "answer_c44b9df4_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_c44b9df4_2",
+          "answer_c44b9df4_1",
+          "bcd5c30f_1",
+          "bcd5c30f_1"
+        ],
+        "precisionAtK": 0.6666666666666666,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 430,
+        "wallMs": 28.074999999953434
+      },
+      "context": {
+        "questionId": "71315a70",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_c44b9df4_1",
+          "answer_c44b9df4_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_c44b9df4_2",
+          "answer_c44b9df4_1",
+          "bcd5c30f_1",
+          "bcd5c30f_1"
+        ],
+        "precisionAtK": 0.6666666666666666,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 430,
+        "wallMs": 28.074999999953434
+      },
+      "hypothesis": "You’ve spent about **10–12 hours** on your abstract ocean sculpture.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1285,
+        "completionTokens": 73,
+        "totalTokens": 1358,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 51,
+        "costUsd": 0.0004087
+      },
+      "judgeUsage": {
+        "promptTokens": 78,
+        "completionTokens": 2,
+        "totalTokens": 80,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.000215
+      },
+      "extraction": {
+        "calls": 56,
+        "sessionsWithFacts": 22,
+        "facts": 35,
+        "errors": 2,
+        "errorKinds": {
+          "constant '…' is not in the input": 1,
+          "constants '…', '…', '…' are not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 95635,
+          "completionTokens": 721,
+          "totalTokens": 96356,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 80718.88058300002,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 28.074999999953434,
+      "readerMs": 2264.5723330000183,
+      "judgeMs": 850.1515420000069,
+      "totalMs": 83868.13116700004,
+      "userTurnMs": 3142.7988749999786
+    },
+    {
+      "questionId": "89941a93",
+      "questionType": "knowledge-update",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_e1403127_1",
+        "answer_e1403127_2",
+        "answer_e1403127_1",
+        "answer_e1403127_1"
+      ],
+      "contextSessionIds": [
+        "answer_e1403127_1",
+        "answer_e1403127_2",
+        "answer_e1403127_1",
+        "answer_e1403127_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "89941a93",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_e1403127_1",
+          "answer_e1403127_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_e1403127_1",
+          "answer_e1403127_2",
+          "answer_e1403127_1",
+          "answer_e1403127_1"
+        ],
+        "precisionAtK": 1,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 320,
+        "wallMs": 22.262000000104308
+      },
+      "context": {
+        "questionId": "89941a93",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_e1403127_1",
+          "answer_e1403127_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_e1403127_1",
+          "answer_e1403127_2",
+          "answer_e1403127_1",
+          "answer_e1403127_1"
+        ],
+        "precisionAtK": 1,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 320,
+        "wallMs": 22.262000000104308
+      },
+      "hypothesis": "You currently own four bikes: a road bike, mountain bike, commuter bike, and hybrid bike.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1650,
+        "completionTokens": 24,
+        "totalTokens": 1674,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00044115
+      },
+      "judgeUsage": {
+        "promptTokens": 75,
+        "completionTokens": 2,
+        "totalTokens": 77,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002075
+      },
+      "extraction": {
+        "calls": 53,
+        "sessionsWithFacts": 29,
+        "facts": 41,
+        "errors": 0,
+        "errorKinds": {},
+        "usage": {
+          "promptTokens": 87773,
+          "completionTokens": 610,
+          "totalTokens": 88383,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 75359.23883300007,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 22.262000000104308,
+      "readerMs": 1054.25320799998,
+      "judgeMs": 873.1949170000153,
+      "totalMs": 77314.35487499996,
+      "userTurnMs": 1949.7101250000997
+    },
+    {
+      "questionId": "9ea5eabc",
+      "questionType": "knowledge-update",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_02e66dec_2",
+        "418c27fa",
+        "29695e1c_2",
+        "62e6593e_1"
+      ],
+      "contextSessionIds": [
+        "answer_02e66dec_2",
+        "418c27fa",
+        "29695e1c_2",
+        "62e6593e_1"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "9ea5eabc",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_02e66dec_1",
+          "answer_02e66dec_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_02e66dec_2",
+          "418c27fa",
+          "29695e1c_2",
+          "62e6593e_1"
+        ],
+        "precisionAtK": 0.25,
+        "recallAtK": 0.5,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 365,
+        "wallMs": 29.137584000010975
+      },
+      "context": {
+        "questionId": "9ea5eabc",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_02e66dec_1",
+          "answer_02e66dec_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_02e66dec_2",
+          "418c27fa",
+          "29695e1c_2",
+          "62e6593e_1"
+        ],
+        "precisionAtK": 0.25,
+        "recallAtK": 0.5,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 365,
+        "wallMs": 29.137584000010975
+      },
+      "hypothesis": "Paris.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1542,
+        "completionTokens": 6,
+        "totalTokens": 1548,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00039255
+      },
+      "judgeUsage": {
+        "promptTokens": 59,
+        "completionTokens": 2,
+        "totalTokens": 61,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001675
+      },
+      "extraction": {
+        "calls": 57,
+        "sessionsWithFacts": 26,
+        "facts": 35,
+        "errors": 3,
+        "errorKinds": {
+          "expected '…' but found '…' at line N": 1,
+          "refusing to send sensitive transcript to the external LLM": 1,
+          "unexpected character '…' at line N": 1
+        },
+        "usage": {
+          "promptTokens": 106448,
+          "completionTokens": 972,
+          "totalTokens": 107420,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 98575.37608399999,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 29.137584000010975,
+      "readerMs": 1899.6527500000084,
+      "judgeMs": 1534.2415420000907,
+      "totalMs": 102043.90354099998,
+      "userTurnMs": 3463.03187600011
+    },
+    {
+      "questionId": "07741c44",
+      "questionType": "knowledge-update",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_7e9ad7b4_1",
+        "d1d6b55b_1",
+        "d1d6b55b_1",
+        "61fc1d85"
+      ],
+      "contextSessionIds": [
+        "answer_7e9ad7b4_1",
+        "d1d6b55b_1",
+        "d1d6b55b_1",
+        "61fc1d85"
+      ],
+      "contextRoles": "user",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "07741c44",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_7e9ad7b4_1",
+          "answer_7e9ad7b4_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_7e9ad7b4_1",
+          "d1d6b55b_1",
+          "d1d6b55b_1",
+          "61fc1d85"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 0.5,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 24.66283399995882
+      },
+      "context": {
+        "questionId": "07741c44",
+        "questionType": "knowledge-update",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_7e9ad7b4_1",
+          "answer_7e9ad7b4_2"
+        ],
+        "retrievedSessionIds": [
+          "answer_7e9ad7b4_1",
+          "d1d6b55b_1",
+          "d1d6b55b_1",
+          "61fc1d85"
+        ],
+        "precisionAtK": 0.3333333333333333,
+        "recallAtK": 0.5,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 135,
+        "wallMs": 24.66283399995882
+      },
+      "hypothesis": "Under your bed.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 1621,
+        "completionTokens": 8,
+        "totalTokens": 1629,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0004147
+      },
+      "judgeUsage": {
+        "promptTokens": 61,
+        "completionTokens": 1,
+        "totalTokens": 62,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0001625
+      },
+      "extraction": {
+        "calls": 51,
+        "sessionsWithFacts": 17,
+        "facts": 37,
+        "errors": 0,
+        "errorKinds": {},
+        "usage": {
+          "promptTokens": 93807,
+          "completionTokens": 674,
+          "totalTokens": 94481,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 78504.41850000003,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 24.66283399995882,
+      "readerMs": 901.4294170000358,
+      "judgeMs": 1183.9152079999913,
+      "totalMs": 80620.23699999996,
+      "userTurnMs": 2110.007458999986
+    },
+    {
+      "questionId": "7161e7e2",
+      "questionType": "single-session-assistant",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "answer_sharegpt_5Lzox6N_0",
+        "answer_sharegpt_5Lzox6N_0",
+        "answer_sharegpt_5Lzox6N_0",
+        "answer_sharegpt_5Lzox6N_0"
+      ],
+      "contextSessionIds": [
+        "answer_sharegpt_5Lzox6N_0",
+        "answer_sharegpt_5Lzox6N_0",
+        "answer_sharegpt_5Lzox6N_0",
+        "answer_sharegpt_5Lzox6N_0"
+      ],
+      "contextRoles": "all",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "7161e7e2",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_sharegpt_5Lzox6N_0"
+        ],
+        "retrievedSessionIds": [
+          "answer_sharegpt_5Lzox6N_0",
+          "answer_sharegpt_5Lzox6N_0",
+          "answer_sharegpt_5Lzox6N_0",
+          "answer_sharegpt_5Lzox6N_0"
+        ],
+        "precisionAtK": 1,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 1130,
+        "wallMs": 25.857583000091836
+      },
+      "context": {
+        "questionId": "7161e7e2",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_sharegpt_5Lzox6N_0"
+        ],
+        "retrievedSessionIds": [
+          "answer_sharegpt_5Lzox6N_0",
+          "answer_sharegpt_5Lzox6N_0",
+          "answer_sharegpt_5Lzox6N_0",
+          "answer_sharegpt_5Lzox6N_0"
+        ],
+        "precisionAtK": 1,
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "strictEvidenceCoverage": true,
+        "empty": false,
+        "topScore": 1130,
+        "wallMs": 25.857583000091836
+      },
+      "hypothesis": "Admon was assigned the **8 am–4 pm shift on Sunday**.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 8340,
+        "completionTokens": 20,
+        "totalTokens": 8360,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00210885
+      },
+      "judgeUsage": {
+        "promptTokens": 113,
+        "completionTokens": 1,
+        "totalTokens": 114,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002925
+      },
+      "extraction": {
+        "calls": 50,
+        "sessionsWithFacts": 17,
+        "facts": 36,
+        "errors": 1,
+        "errorKinds": {
+          "constants '…', '…' are not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 92373,
+          "completionTokens": 725,
+          "totalTokens": 93098,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 86070.37716599996,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 25.857583000091836,
+      "readerMs": 1153.4195000000764,
+      "judgeMs": 1224.495541999815,
+      "totalMs": 88478.88391600002,
+      "userTurnMs": 2403.7726249999832
+    },
+    {
+      "questionId": "6ae235be",
+      "questionType": "single-session-assistant",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "99188307",
+        "809cabca_1",
+        "31cde680",
+        "31cde680"
+      ],
+      "contextSessionIds": [
+        "99188307",
+        "809cabca_1",
+        "31cde680",
+        "31cde680"
+      ],
+      "contextRoles": "all",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "6ae235be",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_sharegpt_IUWQYGQ_0"
+        ],
+        "retrievedSessionIds": [
+          "99188307",
+          "809cabca_1",
+          "31cde680",
+          "31cde680"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 345,
+        "wallMs": 41.68837499991059
+      },
+      "context": {
+        "questionId": "6ae235be",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_sharegpt_IUWQYGQ_0"
+        ],
+        "retrievedSessionIds": [
+          "99188307",
+          "809cabca_1",
+          "31cde680",
+          "31cde680"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 345,
+        "wallMs": 41.68837499991059
+      },
+      "hypothesis": "I don’t know—the supplied history doesn’t include details about the processes used at CITGO’s Lake Charles Refinery.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 11601,
+        "completionTokens": 54,
+        "totalTokens": 11655,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 24,
+        "costUsd": 0.0029649
+      },
+      "judgeUsage": {
+        "promptTokens": 125,
+        "completionTokens": 2,
+        "totalTokens": 127,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0003325
+      },
+      "extraction": {
+        "calls": 52,
+        "sessionsWithFacts": 24,
+        "facts": 53,
+        "errors": 2,
+        "errorKinds": {
+          "constant '…' is not in the input": 1,
+          "constants '…', '…', '…' are not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 91151,
+          "completionTokens": 1301,
+          "totalTokens": 92452,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 115391.34566600015,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 41.68837499991059,
+      "readerMs": 1579.7187910000794,
+      "judgeMs": 929.4210420001764,
+      "totalMs": 117954.67975000013,
+      "userTurnMs": 2550.8282080001663
+    },
+    {
+      "questionId": "7e00a6cb",
+      "questionType": "single-session-assistant",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "b7dca8f1_1",
+        "24f78a31_2",
+        "2fa50779_5",
+        "39358a85_3"
+      ],
+      "contextSessionIds": [
+        "b7dca8f1_1",
+        "24f78a31_2",
+        "2fa50779_5",
+        "39358a85_3"
+      ],
+      "contextRoles": "all",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "7e00a6cb",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_ultrachat_370515"
+        ],
+        "retrievedSessionIds": [
+          "b7dca8f1_1",
+          "24f78a31_2",
+          "2fa50779_5",
+          "39358a85_3"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 360,
+        "wallMs": 20.023124999832362
+      },
+      "context": {
+        "questionId": "7e00a6cb",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_ultrachat_370515"
+        ],
+        "retrievedSessionIds": [
+          "b7dca8f1_1",
+          "24f78a31_2",
+          "2fa50779_5",
+          "39358a85_3"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 360,
+        "wallMs": 20.023124999832362
+      },
+      "hypothesis": "I don’t know—the supplied history doesn’t mention an Amsterdam hostel near the Red Light District.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 10343,
+        "completionTokens": 46,
+        "totalTokens": 10389,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 21,
+        "costUsd": 0.0026408
+      },
+      "judgeUsage": {
+        "promptTokens": 99,
+        "completionTokens": 2,
+        "totalTokens": 101,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002675
+      },
+      "extraction": {
+        "calls": 69,
+        "sessionsWithFacts": 13,
+        "facts": 21,
+        "errors": 5,
+        "errorKinds": {
+          "expected '…' but found '…' at line N": 2,
+          "constant '…' is not in the input": 3
+        },
+        "usage": {
+          "promptTokens": 110366,
+          "completionTokens": 1368,
+          "totalTokens": 111734,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 127652.07633300009,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 20.023124999832362,
+      "readerMs": 4587.593583000125,
+      "judgeMs": 810.7223330000415,
+      "totalMs": 133079.56379100005,
+      "userTurnMs": 5418.339040999999
+    },
+    {
+      "questionId": "1903aded",
+      "questionType": "single-session-assistant",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "66369fde_1",
+        "sharegpt_64onasJ_0",
+        "sharegpt_64onasJ_0",
+        "9b4c070c"
+      ],
+      "contextSessionIds": [
+        "66369fde_1",
+        "sharegpt_64onasJ_0",
+        "sharegpt_64onasJ_0",
+        "9b4c070c"
+      ],
+      "contextRoles": "all",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "1903aded",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_sharegpt_hA7AkP3_0"
+        ],
+        "retrievedSessionIds": [
+          "66369fde_1",
+          "sharegpt_64onasJ_0",
+          "sharegpt_64onasJ_0",
+          "9b4c070c"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 315,
+        "wallMs": 27.75374999991618
+      },
+      "context": {
+        "questionId": "1903aded",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_sharegpt_hA7AkP3_0"
+        ],
+        "retrievedSessionIds": [
+          "66369fde_1",
+          "sharegpt_64onasJ_0",
+          "sharegpt_64onasJ_0",
+          "9b4c070c"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 315,
+        "wallMs": 27.75374999991618
+      },
+      "hypothesis": "I don’t know—the supplied history doesn’t include a list of work-from-home jobs for seniors.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 9221,
+        "completionTokens": 48,
+        "totalTokens": 9269,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 22,
+        "costUsd": 0.0023627
+      },
+      "judgeUsage": {
+        "promptTokens": 99,
+        "completionTokens": 1,
+        "totalTokens": 100,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002575
+      },
+      "extraction": {
+        "calls": 52,
+        "sessionsWithFacts": 23,
+        "facts": 41,
+        "errors": 1,
+        "errorKinds": {
+          "constant '…' is not in the input": 1
+        },
+        "usage": {
+          "promptTokens": 82457,
+          "completionTokens": 644,
+          "totalTokens": 83101,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 73989.98704199994,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 27.75374999991618,
+      "readerMs": 1430.9392910001334,
+      "judgeMs": 904.8601250001229,
+      "totalMs": 76357.93533299991,
+      "userTurnMs": 2363.5531660001725
+    },
+    {
+      "questionId": "ceb54acb",
+      "questionType": "single-session-assistant",
+      "abstention": false,
+      "status": "judged",
+      "correct": true,
+      "retrievedSessionIds": [
+        "511bdbe3_2",
+        "f6fd00cf",
+        "f6fd00cf",
+        "a1cbe83a"
+      ],
+      "contextSessionIds": [
+        "511bdbe3_2",
+        "f6fd00cf",
+        "f6fd00cf",
+        "a1cbe83a"
+      ],
+      "contextRoles": "all",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "ceb54acb",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_sharegpt_cGdjmYo_0"
+        ],
+        "retrievedSessionIds": [
+          "511bdbe3_2",
+          "f6fd00cf",
+          "f6fd00cf",
+          "a1cbe83a"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 360,
+        "wallMs": 31.730916999978945
+      },
+      "context": {
+        "questionId": "ceb54acb",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_sharegpt_cGdjmYo_0"
+        ],
+        "retrievedSessionIds": [
+          "511bdbe3_2",
+          "f6fd00cf",
+          "f6fd00cf",
+          "a1cbe83a"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 360,
+        "wallMs": 31.730916999978945
+      },
+      "hypothesis": "I don’t know—the supplied history doesn’t include that previous chat or the other four terms.",
+      "judgeResponse": "Yes",
+      "readerUsage": {
+        "promptTokens": 11334,
+        "completionTokens": 47,
+        "totalTokens": 11381,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 22,
+        "costUsd": 0.00288975
+      },
+      "judgeUsage": {
+        "promptTokens": 124,
+        "completionTokens": 1,
+        "totalTokens": 125,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.00032
+      },
+      "extraction": {
+        "calls": 54,
+        "sessionsWithFacts": 33,
+        "facts": 44,
+        "errors": 1,
+        "errorKinds": {
+          "expected '…' but found '…' at line N": 1
+        },
+        "usage": {
+          "promptTokens": 84615,
+          "completionTokens": 692,
+          "totalTokens": 85307,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 74576.32545899996,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 31.730916999978945,
+      "readerMs": 1698.706167000113,
+      "judgeMs": 872.4192500000354,
+      "totalMs": 77185.50533399987,
+      "userTurnMs": 2602.8563340001274
+    },
+    {
+      "questionId": "fea54f57",
+      "questionType": "single-session-assistant",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "f11cdacf",
+        "0aa99e2e_1",
+        "d5f14d5f_1",
+        "d81c92cb"
+      ],
+      "contextSessionIds": [
+        "f11cdacf",
+        "0aa99e2e_1",
+        "d5f14d5f_1",
+        "d81c92cb"
+      ],
+      "contextRoles": "all",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "fea54f57",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_ultrachat_187684"
+        ],
+        "retrievedSessionIds": [
+          "f11cdacf",
+          "0aa99e2e_1",
+          "d5f14d5f_1",
+          "d81c92cb"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 395,
+        "wallMs": 32.671249999897555
+      },
+      "context": {
+        "questionId": "fea54f57",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_ultrachat_187684"
+        ],
+        "retrievedSessionIds": [
+          "f11cdacf",
+          "0aa99e2e_1",
+          "d5f14d5f_1",
+          "d81c92cb"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 395,
+        "wallMs": 32.671249999897555
+      },
+      "hypothesis": "I don’t know—the supplied history doesn’t mention a “Fifth Album” or which song best exemplified the band’s growth.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 10916,
+        "completionTokens": 52,
+        "totalTokens": 10968,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 19,
+        "costUsd": 0.00279125
+      },
+      "judgeUsage": {
+        "promptTokens": 111,
+        "completionTokens": 1,
+        "totalTokens": 112,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002875
+      },
+      "extraction": {
+        "calls": 55,
+        "sessionsWithFacts": 21,
+        "facts": 45,
+        "errors": 1,
+        "errorKinds": {
+          "facts must be ground: '…' contains variable JIGSAWS at line N": 1
+        },
+        "usage": {
+          "promptTokens": 97639,
+          "completionTokens": 1613,
+          "totalTokens": 99252,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 115972.6772090001,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 32.671249999897555,
+      "readerMs": 5365.43029199983,
+      "judgeMs": 1098.7154580000788,
+      "totalMs": 122477.20170799992,
+      "userTurnMs": 6496.816999999806
+    },
+    {
+      "questionId": "cc539528",
+      "questionType": "single-session-assistant",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "18807892_4",
+        "8bd3814a_1",
+        "fe1faff9_1",
+        "fb760626"
+      ],
+      "contextSessionIds": [
+        "18807892_4",
+        "8bd3814a_1",
+        "fe1faff9_1",
+        "fb760626"
+      ],
+      "contextRoles": "all",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "cc539528",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_ultrachat_374124"
+        ],
+        "retrievedSessionIds": [
+          "18807892_4",
+          "8bd3814a_1",
+          "fe1faff9_1",
+          "fb760626"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 540,
+        "wallMs": 20.4351659999229
+      },
+      "context": {
+        "questionId": "cc539528",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_ultrachat_374124"
+        ],
+        "retrievedSessionIds": [
+          "18807892_4",
+          "8bd3814a_1",
+          "fe1faff9_1",
+          "fb760626"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 540,
+        "wallMs": 20.4351659999229
+      },
+      "hypothesis": "I don’t know—the supplied history doesn’t include that conversation or the specific back-end languages recommended.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 11864,
+        "completionTokens": 52,
+        "totalTokens": 11916,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 26,
+        "costUsd": 0.00302825
+      },
+      "judgeUsage": {
+        "promptTokens": 115,
+        "completionTokens": 1,
+        "totalTokens": 116,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0002975
+      },
+      "extraction": {
+        "calls": 53,
+        "sessionsWithFacts": 21,
+        "facts": 29,
+        "errors": 2,
+        "errorKinds": {
+          "expected '…' but found '…' at line N": 2
+        },
+        "usage": {
+          "promptTokens": 90921,
+          "completionTokens": 969,
+          "totalTokens": 91890,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 88046.35416699992,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 20.4351659999229,
+      "readerMs": 1513.4114999999292,
+      "judgeMs": 636.3716669999994,
+      "totalMs": 90223.38699999987,
+      "userTurnMs": 2170.2183329998516
+    },
+    {
+      "questionId": "488d3006",
+      "questionType": "single-session-assistant",
+      "abstention": false,
+      "status": "judged",
+      "correct": false,
+      "retrievedSessionIds": [
+        "a68090b0_2",
+        "9a57d65b",
+        "82b82901",
+        "4646c83d_2"
+      ],
+      "contextSessionIds": [
+        "a68090b0_2",
+        "9a57d65b",
+        "82b82901",
+        "4646c83d_2"
+      ],
+      "contextRoles": "all",
+      "redactedRetrievedSessions": 0,
+      "retrievalRoute": "local",
+      "embeddingModel": null,
+      "embeddingCalls": 0,
+      "embeddingUsage": null,
+      "semanticPreparationCalls": 0,
+      "semanticPreparationUsage": null,
+      "retrieval": {
+        "questionId": "488d3006",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_ultrachat_275993"
+        ],
+        "retrievedSessionIds": [
+          "a68090b0_2",
+          "9a57d65b",
+          "82b82901",
+          "4646c83d_2"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 800,
+        "wallMs": 21.254833000013605
+      },
+      "context": {
+        "questionId": "488d3006",
+        "questionType": "single-session-assistant",
+        "abstention": false,
+        "evidenceSessionIds": [
+          "answer_ultrachat_275993"
+        ],
+        "retrievedSessionIds": [
+          "a68090b0_2",
+          "9a57d65b",
+          "82b82901",
+          "4646c83d_2"
+        ],
+        "precisionAtK": 0,
+        "recallAtK": 0,
+        "reciprocalRank": 0,
+        "strictEvidenceCoverage": false,
+        "empty": false,
+        "topScore": 800,
+        "wallMs": 21.254833000013605
+      },
+      "hypothesis": "I don’t know—the supplied history doesn’t mention a hiking trail in the Natural Park of Moncayo.",
+      "judgeResponse": "No",
+      "readerUsage": {
+        "promptTokens": 11792,
+        "completionTokens": 49,
+        "totalTokens": 11841,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 21,
+        "costUsd": 0.00300665
+      },
+      "judgeUsage": {
+        "promptTokens": 125,
+        "completionTokens": 2,
+        "totalTokens": 127,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0.0003325
+      },
+      "extraction": {
+        "calls": 52,
+        "sessionsWithFacts": 15,
+        "facts": 18,
+        "errors": 3,
+        "errorKinds": {
+          "expected '…' but found '…' at line N": 1,
+          "constant '…' is not in the input": 2
+        },
+        "usage": {
+          "promptTokens": 87351,
+          "completionTokens": 767,
+          "totalTokens": 88118,
+          "cachedPromptTokens": null,
+          "reasoningTokens": 0,
+          "costUsd": null
+        }
+      },
+      "formationMs": 71594.39549999987,
+      "semanticPreparationMs": 0,
+      "retrievalMs": 21.254833000013605,
+      "readerMs": 1513.9608330000192,
+      "judgeMs": 1403.4259580001235,
+      "totalMs": 74537.945541,
+      "userTurnMs": 2938.6416240001563
+    }
+  ]
+}

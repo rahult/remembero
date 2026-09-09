@@ -240,6 +240,44 @@ between _training_ runs, and each sample of it costs a training run (~$5 on Tink
 self-managed per [the provider matrix](FINETUNE-PROVIDER-MATRIX.md)). No such repeat has
 been done, so every number in this document is one training run.
 
+### Rounds 12 and 13: reading the failures instead of adding rounds
+
+Round 11's failures were read case by case rather than counted. Five patterns accounted for
+most of them: the model copied the schema sample's subject (`zed`) when the text named no
+entity; it had never seen a generic subject (`the team`, `the project`); it stored what the
+assistant said in a transcript; it mapped "we" to the self atom; and it swapped the order of a
+three-place fact. Each became data (an `implicit_subject` kind, a `transcript` kind with
+acknowledgements, guesses, summaries, tool output, confirmations and code, first-person
+examples over relations, schedule facts in the state pool) and two of them became prompt
+rules for every model: "we / our / my team" is the group, not the speaker, and an unnamed
+subject is the generic noun the text describes, never a schema sample. Four benchmark inputs
+whose gold subject did not appear in the text (which the grounding guard forbids, so every
+model scored zero on them) now name it; this is benchmark v1.1.
+
+Round 12: **87.4%** (90/103), query 27/31. Luna rerun on v1.1 with the new prompt: 93.2%.
+
+Round 13 changed the data for the shape of real transcripts (see the LongMemEval section in
+[LONGMEMEVAL.md](LONGMEMEVAL.md)): facts embedded in long requests with long assistant replies,
+and a quarter of examples with an empty schema so predicates are named from the text. It
+scored 83.5% before and **91.3%** (94/103) after one more write-side guard, and 28/31 on
+queries. The guard exists because seven of the eleven new failures were the quoting flip
+rounds 8 and 9 showed (`'Toronto'`, `'Liam'`): the convention is fragile in a 4B model and
+moves between training runs, so the two unambiguous halves are now enforced in code. A quoted
+single capitalized word becomes a lowercase atom and a quoted phrase of lowercase words (or
+hyphenated words) becomes snake_case; multi-word proper names, acronyms, and anything with
+digits or punctuation stay quoted. Luna is unaffected by the guard (93.2% either way).
+
+| Qwen3.5-4B checkpoint | extraction (closed) | query-correct /31 | note                                   |
+| --------------------- | ------------------: | ----------------: | -------------------------------------- |
+| r11                   |               76.7% |                27 | r10 data, Modal                        |
+| r12                   |               87.4% |                27 | implicit subjects, transcripts, v1.1   |
+| r13                   |               91.3% |                28 | embedded facts, empty schemas, + guard |
+| openai/gpt-5.6-luna   |               93.2% |                29 | v1.1, same prompt and guards           |
+
+The remaining nine r13 misses are one-offs: a dropped word (`dark` for `dark_mode`), a
+hallucinated fact from CI noise, a manager/report direction, two generic-subject choices
+(`deadline`, `engineers`), and two cases Luna also misses.
+
 ## What the failures are (first run, before guards)
 
 - **First person has no name.** Luna wrote `the_user`, `me`, `you` and `user` for "I" across
