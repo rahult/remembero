@@ -1,8 +1,8 @@
 # Training the query + extraction LoRA on Modal
 
-A self-managed replacement for the Tinker recipe at about a dollar per run on an H100
-(free within Modal's monthly starter credit), with the evaluation endpoint served from the
-same volume. Cost model and alternatives: `docs/research/FINETUNE-PROVIDER-MATRIX.md`.
+A self-managed replacement for the Tinker recipe: about a dollar per run on an H100 or
+~$2.50 on an A10G (see the observations at the end), with the evaluation endpoint served
+from the same volume. Cost model and alternatives: `docs/research/FINETUNE-PROVIDER-MATRIX.md`.
 
 ## One-time setup
 
@@ -58,8 +58,24 @@ node dist/evals/run-extraction-bench.js --base-url https://<app>.modal.run/v1 \
   renderer; assistant-only loss is TRL's prompt/completion masking.
 - First run pulls the base model into the volume's `hf/` cache (a few minutes, once).
 
-## Not yet verified
+## What the first runs taught (2026-09-09)
 
-The first real run is the test of `transformers>=5` and `vllm>=0.11` support for
-`Qwen3.5-4B`; if either fails, `BASE_MODEL=Qwen/Qwen3-4B-Instruct-2507` is the fallback
-the provider matrix confirms both libraries support.
+- **Account gating.** A fresh Starter workspace runs A10G functions without a card but
+  refuses H100 ("Please add a payment method"), and after ~45 minutes of A10G time the
+  workspace was disabled mid-run (`ConflictError: workspace ... is disabled`). Add a payment
+  method on modal.com before relying on it; the monthly credit still applies.
+- **Kernels.** `Qwen3.5-4B` is 24/32 Gated DeltaNet layers. `transformers>=5` loads it
+  fine but without `flash-linear-attention` runs a pure-torch fallback at ~60 s/step on an
+  A10G; with the kernels it is ~22–30 s/step (about 2.5 h per epoch, ~$2.50). The log's
+  `flash-linear-attention: available` line confirms the fast path. An H100 should be well
+  under 30 minutes.
+- **Resume.** The adapter is checkpointed to the Volume every 25 steps (committed on save)
+  and a rerun of the same `--run` resumes from the last checkpoint, so a preemption or a
+  killed container costs at most 25 steps.
+- **Loss mask.** TRL warns once per example that the tokenized prompt is not a prefix of
+  prompt+completion. The Qwen3.5 template ends the generation prompt with `<think>\n`, and
+  that newline merges with the completion's first newline into one token; the mask boundary
+  is off by that one token, which is harmless.
+- **Serving.** The template opens a `<think>` block, so vLLM runs `--reasoning-parser qwen3`
+  and the harness receives only the text after `</think>` as `content`.
+- Fallback base if anything else fails: `BASE_MODEL=Qwen/Qwen3-4B-Instruct-2507`.

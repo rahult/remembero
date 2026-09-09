@@ -176,7 +176,11 @@ def train(
         bf16=True,
         max_length=max_length,
         logging_steps=10,
-        save_strategy="no",
+        # Checkpoint the adapter to the Volume so a preempted or killed container resumes
+        # instead of starting over (an A10G epoch is ~2.5 h).
+        save_strategy="steps",
+        save_steps=25,
+        save_total_limit=1,
         eval_strategy="epoch" if eval_ds is not None else "no",
         report_to=[],
         # Recompute activations only where memory is tight (24 GB cards); it costs ~30% speed.
@@ -187,6 +191,14 @@ def train(
         # conversational prompt/completion rows: TRL puts the loss on the completion only
         completion_only_loss=True,
     )
+    from transformers import TrainerCallback
+
+    class CommitVolume(TrainerCallback):
+        """Modal only persists Volume writes on commit; do it right after each checkpoint."""
+
+        def on_save(self, args, state, control, **kwargs):
+            volume.commit()
+
     trainer = SFTTrainer(
         model=model,
         args=config,
@@ -194,8 +206,15 @@ def train(
         eval_dataset=eval_ds,
         processing_class=tokenizer,
         peft_config=peft_config,
+        callbacks=[CommitVolume()],
     )
-    trainer.train()
+    checkpoints = sorted(
+        (run_dir / "trainer").glob("checkpoint-*"),
+        key=lambda d: int(d.name.split("-")[-1]),
+    )
+    if checkpoints:
+        print(f"resuming from {checkpoints[-1]}")
+    trainer.train(resume_from_checkpoint=str(checkpoints[-1]) if checkpoints else None)
     metrics: dict = {"run": run, "base_model": BASE_MODEL, "gpu": TRAIN_GPU}
     if eval_ds is not None:
         evaluation = trainer.evaluate()
