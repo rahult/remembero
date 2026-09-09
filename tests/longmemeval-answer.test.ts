@@ -276,6 +276,28 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     expect(sent.length).toBeLessThan(600);
   });
 
+  it('shows the retrieved session\'s remembered facts, dated, to the reader', async () => {
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    const extractor = new ScriptedCompletionClient('dialect', [
+      '% nothing',
+      'degree(user, business_administration).',
+    ]);
+    await evaluateLongMemEvalAnswerInstance(instance(), reader, judge, {
+      topK: 1,
+      contextBytes: 4_096,
+      formation: 'hybrid',
+      extractor,
+    });
+    const prompt = reader.calls[0]?.messages.at(-1)?.content ?? '';
+    expect(prompt).toContain('Remembered facts');
+    expect(prompt).toContain('degree(user, business_administration).');
+    // the placeholder fact is plumbing, never shown
+    expect(prompt).not.toContain('longmem_session');
+  });
+
   it('counts top-k in distinct sessions when a session yields several matching facts', async () => {
     const reader = new ScriptedCompletionClient('reader', [
       'Business Administration',

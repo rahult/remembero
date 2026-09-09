@@ -379,6 +379,8 @@ export function buildLongMemEvalAnswerContext(
     text?: string;
     redacted?: true;
     focusCharacterOffset?: number;
+    /** Extracted facts of this session that matched the question, shown dated to the reader. */
+    facts?: string[];
   }>,
   contextBytes = DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES,
 ): AnswerContext {
@@ -391,7 +393,11 @@ export function buildLongMemEvalAnswerContext(
     Math.floor(contextBytes / Math.max(1, usable.length)),
   );
   const selected = usable.map((source, rank) => {
-    const header = `### Retrieved session ${rank + 1}\nSession date: ${source.ts}\n`;
+    const facts =
+      source.facts !== undefined && source.facts.length > 0
+        ? `Remembered facts (stated in this session): ${source.facts.join(' ')}\n`
+        : '';
+    const header = `### Retrieved session ${rank + 1}\nSession date: ${source.ts}\n${facts}`;
     const body = sourceWindow(
       source.text!,
       instance.question,
@@ -709,6 +715,17 @@ export async function evaluateLongMemEvalAnswerInstance(
       0,
       performance.now() - retrievalStarted - semanticPreparationMs,
     );
+    // extracted facts that matched, grouped by session, minus the placeholder plumbing
+    const matchedFacts = new Map<string, string[]>();
+    for (const result of search.results) {
+      const source = result.sources[0];
+      if (source === undefined || result.clause.startsWith('longmem_session('))
+        continue;
+      const session = sourceSessionIds.get(source.opId) ?? source.opId;
+      const list = matchedFacts.get(session) ?? [];
+      if (list.length < 24) list.push(result.clause);
+      matchedFacts.set(session, list);
+    }
     const seenSessions = new Set<string>();
     const rankedSources = search.results.flatMap((result) => {
       const source = result.sources[0];
@@ -718,6 +735,10 @@ export async function evaluateLongMemEvalAnswerInstance(
             {
               opId: sourceSessionIds.get(source.opId) ?? source.opId,
               ts: source.ts,
+              facts:
+                matchedFacts.get(
+                  sourceSessionIds.get(source.opId) ?? source.opId,
+                ) ?? [],
               text:
                 contextRoles === 'user'
                   ? (userSourceText.get(source.opId) ?? source.text)
