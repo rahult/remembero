@@ -138,7 +138,7 @@ def train(
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(
-        BASE_MODEL, torch_dtype=torch.bfloat16, attn_implementation="sdpa"
+        BASE_MODEL, dtype=torch.bfloat16, attn_implementation="sdpa"
     )
 
     train_rows = _to_prompt_completion(str(data_dir / "conversations.jsonl"))
@@ -160,7 +160,6 @@ def train(
         num_train_epochs=epochs,
         learning_rate=lr,
         lr_scheduler_type="linear",
-        warmup_ratio=0.0,
         per_device_train_batch_size=batch_size,
         gradient_accumulation_steps=grad_accum,
         per_device_eval_batch_size=batch_size,
@@ -199,7 +198,7 @@ def train(
     tokenizer.save_pretrained(str(adapter_dir))
     if merge:
         merged_dir = run_dir / "merged"
-        base = AutoModelForCausalLM.from_pretrained(BASE_MODEL, torch_dtype=torch.bfloat16)
+        base = AutoModelForCausalLM.from_pretrained(BASE_MODEL, dtype=torch.bfloat16)
         merged = PeftModel.from_pretrained(base, str(adapter_dir)).merge_and_unload()
         merged.save_pretrained(str(merged_dir), safe_serialization=True)
         tokenizer.save_pretrained(str(merged_dir))
