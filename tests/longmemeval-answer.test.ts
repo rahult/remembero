@@ -249,6 +249,9 @@ describe('LongMemEval end-to-end answer evaluation', () => {
       facts: 0,
       errors: 1,
     });
+    expect(observation.extraction?.errorKinds).toEqual({
+      'scripted completion exhausted': 1,
+    });
   });
 
   it('keeps repeated dataset session IDs from colliding in the durable journal', async () => {

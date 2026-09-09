@@ -74,7 +74,20 @@ export interface LongMemEvalExtractionStats {
   sessionsWithFacts: number;
   facts: number;
   errors: number;
+  /** Error messages, trimmed to their first clause, with counts. */
+  errorKinds: Record<string, number>;
   usage: LlmUsage | null;
+}
+
+/** "constant 'x' is not in the input; store only..." -> "constant '…' is not in the input" */
+export function extractionErrorKind(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return message
+    .split(/[;\n(]/)[0]!
+    .replace(/'[^']*'/g, "'…'")
+    .replace(/\b\d+\b/g, 'N')
+    .trim()
+    .slice(0, 90);
 }
 
 export interface LongMemEvalCompletionClient {
@@ -152,6 +165,7 @@ export interface LongMemEvalAnswerSummary {
     sessionsWithFacts: number;
     facts: number;
     errors: number;
+    errorKinds: Record<string, number>;
   };
   embeddingUsage: {
     calls: number;
@@ -521,6 +535,7 @@ export async function evaluateLongMemEvalAnswerInstance(
         sessionsWithFacts: 0,
         facts: 0,
         errors: 0,
+        errorKinds: {},
         usage: null,
       };
     }
@@ -582,9 +597,11 @@ export async function evaluateLongMemEvalAnswerInstance(
           );
           if (result.added.length > 0) stats.sessionsWithFacts += 1;
           stats.facts += result.added.length;
-        } catch {
+        } catch (error) {
           // a refused or malformed extraction leaves the session raw (hybrid) or absent (extracted)
           stats.errors += 1;
+          const kind = extractionErrorKind(error);
+          stats.errorKinds[kind] = (stats.errorKinds[kind] ?? 0) + 1;
         }
       }
     }
@@ -830,7 +847,12 @@ export function summarizeLongMemEvalAnswers(
   let readerUsage = emptyLlmUsageTotals();
   let judgeUsage = emptyLlmUsageTotals();
   let extractionTotals = emptyLlmUsageTotals();
-  const extractionCounts = { sessionsWithFacts: 0, facts: 0, errors: 0 };
+  const extractionCounts = {
+    sessionsWithFacts: 0,
+    facts: 0,
+    errors: 0,
+    errorKinds: {} as Record<string, number>,
+  };
   const embeddingUsage = {
     calls: 0,
     promptTokens: 0,
@@ -865,6 +887,12 @@ export function summarizeLongMemEvalAnswers(
         observation.extraction.sessionsWithFacts;
       extractionCounts.facts += observation.extraction.facts;
       extractionCounts.errors += observation.extraction.errors;
+      for (const [kind, count] of Object.entries(
+        observation.extraction.errorKinds ?? {},
+      )) {
+        extractionCounts.errorKinds[kind] =
+          (extractionCounts.errorKinds[kind] ?? 0) + count;
+      }
     }
     embeddingUsage.calls += observation.embeddingCalls;
     embeddingUsage.promptTokens +=

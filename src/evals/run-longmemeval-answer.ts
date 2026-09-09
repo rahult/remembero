@@ -428,6 +428,11 @@ async function main(): Promise<void> {
       console.log(
         `extraction: ${e.calls} calls, ${e.facts} facts from ${e.sessionsWithFacts} sessions, ${e.errors} errors, ${e.totalTokens} tokens`,
       );
+      for (const [kind, count] of Object.entries(e.errorKinds)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8)) {
+        console.log(`  error x${count}: ${kind}`);
+      }
     }
     console.log(
       `accuracy: ${percent(summary.accuracy)} (${summary.correct}/${summary.questions})`,
