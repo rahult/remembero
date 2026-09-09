@@ -482,6 +482,8 @@ export async function evaluateLongMemEvalAnswerInstance(
     extractor?: LongMemEvalCompletionClient;
     extractionCharacters?: number;
     extractionMaxTokens?: number;
+    /** Show each retrieved session's matched extracted facts to the reader (default true). */
+    factsInContext?: boolean;
     /** Cut each assistant turn to this many characters before extraction (default: no cut). */
     extractionAssistantCharacters?: number;
   } = {},
@@ -736,9 +738,11 @@ export async function evaluateLongMemEvalAnswerInstance(
               opId: sourceSessionIds.get(source.opId) ?? source.opId,
               ts: source.ts,
               facts:
-                matchedFacts.get(
-                  sourceSessionIds.get(source.opId) ?? source.opId,
-                ) ?? [],
+                options.factsInContext === false
+                  ? []
+                  : (matchedFacts.get(
+                      sourceSessionIds.get(source.opId) ?? source.opId,
+                    ) ?? []),
               text:
                 contextRoles === 'user'
                   ? (userSourceText.get(source.opId) ?? source.text)

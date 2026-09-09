@@ -51,6 +51,7 @@ interface Args {
   extractionCharacters: number | undefined;
   extractionAssistantCharacters: number | undefined;
   extractionMaxTokens: number | undefined;
+  factsInContext: boolean;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -68,6 +69,7 @@ Options:
   --extraction-api-key <key>   Key for it (default: EXTRACTION_API_KEY, else MODAL_SERVE_API_KEY,
                          else LLM_API_KEY; prefer the environment, a flag shows in process lists)
   --extraction-characters <n>  Cut each session to n characters before extraction (default 16000)
+  --no-facts-in-context  Do not list a retrieved session's matched extracted facts to the reader
   --extraction-max-tokens <n>  Completion budget per extraction call (default 512; reasoning
                          models such as Luna spend it on thinking and need 4096 or more)
   --extraction-assistant-characters <n>  Keep only the first n characters of each assistant
@@ -141,6 +143,7 @@ function parseArgs(argv: string[]): Args {
     extractionCharacters: undefined,
     extractionAssistantCharacters: undefined,
     extractionMaxTokens: undefined,
+    factsInContext: true,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -258,6 +261,8 @@ function parseArgs(argv: string[]): Args {
       );
     } else if (arg === '--extraction-api-key') {
       args.extractionApiKey = requiredValue(argv, index++, arg);
+    } else if (arg === '--no-facts-in-context') {
+      args.factsInContext = false;
     } else if (arg === '--extraction-max-tokens') {
       args.extractionMaxTokens = Number(requiredValue(argv, index++, arg));
     } else if (arg === '--extraction-assistant-characters') {
@@ -389,6 +394,7 @@ async function main(): Promise<void> {
           ...(args.extractionMaxTokens === undefined
             ? {}
             : { extractionMaxTokens: args.extractionMaxTokens }),
+          factsInContext: args.factsInContext,
         },
       );
       completed++;
