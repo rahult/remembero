@@ -65,7 +65,14 @@ train_image = (
 serve_image = (
     modal.Image.debian_slim(python_version="3.12")
     .pip_install("vllm>=0.11", "huggingface_hub")
-    .env({"HF_HOME": f"{VOL}/hf", "VLLM_LOGGING_LEVEL": "WARNING"})
+    .env(
+        {
+            "HF_HOME": f"{VOL}/hf",
+            "VLLM_LOGGING_LEVEL": "WARNING",
+            # The slim image has no nvcc; FlashInfer's sampler JIT-compiles at startup and dies.
+            "VLLM_USE_FLASHINFER_SAMPLER": "0",
+        }
+    )
 )
 
 
@@ -165,7 +172,11 @@ def train(
         task_type="CAUSAL_LM",
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
     )
-    config = SFTConfig(
+    # transformers 5.x keeps renaming/removing TrainingArguments fields (warmup_ratio,
+    # group_by_length, ...); keep only the ones this SFTConfig accepts and say what was dropped.
+    import inspect
+
+    wanted = dict(
         output_dir=str(run_dir / "trainer"),
         num_train_epochs=epochs,
         learning_rate=lr,
@@ -190,7 +201,16 @@ def train(
         packing=False,
         # conversational prompt/completion rows: TRL puts the loss on the completion only
         completion_only_loss=True,
+        # Render prompts with the empty <think></think> block so the tokenized prompt is an
+        # exact prefix of prompt+completion (otherwise the template's trailing newline merges
+        # with the completion's and TRL warns on every row).
+        chat_template_kwargs={"enable_thinking": False},
     )
+    accepted = inspect.signature(SFTConfig.__init__).parameters
+    dropped = sorted(k for k in wanted if k not in accepted)
+    if dropped:
+        print(f"SFTConfig does not accept {dropped}; continuing without them")
+    config = SFTConfig(**{k: v for k, v in wanted.items() if k in accepted})
     from transformers import TrainerCallback
 
     class CommitVolume(TrainerCallback):
@@ -219,11 +239,19 @@ def train(
     if eval_ds is not None:
         evaluation = trainer.evaluate()
         metrics["heldout_loss"] = evaluation.get("eval_loss")
-    metrics["train_loss"] = trainer.state.log_history[-1].get("train_loss") if trainer.state.log_history else None
-    metrics["train_tokens_estimate"] = sum(
-        len(tokenizer.apply_chat_template([*r["prompt"], *r["completion"]], tokenize=True))
-        for r in train_rows[:200]
-    ) * len(train_rows) // max(len(train_rows[:200]), 1)
+    # log_history ends with the eval entry; the train summary is the last entry that has train_loss
+    metrics["train_loss"] = next(
+        (h["train_loss"] for h in reversed(trainer.state.log_history) if "train_loss" in h), None
+    )
+    metrics["final_step_loss"] = next(
+        (h["loss"] for h in reversed(trainer.state.log_history) if "loss" in h), None
+    )
+    sample = train_rows[:200]
+    sample_tokens = sum(
+        len(tokenizer(tokenizer.apply_chat_template([*r["prompt"], *r["completion"]], tokenize=False))["input_ids"])
+        for r in sample
+    )
+    metrics["train_tokens_estimate"] = sample_tokens * len(train_rows) // max(len(sample), 1)
 
     adapter_dir = run_dir / "adapter"
     trainer.model.save_pretrained(str(adapter_dir))
@@ -270,6 +298,8 @@ def serve() -> None:
         str(merged),
         "--served-model-name",
         SERVED_MODEL_NAME,
+        # run-specific alias so benchmark result files name the run, like the Tinker proxy did
+        f"finetune/{BASE_MODEL.split('/')[-1].lower()}-{run}-modal",
         "--host",
         "0.0.0.0",
         "--port",
@@ -284,6 +314,10 @@ def serve() -> None:
         # everything up to </think> into reasoning_content so the harness sees only the answer.
         "--reasoning-parser",
         "qwen3",
+        # Render the empty <think></think> block the training rows carried, so the prompt is
+        # the exact token prefix the model was trained on and it answers without deliberating.
+        "--default-chat-template-kwargs",
+        json.dumps({"enable_thinking": False}),
     ]
     subprocess.Popen(cmd)
 
