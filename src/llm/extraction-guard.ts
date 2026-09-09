@@ -159,8 +159,8 @@ export function rewriteSelfAtomsInGoals(
  */
 export function canonicalAtomValue(value: string): string {
   if (/^[A-Z][a-z]+$/.test(value)) return value.toLowerCase();
-  if (/^[a-z][a-z0-9]*( [a-z][a-z0-9]*)+$/.test(value))
-    return value.replaceAll(' ', '_');
+  if (/^[a-z][a-z0-9]*([ -][a-z][a-z0-9]*)+$/.test(value))
+    return value.replaceAll(/[ -]/g, '_');
   return value;
 }
 

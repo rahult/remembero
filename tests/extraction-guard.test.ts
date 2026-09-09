@@ -108,12 +108,13 @@ describe('canonicalizeAtoms: the quoting convention is enforced, not hoped for',
     const { canonicalizeAtoms } =
       await import('../src/llm/extraction-guard.js');
     const clauses = parseProgram(
-      "lives_in('Toronto', x). reports_to(user, 'Liam'). on_call_for(tom, 'api gateway'). works_at(ava, 'ACME Corp'). speaks(ava, 'Mandarin Chinese'). team(x, 'API'). city(x, 'New York').",
+      "lives_in('Toronto', x). reports_to(user, 'Liam'). on_call_for(tom, 'api gateway'). works_on(dana, 'check-out'). works_at(ava, 'ACME Corp'). speaks(ava, 'Mandarin Chinese'). team(x, 'API'). city(x, 'New York').",
     );
     expect(canonicalizeAtoms(clauses).map(serializeClause)).toEqual([
       'lives_in(toronto, x).',
       'reports_to(user, liam).',
       'on_call_for(tom, api_gateway).',
+      'works_on(dana, check_out).',
       "works_at(ava, 'ACME Corp').",
       "speaks(ava, 'Mandarin Chinese').",
       "team(x, 'API').",
