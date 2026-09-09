@@ -1,6 +1,6 @@
 {
   "seed": 7,
-  "generatedAt": "2026-09-09T12:44:29.106Z",
+  "generatedAt": "2026-09-09T13:57:15.235Z",
   "worlds": 60,
   "heldoutWorlds": [
     "world-7055",
@@ -10,8 +10,8 @@
     "world-7059",
     "world-7060"
   ],
-  "train": 21831,
-  "heldout": 1942,
+  "train": 22144,
+  "heldout": 1971,
   "byCategory": {
     "absence": 675,
     "chain-filter": 945,
@@ -38,20 +38,21 @@
     "extraction"
   ],
   "extraction": {
-    "count": 2477,
+    "count": 2819,
     "byKind": {
       "state": 179,
       "first_person": 180,
       "supersession": 180,
       "negation": 180,
       "hedge": 180,
-      "normalization": 179,
-      "date_number": 527,
-      "quoted_name": 171,
+      "normalization": 177,
+      "date_number": 524,
+      "quoted_name": 176,
       "implicit_subject": 180,
       "transcript": 178,
-      "distractor": 180,
-      "coreference": 163
+      "event": 358,
+      "distractor": 178,
+      "coreference": 149
     }
   }
 }
