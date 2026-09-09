@@ -46,6 +46,8 @@ export interface RunOptions {
   tasks?: TrainingTask[];
   /** Self atom used in extraction examples (default 'user'). */
   selfAtom?: string;
+  /** Extraction examples attempted per kind per world (default 2; each is one rendering call). */
+  extractionPerKind?: number;
   /** Target number of verified templated examples before paraphrasing (ignored when rounds is set). */
   examples: number;
   /** Draw exactly this many candidate rounds per world; keeps data size comparable across runs. */
@@ -107,7 +109,7 @@ async function extractionLines(
           world,
           createRng(options.seed * 104729 + world.seed),
           renderer,
-          { selfAtom, perKind: 2 },
+          { selfAtom, perKind: options.extractionPerKind ?? 2 },
         );
       }),
     );
@@ -260,6 +262,7 @@ if (invokedDirectly) {
     paraphrase: !process.argv.includes('--no-paraphrase'),
     tasks: flag('--tasks', 'query,extraction').split(',') as TrainingTask[],
     selfAtom: flag('--self', 'user'),
+    extractionPerKind: Number(flag('--extraction-per-kind', '2')),
   });
   console.log(JSON.stringify(manifest, null, 2));
 }

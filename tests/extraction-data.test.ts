@@ -19,7 +19,9 @@ const fakeRenderer: Renderer = async (request) => {
     let subj =
       request.firstPerson && subject === request.selfAtom
         ? 'I'
-        : display(subject);
+        : request.pluralAtom === subject
+          ? 'We'
+          : display(subject);
     if (request.pronoun && i > 0) subj = 'She';
     return `${subj} ${words} ${rest.map(display).join(' ')}.`;
   });
@@ -74,6 +76,8 @@ describe('extraction training data', () => {
       'normalization',
       'date_number',
       'quoted_name',
+      'implicit_subject',
+      'transcript',
     ]) {
       expect(kinds.has(kind as never), kind).toBe(true);
     }
@@ -117,10 +121,147 @@ describe('extraction training data', () => {
         }
       }
       if (example.kind === 'first_person') {
-        expect(example.expectedAdded.join(' ')).toContain('(rahul,');
-        expect(example.input).toMatch(/\bI\b/);
+        expect(example.expectedAdded.join(' ')).toContain('rahul');
+        expect(example.input).toMatch(/\b(I|my|me)\b/i);
+      }
+      if (example.kind === 'implicit_subject') {
+        // the subject is a generic noun (team, project, service); it is either in the
+        // text or spoken as "we"/"our"; no world entity is involved
+        expect(example.expectedAdded.length).toBe(1);
+        const subject = example.expectedAdded[0].match(/\((\w+),/)![1];
+        expect(['team', 'project', 'service']).toContain(subject);
+        expect(
+          new RegExp(`\\b(${subject}|we|our)\\b`, 'i').test(example.input),
+        ).toBe(true);
+        for (const entity of world.entities)
+          expect(example.expectedAdded[0]).not.toContain(`(${entity},`);
+      }
+      if (example.kind === 'transcript') {
+        expect(example.mode).toBe('transcript');
+        expect(example.input).toMatch(/^USER: |^ASSISTANT: /m);
+        expect(example.input).toMatch(/\nASSISTANT: |^ASSISTANT: /);
+        expect(example.expectedRetract).toEqual([]);
+      } else {
+        expect(example.mode).toBe('text');
       }
     }
+  });
+
+  it('puts three-place schedule facts into state examples so argument order is learned', async () => {
+    let seen = false;
+    for (let seed = 1; seed <= 6 && !seen; seed += 1) {
+      const world = generateWorld(seed);
+      const examples = await generateExtractionExamples(
+        world,
+        createRng(seed),
+        fakeRenderer,
+        { selfAtom: 'rahul', perKind: 3 },
+      );
+      seen = examples.some(
+        (e) =>
+          e.kind === 'state' &&
+          e.expectedAdded.some((f) => f.split(',').length === 3),
+      );
+    }
+    expect(seen).toBe(true);
+  });
+
+  it('writes some first-person examples over relations ("my manager is ..."), not only attributes', async () => {
+    let relational = false;
+    for (let seed = 1; seed <= 6 && !relational; seed += 1) {
+      const world = generateWorld(seed);
+      const attributes = new Set(
+        world.relations
+          .filter((r) => r.kind === 'attribute')
+          .map((r) => r.name),
+      );
+      const examples = await generateExtractionExamples(
+        world,
+        createRng(seed),
+        fakeRenderer,
+        { selfAtom: 'rahul', perKind: 3 },
+      );
+      relational = examples.some(
+        (e) =>
+          e.kind === 'first_person' &&
+          !attributes.has(
+            e.expectedAdded[0].slice(0, e.expectedAdded[0].indexOf('(')),
+          ),
+      );
+    }
+    expect(relational).toBe(true);
+  });
+
+  it('transcript examples never store what only the assistant said', async () => {
+    const world = generateWorld(4);
+    const examples = await generateExtractionExamples(
+      world,
+      createRng(4),
+      fakeRenderer,
+      { selfAtom: 'rahul', perKind: 3 },
+    );
+    const transcripts = examples.filter((e) => e.kind === 'transcript');
+    expect(transcripts.length).toBeGreaterThan(0);
+    // at least one transcript has an assistant turn that states a fact (a guess or a
+    // summary) and that fact is absent from the gold
+    const withGuess = transcripts.filter((e) =>
+      /ASSISTANT: (It looks like|I assume|Summary|Just to confirm)/.test(
+        e.input,
+      ),
+    );
+    expect(withGuess.length).toBeGreaterThan(0);
+    for (const e of transcripts) {
+      const userText = e.input
+        .split(/\n\n/)
+        .filter((turn) => turn.startsWith('USER: '))
+        .join(' ')
+        .toLowerCase();
+      for (const fact of e.expectedAdded) {
+        // every gold constant other than the self atom is in a USER turn (or confirmed there)
+        const constants = fact
+          .slice(fact.indexOf('(') + 1, fact.lastIndexOf(')'))
+          .split(',')
+          .map((c) => c.trim().replace(/'/g, ''))
+          .filter((c) => c !== 'rahul');
+        const confirmed = /USER: Yes/.test(e.input);
+        if (!confirmed)
+          for (const c of constants)
+            expect(userText.replace(/[^a-z0-9]+/g, ''), e.input).toContain(
+              c.toLowerCase().replace(/[^a-z0-9]+/g, ''),
+            );
+      }
+    }
+  });
+
+  it('exports transcript examples with the transcript prompt and additive facts only', () => {
+    const world = generateWorld(3);
+    const conversation = toExtractionConversation(
+      world,
+      {
+        world: world.id,
+        kind: 'transcript',
+        input: 'USER: I work at Acme.\n\nASSISTANT: Noted.',
+        initialProgram: 'works_at(zoe, globex).',
+        expectedAdded: ['works_at(rahul, acme).'],
+        expectedRetract: [],
+        mode: 'transcript',
+      },
+      'rahul',
+    );
+    expect(conversation.messages[0].content).toContain('transcript');
+    expect(conversation.messages[0].content).not.toContain('retract works_at');
+    expect(conversation.messages[2].content).toBe('works_at(rahul, acme).');
+  });
+
+  it('verifyRendering exempts the plural atom spoken as "we"', () => {
+    const world = generateWorld(2);
+    const facts = parseProgram('deploy_day(team, friday).');
+    expect(verifyRendering('We deploy on Friday.', facts, world, 'user')).toBe(
+      false,
+    );
+    expect(
+      verifyRendering('We deploy on Friday.', facts, world, 'user', 'team'),
+    ).toBe(true);
   });
 
   it('capitalizes single-word attribute values too, since companies and cities are proper nouns in English', async () => {
@@ -133,9 +274,9 @@ describe('extraction training data', () => {
         fakeRenderer,
         { selfAtom: 'rahul' },
       );
-      // some state example shows a capitalized value that is not a world entity (an attribute value)
+      // some attribute example shows a capitalized value that is not a world entity
       valueCapitalized = examples
-        .filter((e) => e.kind === 'state')
+        .filter((e) => e.kind === 'state' || e.kind === 'supersession')
         .some((e) => {
           const caps = e.input.match(/\b[A-Z][a-z]+\b/g) ?? [];
           return caps.some(

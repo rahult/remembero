@@ -16,12 +16,20 @@
  *   negation       "no longer" / "does not": nothing is added
  *   hedge          "might" / "maybe": nothing is added
  *   distractor     facts inside irrelevant prose
+ *   coreference    two facts, the second sentence pronominal
+ *   normalization  "DB Primary" in the text, db_primary in the fact
+ *   date_number    numeric and date-valued facts
+ *   quoted_name    a multi-word name the schema does not know, stored quoted
+ *   implicit_subject  no named entity: "the team has 7 people" / "we deploy on Fridays"
+ *                  -> headcount(team, 7) / deploy_day(team, friday)
+ *   transcript     USER/ASSISTANT turns; only what the user states or confirms is stored
  */
 import { type Clause, parseProgram, serializeClause } from '../engine/index.js';
 import {
   NOTHING_SENTINEL,
   buildSchemaSummary,
   extractionSystemPrompt,
+  transcriptExtractionSystemPrompt,
 } from '../llm/prompts.js';
 import type { Rng } from './rng.js';
 import {
@@ -41,7 +49,9 @@ export type ExtractionKind =
   | 'coreference'
   | 'normalization'
   | 'date_number'
-  | 'quoted_name';
+  | 'quoted_name'
+  | 'implicit_subject'
+  | 'transcript';
 
 export interface FactSpec {
   predicate: string;
@@ -61,6 +71,8 @@ export interface RenderRequest {
   pronoun?: boolean;
   /** How to write particular constants in the text (atom -> display form). */
   display?: Record<string, string>;
+  /** First person plural: this atom is the speaker's own group, spoken as we/our, never by name. */
+  pluralAtom?: string;
 }
 
 export type Renderer = (request: RenderRequest) => Promise<string>;
@@ -74,7 +86,8 @@ export interface ExtractionExample {
   expectedAdded: string[];
   /** Retraction patterns, without the `retract` keyword or trailing period. */
   expectedRetract: string[];
-  mode: 'text';
+  /** 'transcript' inputs are USER:/ASSISTANT: turns and use the transcript prompt. */
+  mode: 'text' | 'transcript';
 }
 
 /** Multi-word names that exist in no world: stored quoted, capitals kept. */
@@ -136,6 +149,93 @@ const LOWERCASE_VALUES = new Set([
   'pci',
 ]);
 
+/**
+ * Facts about a generic, unnamed subject. English states these without naming an
+ * entity ("the team has seven people", "our deadline is ..."), and the right fact
+ * uses the generic noun as its subject, not a name borrowed from the schema.
+ */
+const IMPLICIT_SUBJECT_FACTS: Array<{
+  predicate: string;
+  subject: 'team' | 'project' | 'service';
+  argNames: [string, string];
+  value: (rng: Rng) => string;
+  seedValue: string;
+}> = [
+  {
+    predicate: 'headcount',
+    subject: 'team',
+    argNames: ['Team', 'NumberOfPeople'],
+    value: (rng) => String(3 + rng.int(40)),
+    seedValue: '12',
+  },
+  {
+    predicate: 'deploy_day',
+    subject: 'team',
+    argNames: ['Team', 'Day'],
+    value: (rng) =>
+      rng.pick(['monday', 'tuesday', 'wednesday', 'thursday', 'friday']),
+    seedValue: 'tuesday',
+  },
+  {
+    predicate: 'standup_time',
+    subject: 'team',
+    argNames: ['Team', 'Time'],
+    value: (rng) => `'${rng.pick(['9:00', '9:30', '10:15', '14:00'])}'`,
+    seedValue: "'8:45'",
+  },
+  {
+    predicate: 'deadline',
+    subject: 'project',
+    argNames: ['Project', 'Date'],
+    value: (rng) =>
+      `'${2025 + rng.int(3)}-${String(1 + rng.int(12)).padStart(2, '0')}-${String(1 + rng.int(28)).padStart(2, '0')}'`,
+    seedValue: "'2024-11-30'",
+  },
+  {
+    predicate: 'budget_dollars',
+    subject: 'project',
+    argNames: ['Project', 'Dollars'],
+    value: (rng) => String((5 + rng.int(60)) * 10000),
+    seedValue: '80000',
+  },
+  {
+    predicate: 'sla_uptime_percent',
+    subject: 'service',
+    argNames: ['Service', 'Percent'],
+    value: (rng) => rng.pick(['99.5', '99.9', '99.95', '99.99']),
+    seedValue: '99.0',
+  },
+  {
+    predicate: 'runs_node_version',
+    subject: 'service',
+    argNames: ['Service', 'NodeMajorVersion'],
+    value: (rng) => String(rng.pick([18, 20, 22, 24])),
+    seedValue: '16',
+  },
+];
+
+const ASSISTANT_ACKS = [
+  'Got it. Shall I look at anything else?',
+  'Noted.',
+  "Understood, I'll keep that in mind.",
+  'Thanks, that helps.',
+];
+
+const ASSISTANT_TOOL_OUTPUT = [
+  '$ npm test\n47 passed, 2 failed (auth.test.ts, cache.test.ts)',
+  '$ git status\nOn branch main\nnothing to commit, working tree clean',
+  'Error: ECONNREFUSED 127.0.0.1:5432\n    at TCPConnectWrap.afterConnect',
+];
+
+const CODE_FENCE = '```';
+
+const USER_TASKS = [
+  'Can you check why the build is red?',
+  'Run the tests.',
+  'Summarise what we did.',
+  'Please rename the helper and rerun lint.',
+];
+
 const NOISE = [
   'Long week, mostly meetings and a flaky CI pipeline that kept timing out.',
   'Quick note before I forget the rest of the day.',
@@ -153,7 +253,9 @@ export function renderRequestText(request: RenderRequest): string {
   });
   const voice = request.firstPerson
     ? `Write in the first person: the entity "${request.selfAtom}" is the speaker, so refer to it as I / me / my and never by name.`
-    : 'Write in the third person, naming the entities exactly as given.';
+    : request.pluralAtom
+      ? `Write in the first person plural: the entity "${request.pluralAtom}" is the speaker's own group, so refer to it as we / our / us and never by name.`
+      : 'Write in the third person, naming the entities exactly as given.';
   const polarity = request.negated
     ? 'State that these facts are NO LONGER true or are NOT the case (use "no longer", "does not", "never"), so a careful reader would store nothing new.'
     : request.hedged
@@ -217,6 +319,7 @@ export function verifyRendering(
   facts: Clause[],
   world: World,
   selfAtom: string,
+  pluralAtom?: string,
 ): boolean {
   const tokens = looseTokens(text);
   const constants = new Set<string>();
@@ -227,7 +330,7 @@ export function verifyRendering(
     }
   }
   for (const constant of constants) {
-    if (constant === selfAtom) continue;
+    if (constant === selfAtom || constant === pluralAtom) continue;
     if (!mentioned(constant, text, tokens)) return false;
   }
   for (const entity of world.entities) {
@@ -246,6 +349,11 @@ function factSpec(clause: Clause): FactSpec {
 
 function factText(predicate: string, args: readonly string[]): string {
   return `${predicate}(${args.join(', ')}).`;
+}
+
+/** "Mira works at Acme." -> "mira works at Acme." for splicing after a lead-in; names stay as rendered otherwise. */
+function lowerFirst(text: string): string {
+  return text.charAt(0).toLowerCase() + text.slice(1);
 }
 
 function edgeRelations(world: World): Relation[] {
@@ -307,13 +415,12 @@ export async function generateExtractionExamples(
       (c) => c.head.predicate === relation.name && c.body.length === 0,
     );
 
-  const attempt = async (
-    kind: ExtractionKind,
+  /** Render facts and keep the text only if it states exactly them; returns the text. */
+  const renderVerified = async (
     facts: Clause[],
     relation: Relation,
     request: Omit<RenderRequest, 'facts' | 'argNames' | 'selfAtom'>,
-    expected: { added: string[]; retract: string[]; initial: string[] },
-  ) => {
+  ): Promise<string | undefined> => {
     const { distractor, ...renderRequest } = request;
     // English capitalizes names. Unless the request already fixes display forms,
     // show single-word entity atoms capitalized most of the time so the model
@@ -349,7 +456,28 @@ export async function generateExtractionExamples(
     // renderer never used, and 120 "distractor" examples were plain facts.
     const text =
       distractor === undefined ? rendered : `${distractor}${rendered}`;
-    if (!verifyRendering(text, facts, world, options.selfAtom)) return;
+    if (
+      !verifyRendering(
+        text,
+        facts,
+        world,
+        options.selfAtom,
+        renderRequest.pluralAtom,
+      )
+    )
+      return undefined;
+    return text;
+  };
+
+  const attempt = async (
+    kind: ExtractionKind,
+    facts: Clause[],
+    relation: Relation,
+    request: Omit<RenderRequest, 'facts' | 'argNames' | 'selfAtom'>,
+    expected: { added: string[]; retract: string[]; initial: string[] },
+  ) => {
+    const text = await renderVerified(facts, relation, request);
+    if (text === undefined) return;
     out.push({
       world: world.id,
       kind,
@@ -361,8 +489,20 @@ export async function generateExtractionExamples(
     });
   };
 
-  const pool = [...attributes, ...edges];
+  // schedules are three-place, so the model sees argument order beyond subject/value
+  const schedules = relationsOfKind(world, 'schedule');
+  const pool = [...attributes, ...edges, ...schedules];
   if (pool.length === 0) return out;
+  const groups = relationsOfKind(world, 'membership');
+  const groupNames = groups[0]
+    ? [
+        ...new Set(
+          factsOf(groups[0]).map((c) =>
+            String((c.head.args[1] as { value: string }).value),
+          ),
+        ),
+      ]
+    : [];
 
   for (let i = 0; i < perKind; i += 1) {
     // state: 1–3 facts from one relation about one or two entities
@@ -387,23 +527,33 @@ export async function generateExtractionExamples(
       );
     }
 
-    // first_person: rewrite one attribute fact's subject to the self atom
+    // first_person: the self atom takes the Person slot of an attribute ("I prefer
+    // early") or, half the time, of a relation ("my manager is Dana"), so possessives
+    // and relations are learned alongside plain attributes
     const attr = attributes.length > 0 ? rng.pick(attributes) : undefined;
-    if (attr) {
-      const sample = rng.pick(factsOf(attr));
-      const value = String((sample.head.args[1] as { value: string }).value);
-      const fact = parseProgram(
-        factText(attr.name, [options.selfAtom, value]),
-      )[0];
+    const personEdges = edges.filter((r) => r.args.includes('Person'));
+    const useEdge = personEdges.length > 0 && rng.next() < 0.5;
+    const fpRelation = useEdge ? rng.pick(personEdges) : attr;
+    if (fpRelation && factsOf(fpRelation).length > 0) {
+      const sample = rng.pick(factsOf(fpRelation));
+      const slot = useEdge ? fpRelation.args.indexOf('Person') : 0;
+      const args = sample.head.args.map((t, i) =>
+        i === slot ? options.selfAtom : String((t as { value: string }).value),
+      );
+      const fact = parseProgram(factText(fpRelation.name, args))[0];
       await attempt(
         'first_person',
         [fact],
-        attr,
+        fpRelation,
         { firstPerson: true, negated: false, hedged: false },
         {
           added: [serializeClause(fact)],
           retract: [],
-          initial: schemaSeed(world, [attr.name], new Set([options.selfAtom])),
+          initial: schemaSeed(
+            world,
+            [fpRelation.name],
+            new Set([options.selfAtom]),
+          ),
         },
       );
     }
@@ -560,17 +710,7 @@ export async function generateExtractionExamples(
 
     // date_number: numeric and date-valued relations seeded into the schema
     {
-      const groups = relationsOfKind(world, 'membership');
       const group = groups[0];
-      const groupNames = group
-        ? [
-            ...new Set(
-              factsOf(group).map((c) =>
-                String((c.head.args[1] as { value: string }).value),
-              ),
-            ),
-          ]
-        : [];
       if (groupNames.length > 1) {
         const [target, ...others] = rng.shuffle(groupNames);
         const count = 3 + rng.int(40);
@@ -684,6 +824,172 @@ export async function generateExtractionExamples(
       );
     }
 
+    // implicit_subject: a generic noun is the subject. Rendered either as "the team"/
+    // "our project" (the noun is in the text) or, for the team, as plain "we" (the noun
+    // is not in the text and the model must still write team). The schema seed shows
+    // the predicate on a named group so that borrowing that name is the tempting error.
+    {
+      const spec = rng.pick(IMPLICIT_SUBJECT_FACTS);
+      const value = spec.value(rng);
+      const fact = parseProgram(
+        factText(spec.predicate, [spec.subject, value]),
+      )[0];
+      const relation: Relation = {
+        name: spec.predicate,
+        kind: 'attribute',
+        args: [...spec.argNames],
+      };
+      const plural = spec.subject === 'team' && rng.next() < 0.5;
+      const seedSubject =
+        groupNames.length > 0 ? rng.pick(groupNames) : 'onboarding';
+      await attempt(
+        'implicit_subject',
+        [fact],
+        relation,
+        plural
+          ? {
+              firstPerson: false,
+              negated: false,
+              hedged: false,
+              pluralAtom: 'team',
+            }
+          : {
+              firstPerson: false,
+              negated: false,
+              hedged: false,
+              display: {
+                [spec.subject]: rng.pick([
+                  `the ${spec.subject}`,
+                  `our ${spec.subject}`,
+                  `my ${spec.subject}`,
+                ]),
+              },
+            },
+        {
+          added: [serializeClause(fact)],
+          retract: [],
+          initial: [`${spec.predicate}(${seedSubject}, ${spec.seedValue}).`],
+        },
+      );
+    }
+
+    // transcript: the user's sentence is one turn among assistant turns that contain
+    // acknowledgements, guesses, summaries or tool output. Only the user's facts (or a
+    // fact the user explicitly confirms) are gold. Each piece is verified on its own.
+    {
+      const relation = rng.pick(pool);
+      const facts = rng.shuffle(factsOf(relation)).slice(0, 1 + rng.int(2));
+      const guessRelation = rng.pick(pool);
+      const guessFact = rng.pick(factsOf(guessRelation));
+      if (facts.length > 0 && guessFact) {
+        const speaker = rng.next() < 0.4 && attr ? 'first' : 'third';
+        let userFacts = facts;
+        let userRelation = relation;
+        if (speaker === 'first' && attr && factsOf(attr).length > 0) {
+          const sample = rng.pick(factsOf(attr));
+          userRelation = attr;
+          userFacts = [
+            parseProgram(
+              factText(attr.name, [
+                options.selfAtom,
+                String((sample.head.args[1] as { value: string }).value),
+              ]),
+            )[0],
+          ];
+        }
+        const userText = await renderVerified(userFacts, userRelation, {
+          firstPerson: speaker === 'first',
+          negated: false,
+          hedged: false,
+        });
+        const guessText = await renderVerified([guessFact], guessRelation, {
+          firstPerson: false,
+          negated: false,
+          hedged: false,
+        });
+        if (userText !== undefined && guessText !== undefined) {
+          const subjects = new Set(
+            userFacts.map((c) =>
+              String((c.head.args[0] as { value: string }).value),
+            ),
+          );
+          const initial = [
+            ...schemaSeed(world, [userRelation.name], subjects),
+            ...schemaSeed(
+              world,
+              [guessRelation.name],
+              new Set([
+                String((guessFact.head.args[0] as { value: string }).value),
+              ]),
+            ),
+          ];
+          const variant = rng.pick([
+            'ack',
+            'guess',
+            'summary',
+            'tool',
+            'confirm',
+            'code',
+          ] as const);
+          const turns: string[] = [];
+          let added = userFacts.map(serializeClause);
+          switch (variant) {
+            case 'ack':
+              turns.push(
+                `USER: ${userText}`,
+                `ASSISTANT: ${rng.pick(ASSISTANT_ACKS)}`,
+              );
+              break;
+            case 'guess':
+              // the assistant states a fact nobody confirmed; the user only asks for work
+              turns.push(
+                `USER: ${rng.pick(USER_TASKS)}`,
+                `ASSISTANT: ${rng.pick(['It looks like', 'I assume'])} ${lowerFirst(guessText)}`,
+              );
+              added = [];
+              break;
+            case 'summary':
+              turns.push(
+                `USER: ${userText}`,
+                `ASSISTANT: ${rng.pick(ASSISTANT_ACKS)}`,
+                'USER: Summarise what we did.',
+                `ASSISTANT: Summary of the session: ${lowerFirst(guessText)}`,
+              );
+              break;
+            case 'tool':
+              turns.push(
+                `USER: ${rng.pick(USER_TASKS)} ${userText}`,
+                `ASSISTANT: ${rng.pick(ASSISTANT_TOOL_OUTPUT)}`,
+              );
+              break;
+            case 'confirm':
+              // the user confirms the assistant's statement, which makes it the user's
+              turns.push(
+                `ASSISTANT: Just to confirm: ${lowerFirst(guessText)}`,
+                `USER: Yes, that's right.`,
+              );
+              added = [serializeClause(guessFact)];
+              break;
+            case 'code':
+              turns.push(
+                `USER: Here is the failing snippet:\n${CODE_FENCE}ts\nconst rows = await db.query(sql);\n${CODE_FENCE}\nBy the way, ${lowerFirst(userText)}`,
+                `ASSISTANT: ${rng.pick(ASSISTANT_ACKS)}`,
+              );
+              break;
+          }
+          out.push({
+            world: world.id,
+            kind: 'transcript',
+            input: turns.join('\n\n'),
+            initialProgram: initial.join('\n'),
+            expectedAdded: added,
+            expectedRetract: [],
+            mode: 'transcript',
+          });
+        }
+      }
+    }
+
     // distractor: one real fact preceded by noise prose
     const rel2 = rng.pick(pool);
     const real = factsOf(rel2);
@@ -723,16 +1029,23 @@ export function toExtractionConversation(
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
 } {
   const schema = buildSchemaSummary(parseProgram(example.initialProgram));
-  const answer = [
-    ...example.expectedRetract.map((pattern) => `retract ${pattern}.`),
-    ...example.expectedAdded,
-  ];
+  // transcript capture is additive: the transcript prompt forbids retract lines
+  const answer =
+    example.mode === 'transcript'
+      ? example.expectedAdded
+      : [
+          ...example.expectedRetract.map((pattern) => `retract ${pattern}.`),
+          ...example.expectedAdded,
+        ];
   void world;
   return {
     messages: [
       {
         role: 'system',
-        content: extractionSystemPrompt(schema, 'accepted', selfAtom),
+        content:
+          example.mode === 'transcript'
+            ? transcriptExtractionSystemPrompt(schema, selfAtom)
+            : extractionSystemPrompt(schema, 'accepted', selfAtom),
       },
       { role: 'user', content: example.input },
       {

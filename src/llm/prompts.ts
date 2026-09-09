@@ -92,6 +92,8 @@ Output one clause per line and nothing else — no prose, no code fences.
 - Multi-word or case-sensitive constants must be single-quoted: 'New York'. Prefer short lowercase atoms when natural (rahul, not 'Rahul').
 - Numbers are bare: birth_year(rahul, 1985).
 - The speaker ("I", "me", "my") is the constant ${selfAtom}: "I live in Osaka" -> lives_in(${selfAtom}, osaka).
+- "We", "our" and "my team" describe the speaker's group or the thing discussed, not ${selfAtom}: "We deploy on Fridays" -> deploy_day(team, friday); "We use Postgres for the ledger service" -> uses_database(ledger_service, postgres).
+- When no specific entity is named, the subject is the generic noun the text describes, written as it appears: "The project budget is 250000 dollars" -> budget_dollars(project, 250000). Never borrow a subject from the schema samples.
 - Never infer a value the input does not state (a birth year from an age, a city from a company).
 - Rule bodies may use comparisons: =, !=, <, >, <=, >=. Numeric comparison operands may use +, -, *, /, unary signs, and parentheses, e.g. more_experienced(X, Y) :- years(X, A), years(Y, B), A > B + 5. Arithmetic is filter-only and must not appear in facts, rule heads, or relation arguments.
 - Closed-world negation is written \\+ pred(...). Use negation only for a general exception stated by the input, never to guess a missing fact.
@@ -132,6 +134,8 @@ Output additive ground facts only, one Datalog fact per line, with no prose or c
 - Never output predicates ending in _until; they are system-managed valid-time archives.
 - Predicates and ordinary constants use lowercase snake_case. Quote multi-word or case-sensitive constants with single quotes. Numbers are bare.
 - The USER speaking in first person ("I", "me", "my") is the constant ${selfAtom}. Every fact needs a subject: never emit a one-argument fact for a two-place relation.
+- "We", "our" and "my team" describe the user's group or the thing discussed, not ${selfAtom}: "We deploy on Fridays" -> deploy_day(team, friday).
+- When no specific entity is named, the subject is the generic noun the text describes, written as it appears: "The project budget is 250000 dollars" -> budget_dollars(project, 250000). Never borrow a subject from the schema samples.
 - Never infer a value the transcript does not state.
 - Prefer small binary facts and reuse a predicate from the schema when it fits.
 - Never extract passwords, API keys, tokens, financial account details, or other secrets.

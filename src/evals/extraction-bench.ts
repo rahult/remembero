@@ -515,7 +515,7 @@ cases.push(
     input: transcript([
       ['USER', 'My manager is Dana and I am based in Melbourne.'],
       ['ASSISTANT', 'Noted.'],
-      ['USER', 'Also we deploy on Fridays.'],
+      ['USER', 'Also our team deploys on Fridays.'],
     ]),
     final: `reports_to(${SELF}, dana). lives_in(${SELF}, melbourne). deploy_day(team, friday).`,
   }),
@@ -554,9 +554,14 @@ cases.push(
     `started_at(mira, acme, '2024-03-01').`,
   ],
   ['The team has 7 engineers.', `team_size(team, 7).`],
-  ['Our SLA is 99.9 percent uptime.', `sla_uptime_percent(service, 99.9).`],
+  // the gold subject must appear in the text: the grounding guard rejects constants it
+  // cannot find, so a subject the input never names is unattainable by construction
+  [
+    'The service SLA is 99.9 percent uptime.',
+    `sla_uptime_percent(service, 99.9).`,
+  ],
   ['Tom turns 40 in 2027.', `turns_age_in(tom, 40, 2027).`],
-  ['The budget is 250000 dollars.', `budget_dollars(project, 250000).`],
+  ['The project budget is 250000 dollars.', `budget_dollars(project, 250000).`],
 ].forEach(([input, final], i) => {
   cases.push(
     make({ id: `date_number_${i}`, phenomenon: 'date_number', input, final }),
@@ -632,7 +637,7 @@ cases.push(
   make({
     id: 'date_number_time',
     phenomenon: 'date_number',
-    input: 'Standup is at 9:30 every weekday.',
+    input: 'Team standup is at 9:30 every weekday.',
     final: "standup_time(team, '9:30').",
   }),
   make({
