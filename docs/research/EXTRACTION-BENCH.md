@@ -267,20 +267,21 @@ single capitalized word becomes a lowercase atom and a quoted phrase of lowercas
 hyphenated words) becomes snake_case; multi-word proper names, acronyms, and anything with
 digits or punctuation stay quoted. Luna is unaffected by the guard (93.2% either way).
 
-| Qwen3.5-4B checkpoint | extraction (closed) | query-correct /31 | note                                   |
-| --------------------- | ------------------: | ----------------: | -------------------------------------- |
-| r11                   |               76.7% |                27 | r10 data, Modal                        |
-| r12                   |               87.4% |                27 | implicit subjects, transcripts, v1.1   |
-| r13                   |               91.3% |                28 | embedded facts, empty schemas, + guard |
-| r14                   |               88.3% |                27 | + event asides (best on LongMemEval)   |
-| openai/gpt-5.6-luna   |               93.2% |                29 | v1.1, same prompt and guards           |
+| Qwen3.5-4B checkpoint | extraction (closed) | query-correct /31 | note                                       |
+| --------------------- | ------------------: | ----------------: | ------------------------------------------ |
+| r11                   |               76.7% |                27 | r10 data, Modal                            |
+| r12                   |               87.4% |                27 | implicit subjects, transcripts, v1.1       |
+| r13                   |               91.3% |                28 | embedded facts, empty schemas, + guard     |
+| r14                   |               88.3% |                27 | + event asides (most facts on LongMemEval) |
+| openai/gpt-5.6-luna   |               93.2% |                29 | v1.1, same prompt and guards               |
 
 Round 14 added the event kind (first-person asides such as "by the way, I just got back
 from a three-day trip to Big Sur", half as text and half as transcripts) for the LongMemEval
 shape. On this benchmark it sits three cases under r13, inside the noise band, trading three
 fixes for a few argument-order swaps and one multi-word name written snake_case instead of
-quoted; on LongMemEval it is clearly the better extractor (see that document), so it is the
-served default.
+quoted; on LongMemEval it extracts facts from far more sessions than r13 (63% against 28%)
+and is the served default, though on the full development split hybrid formation with its
+facts matches raw retrieval on accuracy rather than beating it (see that document).
 
 The remaining nine r13 misses are one-offs: a dropped word (`dark` for `dark_mode`), a
 hallucinated fact from CI noise, a manager/report direction, two generic-subject choices

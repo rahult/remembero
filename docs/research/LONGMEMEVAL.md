@@ -300,31 +300,54 @@ returned no content on 533 of 2,841 calls and scored 32/48). It wrote 8,474 fact
 r14's 2,329, 71 were refused, and the extraction alone cost $2.35 for the slice; r14's cost
 is L4 time, about thirty cents.
 
-What this says, with the caveat that 48 questions make three answers about one standard
-error:
+### The full development split (261 questions)
 
-- **Hybrid beats raw, and the 4B fine-tune beats Luna at it.** Adding the small model's
-  facts to the raw memory lifted five answers (r14) and retrieval recall by 6.2 points, four
-  answers and 2.9 recall points more than Luna's facts managed; the gains are in preference and knowledge-update
-  questions, where a stored `prefers(user, …)` or the latest value matches the question's
-  words better than the transcript does.
+The slice suggested hybrid formation was worth five answers. Two runs of the same r14 extractor
+on the slice then agreed on retrieval in only 25 of 48 questions and differed by four answers,
+so the whole development split was run: raw, hybrid r14 with the retrieved sessions' matched
+facts listed to the reader under the session date, and hybrid r14 without them.
+
+| formation (dev, 261)        | accuracy    | recall | k-update | multi | ss-asst | ss-pref | ss-user | temporal |
+| --------------------------- | ----------- | ------ | -------- | ----- | ------- | ------- | ------- | -------- |
+| raw                         | **214/261** | 83.4%  | 37/44    | 50/69 | 26/28   | 11/15   | 38/39   | 52/66    |
+| hybrid r14, facts shown     | 211/261     | 85.2%  | 39/44    | 51/69 | 26/28   | 8/15    | 38/39   | 49/66    |
+| hybrid r14, facts not shown | 209/261     | 84.9%  | 39/44    | 48/69 | 27/28   | 9/15    | 37/39   | 49/66    |
+
+Hybrid gained 12 questions and lost 15 against raw; the standard error at this size is about
+six answers, so the two are indistinguishable on accuracy. Retrieval recall is up 1.5–1.8
+points, knowledge-update up two, multi-session up one, preference and temporal down three
+each. Listing the matched facts to the reader changed two answers, which is nothing. Each
+hybrid run made about 14,000 extraction calls, wrote about 12,200 facts from 8,300 of the
+12,500 sessions, and had 4.9% of calls refused or malformed; on the L4 that is about $2 of GPU
+time per run.
+
+What this says:
+
+- **On this benchmark, the product's extracted facts do not raise answer accuracy over raw
+  transcript retrieval, and they do raise retrieval recall.** The five-answer gain on the
+  48-question slice, and the four-answer lead over Luna as extractor there, were slice noise.
+  The Luna comparison has not been run on the full split (it would cost about $13 of Luna
+  extraction), so no claim about the 4B model beating the frontier model as an extractor
+  survives; the claim that survives is that it does the same job for a fraction of the cost.
+- **Where facts help and hurt is consistent across the slice and the split.** Knowledge
+  updates and multi-session counting improve, because a stored latest value or five
+  `bought(user, …)` facts match the question better than five transcripts do. Preference
+  and temporal questions lose: a preference answer needs the texture of the conversation,
+  not a `prefers(user, x)` fact, and the extra retrieved facts displace transcript context
+  the reader needed for dates.
 - **Facts alone are not enough for this benchmark, and never will be for two of its types.**
   Single-session-assistant questions ask what the assistant said, which the extraction
-  contract deliberately ignores; temporal questions need the session dates, which the
-  facts' `at` carries but the lexical reader path does not use. Extracted-only recall is
-  under half of raw's.
-- **Facts win where raw loses: aggregation.** Multi-session questions ("how many model kits
-  have I bought") went from 2/8 raw to 5/8 with r13's facts alone, because five
-  `bought(user, …)` facts across five sessions are retrievable together while five long
-  transcripts are not.
+  contract deliberately ignores; extracted-only recall on the slice was under half of raw's.
 - **The extractor was the bottleneck, and the data fixed most of it.** Probing r12 on the
   evidence sessions showed the misses were asides ("By the way, I just got back from a
   three-day trip to Big Sur") and an absent vocabulary for events. r13 (facts embedded in
-  long requests, empty schemas) doubled multi-session; r14 added an event kind for exactly
-  these asides and extracted facts from 63% of sessions instead of 28%, taking
-  extracted-only from 23 to 29 of 48 (recall 38% to 66%) and hybrid from 35 to 37, five
-  answers above raw. Round over round on the same slice: extracted-only 22 → 23 → 29,
-  hybrid 32 (raw) → 35 → 37.
+  long requests, empty schemas) and r14 (an event kind for exactly these asides) took
+  extraction from 28% to 63% of sessions and extracted-only from 22 to 29 of 48 on the slice.
+- **What would move the number.** Raw retrieval is already at 83% recall and the reader
+  answers 96% of questions whose evidence it sees, so the remaining loss is retrieval on
+  temporal and multi-session questions. Extracted facts help there only if the reader also
+  gets the transcript; the next experiment is hybrid retrieval that reserves top-k slots for
+  raw sessions and adds facts as extra context rather than competing for the same slots.
 
 ## Evidence boundary
 
