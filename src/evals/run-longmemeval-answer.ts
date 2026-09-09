@@ -50,6 +50,7 @@ interface Args {
   extractionApiKey: string | undefined;
   extractionCharacters: number | undefined;
   extractionAssistantCharacters: number | undefined;
+  extractionMaxTokens: number | undefined;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -67,6 +68,8 @@ Options:
   --extraction-api-key <key>   Key for it (default: EXTRACTION_API_KEY, else MODAL_SERVE_API_KEY,
                          else LLM_API_KEY; prefer the environment, a flag shows in process lists)
   --extraction-characters <n>  Cut each session to n characters before extraction (default 16000)
+  --extraction-max-tokens <n>  Completion budget per extraction call (default 512; reasoning
+                         models such as Luna spend it on thinking and need 4096 or more)
   --extraction-assistant-characters <n>  Keep only the first n characters of each assistant
                          turn in the extraction input (user turns stay whole; default: no cut)
   --top-k <count>        Retrieved sessions per question (default: 4)
@@ -137,6 +140,7 @@ function parseArgs(argv: string[]): Args {
     extractionApiKey: undefined,
     extractionCharacters: undefined,
     extractionAssistantCharacters: undefined,
+    extractionMaxTokens: undefined,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -254,6 +258,8 @@ function parseArgs(argv: string[]): Args {
       );
     } else if (arg === '--extraction-api-key') {
       args.extractionApiKey = requiredValue(argv, index++, arg);
+    } else if (arg === '--extraction-max-tokens') {
+      args.extractionMaxTokens = Number(requiredValue(argv, index++, arg));
     } else if (arg === '--extraction-assistant-characters') {
       args.extractionAssistantCharacters = Number(
         requiredValue(argv, index++, arg),
@@ -380,6 +386,9 @@ async function main(): Promise<void> {
                 extractionAssistantCharacters:
                   args.extractionAssistantCharacters,
               }),
+          ...(args.extractionMaxTokens === undefined
+            ? {}
+            : { extractionMaxTokens: args.extractionMaxTokens }),
         },
       );
       completed++;
