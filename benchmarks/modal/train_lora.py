@@ -59,7 +59,13 @@ train_image = (
         "sentencepiece",
         "protobuf",
     )
-    .env({"HF_HOME": f"{VOL}/hf", "TOKENIZERS_PARALLELISM": "false"})
+    .env(
+        {
+            "HF_HOME": f"{VOL}/hf",
+            "TOKENIZERS_PARALLELISM": "false",
+            "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
+        }
+    )
 )
 
 serve_image = (
@@ -194,8 +200,9 @@ def train(
         save_total_limit=1,
         eval_strategy="epoch" if eval_ds is not None else "no",
         report_to=[],
-        # Recompute activations only where memory is tight (24 GB cards); it costs ~30% speed.
-        gradient_checkpointing=TRAIN_GPU.upper().split(":")[0] in {"A10G", "A10", "L4", "T4"},
+        # Recompute activations everywhere: r13's long transcript examples (2k-token rows in
+        # batches of 8) ran an 80 GB H100 out of memory without it. Costs ~30% speed.
+        gradient_checkpointing=True,
         # Query and extraction prompts differ a lot in length; length-sorted batches cut padding.
         group_by_length=True,
         packing=False,
