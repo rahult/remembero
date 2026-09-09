@@ -12,7 +12,10 @@ import {
 } from '../llm/client.js';
 import { recallWords } from '../llm/schema.js';
 import { assertSafeForExternalLlm } from '../safety.js';
-import { searchKnowledge, type KnowledgeSearchResult } from '../knowledge/search.js';
+import {
+  searchKnowledge,
+  type KnowledgeSearchResult,
+} from '../knowledge/search.js';
 import {
   isRecommendationIntent,
   MemoryEmbeddingCache,
@@ -23,6 +26,7 @@ import {
   type SemanticKnowledgeSearchResult,
 } from '../knowledge/semantic-search.js';
 import type { EmbeddingClient, EmbeddingUsage } from '../llm/embeddings.js';
+import { rememberTranscriptText } from '../llm/pipeline.js';
 import { MemoryStore } from '../store/store.js';
 import {
   longMemEvalSessionText,
@@ -33,7 +37,8 @@ import {
   type LongMemEvalQuestionResult,
 } from './longmemeval.js';
 
-export const LONGMEMEVAL_ANSWER_VERSION = 'remembero.longmemeval-answer.v1' as const;
+export const LONGMEMEVAL_ANSWER_VERSION =
+  'remembero.longmemeval-answer.v1' as const;
 export const DEFAULT_LONGMEMEVAL_ANSWER_TOP_K = 4;
 export const DEFAULT_LONGMEMEVAL_MULTI_SESSION_TOP_K = 5;
 export const DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K = 5;
@@ -46,11 +51,37 @@ export const DEFAULT_LONGMEMEVAL_SEMANTIC_QUESTION_TYPES = new Set([
   'multi-session',
 ]);
 
+/**
+ * How haystack sessions become memory.
+ *   raw        one placeholder fact per session carrying the transcript as source text
+ *              (the pipeline's original form: retrieval is lexical over the raw text)
+ *   extracted  the product's transcript extraction runs on every session; only the
+ *              facts it writes exist, so a session with no facts is unretrievable
+ *   hybrid     both: the placeholder keeps every session retrievable and the extracted
+ *              facts add predicate/constant text for retrieval to match
+ */
+export type LongMemEvalFormation = 'raw' | 'extracted' | 'hybrid';
+export const LONGMEMEVAL_FORMATION_LABELS = {
+  raw: 'durable-raw-session-facts',
+  extracted: 'extracted-transcript-facts',
+  hybrid: 'raw-session-facts-plus-extracted',
+} as const;
+/** Sessions longer than this are cut before extraction (the served model has a context limit). */
+export const DEFAULT_LONGMEMEVAL_EXTRACTION_CHARACTERS = 16_000;
+
+export interface LongMemEvalExtractionStats {
+  calls: number;
+  sessionsWithFacts: number;
+  facts: number;
+  errors: number;
+  usage: LlmUsage | null;
+}
+
 export interface LongMemEvalCompletionClient {
   readonly model: string;
   completeWithUsage(
     messages: ChatMessage[],
-    options?: { maxTokens?: number }
+    options?: { maxTokens?: number },
   ): Promise<LlmCompletion>;
 }
 
@@ -76,6 +107,8 @@ export interface LongMemEvalAnswerObservation {
   judgeResponse: string | null;
   readerUsage: LlmUsage | null;
   judgeUsage: LlmUsage | null;
+  /** Present when formation ran the product extraction. */
+  extraction?: LongMemEvalExtractionStats;
   formationMs: number;
   semanticPreparationMs: number;
   retrievalMs: number;
@@ -115,6 +148,11 @@ export interface LongMemEvalAnswerSummary {
   p95UserTurnMs: number;
   readerUsage: LlmUsageTotals;
   judgeUsage: LlmUsageTotals;
+  extractionUsage: LlmUsageTotals & {
+    sessionsWithFacts: number;
+    facts: number;
+    errors: number;
+  };
   embeddingUsage: {
     calls: number;
     promptTokens: number;
@@ -145,8 +183,10 @@ export interface LongMemEvalAnswerRun {
   judgeModel: string;
   embeddingModel: string | null;
   judgeProtocol: 'longmemeval-official-compatible-v1';
-  formation: 'durable-raw-session-facts';
-  retrieval: 'remembero-local-source-search' | 'remembero-adaptive-source-search';
+  formation: (typeof LONGMEMEVAL_FORMATION_LABELS)[LongMemEvalFormation];
+  extractionModel: string | null;
+  retrieval:
+    'remembero-local-source-search' | 'remembero-adaptive-source-search';
   answerContextPolicy: 'user-turns-except-assistant-memory';
   semanticQuestionTypes: string[];
   multiSessionSemanticMaximumLexicalScore: number;
@@ -169,7 +209,7 @@ function mean(values: readonly number[]): number {
 
 function mergeEmbeddingUsage(
   left: EmbeddingUsage | null,
-  right: EmbeddingUsage
+  right: EmbeddingUsage,
 ): EmbeddingUsage {
   const add = (a: number | null | undefined, b: number | null) =>
     a === null && b === null ? null : (a ?? 0) + (b ?? 0);
@@ -192,7 +232,8 @@ function boundedUtf8(value: string, maxBytes: number): string {
   let high = value.length;
   while (low < high) {
     const middle = Math.ceil((low + high) / 2);
-    if (Buffer.byteLength(value.slice(0, middle), 'utf8') <= maxBytes) low = middle;
+    if (Buffer.byteLength(value.slice(0, middle), 'utf8') <= maxBytes)
+      low = middle;
     else high = middle - 1;
   }
   return value.slice(0, low);
@@ -202,30 +243,42 @@ function sourceWindow(
   text: string,
   question: string,
   maxBytes: number,
-  focusCharacterOffset?: number
+  focusCharacterOffset?: number,
 ): string {
   const boundedSource = text.slice(0, LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS);
-  if (Buffer.byteLength(boundedSource, 'utf8') <= maxBytes) return boundedSource;
+  if (Buffer.byteLength(boundedSource, 'utf8') <= maxBytes)
+    return boundedSource;
   if (focusCharacterOffset !== undefined) {
-    const approximateCharacters = Math.max(1, Math.min(boundedSource.length, maxBytes));
+    const approximateCharacters = Math.max(
+      1,
+      Math.min(boundedSource.length, maxBytes),
+    );
     const start = Math.max(
       0,
       Math.min(
         boundedSource.length - approximateCharacters,
-        focusCharacterOffset - Math.floor((approximateCharacters - SEMANTIC_CHUNK_CHARACTERS) / 2)
-      )
+        focusCharacterOffset -
+          Math.floor((approximateCharacters - SEMANTIC_CHUNK_CHARACTERS) / 2),
+      ),
     );
     return boundedUtf8(boundedSource.slice(start), maxBytes);
   }
-  const words = [...new Set(recallWords(question).filter((word) => word.length >= 3))];
-  const approximateCharacters = Math.max(1, Math.min(boundedSource.length, maxBytes));
+  const words = [
+    ...new Set(recallWords(question).filter((word) => word.length >= 3)),
+  ];
+  const approximateCharacters = Math.max(
+    1,
+    Math.min(boundedSource.length, maxBytes),
+  );
   let bestStart = 0;
   let bestScore = -1;
   for (let start = 0; start < boundedSource.length; start += 512) {
-    const candidate = boundedSource.slice(start, start + approximateCharacters).toLowerCase();
+    const candidate = boundedSource
+      .slice(start, start + approximateCharacters)
+      .toLowerCase();
     const score = words.reduce(
       (total, word) => total + (candidate.includes(word) ? 1 : 0),
-      0
+      0,
     );
     if (score > bestScore) {
       bestScore = score;
@@ -236,16 +289,44 @@ function sourceWindow(
   return boundedUtf8(boundedSource.slice(bestStart), maxBytes);
 }
 
+/** USER:/ASSISTANT: blocks, the shape the product's transcript capture and its training data use. */
+export function longMemEvalTranscript(
+  session: LongMemEvalInstance['haystack_sessions'][number],
+): string {
+  return session
+    .map(
+      ({ role, content }) =>
+        `${role === 'user' ? 'USER' : 'ASSISTANT'}: ${content}`,
+    )
+    .join('\n\n');
+}
+
+function sumLlmUsage(a: LlmUsage, b: LlmUsage): LlmUsage {
+  const add = (x: number | null, y: number | null) =>
+    x === null && y === null ? null : (x ?? 0) + (y ?? 0);
+  return {
+    promptTokens: add(a.promptTokens, b.promptTokens),
+    completionTokens: add(a.completionTokens, b.completionTokens),
+    totalTokens: add(a.totalTokens, b.totalTokens),
+    cachedPromptTokens: add(a.cachedPromptTokens, b.cachedPromptTokens),
+    reasoningTokens: add(a.reasoningTokens, b.reasoningTokens),
+    costUsd: add(a.costUsd, b.costUsd),
+  };
+}
+
 function datasetDate(value: string): Date {
-  const match = /^(\d{4})\/(\d{2})\/(\d{2}) \([A-Za-z]{3}\) (\d{2}):(\d{2})$/.exec(value);
+  const match =
+    /^(\d{4})\/(\d{2})\/(\d{2}) \([A-Za-z]{3}\) (\d{2}):(\d{2})$/.exec(value);
   if (match === null) throw new Error(`invalid LongMemEval date '${value}'`);
-  return new Date(Date.UTC(
-    Number(match[1]),
-    Number(match[2]) - 1,
-    Number(match[3]),
-    Number(match[4]),
-    Number(match[5])
-  ));
+  return new Date(
+    Date.UTC(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3]),
+      Number(match[4]),
+      Number(match[5]),
+    ),
+  );
 }
 
 function validateOptions(topK: number, contextBytes: number): void {
@@ -258,7 +339,7 @@ function validateOptions(topK: number, contextBytes: number): void {
     contextBytes > MAX_LONGMEMEVAL_ANSWER_CONTEXT_BYTES
   ) {
     throw new Error(
-      `LongMemEval answer context bytes must be an integer from 4096 to ${MAX_LONGMEMEVAL_ANSWER_CONTEXT_BYTES}`
+      `LongMemEval answer context bytes must be an integer from 4096 to ${MAX_LONGMEMEVAL_ANSWER_CONTEXT_BYTES}`,
     );
   }
 }
@@ -278,32 +359,39 @@ export function buildLongMemEvalAnswerContext(
     redacted?: true;
     focusCharacterOffset?: number;
   }>,
-  contextBytes = DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES
+  contextBytes = DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES,
 ): AnswerContext {
   validateOptions(Math.max(1, rankedSources.length), contextBytes);
   const usable = rankedSources.filter(
-    (source) => source.redacted !== true && source.text !== undefined
+    (source) => source.redacted !== true && source.text !== undefined,
   );
-  const perSessionBytes = Math.max(256, Math.floor(contextBytes / Math.max(1, usable.length)));
+  const perSessionBytes = Math.max(
+    256,
+    Math.floor(contextBytes / Math.max(1, usable.length)),
+  );
   const selected = usable.map((source, rank) => {
     const header = `### Retrieved session ${rank + 1}\nSession date: ${source.ts}\n`;
     const body = sourceWindow(
       source.text!,
       instance.question,
       Math.max(1, perSessionBytes - Buffer.byteLength(header, 'utf8') - 2),
-      source.focusCharacterOffset
+      source.focusCharacterOffset,
     );
     return { ...source, rank, section: `${header}${body}\n` };
   });
   const history = selected
-    .sort((left, right) => left.ts.localeCompare(right.ts) || left.rank - right.rank)
+    .sort(
+      (left, right) =>
+        left.ts.localeCompare(right.ts) || left.rank - right.rank,
+    )
     .map(({ section }) => section)
     .join('\n');
   const user = `History chats:\n\n${history || '[no safe relevant history retrieved]'}\nCurrent date: ${instance.question_date}\nQuestion: ${instance.question}\nAnswer:`;
   assertSafeForExternalLlm(user, 'LongMemEval answer prompt');
-  const system = instance.question_type === 'single-session-preference'
-    ? 'Use the supplied history to personalize the answer. You may use general knowledge for recommendations, but do not invent facts about the user. Briefly make the remembered preference or context driving the answer explicit.'
-    : 'Answer only from the supplied history. If it does not support an answer, say that you do not know. Be concise and do not invent details.';
+  const system =
+    instance.question_type === 'single-session-preference'
+      ? 'Use the supplied history to personalize the answer. You may use general knowledge for recommendations, but do not invent facts about the user. Briefly make the remembered preference or context driving the answer explicit.'
+      : 'Answer only from the supplied history. If it does not support an answer, say that you do not know. Be concise and do not invent details.';
   return {
     messages: [
       {
@@ -321,7 +409,7 @@ export function buildLongMemEvalAnswerContext(
 
 export function buildLongMemEvalJudgePrompt(
   instance: LongMemEvalInstance,
-  hypothesis: string
+  hypothesis: string,
 ): string {
   const common = `Question: ${instance.question}\n\nCorrect answer: ${instance.answer}\n\nModel response: ${hypothesis}`;
   if (instance.question_id.endsWith('_abs')) {
@@ -340,7 +428,10 @@ export function buildLongMemEvalJudgePrompt(
 }
 
 export function parseLongMemEvalJudgeLabel(value: string): boolean {
-  const normalized = value.trim().toLowerCase().replace(/[.!]+$/g, '');
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[.!]+$/g, '');
   if (normalized === 'yes') return true;
   if (normalized === 'no') return false;
   throw new Error('LongMemEval judge must answer yes or no only');
@@ -359,15 +450,26 @@ export async function evaluateLongMemEvalAnswerInstance(
     semanticQuestionTypes?: ReadonlySet<string>;
     multiSessionSemanticMaximumLexicalScore?: number;
     prepareSemantic?: boolean;
-  } = {}
+    formation?: LongMemEvalFormation;
+    /** Model that runs the product's transcript extraction (extracted/hybrid formations). */
+    extractor?: LongMemEvalCompletionClient;
+    extractionCharacters?: number;
+    extractionMaxTokens?: number;
+  } = {},
 ): Promise<LongMemEvalAnswerObservation> {
+  const formation = options.formation ?? 'raw';
+  if (formation !== 'raw' && options.extractor === undefined) {
+    throw new Error(`formation "${formation}" needs an extractor client`);
+  }
   const topK = options.topK ?? DEFAULT_LONGMEMEVAL_ANSWER_TOP_K;
-  const effectiveTopK = instance.question_type === 'multi-session'
-    ? options.multiSessionTopK ?? DEFAULT_LONGMEMEVAL_MULTI_SESSION_TOP_K
-    : instance.question_type === 'temporal-reasoning'
-      ? options.temporalTopK ?? DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K
-      : topK;
-  const contextBytes = options.contextBytes ?? DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES;
+  const effectiveTopK =
+    instance.question_type === 'multi-session'
+      ? (options.multiSessionTopK ?? DEFAULT_LONGMEMEVAL_MULTI_SESSION_TOP_K)
+      : instance.question_type === 'temporal-reasoning'
+        ? (options.temporalTopK ?? DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K)
+        : topK;
+  const contextBytes =
+    options.contextBytes ?? DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES;
   validateOptions(effectiveTopK, contextBytes);
   const multiSessionSemanticMaximumLexicalScore =
     options.multiSessionSemanticMaximumLexicalScore ??
@@ -377,7 +479,9 @@ export async function evaluateLongMemEvalAnswerInstance(
     multiSessionSemanticMaximumLexicalScore < 0 ||
     multiSessionSemanticMaximumLexicalScore > 10_000
   ) {
-    throw new Error('multi-session semantic maximum lexical score must be from 0 to 10000');
+    throw new Error(
+      'multi-session semantic maximum lexical score must be from 0 to 10000',
+    );
   }
   const root = mkdtempSync(join(tmpdir(), 'remembero-longmemeval-answer-'));
   const started = performance.now();
@@ -388,9 +492,10 @@ export async function evaluateLongMemEvalAnswerInstance(
   let judgeMs = 0;
   let retrievedSessionIds: string[] = [];
   let contextSessionIds: string[] = [];
-  const contextRoles = instance.question_type === 'single-session-assistant'
-    ? 'all' as const
-    : 'user' as const;
+  const contextRoles =
+    instance.question_type === 'single-session-assistant'
+      ? ('all' as const)
+      : ('user' as const);
   let redactedRetrievedSessions = 0;
   let retrievalRoute: 'local' | 'semantic' = 'local';
   let embeddingModel: string | null = null;
@@ -404,36 +509,91 @@ export async function evaluateLongMemEvalAnswerInstance(
   let judgeResponse: string | null = null;
   let readerUsage: LlmUsage | null = null;
   let judgeUsage: LlmUsage | null = null;
+  let extraction: LongMemEvalExtractionStats | undefined;
   try {
     const store = new MemoryStore(root);
     const formationStarted = performance.now();
     const sourceSessionIds = new Map<string, string>();
     const userSourceText = new Map<string, string>();
+    if (formation !== 'raw') {
+      extraction = {
+        calls: 0,
+        sessionsWithFacts: 0,
+        facts: 0,
+        errors: 0,
+        usage: null,
+      };
+    }
+    const extractor = options.extractor;
+    const stats = extraction;
+    // the product pipeline takes a plain LlmClient; adapt the usage-reporting client
+    const extractorLlm =
+      extractor === undefined || stats === undefined
+        ? undefined
+        : {
+            complete: async (messages: ChatMessage[]): Promise<string> => {
+              stats.calls += 1;
+              const completion = await extractor.completeWithUsage(messages, {
+                maxTokens: options.extractionMaxTokens ?? 512,
+              });
+              stats.usage =
+                stats.usage === null
+                  ? completion.usage
+                  : sumLlmUsage(stats.usage, completion.usage);
+              return completion.content;
+            },
+          };
     for (const [index, session] of instance.haystack_sessions.entries()) {
       const operationId = `longmemeval:${index}:${instance.haystack_session_ids[index]!}`;
       sourceSessionIds.set(operationId, instance.haystack_session_ids[index]!);
       const userText = longMemEvalSessionText(
-        session.filter(({ role }) => role === 'user')
+        session.filter(({ role }) => role === 'user'),
       );
       userSourceText.set(
         operationId,
-        userText === '' ? longMemEvalSessionText(session) : userText
+        userText === '' ? longMemEvalSessionText(session) : userText,
       );
-      store.assert(
-        'longmemeval',
-        `longmem_session(session_${index}).`,
-        {
+      const sessionText = longMemEvalSessionText(session);
+      const at = datasetDate(instance.haystack_dates[index]!);
+      if (formation !== 'extracted') {
+        store.assert('longmemeval', `longmem_session(session_${index}).`, {
           opId: operationId,
-          sourceText: longMemEvalSessionText(session),
-          at: datasetDate(instance.haystack_dates[index]!),
+          sourceText: sessionText,
+          at,
+        });
+      }
+      if (extractorLlm !== undefined && stats !== undefined) {
+        const budget =
+          options.extractionCharacters ??
+          DEFAULT_LONGMEMEVAL_EXTRACTION_CHARACTERS;
+        const transcript = longMemEvalTranscript(session).slice(0, budget);
+        try {
+          const result = await rememberTranscriptText(
+            { store, llm: extractorLlm },
+            transcript,
+            'longmemeval',
+            {
+              captureId: operationId,
+              opId: operationId,
+              sourceText: sessionText,
+              origin: 'manual',
+              at,
+            },
+          );
+          if (result.added.length > 0) stats.sessionsWithFacts += 1;
+          stats.facts += result.added.length;
+        } catch {
+          // a refused or malformed extraction leaves the session raw (hybrid) or absent (extracted)
+          stats.errors += 1;
         }
-      );
+      }
     }
     formationMs = performance.now() - formationStarted;
     const snapshot = store.knowledgeSnapshot(['longmemeval']);
     const retrievalStarted = performance.now();
     const semanticQuestionTypes =
-      options.semanticQuestionTypes ?? DEFAULT_LONGMEMEVAL_SEMANTIC_QUESTION_TYPES;
+      options.semanticQuestionTypes ??
+      DEFAULT_LONGMEMEVAL_SEMANTIC_QUESTION_TYPES;
     const lexical = searchKnowledge(
       snapshot.clauses,
       instance.question,
@@ -443,18 +603,16 @@ export async function evaluateLongMemEvalAnswerInstance(
         minimumScore: 1,
         kinds: ['fact'],
         sourceCharacterLimit: LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
-      }
+      },
     );
     const useSemantic =
       options.embeddings !== undefined &&
       semanticQuestionTypes.has(instance.question_type) &&
-      (
-        (instance.question_type === 'single-session-preference' &&
-          isRecommendationIntent(instance.question)) ||
+      ((instance.question_type === 'single-session-preference' &&
+        isRecommendationIntent(instance.question)) ||
         (instance.question_type === 'multi-session' &&
           (lexical.results[0]?.score ?? 0) <=
-            multiSessionSemanticMaximumLexicalScore)
-      );
+            multiSessionSemanticMaximumLexicalScore));
     let search: KnowledgeSearchResult | SemanticKnowledgeSearchResult;
     if (useSemantic) {
       const semanticCache = new MemoryEmbeddingCache();
@@ -471,16 +629,17 @@ export async function evaluateLongMemEvalAnswerInstance(
               limit: 100,
               kinds: ['fact'],
               ...(after === undefined ? {} : { after }),
-            }
+            },
           );
           semanticPreparationCalls += prepared.providerCalls;
           semanticPreparationUsage = mergeEmbeddingUsage(
             semanticPreparationUsage,
-            prepared.providerUsage
+            prepared.providerUsage,
           );
-          after = prepared.status === 'more'
-            ? prepared.nextCursor ?? undefined
-            : undefined;
+          after =
+            prepared.status === 'more'
+              ? (prepared.nextCursor ?? undefined)
+              : undefined;
           if (prepared.status === 'complete') break;
         } while (after !== undefined);
         semanticPreparationMs = performance.now() - preparationStarted;
@@ -495,7 +654,7 @@ export async function evaluateLongMemEvalAnswerInstance(
           candidateLimit: 100,
           kinds: ['fact'],
           cache: semanticCache,
-        }
+        },
       );
       retrievalRoute = 'semantic';
       embeddingModel = options.embeddings!.model;
@@ -507,61 +666,78 @@ export async function evaluateLongMemEvalAnswerInstance(
     }
     retrievalMs = Math.max(
       0,
-      performance.now() - retrievalStarted - semanticPreparationMs
+      performance.now() - retrievalStarted - semanticPreparationMs,
     );
     const rankedSources = search.results.flatMap((result) => {
       const source = result.sources[0];
       return source === undefined
         ? []
-        : [{
-            opId: sourceSessionIds.get(source.opId) ?? source.opId,
-            ts: source.ts,
-            text: contextRoles === 'user'
-              ? userSourceText.get(source.opId) ?? source.text
-              : source.text,
-            ...('semanticChunkIndex' in result
-              ? {
-                  focusCharacterOffset:
-                    result.semanticChunkIndex *
-                    (SEMANTIC_CHUNK_CHARACTERS - SEMANTIC_CHUNK_OVERLAP),
-                }
-              : {}),
-            ...(source.redacted === true ? { redacted: true as const } : {}),
-          }];
+        : [
+            {
+              opId: sourceSessionIds.get(source.opId) ?? source.opId,
+              ts: source.ts,
+              text:
+                contextRoles === 'user'
+                  ? (userSourceText.get(source.opId) ?? source.text)
+                  : source.text,
+              ...('semanticChunkIndex' in result
+                ? {
+                    focusCharacterOffset:
+                      result.semanticChunkIndex *
+                      (SEMANTIC_CHUNK_CHARACTERS - SEMANTIC_CHUNK_OVERLAP),
+                  }
+                : {}),
+              ...(source.redacted === true ? { redacted: true as const } : {}),
+            },
+          ];
     });
     retrievedSessionIds = rankedSources.map(({ opId }) => opId);
     const firstResult = search.results[0];
-    const topScore = firstResult === undefined
-      ? 0
-      : 'semanticScore' in firstResult
-        ? firstResult.semanticScore
-        : firstResult.score;
+    const topScore =
+      firstResult === undefined
+        ? 0
+        : 'semanticScore' in firstResult
+          ? firstResult.semanticScore
+          : firstResult.score;
     retrieval = scoreLongMemEvalRetrievedSessions(
       instance,
       retrievedSessionIds,
       retrievalMs,
-      topScore
+      topScore,
     );
-    const answerContext = buildLongMemEvalAnswerContext(instance, rankedSources, contextBytes);
+    const answerContext = buildLongMemEvalAnswerContext(
+      instance,
+      rankedSources,
+      contextBytes,
+    );
     contextSessionIds = answerContext.contextSessionIds;
     redactedRetrievedSessions = answerContext.redactedRetrievedSessions;
     context = scoreLongMemEvalRetrievedSessions(
       instance,
       contextSessionIds,
       retrievalMs,
-      topScore
+      topScore,
     );
     const readerStarted = performance.now();
-    const readerCompletion = await reader.completeWithUsage(answerContext.messages, {
-      maxTokens: 4_096,
-    });
+    const readerCompletion = await reader.completeWithUsage(
+      answerContext.messages,
+      {
+        maxTokens: 4_096,
+      },
+    );
     readerMs = performance.now() - readerStarted;
     hypothesis = readerCompletion.content.trim();
     readerUsage = readerCompletion.usage;
     const judgeStarted = performance.now();
-    const judgeCompletion = await judge.completeWithUsage([
-      { role: 'user', content: buildLongMemEvalJudgePrompt(instance, hypothesis) },
-    ], { maxTokens: 16 });
+    const judgeCompletion = await judge.completeWithUsage(
+      [
+        {
+          role: 'user',
+          content: buildLongMemEvalJudgePrompt(instance, hypothesis),
+        },
+      ],
+      { maxTokens: 16 },
+    );
     judgeMs = performance.now() - judgeStarted;
     judgeResponse = judgeCompletion.content.trim();
     judgeUsage = judgeCompletion.usage;
@@ -587,6 +763,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       judgeResponse,
       readerUsage,
       judgeUsage,
+      ...(extraction === undefined ? {} : { extraction }),
       formationMs,
       semanticPreparationMs,
       retrievalMs,
@@ -618,6 +795,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       judgeResponse,
       readerUsage,
       judgeUsage,
+      ...(extraction === undefined ? {} : { extraction }),
       formationMs,
       semanticPreparationMs,
       retrievalMs,
@@ -633,18 +811,26 @@ export async function evaluateLongMemEvalAnswerInstance(
 }
 
 export function summarizeLongMemEvalAnswers(
-  observations: readonly LongMemEvalAnswerObservation[]
+  observations: readonly LongMemEvalAnswerObservation[],
 ): LongMemEvalAnswerSummary {
   const judged = observations.filter(
-    (observation): observation is LongMemEvalAnswerObservation & { correct: boolean } =>
-      observation.status === 'judged' && observation.correct !== null
+    (
+      observation,
+    ): observation is LongMemEvalAnswerObservation & { correct: boolean } =>
+      observation.status === 'judged' && observation.correct !== null,
   );
   const correct = judged.filter(({ correct: value }) => value).length;
   const abstentions = judged.filter(({ abstention }) => abstention);
-  const fullEvidence = judged.filter(({ context: value }) => value?.strictEvidenceCoverage === true);
-  const incompleteEvidence = judged.filter(({ context: value }) => value?.strictEvidenceCoverage !== true);
+  const fullEvidence = judged.filter(
+    ({ context: value }) => value?.strictEvidenceCoverage === true,
+  );
+  const incompleteEvidence = judged.filter(
+    ({ context: value }) => value?.strictEvidenceCoverage !== true,
+  );
   let readerUsage = emptyLlmUsageTotals();
   let judgeUsage = emptyLlmUsageTotals();
+  let extractionTotals = emptyLlmUsageTotals();
+  const extractionCounts = { sessionsWithFacts: 0, facts: 0, errors: 0 };
   const embeddingUsage = {
     calls: 0,
     promptTokens: 0,
@@ -660,10 +846,29 @@ export function summarizeLongMemEvalAnswers(
     costUsd: 0,
   };
   for (const observation of observations) {
-    if (observation.readerUsage !== null) readerUsage = addLlmUsage(readerUsage, observation.readerUsage);
-    if (observation.judgeUsage !== null) judgeUsage = addLlmUsage(judgeUsage, observation.judgeUsage);
+    if (observation.readerUsage !== null)
+      readerUsage = addLlmUsage(readerUsage, observation.readerUsage);
+    if (observation.judgeUsage !== null)
+      judgeUsage = addLlmUsage(judgeUsage, observation.judgeUsage);
+    if (observation.extraction !== undefined) {
+      // addLlmUsage counts one call per invocation; the extraction ran many per question
+      if (observation.extraction.usage !== null) {
+        extractionTotals = addLlmUsage(
+          extractionTotals,
+          observation.extraction.usage,
+        );
+        extractionTotals.calls += observation.extraction.calls - 1;
+      } else {
+        extractionTotals.calls += observation.extraction.calls;
+      }
+      extractionCounts.sessionsWithFacts +=
+        observation.extraction.sessionsWithFacts;
+      extractionCounts.facts += observation.extraction.facts;
+      extractionCounts.errors += observation.extraction.errors;
+    }
     embeddingUsage.calls += observation.embeddingCalls;
-    embeddingUsage.promptTokens += observation.embeddingUsage?.promptTokens ?? 0;
+    embeddingUsage.promptTokens +=
+      observation.embeddingUsage?.promptTokens ?? 0;
     embeddingUsage.totalTokens += observation.embeddingUsage?.totalTokens ?? 0;
     if (
       observation.embeddingUsage !== null &&
@@ -678,11 +883,15 @@ export function summarizeLongMemEvalAnswers(
       observation.semanticPreparationUsage?.promptTokens ?? 0;
     semanticPreparationUsage.totalTokens +=
       observation.semanticPreparationUsage?.totalTokens ?? 0;
-    if (observation.semanticPreparationUsage?.costUsd !== null &&
-        observation.semanticPreparationUsage !== null &&
-        observation.semanticPreparationUsage !== undefined) {
-      semanticPreparationUsage.costResponses += observation.semanticPreparationCalls ?? 0;
-      semanticPreparationUsage.costUsd += observation.semanticPreparationUsage.costUsd;
+    if (
+      observation.semanticPreparationUsage?.costUsd !== null &&
+      observation.semanticPreparationUsage !== null &&
+      observation.semanticPreparationUsage !== undefined
+    ) {
+      semanticPreparationUsage.costResponses +=
+        observation.semanticPreparationCalls ?? 0;
+      semanticPreparationUsage.costUsd +=
+        observation.semanticPreparationUsage.costUsd;
     }
   }
   return {
@@ -692,40 +901,92 @@ export function summarizeLongMemEvalAnswers(
     correct,
     accuracy: observations.length === 0 ? 0 : correct / observations.length,
     judgedAccuracy: judged.length === 0 ? 0 : correct / judged.length,
-    abstentionAccuracy: mean(abstentions.map(({ correct: value }) => value ? 1 : 0)),
-    fullContextEvidenceAccuracy: mean(fullEvidence.map(({ correct: value }) => value ? 1 : 0)),
-    incompleteContextEvidenceAccuracy: mean(incompleteEvidence.map(({ correct: value }) => value ? 1 : 0)),
-    retrievalRecallAtK: mean(observations.flatMap(({ retrieval: value }) => value?.recallAtK === null || value?.recallAtK === undefined ? [] : [value.recallAtK])),
-    contextRecallAtK: mean(observations.flatMap(({ context: value }) => value?.recallAtK === null || value?.recallAtK === undefined ? [] : [value.recallAtK])),
-    redactedRetrievedSessions: observations.reduce((sum, value) => sum + value.redactedRetrievedSessions, 0),
-    medianFormationMs: percentile(observations.map(({ formationMs: value }) => value), 0.5),
-    p95FormationMs: percentile(observations.map(({ formationMs: value }) => value), 0.95),
+    abstentionAccuracy: mean(
+      abstentions.map(({ correct: value }) => (value ? 1 : 0)),
+    ),
+    fullContextEvidenceAccuracy: mean(
+      fullEvidence.map(({ correct: value }) => (value ? 1 : 0)),
+    ),
+    incompleteContextEvidenceAccuracy: mean(
+      incompleteEvidence.map(({ correct: value }) => (value ? 1 : 0)),
+    ),
+    retrievalRecallAtK: mean(
+      observations.flatMap(({ retrieval: value }) =>
+        value?.recallAtK === null || value?.recallAtK === undefined
+          ? []
+          : [value.recallAtK],
+      ),
+    ),
+    contextRecallAtK: mean(
+      observations.flatMap(({ context: value }) =>
+        value?.recallAtK === null || value?.recallAtK === undefined
+          ? []
+          : [value.recallAtK],
+      ),
+    ),
+    redactedRetrievedSessions: observations.reduce(
+      (sum, value) => sum + value.redactedRetrievedSessions,
+      0,
+    ),
+    medianFormationMs: percentile(
+      observations.map(({ formationMs: value }) => value),
+      0.5,
+    ),
+    p95FormationMs: percentile(
+      observations.map(({ formationMs: value }) => value),
+      0.95,
+    ),
     medianSemanticPreparationMs: percentile(
       observations.map(({ semanticPreparationMs: value }) => value ?? 0),
-      0.5
+      0.5,
     ),
     p95SemanticPreparationMs: percentile(
       observations.map(({ semanticPreparationMs: value }) => value ?? 0),
-      0.95
+      0.95,
     ),
-    medianRetrievalMs: percentile(observations.map(({ retrievalMs: value }) => value), 0.5),
-    p95RetrievalMs: percentile(observations.map(({ retrievalMs: value }) => value), 0.95),
-    medianReaderMs: percentile(observations.map(({ readerMs: value }) => value), 0.5),
-    p95ReaderMs: percentile(observations.map(({ readerMs: value }) => value), 0.95),
-    medianJudgeMs: percentile(observations.map(({ judgeMs: value }) => value), 0.5),
-    p95JudgeMs: percentile(observations.map(({ judgeMs: value }) => value), 0.95),
-    medianTotalMs: percentile(observations.map(({ totalMs: value }) => value), 0.5),
-    p95TotalMs: percentile(observations.map(({ totalMs: value }) => value), 0.95),
+    medianRetrievalMs: percentile(
+      observations.map(({ retrievalMs: value }) => value),
+      0.5,
+    ),
+    p95RetrievalMs: percentile(
+      observations.map(({ retrievalMs: value }) => value),
+      0.95,
+    ),
+    medianReaderMs: percentile(
+      observations.map(({ readerMs: value }) => value),
+      0.5,
+    ),
+    p95ReaderMs: percentile(
+      observations.map(({ readerMs: value }) => value),
+      0.95,
+    ),
+    medianJudgeMs: percentile(
+      observations.map(({ judgeMs: value }) => value),
+      0.5,
+    ),
+    p95JudgeMs: percentile(
+      observations.map(({ judgeMs: value }) => value),
+      0.95,
+    ),
+    medianTotalMs: percentile(
+      observations.map(({ totalMs: value }) => value),
+      0.5,
+    ),
+    p95TotalMs: percentile(
+      observations.map(({ totalMs: value }) => value),
+      0.95,
+    ),
     medianUserTurnMs: percentile(
       observations.map(({ userTurnMs: value }) => value ?? 0),
-      0.5
+      0.5,
     ),
     p95UserTurnMs: percentile(
       observations.map(({ userTurnMs: value }) => value ?? 0),
-      0.95
+      0.95,
     ),
     readerUsage,
     judgeUsage,
+    extractionUsage: { ...extractionTotals, ...extractionCounts },
     embeddingUsage,
     semanticPreparationUsage,
   };
@@ -747,17 +1008,23 @@ export function longMemEvalAnswerRun(
     semanticQuestionTypes?: ReadonlySet<string>;
     multiSessionSemanticMaximumLexicalScore?: number;
     prepareSemantic?: boolean;
-  } = {}
+    formation?: LongMemEvalFormation;
+    extractionModel?: string | null;
+  } = {},
 ): LongMemEvalAnswerRun {
   const topK = options.topK ?? DEFAULT_LONGMEMEVAL_ANSWER_TOP_K;
   const multiSessionTopK =
     options.multiSessionTopK ?? DEFAULT_LONGMEMEVAL_MULTI_SESSION_TOP_K;
-  const temporalTopK = options.temporalTopK ?? DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K;
-  const contextBytes = options.contextBytes ?? DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES;
+  const temporalTopK =
+    options.temporalTopK ?? DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K;
+  const contextBytes =
+    options.contextBytes ?? DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES;
   validateOptions(topK, contextBytes);
   validateOptions(multiSessionTopK, contextBytes);
   validateOptions(temporalTopK, contextBytes);
-  const questionTypes = [...new Set(observations.map(({ questionType }) => questionType))].sort();
+  const questionTypes = [
+    ...new Set(observations.map(({ questionType }) => questionType)),
+  ].sort();
   return {
     schemaVersion: LONGMEMEVAL_ANSWER_VERSION,
     generatedAt: options.generatedAt ?? new Date().toISOString(),
@@ -772,13 +1039,16 @@ export function longMemEvalAnswerRun(
     judgeModel,
     embeddingModel: options.embeddingModel ?? null,
     judgeProtocol: 'longmemeval-official-compatible-v1',
-    formation: 'durable-raw-session-facts',
-    retrieval: options.embeddingModel === undefined || options.embeddingModel === null
-      ? 'remembero-local-source-search'
-      : 'remembero-adaptive-source-search',
+    formation: LONGMEMEVAL_FORMATION_LABELS[options.formation ?? 'raw'],
+    extractionModel: options.extractionModel ?? null,
+    retrieval:
+      options.embeddingModel === undefined || options.embeddingModel === null
+        ? 'remembero-local-source-search'
+        : 'remembero-adaptive-source-search',
     answerContextPolicy: 'user-turns-except-assistant-memory',
     semanticQuestionTypes: [
-      ...(options.semanticQuestionTypes ?? DEFAULT_LONGMEMEVAL_SEMANTIC_QUESTION_TYPES),
+      ...(options.semanticQuestionTypes ??
+        DEFAULT_LONGMEMEVAL_SEMANTIC_QUESTION_TYPES),
     ].sort(),
     multiSessionSemanticMaximumLexicalScore:
       options.multiSessionSemanticMaximumLexicalScore ??
@@ -790,10 +1060,14 @@ export function longMemEvalAnswerRun(
     sourceCharacters: LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
     contextBytes,
     summary: summarizeLongMemEvalAnswers(observations),
-    byQuestionType: Object.fromEntries(questionTypes.map((questionType) => [
-      questionType,
-      summarizeLongMemEvalAnswers(observations.filter((value) => value.questionType === questionType)),
-    ])),
+    byQuestionType: Object.fromEntries(
+      questionTypes.map((questionType) => [
+        questionType,
+        summarizeLongMemEvalAnswers(
+          observations.filter((value) => value.questionType === questionType),
+        ),
+      ]),
+    ),
     observations,
   };
 }

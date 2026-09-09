@@ -14,13 +14,19 @@ import type { LongMemEvalInstance } from '../src/evals/longmemeval.js';
 class ScriptedCompletionClient implements LongMemEvalCompletionClient {
   readonly calls: Array<{ messages: ChatMessage[]; maxTokens?: number }> = [];
 
-  constructor(readonly model: string, private readonly outputs: string[]) {}
+  constructor(
+    readonly model: string,
+    private readonly outputs: string[],
+  ) {}
 
   async completeWithUsage(
     messages: ChatMessage[],
-    options: { maxTokens?: number } = {}
+    options: { maxTokens?: number } = {},
   ): Promise<LlmCompletion> {
-    this.calls.push({ messages: structuredClone(messages), maxTokens: options.maxTokens });
+    this.calls.push({
+      messages: structuredClone(messages),
+      maxTokens: options.maxTokens,
+    });
     const content = this.outputs.shift();
     if (content === undefined) throw new Error('scripted completion exhausted');
     return {
@@ -38,7 +44,9 @@ class ScriptedCompletionClient implements LongMemEvalCompletionClient {
   }
 }
 
-function instance(overrides: Partial<LongMemEvalInstance> = {}): LongMemEvalInstance {
+function instance(
+  overrides: Partial<LongMemEvalInstance> = {},
+): LongMemEvalInstance {
   return {
     question_id: 'question-1',
     question_type: 'single-session-user',
@@ -53,7 +61,11 @@ function instance(overrides: Partial<LongMemEvalInstance> = {}): LongMemEvalInst
         { role: 'assistant', content: 'Long generic reward-card explanation.' },
       ],
       [
-        { role: 'user', content: 'My degree was in Business Administration.', has_answer: true },
+        {
+          role: 'user',
+          content: 'My degree was in Business Administration.',
+          has_answer: true,
+        },
         { role: 'assistant', content: 'Long generic graduation explanation.' },
       ],
     ],
@@ -65,19 +77,23 @@ function instance(overrides: Partial<LongMemEvalInstance> = {}): LongMemEvalInst
 describe('LongMemEval end-to-end answer evaluation', () => {
   it('builds bounded answer context without leaking labels or a separate gold answer', () => {
     const test = instance({ answer: 'GOLD_REFERENCE_NOT_IN_HISTORY' });
-    const context = buildLongMemEvalAnswerContext(test, [
-      {
-        opId: 'evidence',
-        ts: '2024-01-02T09:00:00.000Z',
-        text: 'user: My degree was in Business Administration.',
-      },
-      {
-        opId: 'blocked',
-        ts: '2024-01-01T09:00:00.000Z',
-        text: '[sensitive source omitted]',
-        redacted: true,
-      },
-    ], 4_096);
+    const context = buildLongMemEvalAnswerContext(
+      test,
+      [
+        {
+          opId: 'evidence',
+          ts: '2024-01-02T09:00:00.000Z',
+          text: 'user: My degree was in Business Administration.',
+        },
+        {
+          opId: 'blocked',
+          ts: '2024-01-01T09:00:00.000Z',
+          text: '[sensitive source omitted]',
+          redacted: true,
+        },
+      ],
+      4_096,
+    );
     const prompt = context.messages.map(({ content }) => content).join('\n');
     expect(prompt).toContain('Business Administration');
     expect(prompt).not.toContain('GOLD_REFERENCE_NOT_IN_HISTORY');
@@ -87,21 +103,31 @@ describe('LongMemEval end-to-end answer evaluation', () => {
 
     const preference = buildLongMemEvalAnswerContext(
       instance({ question_type: 'single-session-preference' }),
-      [{ opId: 'evidence', ts: '2024-01-02T09:00:00.000Z', text: 'user: I like quiet hotels.' }],
-      4_096
+      [
+        {
+          opId: 'evidence',
+          ts: '2024-01-02T09:00:00.000Z',
+          text: 'user: I like quiet hotels.',
+        },
+      ],
+      4_096,
     );
     expect(preference.messages[0]?.content).toContain('general knowledge');
-    expect(preference.messages[0]?.content).toContain('do not invent facts about the user');
+    expect(preference.messages[0]?.content).toContain(
+      'do not invent facts about the user',
+    );
   });
 
   it('runs durable formation, real local retrieval, answer generation, and judging', async () => {
-    const reader = new ScriptedCompletionClient('reader', ['Business Administration']);
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
     const judge = new ScriptedCompletionClient('judge', ['yes']);
     const observation = await evaluateLongMemEvalAnswerInstance(
       instance(),
       reader,
       judge,
-      { topK: 1, contextBytes: 4_096 }
+      { topK: 1, contextBytes: 4_096 },
     );
     expect(observation).toMatchObject({
       status: 'judged',
@@ -120,8 +146,12 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     expect(observation.retrieval?.recallAtK).toBe(1);
     expect(observation.context?.recallAtK).toBe(1);
     expect(reader.calls[0]?.maxTokens).toBe(4_096);
-    expect(reader.calls[0]?.messages.at(-1)?.content).not.toContain('has_answer');
-    expect(reader.calls[0]?.messages.at(-1)?.content).not.toContain('generic graduation');
+    expect(reader.calls[0]?.messages.at(-1)?.content).not.toContain(
+      'has_answer',
+    );
+    expect(reader.calls[0]?.messages.at(-1)?.content).not.toContain(
+      'generic graduation',
+    );
     expect(observation.contextRoles).toBe('user');
     expect(judge.calls[0]?.maxTokens).toBe(16);
     const summary = summarizeLongMemEvalAnswers([observation]);
@@ -133,12 +163,98 @@ describe('LongMemEval end-to-end answer evaluation', () => {
       retrievalRecallAtK: 1,
       contextRecallAtK: 1,
     });
-    expect(summary.readerUsage).toMatchObject({ calls: 1, totalTokens: 12, costUsd: 0.001 });
-    expect(summary.judgeUsage).toMatchObject({ calls: 1, totalTokens: 12, costUsd: 0.001 });
+    expect(summary.readerUsage).toMatchObject({
+      calls: 1,
+      totalTokens: 12,
+      costUsd: 0.001,
+    });
+    expect(summary.judgeUsage).toMatchObject({
+      calls: 1,
+      totalTokens: 12,
+      costUsd: 0.001,
+    });
+  });
+
+  it('extracted formation runs the product transcript extraction per session and keys facts to the session', async () => {
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    // one call per session, in haystack order: the noise session yields nothing
+    const extractor = new ScriptedCompletionClient('dialect', [
+      '% nothing',
+      'degree(user, business_administration).',
+    ]);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      instance(),
+      reader,
+      judge,
+      { topK: 1, contextBytes: 4_096, formation: 'extracted', extractor },
+    );
+    expect(observation).toMatchObject({
+      status: 'judged',
+      correct: true,
+      retrievedSessionIds: ['evidence'],
+      contextSessionIds: ['evidence'],
+    });
+    expect(observation.extraction).toMatchObject({
+      calls: 2,
+      sessionsWithFacts: 1,
+      facts: 1,
+      errors: 0,
+    });
+    expect(observation.extraction?.usage).toMatchObject({ totalTokens: 24 });
+    // the extractor sees the transcript prompt and USER:/ASSISTANT: turns
+    expect(extractor.calls[1]?.messages[0]?.content).toContain('transcript');
+    expect(extractor.calls[1]?.messages.at(-1)?.content).toContain(
+      'USER: My degree was in Business Administration.',
+    );
+    // the reader still reads the raw session text of the retrieved session
+    expect(reader.calls[0]?.messages.at(-1)?.content).toContain(
+      'Business Administration',
+    );
+    const summary = summarizeLongMemEvalAnswers([observation]);
+    expect(summary.extractionUsage).toMatchObject({
+      calls: 2,
+      totalTokens: 24,
+    });
+    const run = longMemEvalAnswerRun([observation], 'reader', 'judge', {
+      generatedAt: '2026-09-09T00:00:00.000Z',
+      formation: 'extracted',
+      extractionModel: 'dialect',
+    });
+    expect(run).toMatchObject({
+      formation: 'extracted-transcript-facts',
+      extractionModel: 'dialect',
+    });
+  });
+
+  it('hybrid formation keeps the raw session fact so sessions without extracted facts stay retrievable', async () => {
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    // the extractor fails on one session and finds nothing in the other: retrieval must still work
+    const extractor = new ScriptedCompletionClient('dialect', ['% nothing']);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      instance(),
+      reader,
+      judge,
+      { topK: 1, contextBytes: 4_096, formation: 'hybrid', extractor },
+    );
+    expect(observation.status).toBe('judged');
+    expect(observation.retrievedSessionIds).toEqual(['evidence']);
+    expect(observation.extraction).toMatchObject({
+      calls: 2,
+      facts: 0,
+      errors: 1,
+    });
   });
 
   it('keeps repeated dataset session IDs from colliding in the durable journal', async () => {
-    const reader = new ScriptedCompletionClient('reader', ['Business Administration']);
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
     const judge = new ScriptedCompletionClient('judge', ['yes']);
     const observation = await evaluateLongMemEvalAnswerInstance(
       instance({
@@ -147,29 +263,33 @@ describe('LongMemEval end-to-end answer evaluation', () => {
       }),
       reader,
       judge,
-      { topK: 1, contextBytes: 4_096 }
+      { topK: 1, contextBytes: 4_096 },
     );
     expect(observation.status).toBe('judged');
     expect(observation.error).toBeUndefined();
   });
 
   it('retains assistant turns for assistant-memory questions', async () => {
-    const reader = new ScriptedCompletionClient('reader', ['graduation explanation']);
+    const reader = new ScriptedCompletionClient('reader', [
+      'graduation explanation',
+    ]);
     const judge = new ScriptedCompletionClient('judge', ['yes']);
     const observation = await evaluateLongMemEvalAnswerInstance(
       instance({ question_type: 'single-session-assistant' }),
       reader,
       judge,
-      { topK: 1, contextBytes: 4_096 }
+      { topK: 1, contextBytes: 4_096 },
     );
     expect(observation.contextRoles).toBe('all');
     expect(reader.calls[0]?.messages.at(-1)?.content).toContain(
-      'Long generic graduation explanation.'
+      'Long generic graduation explanation.',
     );
   });
 
   it('uses semantic retrieval for low-confidence multi-session questions', async () => {
-    const reader = new ScriptedCompletionClient('reader', ['Business Administration']);
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
     const judge = new ScriptedCompletionClient('judge', ['yes']);
     const observation = await evaluateLongMemEvalAnswerInstance(
       instance({ question_type: 'multi-session' }),
@@ -189,7 +309,7 @@ describe('LongMemEval end-to-end answer evaluation', () => {
               vectors: inputs.map((input, index) =>
                 index === 0 || input.includes('Business Administration')
                   ? [1, 0]
-                  : [0, 1]
+                  : [0, 1],
               ),
               usage: {
                 promptTokens: inputs.length,
@@ -199,7 +319,7 @@ describe('LongMemEval end-to-end answer evaluation', () => {
             };
           },
         },
-      }
+      },
     );
     expect(observation).toMatchObject({
       status: 'judged',
@@ -215,19 +335,28 @@ describe('LongMemEval end-to-end answer evaluation', () => {
   });
 
   it('keeps high-confidence multi-session matches local', async () => {
-    const reader = new ScriptedCompletionClient('reader', ['Business Administration']);
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
     const judge = new ScriptedCompletionClient('judge', ['yes']);
     const observation = await evaluateLongMemEvalAnswerInstance(
       instance({
         question_type: 'multi-session',
         question: 'My university degree was Business Administration.',
         haystack_sessions: [
-          [{ role: 'user', content: 'Compare credit card rewards for travel.' }],
-          [{
-            role: 'user',
-            content: 'My university degree was Business Administration.',
-            has_answer: true,
-          }],
+          [
+            {
+              role: 'user',
+              content: 'Compare credit card rewards for travel.',
+            },
+          ],
+          [
+            {
+              role: 'user',
+              content: 'My university degree was Business Administration.',
+              has_answer: true,
+            },
+          ],
         ],
       }),
       reader,
@@ -240,10 +369,12 @@ describe('LongMemEval end-to-end answer evaluation', () => {
         embeddings: {
           model: 'embedding',
           async embed() {
-            throw new Error('high-confidence local result must not call embeddings');
+            throw new Error(
+              'high-confidence local result must not call embeddings',
+            );
           },
         },
-      }
+      },
     );
     expect(observation).toMatchObject({
       status: 'judged',
@@ -254,26 +385,38 @@ describe('LongMemEval end-to-end answer evaluation', () => {
   });
 
   it('uses task-specific judge contracts and rejects ambiguous labels', () => {
-    expect(buildLongMemEvalJudgePrompt(instance(), 'answer')).toContain('partial');
-    expect(buildLongMemEvalJudgePrompt(
-      instance({ question_type: 'single-session-preference' }),
-      'answer'
-    )).toContain('personalization rubric');
-    expect(buildLongMemEvalJudgePrompt(
-      instance({ question_type: 'knowledge-update' }),
-      'answer'
-    )).toContain('updated correct answer');
-    expect(buildLongMemEvalJudgePrompt(
-      instance({ question_type: 'temporal-reasoning' }),
-      'answer'
-    )).toContain('one-unit error');
-    expect(buildLongMemEvalJudgePrompt(
-      instance({ question_id: 'question-1_abs' }),
-      'answer'
-    )).toContain('unanswerable');
+    expect(buildLongMemEvalJudgePrompt(instance(), 'answer')).toContain(
+      'partial',
+    );
+    expect(
+      buildLongMemEvalJudgePrompt(
+        instance({ question_type: 'single-session-preference' }),
+        'answer',
+      ),
+    ).toContain('personalization rubric');
+    expect(
+      buildLongMemEvalJudgePrompt(
+        instance({ question_type: 'knowledge-update' }),
+        'answer',
+      ),
+    ).toContain('updated correct answer');
+    expect(
+      buildLongMemEvalJudgePrompt(
+        instance({ question_type: 'temporal-reasoning' }),
+        'answer',
+      ),
+    ).toContain('one-unit error');
+    expect(
+      buildLongMemEvalJudgePrompt(
+        instance({ question_id: 'question-1_abs' }),
+        'answer',
+      ),
+    ).toContain('unanswerable');
     expect(parseLongMemEvalJudgeLabel('Yes.')).toBe(true);
     expect(parseLongMemEvalJudgeLabel('no')).toBe(false);
-    expect(() => parseLongMemEvalJudgeLabel('yes, probably')).toThrow(/yes or no only/i);
+    expect(() => parseLongMemEvalJudgeLabel('yes, probably')).toThrow(
+      /yes or no only/i,
+    );
   });
 
   it('preserves pinned run metadata and counts errors against overall accuracy', () => {

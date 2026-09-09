@@ -178,6 +178,11 @@ export interface RememberOptions {
 export interface RememberTranscriptOptions {
   captureId: string;
   at?: Date;
+  /** Operation id to record instead of a fresh one (evaluations key facts to their source). */
+  opId?: string;
+  /** Source text to record with the facts (default: the Stop-hook provenance line). */
+  sourceText?: string;
+  origin?: 'manual' | 'claude-stop';
 }
 
 export interface RecallResult {
@@ -872,12 +877,13 @@ export async function rememberTranscriptText(
     return { added: [], duplicates: 0, retracted: 0 };
   }
 
-  const opId = deps.store.createOperationId();
+  const opId = options.opId ?? deps.store.createOperationId();
   const { added, duplicates } = deps.store.assert(namespace, clauses, {
     opId,
     captureId: options.captureId,
-    origin: 'claude-stop',
-    sourceText: 'Auto-captured from a Claude Code Stop hook',
+    origin: options.origin ?? 'claude-stop',
+    sourceText:
+      options.sourceText ?? 'Auto-captured from a Claude Code Stop hook',
     at: options.at,
     ...(deps.integrityEnforcement === undefined ||
     deps.integrityEnforcement === false

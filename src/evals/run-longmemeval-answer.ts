@@ -16,9 +16,13 @@ import {
   evaluateLongMemEvalAnswerInstance,
   longMemEvalAnswerRun,
   type LongMemEvalAnswerObservation,
+  type LongMemEvalFormation,
 } from './longmemeval-answer.js';
 import { loadLongMemEvalS } from './longmemeval.js';
-import { longMemEvalSplit, type LongMemEvalSplit } from './longmemeval-semantic.js';
+import {
+  longMemEvalSplit,
+  type LongMemEvalSplit,
+} from './longmemeval-semantic.js';
 
 interface Args {
   data: string;
@@ -40,6 +44,11 @@ interface Args {
   prepareSemantic: boolean;
   caseIds: Set<string> | undefined;
   json: boolean;
+  formation: LongMemEvalFormation;
+  extractionModel: string | undefined;
+  extractionBaseUrl: string | undefined;
+  extractionApiKey: string | undefined;
+  extractionCharacters: number | undefined;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -49,6 +58,13 @@ Options:
   --split <dev|test|all> Deterministic selection (default: dev)
   --limit <count>        Run the first 1-500 selected questions
   --offset <count>       Skip 0-499 selected questions for resumable slices
+  --formation <mode>     raw (default): one placeholder fact per session over the raw text;
+                         extracted: only what the product's transcript extraction writes;
+                         hybrid: both. extracted/hybrid make one extraction call per session
+  --extraction-model <id>      Model for the extraction (default: the reader model)
+  --extraction-base-url <url>  OpenAI-compatible endpoint for it (default: LLM_BASE_URL)
+  --extraction-api-key <key>   Key for it (default: MODAL_SERVE_API_KEY, else LLM_API_KEY)
+  --extraction-characters <n>  Cut each session to n characters before extraction (default 16000)
   --top-k <count>        Retrieved sessions per question (default: 4)
   --multi-session-top-k <count>  Retrieved sessions for multi-session questions (default: 5)
   --temporal-top-k <count>  Retrieved sessions for temporal questions (default: 5)
@@ -70,11 +86,17 @@ Options:
 
 function requiredValue(argv: string[], index: number, flag: string): string {
   const value = argv[index + 1];
-  if (value === undefined || value.trim() === '') throw new Error(`${flag} needs a value`);
+  if (value === undefined || value.trim() === '')
+    throw new Error(`${flag} needs a value`);
   return value;
 }
 
-function boundedInteger(value: string, flag: string, minimum: number, maximum: number): number {
+function boundedInteger(
+  value: string,
+  flag: string,
+  minimum: number,
+  maximum: number,
+): number {
   const parsed = Number(value);
   if (!Number.isSafeInteger(parsed) || parsed < minimum || parsed > maximum) {
     throw new Error(`${flag} needs an integer from ${minimum} to ${maximum}`);
@@ -94,7 +116,8 @@ function parseArgs(argv: string[]): Args {
     contextBytes: DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES,
     concurrency: 4,
     readerModel: process.env.LLM_MODEL ?? DEFAULT_MODEL,
-    judgeModel: process.env.LONGMEMEVAL_JUDGE_MODEL ?? 'openai/gpt-4o-2024-08-06',
+    judgeModel:
+      process.env.LONGMEMEVAL_JUDGE_MODEL ?? 'openai/gpt-4o-2024-08-06',
     output: undefined,
     hypotheses: undefined,
     questionTypes: undefined,
@@ -104,10 +127,16 @@ function parseArgs(argv: string[]): Args {
     prepareSemantic: false,
     caseIds: undefined,
     json: false,
+    formation: 'raw',
+    extractionModel: undefined,
+    extractionBaseUrl: undefined,
+    extractionApiKey: undefined,
+    extractionCharacters: undefined,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
-    if (arg === '--data') args.data = resolve(requiredValue(argv, index++, arg));
+    if (arg === '--data')
+      args.data = resolve(requiredValue(argv, index++, arg));
     else if (arg === '--split') {
       const value = requiredValue(argv, index++, arg);
       if (value !== 'dev' && value !== 'test' && value !== 'all') {
@@ -115,34 +144,54 @@ function parseArgs(argv: string[]): Args {
       }
       args.split = value;
     } else if (arg === '--limit') {
-      args.limit = boundedInteger(requiredValue(argv, index++, arg), arg, 1, 500);
+      args.limit = boundedInteger(
+        requiredValue(argv, index++, arg),
+        arg,
+        1,
+        500,
+      );
     } else if (arg === '--offset') {
-      args.offset = boundedInteger(requiredValue(argv, index++, arg), arg, 0, 499);
+      args.offset = boundedInteger(
+        requiredValue(argv, index++, arg),
+        arg,
+        0,
+        499,
+      );
     } else if (arg === '--top-k') {
-      args.topK = boundedInteger(requiredValue(argv, index++, arg), arg, 1, 100);
+      args.topK = boundedInteger(
+        requiredValue(argv, index++, arg),
+        arg,
+        1,
+        100,
+      );
     } else if (arg === '--multi-session-top-k') {
       args.multiSessionTopK = boundedInteger(
         requiredValue(argv, index++, arg),
         arg,
         1,
-        100
+        100,
       );
     } else if (arg === '--temporal-top-k') {
       args.temporalTopK = boundedInteger(
         requiredValue(argv, index++, arg),
         arg,
         1,
-        100
+        100,
       );
     } else if (arg === '--context-bytes') {
       args.contextBytes = boundedInteger(
         requiredValue(argv, index++, arg),
         arg,
         4_096,
-        MAX_LONGMEMEVAL_ANSWER_CONTEXT_BYTES
+        MAX_LONGMEMEVAL_ANSWER_CONTEXT_BYTES,
       );
     } else if (arg === '--concurrency') {
-      args.concurrency = boundedInteger(requiredValue(argv, index++, arg), arg, 1, 8);
+      args.concurrency = boundedInteger(
+        requiredValue(argv, index++, arg),
+        arg,
+        1,
+        8,
+      );
     } else if (arg === '--reader-model') {
       args.readerModel = requiredValue(argv, index++, arg);
     } else if (arg === '--judge-model') {
@@ -156,14 +205,16 @@ function parseArgs(argv: string[]): Args {
         .split(',')
         .map((value) => value.trim())
         .filter(Boolean);
-      if (values.length === 0) throw new Error('--question-types needs at least one value');
+      if (values.length === 0)
+        throw new Error('--question-types needs at least one value');
       args.questionTypes = new Set(values);
     } else if (arg === '--cases') {
       const values = requiredValue(argv, index++, arg)
         .split(',')
         .map((value) => value.trim())
         .filter(Boolean);
-      if (values.length === 0) throw new Error('--cases needs at least one value');
+      if (values.length === 0)
+        throw new Error('--cases needs at least one value');
       args.caseIds = new Set(values);
     } else if (arg === '--semantic-question-types') {
       const values = requiredValue(argv, index++, arg)
@@ -179,10 +230,27 @@ function parseArgs(argv: string[]): Args {
         requiredValue(argv, index++, arg),
         arg,
         0,
-        10_000
+        10_000,
       );
     } else if (arg === '--prepare-semantic') {
       args.prepareSemantic = true;
+    } else if (arg === '--formation') {
+      const value = requiredValue(argv, index++, arg);
+      if (value !== 'raw' && value !== 'extracted' && value !== 'hybrid') {
+        throw new Error('--formation must be raw, extracted or hybrid');
+      }
+      args.formation = value;
+    } else if (arg === '--extraction-model') {
+      args.extractionModel = requiredValue(argv, index++, arg);
+    } else if (arg === '--extraction-base-url') {
+      args.extractionBaseUrl = requiredValue(argv, index++, arg).replace(
+        /\/$/,
+        '',
+      );
+    } else if (arg === '--extraction-api-key') {
+      args.extractionApiKey = requiredValue(argv, index++, arg);
+    } else if (arg === '--extraction-characters') {
+      args.extractionCharacters = Number(requiredValue(argv, index++, arg));
     } else if (arg === '--local-only' || arg === '--no-semantic-preferences') {
       args.semanticQuestionTypes.clear();
     } else if (arg === '--json') args.json = true;
@@ -197,17 +265,19 @@ function parseArgs(argv: string[]): Args {
 async function mapConcurrent<T, R>(
   values: readonly T[],
   concurrency: number,
-  operation: (value: T, index: number) => Promise<R>
+  operation: (value: T, index: number) => Promise<R>,
 ): Promise<R[]> {
   const results = new Array<R>(values.length);
   let next = 0;
-  await Promise.all(Array.from({ length: Math.min(concurrency, values.length) }, async () => {
-    while (true) {
-      const index = next++;
-      if (index >= values.length) return;
-      results[index] = await operation(values[index]!, index);
-    }
-  }));
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, values.length) }, async () => {
+      while (true) {
+        const index = next++;
+        if (index >= values.length) return;
+        results[index] = await operation(values[index]!, index);
+      }
+    }),
+  );
   return results;
 }
 
@@ -219,13 +289,22 @@ async function main(): Promise<void> {
   loadEnv();
   const args = parseArgs(process.argv.slice(2));
   const apiKey = process.env.LLM_API_KEY;
-  if (!apiKey) throw new Error('LLM_API_KEY is not set — add it to .env or the environment');
-  const baseUrl = (process.env.LLM_BASE_URL ?? 'https://openrouter.ai/api/v1').replace(/\/$/, '');
+  if (!apiKey)
+    throw new Error(
+      'LLM_API_KEY is not set — add it to .env or the environment',
+    );
+  const baseUrl = (
+    process.env.LLM_BASE_URL ?? 'https://openrouter.ai/api/v1'
+  ).replace(/\/$/, '');
   const loaded = await loadLongMemEvalS(args.data);
-  const selected = loaded.instances.filter((instance) =>
-    (args.split === 'all' ? true : longMemEvalSplit(instance.question_id) === args.split) &&
-    (args.questionTypes === undefined || args.questionTypes.has(instance.question_type)) &&
-    (args.caseIds === undefined || args.caseIds.has(instance.question_id))
+  const selected = loaded.instances.filter(
+    (instance) =>
+      (args.split === 'all'
+        ? true
+        : longMemEvalSplit(instance.question_id) === args.split) &&
+      (args.questionTypes === undefined ||
+        args.questionTypes.has(instance.question_type)) &&
+      (args.caseIds === undefined || args.caseIds.has(instance.question_id)),
   );
   if (args.caseIds !== undefined && selected.length !== args.caseIds.size) {
     const found = new Set(selected.map(({ question_id: id }) => id));
@@ -233,33 +312,66 @@ async function main(): Promise<void> {
     throw new Error(`unknown or out-of-split case ID: ${missing.join(', ')}`);
   }
   const available = selected.slice(args.offset);
-  const instances = args.limit === undefined ? available : available.slice(0, args.limit);
-  const reader = new OpenRouterClient({ apiKey, baseUrl, model: args.readerModel });
-  const judge = new OpenRouterClient({ apiKey, baseUrl, model: args.judgeModel });
-  const embeddings = args.semanticQuestionTypes.size > 0
-    ? embeddingClientFromEnv()
-    : undefined;
-  let completed = 0;
-  const observations = await mapConcurrent(instances, args.concurrency, async (instance) => {
-    const observation = await evaluateLongMemEvalAnswerInstance(instance, reader, judge, {
-      topK: args.topK,
-      multiSessionTopK: args.multiSessionTopK,
-      temporalTopK: args.temporalTopK,
-      contextBytes: args.contextBytes,
-      ...(embeddings === undefined ? {} : { embeddings }),
-      semanticQuestionTypes: args.semanticQuestionTypes,
-      multiSessionSemanticMaximumLexicalScore:
-        args.multiSessionSemanticMaximumLexicalScore,
-      prepareSemantic: args.prepareSemantic,
-    });
-    completed++;
-    if (!args.json) {
-      console.error(
-        `[${completed}/${instances.length}] ${instance.question_id}: ${observation.status === 'judged' ? (observation.correct ? 'correct' : 'incorrect') : `error (${observation.error})`}`
-      );
-    }
-    return observation;
+  const instances =
+    args.limit === undefined ? available : available.slice(0, args.limit);
+  const reader = new OpenRouterClient({
+    apiKey,
+    baseUrl,
+    model: args.readerModel,
   });
+  const judge = new OpenRouterClient({
+    apiKey,
+    baseUrl,
+    model: args.judgeModel,
+  });
+  // extracted/hybrid formations run the product's transcript extraction with its own
+  // model, typically the fine-tuned dialect model on a self-hosted OpenAI-compatible endpoint
+  const extractor =
+    args.formation === 'raw'
+      ? undefined
+      : new OpenRouterClient({
+          apiKey:
+            args.extractionApiKey ?? process.env.MODAL_SERVE_API_KEY ?? apiKey,
+          baseUrl: args.extractionBaseUrl ?? baseUrl,
+          model: args.extractionModel ?? args.readerModel,
+        });
+  const embeddings =
+    args.semanticQuestionTypes.size > 0 ? embeddingClientFromEnv() : undefined;
+  let completed = 0;
+  const observations = await mapConcurrent(
+    instances,
+    args.concurrency,
+    async (instance) => {
+      const observation = await evaluateLongMemEvalAnswerInstance(
+        instance,
+        reader,
+        judge,
+        {
+          topK: args.topK,
+          multiSessionTopK: args.multiSessionTopK,
+          temporalTopK: args.temporalTopK,
+          contextBytes: args.contextBytes,
+          ...(embeddings === undefined ? {} : { embeddings }),
+          semanticQuestionTypes: args.semanticQuestionTypes,
+          multiSessionSemanticMaximumLexicalScore:
+            args.multiSessionSemanticMaximumLexicalScore,
+          prepareSemantic: args.prepareSemantic,
+          formation: args.formation,
+          ...(extractor === undefined ? {} : { extractor }),
+          ...(args.extractionCharacters === undefined
+            ? {}
+            : { extractionCharacters: args.extractionCharacters }),
+        },
+      );
+      completed++;
+      if (!args.json) {
+        console.error(
+          `[${completed}/${instances.length}] ${instance.question_id}: ${observation.status === 'judged' ? (observation.correct ? 'correct' : 'incorrect') : `error (${observation.error})`}`,
+        );
+      }
+      return observation;
+    },
+  );
   const run = longMemEvalAnswerRun(observations, reader.model, judge.model, {
     topK: args.topK,
     multiSessionTopK: args.multiSessionTopK,
@@ -272,39 +384,85 @@ async function main(): Promise<void> {
     multiSessionSemanticMaximumLexicalScore:
       args.multiSessionSemanticMaximumLexicalScore,
     prepareSemantic: args.prepareSemantic,
+    formation: args.formation,
+    extractionModel: extractor?.model ?? null,
   });
   const serialized = stringifyBoundedResult(run, 'LongMemEval answer run');
   if (args.output !== undefined) {
     mkdirSync(dirname(args.output), { recursive: true });
-    writeFileSync(args.output, `${serialized}\n`, { encoding: 'utf8', mode: 0o600 });
+    writeFileSync(args.output, `${serialized}\n`, {
+      encoding: 'utf8',
+      mode: 0o600,
+    });
   }
   if (args.hypotheses !== undefined) {
     mkdirSync(dirname(args.hypotheses), { recursive: true });
     const lines = observations.flatMap((observation) =>
       observation.hypothesis === null
         ? []
-        : [JSON.stringify({ question_id: observation.questionId, hypothesis: observation.hypothesis })]
+        : [
+            JSON.stringify({
+              question_id: observation.questionId,
+              hypothesis: observation.hypothesis,
+            }),
+          ],
     );
-    writeFileSync(args.hypotheses, `${lines.join('\n')}\n`, { encoding: 'utf8', mode: 0o600 });
+    writeFileSync(args.hypotheses, `${lines.join('\n')}\n`, {
+      encoding: 'utf8',
+      mode: 0o600,
+    });
   }
   if (args.json) console.log(serialized);
   else {
     const { summary } = run;
-    console.log('LongMemEval-S Remembero durable formation + retrieval + answer');
+    console.log(
+      'LongMemEval-S Remembero durable formation + retrieval + answer',
+    );
     console.log(`selection: ${args.split} (${summary.questions} questions)`);
     console.log(`reader / judge: ${reader.model} / ${judge.model}`);
-    console.log(`accuracy: ${percent(summary.accuracy)} (${summary.correct}/${summary.questions})`);
+    console.log(
+      `formation: ${run.formation}${extractor === undefined ? '' : ` (extractor ${extractor.model})`}`,
+    );
+    if (args.formation !== 'raw') {
+      const { extractionUsage: e } = summary;
+      console.log(
+        `extraction: ${e.calls} calls, ${e.facts} facts from ${e.sessionsWithFacts} sessions, ${e.errors} errors, ${e.totalTokens} tokens`,
+      );
+    }
+    console.log(
+      `accuracy: ${percent(summary.accuracy)} (${summary.correct}/${summary.questions})`,
+    );
     console.log(`errors: ${summary.errors}`);
-    console.log(`retrieval/context recall: ${percent(summary.retrievalRecallAtK)} / ${percent(summary.contextRecallAtK)} (top-k ${args.topK}; multi-session ${args.multiSessionTopK}; temporal ${args.temporalTopK})`);
-    console.log(`full/incomplete evidence accuracy: ${percent(summary.fullContextEvidenceAccuracy)} / ${percent(summary.incompleteContextEvidenceAccuracy)}`);
-    console.log(`formation p50/p95: ${summary.medianFormationMs.toFixed(1)} / ${summary.p95FormationMs.toFixed(1)} ms`);
-    console.log(`semantic preparation p50/p95: ${summary.medianSemanticPreparationMs.toFixed(1)} / ${summary.p95SemanticPreparationMs.toFixed(1)} ms`);
-    console.log(`user turn p50/p95: ${summary.medianUserTurnMs.toFixed(1)} / ${summary.p95UserTurnMs.toFixed(1)} ms`);
-    console.log(`full lifecycle p50/p95: ${summary.medianTotalMs.toFixed(1)} / ${summary.p95TotalMs.toFixed(1)} ms`);
-    console.log(`reader calls/tokens/cost: ${summary.readerUsage.calls} / ${summary.readerUsage.totalTokens} / $${summary.readerUsage.costUsd.toFixed(6)}`);
-    console.log(`judge calls/tokens/cost: ${summary.judgeUsage.calls} / ${summary.judgeUsage.totalTokens} / $${summary.judgeUsage.costUsd.toFixed(6)}`);
-    console.log(`embedding calls/tokens/cost: ${summary.embeddingUsage.calls} / ${summary.embeddingUsage.totalTokens} / $${summary.embeddingUsage.costUsd.toFixed(6)}`);
-    console.log(`preparation calls/tokens/cost: ${summary.semanticPreparationUsage.calls} / ${summary.semanticPreparationUsage.totalTokens} / $${summary.semanticPreparationUsage.costUsd.toFixed(6)}`);
+    console.log(
+      `retrieval/context recall: ${percent(summary.retrievalRecallAtK)} / ${percent(summary.contextRecallAtK)} (top-k ${args.topK}; multi-session ${args.multiSessionTopK}; temporal ${args.temporalTopK})`,
+    );
+    console.log(
+      `full/incomplete evidence accuracy: ${percent(summary.fullContextEvidenceAccuracy)} / ${percent(summary.incompleteContextEvidenceAccuracy)}`,
+    );
+    console.log(
+      `formation p50/p95: ${summary.medianFormationMs.toFixed(1)} / ${summary.p95FormationMs.toFixed(1)} ms`,
+    );
+    console.log(
+      `semantic preparation p50/p95: ${summary.medianSemanticPreparationMs.toFixed(1)} / ${summary.p95SemanticPreparationMs.toFixed(1)} ms`,
+    );
+    console.log(
+      `user turn p50/p95: ${summary.medianUserTurnMs.toFixed(1)} / ${summary.p95UserTurnMs.toFixed(1)} ms`,
+    );
+    console.log(
+      `full lifecycle p50/p95: ${summary.medianTotalMs.toFixed(1)} / ${summary.p95TotalMs.toFixed(1)} ms`,
+    );
+    console.log(
+      `reader calls/tokens/cost: ${summary.readerUsage.calls} / ${summary.readerUsage.totalTokens} / $${summary.readerUsage.costUsd.toFixed(6)}`,
+    );
+    console.log(
+      `judge calls/tokens/cost: ${summary.judgeUsage.calls} / ${summary.judgeUsage.totalTokens} / $${summary.judgeUsage.costUsd.toFixed(6)}`,
+    );
+    console.log(
+      `embedding calls/tokens/cost: ${summary.embeddingUsage.calls} / ${summary.embeddingUsage.totalTokens} / $${summary.embeddingUsage.costUsd.toFixed(6)}`,
+    );
+    console.log(
+      `preparation calls/tokens/cost: ${summary.semanticPreparationUsage.calls} / ${summary.semanticPreparationUsage.totalTokens} / $${summary.semanticPreparationUsage.costUsd.toFixed(6)}`,
+    );
   }
   if (run.summary.errors > 0) process.exitCode = 1;
 }
