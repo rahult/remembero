@@ -34,6 +34,7 @@ import {
   type SemanticKnowledgeSearchResult,
 } from '../knowledge/semantic-search.js';
 import type { EmbeddingClient, EmbeddingUsage } from '../llm/embeddings.js';
+import type { Clause } from '../engine/index.js';
 import { rememberTranscriptText } from '../llm/pipeline.js';
 import {
   expandByEntities,
@@ -509,9 +510,12 @@ export async function evaluateLongMemEvalAnswerInstance(
      * hybrid only. 'shared' (default): raw and extracted facts compete for the same top-k
      * session slots. 'reserved': top-k is filled from raw session text exactly as in raw
      * formation, and extracted facts are searched separately and appended to the reader's
-     * context as a dated block (their sessions count as retrieved).
+     * context as a dated block (their sessions count as retrieved). 'keyed': the extracted
+     * facts are prepended to the session's own key (its source text) and not indexed as
+     * separate documents, the LongMemEval paper's fact-augmented keys; the facts stay in the
+     * store for entity retrieval.
      */
-    hybridRetrieval?: 'shared' | 'reserved';
+    hybridRetrieval?: 'shared' | 'reserved' | 'keyed';
     /** hybrid/extracted only: question types that use the extractor; other types run raw. */
     hybridQuestionTypes?: ReadonlySet<string>;
     /** reserved only: minimum lexical score for an appended fact (default 1). */
@@ -522,6 +526,12 @@ export async function evaluateLongMemEvalAnswerInstance(
      * slots with the lexical ranking. See knowledge/entity-retrieval.ts.
      */
     entityRetrieval?: boolean;
+    /**
+     * 'session' (default): one document per session. 'turn': one document per user turn,
+     * scored separately and aggregated to sessions (sum of 1/log2(rank+1) over a session's
+     * matching turns); whole sessions are returned to the reader.
+     */
+    retrievalUnit?: 'session' | 'turn';
     /**
      * Directory of per-session extraction results keyed by extractor model and transcript
      * hash. Extraction is deterministic enough to replay, and it is two hours of a full dev
@@ -648,13 +658,7 @@ export async function evaluateLongMemEvalAnswerInstance(
             ? userSourceText.get(operationId)!
             : sessionText,
       });
-      if (formation !== 'extracted') {
-        store.assert('longmemeval', `longmem_session(session_${index}).`, {
-          opId: operationId,
-          sourceText: sessionText,
-          at,
-        });
-      }
+      let sessionFacts: string[] = [];
       if (extractorLlm !== undefined && stats !== undefined) {
         // hybrid keeps the raw fact under the session's id; the extracted facts need
         // their own id (the store refuses to reuse one) that still maps to the session
@@ -704,6 +708,7 @@ export async function evaluateLongMemEvalAnswerInstance(
             });
             stats.sessionsWithFacts += 1;
             stats.facts += cached.facts.length;
+            sessionFacts = cached.facts;
           }
         } else {
           try {
@@ -721,6 +726,7 @@ export async function evaluateLongMemEvalAnswerInstance(
             );
             if (result.added.length > 0) stats.sessionsWithFacts += 1;
             stats.facts += result.added.length;
+            sessionFacts = result.added;
             if (cachePath !== undefined) {
               mkdirSync(options.extractionCacheDir!, { recursive: true });
               writeFileSync(cachePath, JSON.stringify({ facts: result.added }));
@@ -740,6 +746,55 @@ export async function evaluateLongMemEvalAnswerInstance(
           }
         }
       }
+      if (formation !== 'extracted') {
+        // fact-augmented key: the session's own facts lead its source text, so lexical
+        // scoring sees them without a separate document competing for a slot
+        const keyedFormation =
+          formation === 'hybrid' && options.hybridRetrieval === 'keyed';
+        // rendered as words: "bought(user, road_bike)." -> "bought user road bike", so a
+        // whitespace tokenizer sees the same terms the question uses
+        const factKey =
+          keyedFormation && sessionFacts.length > 0
+            ? `Remembered facts: ${sessionFacts
+                .map((fact) => fact.replace(/[_(),.']+/g, ' ').trim())
+                .join('. ')}.\n\n`
+            : '';
+        if (options.retrievalUnit === 'turn') {
+          // one document per user turn; the session is what comes back to the reader
+          let turnIndex = 0;
+          for (const turn of session) {
+            if (turn.role !== 'user' || turn.content.trim() === '') continue;
+            const turnOperationId = `${operationId}:t${turnIndex}`;
+            sourceSessionIds.set(
+              turnOperationId,
+              instance.haystack_session_ids[index]!,
+            );
+            store.assert(
+              'longmemeval',
+              `longmem_turn(session_${index}, turn_${turnIndex}).`,
+              {
+                opId: turnOperationId,
+                sourceText: `${turnIndex === 0 ? factKey : ''}${turn.content}`,
+                at,
+              },
+            );
+            turnIndex += 1;
+          }
+          if (turnIndex === 0) {
+            store.assert('longmemeval', `longmem_session(session_${index}).`, {
+              opId: operationId,
+              sourceText: `${factKey}${sessionText}`,
+              at,
+            });
+          }
+        } else {
+          store.assert('longmemeval', `longmem_session(session_${index}).`, {
+            opId: operationId,
+            sourceText: `${factKey}${sessionText}`,
+            at,
+          });
+        }
+      }
     }
     formationMs = performance.now() - formationStarted;
     const snapshot = store.knowledgeSnapshot(['longmemeval']);
@@ -749,13 +804,20 @@ export async function evaluateLongMemEvalAnswerInstance(
       DEFAULT_LONGMEMEVAL_SEMANTIC_QUESTION_TYPES;
     const reserved =
       formation === 'hybrid' && options.hybridRetrieval === 'reserved';
-    // reserved: raw placeholders fill top-k on their own; extracted facts are searched apart
-    const rawClauses = reserved
-      ? snapshot.clauses.filter((c) => c.head.predicate === 'longmem_session')
-      : snapshot.clauses;
+    const keyed = formation === 'hybrid' && options.hybridRetrieval === 'keyed';
+    const isPlaceholder = (c: Clause) =>
+      c.head.predicate === 'longmem_session' ||
+      c.head.predicate === 'longmem_turn';
+    // reserved and keyed: placeholders fill top-k on their own (keyed carries the facts in
+    // the placeholder's text); reserved also searches the extracted facts apart
+    const rawClauses =
+      reserved || keyed
+        ? snapshot.clauses.filter(isPlaceholder)
+        : snapshot.clauses;
     const factClauses = reserved
-      ? snapshot.clauses.filter((c) => c.head.predicate !== 'longmem_session')
+      ? snapshot.clauses.filter((c) => !isPlaceholder(c))
       : [];
+    const turnUnit = options.retrievalUnit === 'turn';
     const lexical = searchKnowledge(
       rawClauses,
       instance.question,
@@ -763,8 +825,9 @@ export async function evaluateLongMemEvalAnswerInstance(
       {
         // extracted formations hold several facts per session; fetch more so top-k
         // still counts distinct sessions after de-duplication below
-        limit:
-          formation === 'raw' || reserved
+        limit: turnUnit
+          ? Math.min(100, effectiveTopK * 6)
+          : formation === 'raw' || reserved || keyed
             ? effectiveTopK
             : Math.min(100, effectiveTopK * 8),
         minimumScore: 1,
@@ -842,7 +905,11 @@ export async function evaluateLongMemEvalAnswerInstance(
     const matchedFacts = new Map<string, string[]>();
     for (const result of search.results) {
       const source = result.sources[0];
-      if (source === undefined || result.clause.startsWith('longmem_session('))
+      if (
+        source === undefined ||
+        result.clause.startsWith('longmem_session(') ||
+        result.clause.startsWith('longmem_turn(')
+      )
         continue;
       const session = sourceSessionIds.get(source.opId) ?? source.opId;
       const list = matchedFacts.get(session) ?? [];
@@ -887,6 +954,37 @@ export async function evaluateLongMemEvalAnswerInstance(
         return true;
       })
       .slice(0, effectiveTopK);
+    if (turnUnit) {
+      // aggregate matching turns to their sessions: sum of 1/log2(rank+1), whole session back
+      const sessionScore = new Map<string, number>();
+      search.results.forEach((result, position) => {
+        const source = result.sources[0];
+        if (source === undefined) return;
+        const session = sourceSessionIds.get(source.opId) ?? source.opId;
+        sessionScore.set(
+          session,
+          (sessionScore.get(session) ?? 0) + 1 / Math.log2(position + 2),
+        );
+      });
+      const ordered = [...sessionScore.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, effectiveTopK)
+        .map(([session]) => session);
+      dedupedSources.length = 0;
+      for (const session of ordered) {
+        const record = sessionRecords.get(session);
+        if (record === undefined) continue;
+        dedupedSources.push({
+          opId: session,
+          ts: record.ts,
+          text: record.text,
+          facts:
+            options.factsInContext === false
+              ? []
+              : (matchedFacts.get(session) ?? []),
+        });
+      }
+    }
     rankedSources.length = 0;
     rankedSources.push(...dedupedSources);
     // entity retrieval: one hop over the extracted facts, interleaved with the lexical order

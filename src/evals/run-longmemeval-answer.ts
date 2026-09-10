@@ -52,7 +52,8 @@ interface Args {
   extractionAssistantCharacters: number | undefined;
   extractionMaxTokens: number | undefined;
   factsInContext: boolean;
-  hybridRetrieval: 'shared' | 'reserved';
+  hybridRetrieval: 'shared' | 'reserved' | 'keyed';
+  retrievalUnit: 'session' | 'turn';
   hybridQuestionTypes: Set<string> | undefined;
   reservedMinimumScore: number | undefined;
   entityRetrieval: boolean;
@@ -74,9 +75,12 @@ Options:
   --extraction-api-key <key>   Key for it (default: EXTRACTION_API_KEY, else MODAL_SERVE_API_KEY,
                          else LLM_API_KEY; prefer the environment, a flag shows in process lists)
   --extraction-characters <n>  Cut each session to n characters before extraction (default 16000)
-  --hybrid-retrieval <shared|reserved>  hybrid only. shared (default): raw text and extracted
-                         facts compete for the top-k session slots; reserved: raw text fills
-                         top-k as in raw formation and matched facts are appended as a dated block
+  --hybrid-retrieval <shared|reserved|keyed>  hybrid only. shared (default): raw text and
+                         extracted facts compete for the top-k session slots; reserved: raw text
+                         fills top-k and matched facts are appended as a dated block; keyed: the
+                         session's facts are prepended to its own key (fact-augmented keys)
+  --retrieval-unit <session|turn>  session (default) or one document per user turn, scored
+                         separately and aggregated to sessions; whole sessions still come back
   --hybrid-question-types <csv>  Use the extractor only for these question types; others run raw
                          (and make no extraction calls)
   --reserved-min-score <n>  reserved only: minimum lexical score for an appended fact (default 1)
@@ -161,6 +165,7 @@ function parseArgs(argv: string[]): Args {
     extractionMaxTokens: undefined,
     factsInContext: true,
     hybridRetrieval: 'shared',
+    retrievalUnit: 'session',
     hybridQuestionTypes: undefined,
     reservedMinimumScore: undefined,
     entityRetrieval: false,
@@ -284,8 +289,8 @@ function parseArgs(argv: string[]): Args {
       args.extractionApiKey = requiredValue(argv, index++, arg);
     } else if (arg === '--hybrid-retrieval') {
       const value = requiredValue(argv, index++, arg);
-      if (value !== 'shared' && value !== 'reserved') {
-        throw new Error('--hybrid-retrieval must be shared or reserved');
+      if (value !== 'shared' && value !== 'reserved' && value !== 'keyed') {
+        throw new Error('--hybrid-retrieval must be shared, reserved or keyed');
       }
       args.hybridRetrieval = value;
     } else if (arg === '--hybrid-question-types') {
@@ -297,6 +302,12 @@ function parseArgs(argv: string[]): Args {
       );
     } else if (arg === '--reserved-min-score') {
       args.reservedMinimumScore = Number(requiredValue(argv, index++, arg));
+    } else if (arg === '--retrieval-unit') {
+      const value = requiredValue(argv, index++, arg);
+      if (value !== 'session' && value !== 'turn') {
+        throw new Error('--retrieval-unit must be session or turn');
+      }
+      args.retrievalUnit = value;
     } else if (arg === '--extraction-cache') {
       args.extractionCacheDir = resolve(requiredValue(argv, index++, arg));
     } else if (arg === '--entity-retrieval') {
@@ -436,6 +447,7 @@ async function main(): Promise<void> {
             : { extractionMaxTokens: args.extractionMaxTokens }),
           factsInContext: args.factsInContext,
           hybridRetrieval: args.hybridRetrieval,
+          retrievalUnit: args.retrievalUnit,
           entityRetrieval: args.entityRetrieval,
           ...(args.extractionCacheDir === undefined
             ? {}

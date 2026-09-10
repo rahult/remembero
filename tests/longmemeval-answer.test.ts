@@ -524,6 +524,104 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     expect(b.retrievedSessionIds).toEqual(['evidence']);
   });
 
+  it('keyed hybrid prepends extracted facts to the session key so the fact words retrieve the session', async () => {
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    const extractor = new ScriptedCompletionClient('dialect', [
+      '% nothing',
+      'degree(user, business_administration).',
+    ]);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      instance({
+        haystack_sessions: [
+          [
+            {
+              role: 'user',
+              content:
+                'Which university should my nephew pick? Compare options please.',
+            },
+            { role: 'assistant', content: 'Long generic university comparison.' },
+          ],
+          [
+            {
+              role: 'user',
+              content: 'I finished my studies in Business Administration.',
+              has_answer: true,
+            },
+            {
+              role: 'assistant',
+              content: 'Long generic graduation explanation.',
+            },
+          ],
+        ],
+      }),
+      reader,
+      judge,
+      {
+        topK: 1,
+        contextBytes: 4_096,
+        formation: 'hybrid',
+        hybridRetrieval: 'keyed',
+        extractor,
+      },
+    );
+    // neither raw text says "degree"; the evidence session's fact does, and the fact is
+    // part of the session's key rather than a competing document, so no fact list is shown
+    expect(observation.retrievedSessionIds).toEqual(['evidence']);
+    const prompt = reader.calls[0]?.messages.at(-1)?.content ?? '';
+    expect(prompt).toContain('Business Administration');
+    expect(prompt).not.toContain('Remembered facts (stated in this session)');
+    expect(observation.extraction?.facts).toBe(1);
+  });
+
+  it('turn-level retrieval scores user turns, aggregates to sessions and returns whole sessions', async () => {
+    const reader = new ScriptedCompletionClient('reader', ['Two']);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      instance({
+        question: 'How many marathons have I run?',
+        haystack_session_ids: ['one-turn', 'two-turns'],
+        haystack_dates: ['2024/01/01 (Mon) 09:00', '2024/01/02 (Tue) 09:00'],
+        haystack_sessions: [
+          [
+            { role: 'user', content: 'I finished a marathon in Boston.' },
+            { role: 'assistant', content: 'Congratulations.' },
+            {
+              role: 'user',
+              content: 'Unrelated: what is a good pasta recipe?',
+            },
+            { role: 'assistant', content: 'Try carbonara.' },
+          ],
+          [
+            {
+              role: 'user',
+              content: 'I ran a marathon in Berlin.',
+              has_answer: true,
+            },
+            { role: 'assistant', content: 'Nice.' },
+            {
+              role: 'user',
+              content: 'And another marathon in Tokyo last spring.',
+              has_answer: true,
+            },
+            { role: 'assistant', content: 'Great.' },
+          ],
+        ],
+        answer_session_ids: ['two-turns'],
+      }),
+      reader,
+      judge,
+      { topK: 1, contextBytes: 4_096, formation: 'raw', retrievalUnit: 'turn' },
+    );
+    expect(observation.retrievedSessionIds).toEqual(['two-turns']);
+    const prompt = reader.calls[0]?.messages.at(-1)?.content ?? '';
+    // the whole session comes back, not just the matching turn
+    expect(prompt).toContain('Berlin');
+    expect(prompt).toContain('Tokyo');
+  });
+
   it('counts top-k in distinct sessions when a session yields several matching facts', async () => {
     const reader = new ScriptedCompletionClient('reader', [
       'Business Administration',
