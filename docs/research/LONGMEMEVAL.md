@@ -463,6 +463,7 @@ standard error of about six, and keeps abstention at 95%. What each pattern did:
 | ------------------------------------------------------------------------ | ----------- | ------ | ---------- | -------- | ------- | ------- | ------- | ------- | -------- |
 | raw                                                                      | 391/500     | 82.7%  | 80%        | 66/78    | 83/133  | 52/56   | 21/30   | 65/70   | 104/133  |
 | **hybrid (Gemma 4 E2B), multi-session k=15, temporal k=10 + time range** | **414/500** | 88.6%  | 90%        | 67/78    | 101/133 | 50/56   | 19/30   | 64/70   | 113/133  |
+| same + v5 semantic routing (embeddings on 95 questions)                  | **416/500** | 92.4%  | 93%        | 66/78    | 103/133 | 51/56   | 23/30   | 63/70   | 110/133  |
 
 Gained 52 and lost 29 against raw; development 212 → 226, held-out test 179 → 188; about two
 and a half standard errors on 500. The two types the patterns targeted carry it: multi-session
@@ -471,6 +472,15 @@ This is the first LongMemEval result in this document where the product's own ex
 by a 2.3B-effective model, moves the score, and it does so with lexical retrieval alone; the
 earlier v5 policy (416/500) needed embedding-based routing on top of raw sessions. The two are
 complementary and have not been combined.
+
+Adding the v5 semantic route (embedding rerank for recommendation-intent preference questions
+and for multi-session questions whose lexical leader scores at most 315; it fired on 95
+questions, $0.04 of embeddings) gives **416/500**, development 223, test 193 (v5 alone: 416,
+192 on test). Retrieval recall reaches 92.4%, the highest measured, yet accuracy moves two
+answers: the reader's accuracy on questions whose evidence is fully in context fell from
+93.4% (raw) to 89.4% as the contexts grew to fifteen sessions, and 43 fully-evidenced
+questions are still wrong, 21 of them multi-session and 12 temporal. Retrieval is no longer
+the limit; the reader's aggregation over many sessions is.
 
 Cost of the composed run over 500 questions: 10,089 extraction calls on an L4 (the dev half
 replayed from the cache), about $1 of GPU time, plus the reader and judge; the time-range
