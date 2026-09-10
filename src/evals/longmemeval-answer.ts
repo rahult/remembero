@@ -353,6 +353,14 @@ function sumLlmUsage(a: LlmUsage, b: LlmUsage): LlmUsage {
   };
 }
 
+/** The text after the last "Answer:" marker, or the whole reply when there is none. */
+export function finalAnswerLine(reply: string): string {
+  const index = reply.lastIndexOf('Answer:');
+  if (index < 0) return reply.trim();
+  const answer = reply.slice(index + 'Answer:'.length).trim();
+  return answer === '' ? reply.trim() : answer;
+}
+
 export function temporalRangePrompt(
   question: string,
   questionDate: string,
@@ -442,6 +450,7 @@ export function buildLongMemEvalAnswerContext(
   }>,
   contextBytes = DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES,
   extraFacts: Array<{ clause: string; ts: string }> = [],
+  reading: 'direct' | 'notes' = 'direct',
 ): AnswerContext {
   validateOptions(Math.max(1, rankedSources.length), contextBytes);
   const usable = rankedSources.filter(
@@ -483,7 +492,9 @@ export function buildLongMemEvalAnswerContext(
   const system =
     instance.question_type === 'single-session-preference'
       ? 'Use the supplied history to personalize the answer. You may use general knowledge for recommendations, but do not invent facts about the user. Briefly make the remembered preference or context driving the answer explicit.'
-      : 'Answer only from the supplied history. If it does not support an answer, say that you do not know. Be concise and do not invent details.';
+      : reading === 'notes'
+        ? 'Answer only from the supplied history. Work in two steps. First, under "Notes:", list every relevant item the history states, one per line, each with its session date and the exact detail (a count, a name, a date, an amount). Then, on a final line starting with "Answer:", give the answer derived from those notes, concise and with the arithmetic or ordering made explicit when the question needs it. If the notes do not support an answer, the Answer line must say that you do not know. Do not invent details.'
+        : 'Answer only from the supplied history. If it does not support an answer, say that you do not know. Be concise and do not invent details.';
   return {
     messages: [
       {
@@ -583,6 +594,13 @@ export async function evaluateLongMemEvalAnswerInstance(
     temporalRangeExtractor?: LongMemEvalCompletionClient;
     /** Question types that get the range treatment (default: temporal-reasoning). */
     temporalRangeQuestionTypes?: ReadonlySet<string>;
+    /**
+     * 'direct' (default) or 'notes': the reader first lists every relevant dated item, then
+     * gives a final "Answer:" line, which alone is judged (the paper's Chain-of-Note reading).
+     */
+    readingStrategy?: 'direct' | 'notes';
+    /** Question types read with notes (default: multi-session, temporal-reasoning, knowledge-update). */
+    notesQuestionTypes?: ReadonlySet<string>;
     /**
      * Directory of per-session extraction results keyed by extractor model and transcript
      * hash. Extraction is deterministic enough to replay, and it is two hours of a full dev
@@ -1163,11 +1181,18 @@ export async function evaluateLongMemEvalAnswerInstance(
       retrievalMs,
       topScore,
     );
+    const notes =
+      options.readingStrategy === 'notes' &&
+      (
+        options.notesQuestionTypes ??
+        new Set(['multi-session', 'temporal-reasoning', 'knowledge-update'])
+      ).has(instance.question_type);
     const answerContext = buildLongMemEvalAnswerContext(
       instance,
       rankedSources,
       contextBytes,
       extraFacts,
+      notes ? 'notes' : 'direct',
     );
     contextSessionIds = [
       ...answerContext.contextSessionIds,
@@ -1190,7 +1215,9 @@ export async function evaluateLongMemEvalAnswerInstance(
       },
     );
     readerMs = performance.now() - readerStarted;
-    hypothesis = readerCompletion.content.trim();
+    hypothesis = notes
+      ? finalAnswerLine(readerCompletion.content)
+      : readerCompletion.content.trim();
     readerUsage = readerCompletion.usage;
     const judgeStarted = performance.now();
     const judgeCompletion = await judge.completeWithUsage(

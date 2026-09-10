@@ -706,6 +706,49 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     expect(observation.temporalRange).toBeNull();
   });
 
+  it('structured reading asks for dated notes first and judges only the final answer line', async () => {
+    const reader = new ScriptedCompletionClient('reader', [
+      'Notes:\n1. 2024-01-02: degree in Business Administration\n\nAnswer: Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      instance({ question_type: 'multi-session' }),
+      reader,
+      judge,
+      {
+        topK: 1,
+        multiSessionTopK: 1,
+        contextBytes: 4_096,
+        formation: 'raw',
+        readingStrategy: 'notes',
+      },
+    );
+    const system = reader.calls[0]?.messages[0]?.content ?? '';
+    expect(system).toMatch(/list every relevant item[\s\S]*Answer:/i);
+    expect(observation.hypothesis).toBe('Business Administration');
+    expect(judge.calls[0]?.messages[0]?.content).toContain(
+      'Model response: Business Administration',
+    );
+    expect(judge.calls[0]?.messages[0]?.content).not.toContain('Notes:');
+  });
+
+  it('structured reading applies only to the listed question types', async () => {
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    await evaluateLongMemEvalAnswerInstance(instance(), reader, judge, {
+      topK: 1,
+      contextBytes: 4_096,
+      formation: 'raw',
+      readingStrategy: 'notes',
+    });
+    // single-session-user is not an aggregation type: plain reading
+    expect(reader.calls[0]?.messages[0]?.content ?? '').not.toMatch(
+      /list every relevant item/i,
+    );
+  });
+
   it('counts top-k in distinct sessions when a session yields several matching facts', async () => {
     const reader = new ScriptedCompletionClient('reader', [
       'Business Administration',

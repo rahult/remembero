@@ -59,6 +59,7 @@ interface Args {
   entityRetrieval: boolean;
   extractionCacheDir: string | undefined;
   temporalRangeModel: string | undefined;
+  readingStrategy: 'direct' | 'notes';
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -85,6 +86,8 @@ Options:
   --hybrid-question-types <csv>  Use the extractor only for these question types; others run raw
                          (and make no extraction calls)
   --reserved-min-score <n>  reserved only: minimum lexical score for an appended fact (default 1)
+  --reading <direct|notes>  notes: for multi-session, temporal and knowledge-update questions
+                         the reader lists dated items first, then an "Answer:" line that alone is judged
   --temporal-range-model <id>  Time-aware retrieval: this model reads the date range a
                          temporal question refers to (or refuses); in-range sessions rank first
   --extraction-cache <dir>  Replay per-session extractions from this directory when present
@@ -174,6 +177,7 @@ function parseArgs(argv: string[]): Args {
     entityRetrieval: false,
     extractionCacheDir: undefined,
     temporalRangeModel: undefined,
+    readingStrategy: 'direct',
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -312,6 +316,12 @@ function parseArgs(argv: string[]): Args {
         throw new Error('--retrieval-unit must be session or turn');
       }
       args.retrievalUnit = value;
+    } else if (arg === '--reading') {
+      const value = requiredValue(argv, index++, arg);
+      if (value !== 'direct' && value !== 'notes') {
+        throw new Error('--reading must be direct or notes');
+      }
+      args.readingStrategy = value;
     } else if (arg === '--temporal-range-model') {
       args.temporalRangeModel = requiredValue(argv, index++, arg);
     } else if (arg === '--extraction-cache') {
@@ -462,6 +472,7 @@ async function main(): Promise<void> {
           factsInContext: args.factsInContext,
           hybridRetrieval: args.hybridRetrieval,
           retrievalUnit: args.retrievalUnit,
+          readingStrategy: args.readingStrategy,
           ...(temporalRangeExtractor === undefined
             ? {}
             : { temporalRangeExtractor }),
