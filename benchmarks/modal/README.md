@@ -107,3 +107,12 @@ base. E4B needs `MODAL_SERVE_GPU=A100-40GB` (or L40S) for an 8k context; E2B fit
 evaluation can run without disturbing the main endpoint. Values read from `os.environ` at
 import time (`BASE_MODEL`, `SERVE_RUN`) are local-only: they are passed as arguments or baked
 into the image env, never read inside a container.
+
+## Volume housekeeping
+
+Merged weights are 8–16 GB per run; adapters are a few hundred MB. On 2026-09-10 every run
+except the fallback (`r14`), the served run (`r16-gemma4-e2b`, `merged-text` only) and the
+run in progress lost its `merged`, `merged-text` and `trainer` directories; every `adapter`
+and `metrics.json` stays, so any run can be re-merged with `add_processor` /
+`export_text_only` after a fresh merge. Remove with
+`modal volume rm -r rembero-finetune runs/<run>/merged`.
