@@ -353,14 +353,15 @@ What this says:
   across sessions in this store (no `rembero_functional` declarations exist for invented
   predicates). Its 91% "retrieval recall" is inflated by counting every fact's session.
 
-| formation (dev, 261)                   | accuracy    | recall | abstention | k-update | multi | ss-pref | temporal |
-| -------------------------------------- | ----------- | ------ | ---------- | -------- | ----- | ------- | -------- |
-| raw                                    | **214/261** | 83.4%  | 95%        | 37/44    | 50/69 | 11/15   | 52/66    |
-| hybrid r14, shared                     | 211/261     | 85.2%  | 95%        | 39/44    | 51/69 | 8/15    | 49/66    |
-| hybrid r14, reserved                   | 206/261     | 91.2%* | 84%        | 35/44    | 49/69 | 10/15   | 50/66    |
-| hybrid Gemma 4 E2B, shared             | **219/261** | 85.4%  | 89%        | 38/44    | 55/69 | 10/15   | 52/66    |
-| E2B shared, routed to k-update + multi | 210/261     | 84.4%  | 84%        | 35/44    | 50/69 | 9/15    | 53/66    |
-| E2B reserved ≥200, routed, framed      | 215/261     | 84.2%  | 95%        | 37/44    | 49/69 | 10/15   | 54/66    |
+| formation (dev, 261)                               | accuracy    | recall | abstention | k-update | multi | ss-pref | temporal |
+| -------------------------------------------------- | ----------- | ------ | ---------- | -------- | ----- | ------- | -------- |
+| raw                                                | **214/261** | 83.4%  | 95%        | 37/44    | 50/69 | 11/15   | 52/66    |
+| hybrid r14, shared                                 | 211/261     | 85.2%  | 95%        | 39/44    | 51/69 | 8/15    | 49/66    |
+| hybrid r14, reserved                               | 206/261     | 91.2%* | 84%        | 35/44    | 49/69 | 10/15   | 50/66    |
+| hybrid Gemma 4 E2B, shared                         | **219/261** | 85.4%  | 89%        | 38/44    | 55/69 | 10/15   | 52/66    |
+| E2B shared, routed to k-update + multi             | 210/261     | 84.4%  | 84%        | 35/44    | 50/69 | 9/15    | 53/66    |
+| E2B reserved ≥200, routed, framed                  | 215/261     | 84.2%  | 95%        | 37/44    | 49/69 | 10/15   | 54/66    |
+| hybrid Gemma 4 E2B r17 (real-session data), shared | 201/261     | 84.1%  | –          | –        | –     | –       | –        |
 
 \* counts the sessions of appended facts as retrieved.
 
@@ -382,6 +383,16 @@ What this says:
   **210/261**; reserved retrieval with a two-matched-word floor (`--reserved-min-score 200`)
   and the block framed as supplementary scored **215/261** with abstention back at 95%, so
   the framing repaired the reserved mode's abstention loss. Neither beat raw.
+
+- **More extraction is not better extraction, for this retrieval.** Round 17, the Gemma 4 E2B
+  recipe plus 3,000 Luna-labelled real sessions, nearly triples loose fact recall on real
+  sessions (see [EXTRACTION-BENCH.md](EXTRACTION-BENCH.md)) and scores **201/261** here in
+  shared hybrid formation, thirteen below raw. It wrote 40,671 facts against r16's 12,837 from
+  about the same number of sessions; in shared retrieval those facts compete with raw sessions
+  for the same slots and win them with low-value matches. r16 stays the served model. The
+  fact-augmented-key formation below, where facts enrich a session's key instead of competing
+  as documents, is the setting in which a more prolific extractor could pay off; it has not
+  been run with r17.
 
 - **The reader itself moves about six answers between identical runs.** The routed run
   presented 148 questions with exactly the same formation and retrieved sessions as the raw
