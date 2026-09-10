@@ -464,6 +464,7 @@ standard error of about six, and keeps abstention at 95%. What each pattern did:
 | raw                                                                      | 391/500     | 82.7%  | 80%        | 66/78    | 83/133  | 52/56   | 21/30   | 65/70   | 104/133  |
 | **hybrid (Gemma 4 E2B), multi-session k=15, temporal k=10 + time range** | **414/500** | 88.6%  | 90%        | 67/78    | 101/133 | 50/56   | 19/30   | 64/70   | 113/133  |
 | same + v5 semantic routing (embeddings on 95 questions)                  | **416/500** | 92.4%  | 93%        | 66/78    | 103/133 | 51/56   | 23/30   | 63/70   | 110/133  |
+| same + structured reading (dated notes, then an Answer line)             | 416/500     | 92.4%  | 90%        | 64/78    | 102/133 | 50/56   | 27/30   | 65/70   | 108/133  |
 
 Gained 52 and lost 29 against raw; development 212 → 226, held-out test 179 → 188; about two
 and a half standard errors on 500. The two types the patterns targeted carry it: multi-session
@@ -481,6 +482,14 @@ answers: the reader's accuracy on questions whose evidence is fully in context f
 93.4% (raw) to 89.4% as the contexts grew to fifteen sessions, and 43 fully-evidenced
 questions are still wrong, 21 of them multi-session and 12 temporal. Retrieval is no longer
 the limit; the reader's aggregation over many sessions is.
+
+The paper's reading pattern (`--reading notes`: for multi-session, temporal and
+knowledge-update questions the reader lists every relevant dated item, then gives an
+"Answer:" line that alone is judged) was the natural next step and did nothing: 416 again,
+with 14 gained and 21 lost on the three types it touched, and three preference answers moved
+without the pattern applying to them. With Luna as reader, enumerating before answering does
+not reduce its aggregation errors; a stronger reader or a two-call read (enumerate, then
+answer from the enumeration only) is the untested remainder.
 
 Cost of the composed run over 500 questions: 10,089 extraction calls on an L4 (the dev half
 replayed from the cache), about $1 of GPU time, plus the reader and judge; the time-range
