@@ -450,7 +450,7 @@ export function buildLongMemEvalAnswerContext(
   }>,
   contextBytes = DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES,
   extraFacts: Array<{ clause: string; ts: string }> = [],
-  reading: 'direct' | 'notes' = 'direct',
+  reading: 'direct' | 'notes' | 'enumerate' = 'direct',
 ): AnswerContext {
   validateOptions(Math.max(1, rankedSources.length), contextBytes);
   const usable = rankedSources.filter(
@@ -492,9 +492,11 @@ export function buildLongMemEvalAnswerContext(
   const system =
     instance.question_type === 'single-session-preference'
       ? 'Use the supplied history to personalize the answer. You may use general knowledge for recommendations, but do not invent facts about the user. Briefly make the remembered preference or context driving the answer explicit.'
-      : reading === 'notes'
-        ? 'Answer only from the supplied history. Work in two steps. First, under "Notes:", list every relevant item the history states, one per line, each with its session date and the exact detail (a count, a name, a date, an amount). Then, on a final line starting with "Answer:", give the answer derived from those notes, concise and with the arithmetic or ordering made explicit when the question needs it. If the notes do not support an answer, the Answer line must say that you do not know. Do not invent details.'
-        : 'Answer only from the supplied history. If it does not support an answer, say that you do not know. Be concise and do not invent details.';
+      : reading === 'enumerate'
+        ? 'Do not answer the question yet. From the supplied history, list every item relevant to the question, one per line, each with its session date and the exact detail the history states (a count, a name, a date, an amount, a quote). Include every occurrence across sessions, keep duplicates apart, and add nothing the history does not say. If nothing is relevant, write "No relevant items." Output the list only.'
+        : reading === 'notes'
+          ? 'Answer only from the supplied history. Work in two steps. First, under "Notes:", list every relevant item the history states, one per line, each with its session date and the exact detail (a count, a name, a date, an amount). Then, on a final line starting with "Answer:", give the answer derived from those notes, concise and with the arithmetic or ordering made explicit when the question needs it. If the notes do not support an answer, the Answer line must say that you do not know. Do not invent details.'
+          : 'Answer only from the supplied history. If it does not support an answer, say that you do not know. Be concise and do not invent details.';
   return {
     messages: [
       {
@@ -598,7 +600,7 @@ export async function evaluateLongMemEvalAnswerInstance(
      * 'direct' (default) or 'notes': the reader first lists every relevant dated item, then
      * gives a final "Answer:" line, which alone is judged (the paper's Chain-of-Note reading).
      */
-    readingStrategy?: 'direct' | 'notes';
+    readingStrategy?: 'direct' | 'notes' | 'two-call';
     /** Question types read with notes (default: multi-session, temporal-reasoning, knowledge-update). */
     notesQuestionTypes?: ReadonlySet<string>;
     /**
@@ -1181,18 +1183,18 @@ export async function evaluateLongMemEvalAnswerInstance(
       retrievalMs,
       topScore,
     );
-    const notes =
-      options.readingStrategy === 'notes' &&
-      (
-        options.notesQuestionTypes ??
-        new Set(['multi-session', 'temporal-reasoning', 'knowledge-update'])
-      ).has(instance.question_type);
+    const aggregationType = (
+      options.notesQuestionTypes ??
+      new Set(['multi-session', 'temporal-reasoning', 'knowledge-update'])
+    ).has(instance.question_type);
+    const notes = options.readingStrategy === 'notes' && aggregationType;
+    const twoCall = options.readingStrategy === 'two-call' && aggregationType;
     const answerContext = buildLongMemEvalAnswerContext(
       instance,
       rankedSources,
       contextBytes,
       extraFacts,
-      notes ? 'notes' : 'direct',
+      twoCall ? 'enumerate' : notes ? 'notes' : 'direct',
     );
     contextSessionIds = [
       ...answerContext.contextSessionIds,
@@ -1214,11 +1216,32 @@ export async function evaluateLongMemEvalAnswerInstance(
         maxTokens: 4_096,
       },
     );
-    readerMs = performance.now() - readerStarted;
-    hypothesis = notes
-      ? finalAnswerLine(readerCompletion.content)
-      : readerCompletion.content.trim();
     readerUsage = readerCompletion.usage;
+    if (twoCall) {
+      // second call: answer from the enumerated items only, the history left behind
+      const enumeration = readerCompletion.content.trim();
+      const answerCompletion = await reader.completeWithUsage(
+        [
+          {
+            role: 'system',
+            content:
+              "Answer the question using only the dated items listed below, which were extracted from the user's chat history. Make any counting, summing or ordering explicit, then give the answer. If the items do not support an answer, say that you do not know. Do not invent details.",
+          },
+          {
+            role: 'user',
+            content: `Relevant items from the history:\n${enumeration || 'No relevant items.'}\n\nCurrent date: ${instance.question_date}\nQuestion: ${instance.question}\nAnswer:`,
+          },
+        ],
+        { maxTokens: 4_096 },
+      );
+      hypothesis = answerCompletion.content.trim();
+      readerUsage = sumLlmUsage(readerUsage, answerCompletion.usage);
+    } else {
+      hypothesis = notes
+        ? finalAnswerLine(readerCompletion.content)
+        : readerCompletion.content.trim();
+    }
+    readerMs = performance.now() - readerStarted;
     const judgeStarted = performance.now();
     const judgeCompletion = await judge.completeWithUsage(
       [

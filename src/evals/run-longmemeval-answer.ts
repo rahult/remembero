@@ -59,7 +59,7 @@ interface Args {
   entityRetrieval: boolean;
   extractionCacheDir: string | undefined;
   temporalRangeModel: string | undefined;
-  readingStrategy: 'direct' | 'notes';
+  readingStrategy: 'direct' | 'notes' | 'two-call';
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -86,8 +86,10 @@ Options:
   --hybrid-question-types <csv>  Use the extractor only for these question types; others run raw
                          (and make no extraction calls)
   --reserved-min-score <n>  reserved only: minimum lexical score for an appended fact (default 1)
-  --reading <direct|notes>  notes: for multi-session, temporal and knowledge-update questions
-                         the reader lists dated items first, then an "Answer:" line that alone is judged
+  --reading <direct|notes|two-call>  for multi-session, temporal and knowledge-update questions:
+                         notes = dated items first, then an "Answer:" line that alone is judged;
+                         two-call = one call enumerates dated items from the history, a second
+                         answers from that list alone
   --temporal-range-model <id>  Time-aware retrieval: this model reads the date range a
                          temporal question refers to (or refuses); in-range sessions rank first
   --extraction-cache <dir>  Replay per-session extractions from this directory when present
@@ -318,8 +320,8 @@ function parseArgs(argv: string[]): Args {
       args.retrievalUnit = value;
     } else if (arg === '--reading') {
       const value = requiredValue(argv, index++, arg);
-      if (value !== 'direct' && value !== 'notes') {
-        throw new Error('--reading must be direct or notes');
+      if (value !== 'direct' && value !== 'notes' && value !== 'two-call') {
+        throw new Error('--reading must be direct, notes or two-call');
       }
       args.readingStrategy = value;
     } else if (arg === '--temporal-range-model') {

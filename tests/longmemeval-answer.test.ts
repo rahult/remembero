@@ -749,6 +749,34 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     );
   });
 
+  it('two-call reading enumerates from the history, then answers from the enumeration alone', async () => {
+    const reader = new ScriptedCompletionClient('reader', [
+      '- 2024-01-02: degree in Business Administration',
+      'Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      instance({ question_type: 'multi-session' }),
+      reader,
+      judge,
+      {
+        topK: 1,
+        multiSessionTopK: 1,
+        contextBytes: 4_096,
+        formation: 'raw',
+        readingStrategy: 'two-call',
+      },
+    );
+    expect(reader.calls).toHaveLength(2);
+    const first = reader.calls[0]?.messages.at(-1)?.content ?? '';
+    const second = reader.calls[1]?.messages.at(-1)?.content ?? '';
+    expect(first).toContain('History chats:');
+    expect(second).toContain('2024-01-02: degree in Business Administration');
+    expect(second).not.toContain('History chats:');
+    expect(observation.hypothesis).toBe('Business Administration');
+    expect(observation.readerUsage?.totalTokens).toBe(24);
+  });
+
   it('counts top-k in distinct sessions when a session yields several matching facts', async () => {
     const reader = new ScriptedCompletionClient('reader', [
       'Business Administration',
