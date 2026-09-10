@@ -506,6 +506,27 @@ counts as wrong. So the 43 fully-evidenced misses were the reader's, and a stron
 the three aggregation types alone is worth seventeen answers on 500; the memory system's
 retrieval was already delivering the evidence.
 
+Five readers were then tried on the aggregation types, everything else identical (Luna on the
+other types, GPT-4o judging, the same extraction cache). Ollama Cloud models run through the
+local daemon signed in to the account; DeepSeek v4.1 Flash was not yet served there and ran
+on OpenRouter.
+
+| aggregation reader (344 of 500 questions)   | total       | errors | k-update | multi   | temporal | reader accuracy, full evidence |
+| ------------------------------------------- | ----------- | -----: | -------- | ------- | -------- | -----------------------------: |
+| Luna (no separate reader)                   | 416/500     |      5 | 66/78    | 103/133 | 110/133  |                          89.4% |
+| GLM 5.3 (Ollama Cloud)                      | 433/500     |      1 | 67/78    | 109/133 | 116/133  |                          92.5% |
+| **GLM 5.3 Flash (Ollama Cloud)**            | **435/500** |      2 | 70/78    | 108/133 | 115/133  |                          92.5% |
+| DeepSeek v4 Flash 0731 (Ollama Cloud)       | 413/500     |      2 | 62/78    | 99/133  | 113/133  |                          88.1% |
+| DeepSeek v4.1 Flash (OpenRouter), 4k budget | 423/500     |     16 | 69/78    | 104/133 | 116/133  |                          92.3% |
+| DeepSeek v4.1 Flash (OpenRouter), 16k       | 428/500     |      2 | –        | –       | –        |                              – |
+
+Errors are cloud timeouts, or for DeepSeek v4.1 Flash at the default 4,096-token budget a
+reasoning model exhausting it before answering (`finish_reason=length`), all counted as wrong;
+`--reader-max-tokens 16384` removes those. GLM 5.3 Flash ties the full model at flash cost
+and is the recommended aggregation reader: **435/500 (87.0%)**, against 391 for raw sessions
+with Luna at the start of this work. DeepSeek v4 Flash is below Luna; v4.1 Flash with room
+to think sits between Luna and GLM.
+
 Cost of the composed run over 500 questions: 10,089 extraction calls on an L4 (the dev half
 replayed from the cache), about $1 of GPU time, plus the reader and judge; the time-range
 extractor added one Luna call for each of the 133 temporal questions.
