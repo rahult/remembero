@@ -139,6 +139,35 @@ def load_base_model(model_id: str, torch):
         return AutoModelForImageTextToText.from_pretrained(model_id, **kwargs)
 
 
+LORA_PROJECTIONS = {"q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"}
+
+
+def lora_targets(model) -> list[str]:
+    """Full names of the text model's attention/MLP Linear layers.
+
+    Matching by short name ("q_proj") is enough for Qwen and Llama, but Gemma 4 wraps each
+    projection in a clipping module PEFT cannot adapt, with the real Linear one level down
+    (q_proj.linear). Naming the Linear modules explicitly works for both, and skips the
+    vision and audio towers of multimodal checkpoints.
+    """
+    import torch.nn as nn
+
+    names: list[str] = []
+    for name, module in model.named_modules():
+        if not isinstance(module, nn.Linear):
+            continue
+        if any(tower in name for tower in ("vision", "audio", "embed_vision", "embed_audio")):
+            continue
+        parts = name.split(".")
+        leaf, parent = parts[-1], (parts[-2] if len(parts) > 1 else "")
+        if leaf in LORA_PROJECTIONS or (leaf == "linear" and parent in LORA_PROJECTIONS):
+            names.append(name)
+    if not names:
+        raise RuntimeError("no LoRA target modules found; unexpected model layout")
+    print(f"LoRA on {len(names)} Linear layers (e.g. {names[0]})")
+    return names
+
+
 def reasoning_flags(base_model: str) -> list[str]:
     """Serving flags that depend on the base model's chat template."""
     lowered = base_model.lower()
@@ -215,7 +244,7 @@ def train(
         lora_dropout=0.0,
         bias="none",
         task_type="CAUSAL_LM",
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+        target_modules=lora_targets(model),
     )
     # transformers 5.x keeps renaming/removing TrainingArguments fields (warmup_ratio,
     # group_by_length, ...); keep only the ones this SFTConfig accepts and say what was dropped.
