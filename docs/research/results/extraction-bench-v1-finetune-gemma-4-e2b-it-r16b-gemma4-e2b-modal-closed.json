@@ -1,0 +1,282 @@
+{
+  "benchmark": "extraction-bench-v1",
+  "vocabulary": "closed",
+  "generatedAt": "2026-09-10T11:36:24.587Z",
+  "cases": 103,
+  "runs": [
+    {
+      "model": "finetune/gemma-4-e2b-it-r16b-gemma4-e2b-modal",
+      "score": {
+        "cases": 103,
+        "accuracy": 0.8252427184466019,
+        "mutationPrecision": 0.9065420560747663,
+        "mutationRecall": 0.8220338983050848,
+        "mutationF1": 0.8622222222222222,
+        "truePositives": 97,
+        "falsePositives": 10,
+        "falseNegatives": 21,
+        "safetyAccuracy": 1,
+        "safetyCases": 0,
+        "unexpectedErrors": 1,
+        "llmCalls": 113,
+        "usageResponses": 113,
+        "costResponses": 0,
+        "promptTokens": 114691,
+        "completionTokens": 1710,
+        "totalTokens": 116401,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "durationMs": 90780.77583600002,
+        "byPhenomenon": {
+          "direct": {
+            "cases": 12,
+            "correct": 12,
+            "accuracy": 1
+          },
+          "multi_fact": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "negation": {
+            "cases": 10,
+            "correct": 9,
+            "accuracy": 0.9
+          },
+          "coreference": {
+            "cases": 8,
+            "correct": 1,
+            "accuracy": 0.125
+          },
+          "first_person": {
+            "cases": 8,
+            "correct": 7,
+            "accuracy": 0.875
+          },
+          "supersession": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "distractor_prose": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "competitor_predicate": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "hedge": {
+            "cases": 9,
+            "correct": 8,
+            "accuracy": 0.8888888888888888
+          },
+          "transcript": {
+            "cases": 8,
+            "correct": 5,
+            "accuracy": 0.625
+          },
+          "entity_normalization": {
+            "cases": 8,
+            "correct": 4,
+            "accuracy": 0.5
+          },
+          "date_number": {
+            "cases": 8,
+            "correct": 7,
+            "accuracy": 0.875
+          }
+        },
+        "driftRate": 0,
+        "driftedPredicates": {}
+      },
+      "failures": [
+        {
+          "id": "coref_1",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(tom, initech).\nlives_in(tom, sydney).",
+          "drift": []
+        },
+        {
+          "id": "coref_2",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(priya, globex).\nlives_in(priya, lisbon).",
+          "drift": []
+        },
+        {
+          "id": "coref_3",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(liam, umbrella).\nlives_in(liam, osaka).",
+          "drift": []
+        },
+        {
+          "id": "coref_4",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(ava, hooli).\nlives_in(ava, toronto).",
+          "drift": []
+        },
+        {
+          "id": "coref_5",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(dana, vandelay).\nlives_in(dana, nairobi).",
+          "drift": []
+        },
+        {
+          "id": "coref_their",
+          "phenomenon": "coreference",
+          "actual": [
+            "leads(zed, sample_1).",
+            "standup_day(zed, sample_1).",
+            "leads(tom, platform).",
+            "standup_day(tom, tuesday)."
+          ],
+          "expected": "leads(zed, sample_1).\nstandup_day(zed, sample_1).\nleads(tom, platform_team).\nstandup_day(platform_team, tuesday).",
+          "drift": []
+        },
+        {
+          "id": "coref_two_sentences_back",
+          "phenomenon": "coreference",
+          "actual": [
+            "reports_to(zed, sample_1)."
+          ],
+          "expected": "reports_to(zed, sample_1).\nreports_to(priya, ava).",
+          "drift": []
+        },
+        {
+          "id": "first_person_2",
+          "phenomenon": "first_person",
+          "actual": [
+            "dentist(zed, sample_1).",
+            "dentist(user, 'Dr Chen')."
+          ],
+          "expected": "dentist(zed, sample_1).\ndentist(user, dr_chen).",
+          "drift": []
+        },
+        {
+          "id": "transcript_user_fact",
+          "phenomenon": "transcript",
+          "actual": [
+            "works_at(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(user, acme).",
+          "drift": []
+        },
+        {
+          "id": "transcript_preference",
+          "phenomenon": "transcript",
+          "actual": [
+            "prefers_indentation(zed, sample_1).",
+            "prefers_indentation(user, tab)."
+          ],
+          "expected": "prefers_indentation(zed, sample_1).\nprefers_indentation(user, tabs).",
+          "drift": []
+        },
+        {
+          "id": "normalize_0",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "dentist(zed, sample_1).",
+            "dentist(user, 'Dr. Mira Chen')."
+          ],
+          "expected": "dentist(zed, sample_1).\ndentist(user, 'Mira Chen').",
+          "drift": []
+        },
+        {
+          "id": "normalize_3",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "codename(zed, sample_1)."
+          ],
+          "expected": "codename(zed, sample_1).\ncodename(project, orchard).",
+          "drift": [],
+          "error": "facts must be ground: 'codename' contains variable _ at line 1"
+        },
+        {
+          "id": "normalize_5",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "speaks(zed, sample_1).",
+            "speaks(ava, mandarin_chinese)."
+          ],
+          "expected": "speaks(zed, sample_1).\nspeaks(ava, 'Mandarin Chinese').",
+          "drift": []
+        },
+        {
+          "id": "date_number_0",
+          "phenomenon": "date_number",
+          "actual": [
+            "filing_deadline(zed, sample_1).",
+            "filing_deadline(zed, '2026-10-31')."
+          ],
+          "expected": "filing_deadline(zed, sample_1).\nfiling_deadline(filing, '2026-10-31').",
+          "drift": []
+        },
+        {
+          "id": "hedge_more_0",
+          "phenomenon": "hedge",
+          "actual": [
+            "prefers_language(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "uses_database(zed, sample_1).",
+            "prefers_language(ava, kotlin)."
+          ],
+          "expected": "prefers_language(zed, sample_1).\nlives_in(zed, sample_1).\nuses_database(zed, sample_1).",
+          "drift": []
+        },
+        {
+          "id": "negation_keep_other_facts",
+          "phenomenon": "negation",
+          "actual": [
+            "lives_in(mira, melbourne)."
+          ],
+          "expected": "lives_in(mira, melbourne).",
+          "drift": []
+        },
+        {
+          "id": "transcript_assistant_summary_ignored",
+          "phenomenon": "transcript",
+          "actual": [
+            "runs_on(zed, sample_1).",
+            "deploy_day(zed, sample_1).",
+            "deploy_day(ledger, friday)."
+          ],
+          "expected": "runs_on(zed, sample_1).\ndeploy_day(zed, sample_1).",
+          "drift": []
+        },
+        {
+          "id": "normalize_hyphen",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "works_on(zed, sample_1).",
+            "works_on(dana, check_out)."
+          ],
+          "expected": "works_on(zed, sample_1).\nworks_on(dana, checkout_service).",
+          "drift": []
+        }
+      ]
+    }
+  ]
+}

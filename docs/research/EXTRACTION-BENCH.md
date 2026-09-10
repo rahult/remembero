@@ -296,11 +296,12 @@ LoRA, one epoch, evaluated with the same prompts and guards:
 | r15 (batch 4 × 16) | Qwen3.5-4B  |        27 |              85 |        0.0036 |       44 min |
 | r16                | Gemma 4 E4B |        24 |              84 |        0.0031 |       55 min |
 | r16                | Gemma 4 E2B |        28 |           85–86 |        0.0037 |       43 min |
+| r16b               | Gemma 4 E2B |        27 |              85 |        0.0031 |       38 min |
 
 Four runs of one recipe span 26–27 queries and 85–91 extraction cases, so the training-run
 noise is about one query and three extraction cases either side. Nothing in the table clears
-it: Gemma 4 E2B, a 2.3B-effective model, ties Qwen3.5-4B on both benchmarks; Gemma 4 E4B is a
-query below the band on one run. The base model is not where the remaining performance is.
+it: Gemma 4 E2B, a 2.3B-effective model, ties Qwen3.5-4B on both benchmarks and repeats the
+result on a second run (27 and 85); Gemma 4 E4B is a query below the band on one run. The base model is not where the remaining performance is.
 
 Two engineering notes from the Gemma runs. Gemma 4 wraps each projection in a clipping module
 PEFT cannot adapt, so the trainer now names the inner Linear layers; its KV-sharing layers
