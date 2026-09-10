@@ -27,6 +27,10 @@ import {
 } from '../knowledge/semantic-search.js';
 import type { EmbeddingClient, EmbeddingUsage } from '../llm/embeddings.js';
 import { rememberTranscriptText } from '../llm/pipeline.js';
+import {
+  expandByEntities,
+  interleaveSessions,
+} from '../knowledge/entity-retrieval.js';
 import { MemoryStore } from '../store/store.js';
 import {
   longMemEvalSessionText,
@@ -502,6 +506,12 @@ export async function evaluateLongMemEvalAnswerInstance(
     hybridQuestionTypes?: ReadonlySet<string>;
     /** reserved only: minimum lexical score for an appended fact (default 1). */
     reservedMinimumScore?: number;
+    /**
+     * hybrid/extracted: one hop over the extracted facts from the question (shared
+     * relation-and-subject or shared entity); the sessions found take alternate top-k
+     * slots with the lexical ranking. See knowledge/entity-retrieval.ts.
+     */
+    entityRetrieval?: boolean;
     /** Cut each assistant turn to this many characters before extraction (default: no cut). */
     extractionAssistantCharacters?: number;
   } = {},
@@ -572,6 +582,8 @@ export async function evaluateLongMemEvalAnswerInstance(
     const formationStarted = performance.now();
     const sourceSessionIds = new Map<string, string>();
     const userSourceText = new Map<string, string>();
+    // session id -> what the reader needs if the session is reached other than lexically
+    const sessionRecords = new Map<string, { ts: string; text: string }>();
     if (formation !== 'raw') {
       extraction = {
         calls: 0,
@@ -613,6 +625,13 @@ export async function evaluateLongMemEvalAnswerInstance(
       );
       const sessionText = longMemEvalSessionText(session);
       const at = datasetDate(instance.haystack_dates[index]!);
+      sessionRecords.set(instance.haystack_session_ids[index]!, {
+        ts: at.toISOString(),
+        text:
+          contextRoles === 'user'
+            ? userSourceText.get(operationId)!
+            : sessionText,
+      });
       if (formation !== 'extracted') {
         store.assert('longmemeval', `longmem_session(session_${index}).`, {
           opId: operationId,
@@ -804,6 +823,43 @@ export async function evaluateLongMemEvalAnswerInstance(
       .slice(0, effectiveTopK);
     rankedSources.length = 0;
     rankedSources.push(...dedupedSources);
+    // entity retrieval: one hop over the extracted facts, interleaved with the lexical order
+    if (options.entityRetrieval === true && formation !== 'raw') {
+      const hits = expandByEntities(
+        snapshot.clauses.filter((c) => c.head.predicate !== 'longmem_session'),
+        instance.question,
+        snapshot.sources,
+        { selfAtom: 'user', maxSessions: effectiveTopK * 2 },
+      );
+      const bySession = new Map<string, (typeof hits)[number]>();
+      for (const hit of hits) {
+        const session = sourceSessionIds.get(hit.opId) ?? hit.opId;
+        if (!bySession.has(session)) bySession.set(session, hit);
+      }
+      const order = interleaveSessions(
+        rankedSources.map(({ opId }) => opId),
+        [...bySession.keys()],
+        effectiveTopK,
+      );
+      const lexicalBySession = new Map(rankedSources.map((r) => [r.opId, r]));
+      const merged = order.flatMap((session) => {
+        const lexicalEntry = lexicalBySession.get(session);
+        if (lexicalEntry !== undefined) return [lexicalEntry];
+        const record = sessionRecords.get(session);
+        const hit = bySession.get(session);
+        if (record === undefined || hit === undefined) return [];
+        return [
+          {
+            opId: session,
+            ts: record.ts,
+            text: record.text,
+            facts: options.factsInContext === false ? [] : hit.facts,
+          },
+        ];
+      });
+      rankedSources.length = 0;
+      rankedSources.push(...merged);
+    }
     retrievedSessionIds = rankedSources.map(({ opId }) => opId);
     // reserved: matched extracted facts ride along as a dated block, up to 3k of them
     const extraFacts: Array<{ clause: string; ts: string }> = [];

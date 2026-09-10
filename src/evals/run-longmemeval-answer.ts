@@ -55,6 +55,7 @@ interface Args {
   hybridRetrieval: 'shared' | 'reserved';
   hybridQuestionTypes: Set<string> | undefined;
   reservedMinimumScore: number | undefined;
+  entityRetrieval: boolean;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -78,6 +79,9 @@ Options:
   --hybrid-question-types <csv>  Use the extractor only for these question types; others run raw
                          (and make no extraction calls)
   --reserved-min-score <n>  reserved only: minimum lexical score for an appended fact (default 1)
+  --entity-retrieval     hybrid/extracted: one hop over the extracted facts from the question
+                         (shared relation-and-subject or entity); found sessions take alternate
+                         top-k slots with the lexical ranking
   --no-facts-in-context  Do not list a retrieved session's matched extracted facts to the reader
   --extraction-max-tokens <n>  Completion budget per extraction call (default 512; reasoning
                          models such as Luna spend it on thinking and need 4096 or more)
@@ -156,6 +160,7 @@ function parseArgs(argv: string[]): Args {
     hybridRetrieval: 'shared',
     hybridQuestionTypes: undefined,
     reservedMinimumScore: undefined,
+    entityRetrieval: false,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -288,6 +293,8 @@ function parseArgs(argv: string[]): Args {
       );
     } else if (arg === '--reserved-min-score') {
       args.reservedMinimumScore = Number(requiredValue(argv, index++, arg));
+    } else if (arg === '--entity-retrieval') {
+      args.entityRetrieval = true;
     } else if (arg === '--no-facts-in-context') {
       args.factsInContext = false;
     } else if (arg === '--extraction-max-tokens') {
@@ -423,6 +430,7 @@ async function main(): Promise<void> {
             : { extractionMaxTokens: args.extractionMaxTokens }),
           factsInContext: args.factsInContext,
           hybridRetrieval: args.hybridRetrieval,
+          entityRetrieval: args.entityRetrieval,
           ...(args.hybridQuestionTypes === undefined
             ? {}
             : { hybridQuestionTypes: args.hybridQuestionTypes }),

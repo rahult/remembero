@@ -416,6 +416,73 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     expect(hidden).not.toContain('degree(user, business_administration).');
   });
 
+  it('entity retrieval reaches a session through a shared relation even when its text shares no word with the question', async () => {
+    const run = async (entityRetrieval: boolean) => {
+      const reader = new ScriptedCompletionClient('reader', ['Two kits']);
+      const judge = new ScriptedCompletionClient('judge', ['yes']);
+      // k1's fact carries a "kit" constant (a lexical seed); k2's fact shares only the
+      // relation-and-subject; the noise session's text is full of the question's words
+      const extractor = new ScriptedCompletionClient('dialect', [
+        'finished(user, spitfire_kit).',
+        'finished(user, revell_f15).',
+        '% nothing',
+      ]);
+      const observation = await evaluateLongMemEvalAnswerInstance(
+        instance({
+          question_type: 'multi-session',
+          question: 'How many kits have I completed?',
+          answer: 'Two',
+          haystack_session_ids: ['k1', 'k2', 'noise'],
+          haystack_dates: [
+            '2024/01/01 (Mon) 09:00',
+            '2024/01/02 (Tue) 09:00',
+            '2024/01/03 (Wed) 09:00',
+          ],
+          haystack_sessions: [
+            [
+              {
+                role: 'user',
+                content: 'The Spitfire kit is done at last.',
+                has_answer: true,
+              },
+              { role: 'assistant', content: 'Nice.' },
+            ],
+            [
+              {
+                role: 'user',
+                content: 'Glued the Revell F-15 canopy tonight, all done.',
+                has_answer: true,
+              },
+              { role: 'assistant', content: 'Nice.' },
+            ],
+            [
+              {
+                role: 'user',
+                content:
+                  'How many kits are on sale? Kits completed by others look great.',
+              },
+              { role: 'assistant', content: 'Soon.' },
+            ],
+          ],
+          answer_session_ids: ['k1', 'k2'],
+        }),
+        reader,
+        judge,
+        {
+          topK: 3,
+          multiSessionTopK: 3,
+          contextBytes: 4_096,
+          formation: 'hybrid',
+          entityRetrieval,
+          extractor,
+        },
+      );
+      return observation.retrievedSessionIds;
+    };
+    expect(await run(false)).not.toContain('k2');
+    expect(await run(true)).toEqual(expect.arrayContaining(['k1', 'k2']));
+  });
+
   it('counts top-k in distinct sessions when a session yields several matching facts', async () => {
     const reader = new ScriptedCompletionClient('reader', [
       'Business Administration',
