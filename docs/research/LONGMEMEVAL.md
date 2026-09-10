@@ -353,13 +353,26 @@ What this says:
   across sessions in this store (no `rembero_functional` declarations exist for invented
   predicates). Its 91% "retrieval recall" is inflated by counting every fact's session.
 
-| formation (dev, 261) | accuracy    | recall | abstention | k-update | multi | ss-pref | temporal |
-| -------------------- | ----------- | ------ | ---------- | -------- | ----- | ------- | -------- |
-| raw                  | **214/261** | 83.4%  | 95%        | 37/44    | 50/69 | 11/15   | 52/66    |
-| hybrid r14, shared   | 211/261     | 85.2%  | 95%        | 39/44    | 51/69 | 8/15    | 49/66    |
-| hybrid r14, reserved | 206/261     | 91.2%* | 84%        | 35/44    | 49/69 | 10/15   | 50/66    |
+| formation (dev, 261)       | accuracy    | recall | abstention | k-update | multi | ss-pref | temporal |
+| -------------------------- | ----------- | ------ | ---------- | -------- | ----- | ------- | -------- |
+| raw                        | **214/261** | 83.4%  | 95%        | 37/44    | 50/69 | 11/15   | 52/66    |
+| hybrid r14, shared         | 211/261     | 85.2%  | 95%        | 39/44    | 51/69 | 8/15    | 49/66    |
+| hybrid r14, reserved       | 206/261     | 91.2%* | 84%        | 35/44    | 49/69 | 10/15   | 50/66    |
+| hybrid Gemma 4 E2B, shared | **219/261** | 85.4%  | 89%        | 38/44    | 55/69 | 10/15   | 52/66    |
 
 \* counts the sessions of appended facts as retrieved.
+
+- **A different extractor on the same data beats raw.** The Gemma 4 E2B fine-tune (see the
+  base-model matrix in [EXTRACTION-BENCH.md](EXTRACTION-BENCH.md), where it ties Qwen3.5-4B on
+  the benchmarks) run as the extractor in shared hybrid formation scored **219/261**: gained
+  20 and lost 15 against raw, gained 24 and lost 16 against the r14 hybrid, with multi-session
+  up from 50 to 55 and no type below raw by more than one. It wrote 12,837 facts from 5,777
+  sessions, fewer sessions than r14 (8,331) but more facts each, in 16,734 calls (more
+  retries) with 4.4% refused. The margin over raw is under one standard error, so this is
+  the first hybrid that is at least as good as raw rather than proof it is better; it is
+  also the first time two extractors trained on identical data differed by eight answers,
+  which says the extractor's habits (which sessions it writes for, how many facts) matter
+  as much as the benchmark scores that could not separate them.
 
 - **What would move the number.** Raw retrieval is at 83% recall and the reader answers 96%
   of questions whose evidence it sees, so the loss is retrieval on temporal and multi-session
