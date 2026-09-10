@@ -1,4 +1,12 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { performance } from 'node:perf_hooks';
@@ -81,6 +89,8 @@ export interface LongMemEvalExtractionStats {
   /** Error messages, trimmed to their first clause, with counts. */
   errorKinds: Record<string, number>;
   usage: LlmUsage | null;
+  /** Sessions whose extraction was replayed from the cache instead of calling the model. */
+  cached?: number;
 }
 
 /** "constant 'x' is not in the input; store only..." -> "constant '…' is not in the input" */
@@ -512,6 +522,12 @@ export async function evaluateLongMemEvalAnswerInstance(
      * slots with the lexical ranking. See knowledge/entity-retrieval.ts.
      */
     entityRetrieval?: boolean;
+    /**
+     * Directory of per-session extraction results keyed by extractor model and transcript
+     * hash. Extraction is deterministic enough to replay, and it is two hours of a full dev
+     * run; with a warm cache a formation or retrieval experiment costs only reader time.
+     */
+    extractionCacheDir?: string;
     /** Cut each assistant turn to this many characters before extraction (default: no cut). */
     extractionAssistantCharacters?: number;
   } = {},
@@ -657,26 +673,71 @@ export async function evaluateLongMemEvalAnswerInstance(
             ? {}
             : { assistantCharacters: options.extractionAssistantCharacters }),
         }).slice(0, budget);
-        try {
-          const result = await rememberTranscriptText(
-            { store, llm: extractorLlm },
-            transcript,
-            'longmemeval',
-            {
-              captureId: operationId,
+        const cachePath =
+          options.extractionCacheDir === undefined
+            ? undefined
+            : join(
+                options.extractionCacheDir,
+                `${createHash('sha256')
+                  .update(`${extractor!.model}\n${transcript}`)
+                  .digest('hex')
+                  .slice(0, 40)}.json`,
+              );
+        const cached =
+          cachePath !== undefined && existsSync(cachePath)
+            ? (JSON.parse(readFileSync(cachePath, 'utf8')) as {
+                facts: string[];
+                error?: string;
+              })
+            : undefined;
+        if (cached !== undefined) {
+          stats.cached = (stats.cached ?? 0) + 1;
+          if (cached.error !== undefined) {
+            stats.errors += 1;
+            stats.errorKinds[cached.error] =
+              (stats.errorKinds[cached.error] ?? 0) + 1;
+          } else if (cached.facts.length > 0) {
+            store.assert('longmemeval', cached.facts.join('\n'), {
               opId: factsOperationId,
               sourceText: sessionText,
-              origin: 'manual',
               at,
-            },
-          );
-          if (result.added.length > 0) stats.sessionsWithFacts += 1;
-          stats.facts += result.added.length;
-        } catch (error) {
-          // a refused or malformed extraction leaves the session raw (hybrid) or absent (extracted)
-          stats.errors += 1;
-          const kind = extractionErrorKind(error);
-          stats.errorKinds[kind] = (stats.errorKinds[kind] ?? 0) + 1;
+            });
+            stats.sessionsWithFacts += 1;
+            stats.facts += cached.facts.length;
+          }
+        } else {
+          try {
+            const result = await rememberTranscriptText(
+              { store, llm: extractorLlm },
+              transcript,
+              'longmemeval',
+              {
+                captureId: operationId,
+                opId: factsOperationId,
+                sourceText: sessionText,
+                origin: 'manual',
+                at,
+              },
+            );
+            if (result.added.length > 0) stats.sessionsWithFacts += 1;
+            stats.facts += result.added.length;
+            if (cachePath !== undefined) {
+              mkdirSync(options.extractionCacheDir!, { recursive: true });
+              writeFileSync(cachePath, JSON.stringify({ facts: result.added }));
+            }
+          } catch (error) {
+            // a refused or malformed extraction leaves the session raw (hybrid) or absent (extracted)
+            stats.errors += 1;
+            const kind = extractionErrorKind(error);
+            stats.errorKinds[kind] = (stats.errorKinds[kind] ?? 0) + 1;
+            if (cachePath !== undefined) {
+              mkdirSync(options.extractionCacheDir!, { recursive: true });
+              writeFileSync(
+                cachePath,
+                JSON.stringify({ facts: [], error: kind }),
+              );
+            }
+          }
         }
       }
     }

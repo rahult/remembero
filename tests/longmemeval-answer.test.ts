@@ -483,6 +483,47 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     expect(await run(true)).toEqual(expect.arrayContaining(['k1', 'k2']));
   });
 
+  it('replays cached extractions instead of calling the extractor again', async () => {
+    const { mkdtempSync } = await import('node:fs');
+    const { tmpdir } = await import('node:os');
+    const { join } = await import('node:path');
+    const cacheDir = mkdtempSync(join(tmpdir(), 'lme-cache-'));
+    const first = new ScriptedCompletionClient('dialect', [
+      '% nothing',
+      'degree(user, business_administration).',
+    ]);
+    const a = await evaluateLongMemEvalAnswerInstance(
+      instance(),
+      new ScriptedCompletionClient('reader', ['Business Administration']),
+      new ScriptedCompletionClient('judge', ['yes']),
+      {
+        topK: 1,
+        contextBytes: 4_096,
+        formation: 'hybrid',
+        extractor: first,
+        extractionCacheDir: cacheDir,
+      },
+    );
+    expect(a.extraction?.calls).toBe(2);
+    // second run: the scripted extractor has nothing left, yet the facts come back from cache
+    const second = new ScriptedCompletionClient('dialect', []);
+    const b = await evaluateLongMemEvalAnswerInstance(
+      instance(),
+      new ScriptedCompletionClient('reader', ['Business Administration']),
+      new ScriptedCompletionClient('judge', ['yes']),
+      {
+        topK: 1,
+        contextBytes: 4_096,
+        formation: 'hybrid',
+        extractor: second,
+        extractionCacheDir: cacheDir,
+      },
+    );
+    expect(second.calls).toHaveLength(0);
+    expect(b.extraction).toMatchObject({ calls: 0, facts: 1, cached: 2 });
+    expect(b.retrievedSessionIds).toEqual(['evidence']);
+  });
+
   it('counts top-k in distinct sessions when a session yields several matching facts', async () => {
     const reader = new ScriptedCompletionClient('reader', [
       'Business Administration',

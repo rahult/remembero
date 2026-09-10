@@ -56,6 +56,7 @@ interface Args {
   hybridQuestionTypes: Set<string> | undefined;
   reservedMinimumScore: number | undefined;
   entityRetrieval: boolean;
+  extractionCacheDir: string | undefined;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -79,6 +80,8 @@ Options:
   --hybrid-question-types <csv>  Use the extractor only for these question types; others run raw
                          (and make no extraction calls)
   --reserved-min-score <n>  reserved only: minimum lexical score for an appended fact (default 1)
+  --extraction-cache <dir>  Replay per-session extractions from this directory when present
+                         (keyed by extractor model and transcript), else call and record
   --entity-retrieval     hybrid/extracted: one hop over the extracted facts from the question
                          (shared relation-and-subject or entity); found sessions take alternate
                          top-k slots with the lexical ranking
@@ -161,6 +164,7 @@ function parseArgs(argv: string[]): Args {
     hybridQuestionTypes: undefined,
     reservedMinimumScore: undefined,
     entityRetrieval: false,
+    extractionCacheDir: undefined,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -293,6 +297,8 @@ function parseArgs(argv: string[]): Args {
       );
     } else if (arg === '--reserved-min-score') {
       args.reservedMinimumScore = Number(requiredValue(argv, index++, arg));
+    } else if (arg === '--extraction-cache') {
+      args.extractionCacheDir = resolve(requiredValue(argv, index++, arg));
     } else if (arg === '--entity-retrieval') {
       args.entityRetrieval = true;
     } else if (arg === '--no-facts-in-context') {
@@ -431,6 +437,9 @@ async function main(): Promise<void> {
           factsInContext: args.factsInContext,
           hybridRetrieval: args.hybridRetrieval,
           entityRetrieval: args.entityRetrieval,
+          ...(args.extractionCacheDir === undefined
+            ? {}
+            : { extractionCacheDir: args.extractionCacheDir }),
           ...(args.hybridQuestionTypes === undefined
             ? {}
             : { hybridQuestionTypes: args.hybridQuestionTypes }),
