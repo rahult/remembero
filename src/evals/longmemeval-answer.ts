@@ -137,6 +137,9 @@ export interface LongMemEvalAnswerObservation {
   judgeUsage: LlmUsage | null;
   /** Present when formation ran the product extraction. */
   extraction?: LongMemEvalExtractionStats;
+  /** Present when a time-range extractor ran: the range it read off the question, or null. */
+  temporalRange?: { start: string; end: string } | null;
+  temporalRangeUsage?: LlmUsage | null;
   formationMs: number;
   semanticPreparationMs: number;
   retrievalMs: number;
@@ -350,6 +353,46 @@ function sumLlmUsage(a: LlmUsage, b: LlmUsage): LlmUsage {
   };
 }
 
+export function temporalRangePrompt(
+  question: string,
+  questionDate: string,
+): string {
+  return `Today is ${questionDate}. A user asks their assistant:
+
+"${question}"
+
+If the question refers to a specific period of time (for example "last month", "in March", "two weeks ago", "the week before my trip", "this year"), reply with the absolute date range it refers to as JSON: {"start":"YYYY-MM-DD","end":"YYYY-MM-DD"}. Be generous at the edges (widen by a few days). If the question carries no time cue at all, reply exactly {"none":true}. Reply with the JSON only.`;
+}
+
+/** First JSON object in the reply; a well-formed range or null. Anything else is null too. */
+export function parseTemporalRange(
+  reply: string,
+): { start: string; end: string } | null {
+  const match = /\{[^{}]*\}/.exec(reply);
+  if (match === null) return null;
+  try {
+    const parsed = JSON.parse(match[0]) as {
+      start?: unknown;
+      end?: unknown;
+      none?: unknown;
+    };
+    if (parsed.none === true) return null;
+    const iso = /^\d{4}-\d{2}-\d{2}$/;
+    if (
+      typeof parsed.start === 'string' &&
+      typeof parsed.end === 'string' &&
+      iso.test(parsed.start) &&
+      iso.test(parsed.end) &&
+      parsed.start <= parsed.end
+    ) {
+      return { start: parsed.start, end: parsed.end };
+    }
+  } catch {
+    // not JSON: no range
+  }
+  return null;
+}
+
 function datasetDate(value: string): Date {
   const match =
     /^(\d{4})\/(\d{2})\/(\d{2}) \([A-Za-z]{3}\) (\d{2}):(\d{2})$/.exec(value);
@@ -533,6 +576,14 @@ export async function evaluateLongMemEvalAnswerInstance(
      */
     retrievalUnit?: 'session' | 'turn';
     /**
+     * Time-aware retrieval (the paper's time-aware query expansion): a frontier model reads
+     * the absolute date range a question refers to, given the question date, or refuses when
+     * there is no time cue; sessions inside the range are ranked ahead of those outside.
+     */
+    temporalRangeExtractor?: LongMemEvalCompletionClient;
+    /** Question types that get the range treatment (default: temporal-reasoning). */
+    temporalRangeQuestionTypes?: ReadonlySet<string>;
+    /**
      * Directory of per-session extraction results keyed by extractor model and transcript
      * hash. Extraction is deterministic enough to replay, and it is two hours of a full dev
      * run; with a warm cache a formation or retrieval experiment costs only reader time.
@@ -603,6 +654,8 @@ export async function evaluateLongMemEvalAnswerInstance(
   let readerUsage: LlmUsage | null = null;
   let judgeUsage: LlmUsage | null = null;
   let extraction: LongMemEvalExtractionStats | undefined;
+  let temporalRange: { start: string; end: string } | null | undefined;
+  let temporalRangeUsage: LlmUsage | null = null;
   try {
     const store = new MemoryStore(root);
     const formationStarted = performance.now();
@@ -801,6 +854,40 @@ export async function evaluateLongMemEvalAnswerInstance(
     formationMs = performance.now() - formationStarted;
     const snapshot = store.knowledgeSnapshot(['longmemeval']);
     const retrievalStarted = performance.now();
+    // time-aware: read a date range off the question before searching
+    if (
+      options.temporalRangeExtractor !== undefined &&
+      (
+        options.temporalRangeQuestionTypes ?? new Set(['temporal-reasoning'])
+      ).has(instance.question_type)
+    ) {
+      const completion = await options.temporalRangeExtractor.completeWithUsage(
+        [
+          {
+            role: 'user',
+            content: temporalRangePrompt(
+              instance.question,
+              instance.question_date,
+            ),
+          },
+        ],
+        { maxTokens: 1024 },
+      );
+      temporalRangeUsage = completion.usage;
+      temporalRange = parseTemporalRange(completion.content);
+    }
+    const inRange = (ts: string): boolean =>
+      temporalRange !== null &&
+      temporalRange !== undefined &&
+      ts.slice(0, 10) >= temporalRange.start &&
+      ts.slice(0, 10) <= temporalRange.end;
+    const rangeFirst = <T extends { ts: string }>(items: T[]): T[] =>
+      temporalRange === null || temporalRange === undefined
+        ? items
+        : [
+            ...items.filter((i) => inRange(i.ts)),
+            ...items.filter((i) => !inRange(i.ts)),
+          ];
     const semanticQuestionTypes =
       options.semanticQuestionTypes ??
       DEFAULT_LONGMEMEVAL_SEMANTIC_QUESTION_TYPES;
@@ -827,11 +914,18 @@ export async function evaluateLongMemEvalAnswerInstance(
       {
         // extracted formations hold several facts per session; fetch more so top-k
         // still counts distinct sessions after de-duplication below
-        limit: turnUnit
-          ? Math.min(100, effectiveTopK * 6)
-          : formation === 'raw' || reserved || keyed
-            ? effectiveTopK
-            : Math.min(100, effectiveTopK * 8),
+        limit: Math.min(
+          100,
+          Math.max(
+            // a range needs candidates beyond top-k to promote from
+            temporalRange ? effectiveTopK * 4 : 0,
+            turnUnit
+              ? effectiveTopK * 6
+              : formation === 'raw' || reserved || keyed
+                ? effectiveTopK
+                : effectiveTopK * 8,
+          ),
+        ),
         minimumScore: 1,
         kinds: ['fact'],
         sourceCharacterLimit: LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
@@ -949,13 +1043,13 @@ export async function evaluateLongMemEvalAnswerInstance(
           ];
     });
     // one entry per session, best rank first, then the usual top-k
-    const dedupedSources = rankedSources
-      .filter(({ opId }) => {
+    const dedupedSources = rangeFirst(
+      rankedSources.filter(({ opId }) => {
         if (seenSessions.has(opId)) return false;
         seenSessions.add(opId);
         return true;
-      })
-      .slice(0, effectiveTopK);
+      }),
+    ).slice(0, effectiveTopK);
     if (turnUnit) {
       // aggregate matching turns to their sessions: sum of 1/log2(rank+1), whole session back
       const sessionScore = new Map<string, number>();
@@ -968,10 +1062,16 @@ export async function evaluateLongMemEvalAnswerInstance(
           (sessionScore.get(session) ?? 0) + 1 / Math.log2(position + 2),
         );
       });
-      const ordered = [...sessionScore.entries()]
-        .sort((a, b) => b[1] - a[1])
+      const ordered = rangeFirst(
+        [...sessionScore.entries()]
+          .sort((a, b) => b[1] - a[1])
+          .map(([session]) => ({
+            session,
+            ts: sessionRecords.get(session)?.ts ?? '',
+          })),
+      )
         .slice(0, effectiveTopK)
-        .map(([session]) => session);
+        .map(({ session }) => session);
       dedupedSources.length = 0;
       for (const session of ordered) {
         const record = sessionRecords.get(session);
@@ -1128,6 +1228,9 @@ export async function evaluateLongMemEvalAnswerInstance(
       readerUsage,
       judgeUsage,
       ...(extraction === undefined ? {} : { extraction }),
+      ...(temporalRange === undefined
+        ? {}
+        : { temporalRange, temporalRangeUsage }),
       formationMs,
       semanticPreparationMs,
       retrievalMs,
@@ -1160,6 +1263,9 @@ export async function evaluateLongMemEvalAnswerInstance(
       readerUsage,
       judgeUsage,
       ...(extraction === undefined ? {} : { extraction }),
+      ...(temporalRange === undefined
+        ? {}
+        : { temporalRange, temporalRangeUsage }),
       formationMs,
       semanticPreparationMs,
       retrievalMs,

@@ -542,7 +542,10 @@ describe('LongMemEval end-to-end answer evaluation', () => {
               content:
                 'Which university should my nephew pick? Compare options please.',
             },
-            { role: 'assistant', content: 'Long generic university comparison.' },
+            {
+              role: 'assistant',
+              content: 'Long generic university comparison.',
+            },
           ],
           [
             {
@@ -620,6 +623,87 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     // the whole session comes back, not just the matching turn
     expect(prompt).toContain('Berlin');
     expect(prompt).toContain('Tokyo');
+  });
+
+  it('time-aware retrieval prefers sessions inside the range a frontier model reads off the question', async () => {
+    const run = async (withRange: boolean) => {
+      const reader = new ScriptedCompletionClient('reader', ['Two weeks ago']);
+      const judge = new ScriptedCompletionClient('judge', ['yes']);
+      const ranger = new ScriptedCompletionClient('ranger', [
+        '{"start":"2024-01-15","end":"2024-03-01"}',
+      ]);
+      const observation = await evaluateLongMemEvalAnswerInstance(
+        instance({
+          question_type: 'temporal-reasoning',
+          question: 'How many weeks ago did I see the dentist?',
+          question_date: '2024/03/01 (Fri) 09:00',
+          haystack_session_ids: ['old', 'recent'],
+          haystack_dates: ['2023/06/01 (Thu) 09:00', '2024/02/15 (Thu) 09:00'],
+          haystack_sessions: [
+            [
+              {
+                role: 'user',
+                content:
+                  'My dentist moved offices; the dentist is now downtown, and the dentist visit was fine.',
+              },
+              { role: 'assistant', content: 'Good to hear.' },
+            ],
+            [
+              {
+                role: 'user',
+                content: 'Saw the dentist today for a filling.',
+                has_answer: true,
+              },
+              { role: 'assistant', content: 'Hope it went well.' },
+            ],
+          ],
+          answer_session_ids: ['recent'],
+        }),
+        reader,
+        judge,
+        {
+          topK: 1,
+          temporalTopK: 1,
+          contextBytes: 4_096,
+          formation: 'raw',
+          ...(withRange ? { temporalRangeExtractor: ranger } : {}),
+        },
+      );
+      return {
+        ids: observation.retrievedSessionIds,
+        calls: ranger.calls.length,
+        range: observation.temporalRange,
+      };
+    };
+    const plain = await run(false);
+    expect(plain.ids).toEqual(['old']);
+    const ranged = await run(true);
+    expect(ranged.ids).toEqual(['recent']);
+    expect(ranged.calls).toBe(1);
+    expect(ranged.range).toMatchObject({
+      start: '2024-01-15',
+      end: '2024-03-01',
+    });
+  });
+
+  it('time-aware retrieval leaves the ranking alone when the model reports no time cue', async () => {
+    const reader = new ScriptedCompletionClient('reader', ['x']);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    const ranger = new ScriptedCompletionClient('ranger', ['{"none":true}']);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      instance({ question_type: 'temporal-reasoning' }),
+      reader,
+      judge,
+      {
+        topK: 1,
+        temporalTopK: 1,
+        contextBytes: 4_096,
+        formation: 'raw',
+        temporalRangeExtractor: ranger,
+      },
+    );
+    expect(observation.retrievedSessionIds).toEqual(['evidence']);
+    expect(observation.temporalRange).toBeNull();
   });
 
   it('counts top-k in distinct sessions when a session yields several matching facts', async () => {
