@@ -1,7 +1,7 @@
 {
   "benchmark": "agent-boundary-v2",
   "model": "finetune/qwen3.5-4b-r14-modal",
-  "generatedAt": "2026-09-09T14:47:22.909Z",
+  "generatedAt": "2026-09-10T06:49:18.211Z",
   "settings": {
     "temperature": 0,
     "seeds": [
