@@ -52,6 +52,7 @@ interface Args {
   extractionAssistantCharacters: number | undefined;
   extractionMaxTokens: number | undefined;
   factsInContext: boolean;
+  hybridRetrieval: 'shared' | 'reserved';
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -69,6 +70,9 @@ Options:
   --extraction-api-key <key>   Key for it (default: EXTRACTION_API_KEY, else MODAL_SERVE_API_KEY,
                          else LLM_API_KEY; prefer the environment, a flag shows in process lists)
   --extraction-characters <n>  Cut each session to n characters before extraction (default 16000)
+  --hybrid-retrieval <shared|reserved>  hybrid only. shared (default): raw text and extracted
+                         facts compete for the top-k session slots; reserved: raw text fills
+                         top-k as in raw formation and matched facts are appended as a dated block
   --no-facts-in-context  Do not list a retrieved session's matched extracted facts to the reader
   --extraction-max-tokens <n>  Completion budget per extraction call (default 512; reasoning
                          models such as Luna spend it on thinking and need 4096 or more)
@@ -144,6 +148,7 @@ function parseArgs(argv: string[]): Args {
     extractionAssistantCharacters: undefined,
     extractionMaxTokens: undefined,
     factsInContext: true,
+    hybridRetrieval: 'shared',
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -261,6 +266,12 @@ function parseArgs(argv: string[]): Args {
       );
     } else if (arg === '--extraction-api-key') {
       args.extractionApiKey = requiredValue(argv, index++, arg);
+    } else if (arg === '--hybrid-retrieval') {
+      const value = requiredValue(argv, index++, arg);
+      if (value !== 'shared' && value !== 'reserved') {
+        throw new Error('--hybrid-retrieval must be shared or reserved');
+      }
+      args.hybridRetrieval = value;
     } else if (arg === '--no-facts-in-context') {
       args.factsInContext = false;
     } else if (arg === '--extraction-max-tokens') {
@@ -395,6 +406,7 @@ async function main(): Promise<void> {
             ? {}
             : { extractionMaxTokens: args.extractionMaxTokens }),
           factsInContext: args.factsInContext,
+          hybridRetrieval: args.hybridRetrieval,
         },
       );
       completed++;

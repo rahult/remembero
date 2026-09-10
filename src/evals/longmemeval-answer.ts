@@ -383,6 +383,7 @@ export function buildLongMemEvalAnswerContext(
     facts?: string[];
   }>,
   contextBytes = DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES,
+  extraFacts: Array<{ clause: string; ts: string }> = [],
 ): AnswerContext {
   validateOptions(Math.max(1, rankedSources.length), contextBytes);
   const usable = rankedSources.filter(
@@ -413,7 +414,13 @@ export function buildLongMemEvalAnswerContext(
     )
     .map(({ section }) => section)
     .join('\n');
-  const user = `History chats:\n\n${history || '[no safe relevant history retrieved]'}\nCurrent date: ${instance.question_date}\nQuestion: ${instance.question}\nAnswer:`;
+  const remembered =
+    extraFacts.length === 0
+      ? ''
+      : `\n### Remembered facts (extracted from earlier sessions, with the session date)\n${extraFacts
+          .map(({ ts, clause }) => `- ${ts}: ${clause}`)
+          .join('\n')}\n`;
+  const user = `History chats:\n\n${history || '[no safe relevant history retrieved]'}\n${remembered}Current date: ${instance.question_date}\nQuestion: ${instance.question}\nAnswer:`;
   assertSafeForExternalLlm(user, 'LongMemEval answer prompt');
   const system =
     instance.question_type === 'single-session-preference'
@@ -484,6 +491,13 @@ export async function evaluateLongMemEvalAnswerInstance(
     extractionMaxTokens?: number;
     /** Show each retrieved session's matched extracted facts to the reader (default true). */
     factsInContext?: boolean;
+    /**
+     * hybrid only. 'shared' (default): raw and extracted facts compete for the same top-k
+     * session slots. 'reserved': top-k is filled from raw session text exactly as in raw
+     * formation, and extracted facts are searched separately and appended to the reader's
+     * context as a dated block (their sessions count as retrieved).
+     */
+    hybridRetrieval?: 'shared' | 'reserved';
     /** Cut each assistant turn to this many characters before extraction (default: no cut). */
     extractionAssistantCharacters?: number;
   } = {},
@@ -641,14 +655,24 @@ export async function evaluateLongMemEvalAnswerInstance(
     const semanticQuestionTypes =
       options.semanticQuestionTypes ??
       DEFAULT_LONGMEMEVAL_SEMANTIC_QUESTION_TYPES;
+    const reserved =
+      formation === 'hybrid' && options.hybridRetrieval === 'reserved';
+    // reserved: raw placeholders fill top-k on their own; extracted facts are searched apart
+    const rawClauses = reserved
+      ? snapshot.clauses.filter((c) => c.head.predicate === 'longmem_session')
+      : snapshot.clauses;
+    const factClauses = reserved
+      ? snapshot.clauses.filter((c) => c.head.predicate !== 'longmem_session')
+      : [];
     const lexical = searchKnowledge(
-      snapshot.clauses,
+      rawClauses,
       instance.question,
       snapshot.sources,
       {
         // extracted formations hold several facts per session; fetch more so top-k
         // still counts distinct sessions after de-duplication below
-        limit: formation === 'raw' ? effectiveTopK : effectiveTopK * 8,
+        limit:
+          formation === 'raw' || reserved ? effectiveTopK : effectiveTopK * 8,
         minimumScore: 1,
         kinds: ['fact'],
         sourceCharacterLimit: LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
@@ -769,6 +793,29 @@ export async function evaluateLongMemEvalAnswerInstance(
     rankedSources.length = 0;
     rankedSources.push(...dedupedSources);
     retrievedSessionIds = rankedSources.map(({ opId }) => opId);
+    // reserved: matched extracted facts ride along as a dated block, up to 3k of them
+    const extraFacts: Array<{ clause: string; ts: string }> = [];
+    if (reserved && factClauses.length > 0) {
+      const factSearch = searchKnowledge(
+        factClauses,
+        instance.question,
+        snapshot.sources,
+        {
+          limit: effectiveTopK * 3,
+          minimumScore: 1,
+          kinds: ['fact'],
+          sourceCharacterLimit: LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
+        },
+      );
+      for (const result of factSearch.results) {
+        const source = result.sources[0];
+        if (source === undefined || source.redacted === true) continue;
+        extraFacts.push({ clause: result.clause, ts: source.ts });
+        const session = sourceSessionIds.get(source.opId) ?? source.opId;
+        if (!retrievedSessionIds.includes(session))
+          retrievedSessionIds.push(session);
+      }
+    }
     const firstResult = search.results[0];
     const topScore =
       firstResult === undefined
@@ -786,8 +833,14 @@ export async function evaluateLongMemEvalAnswerInstance(
       instance,
       rankedSources,
       contextBytes,
+      extraFacts,
     );
-    contextSessionIds = answerContext.contextSessionIds;
+    contextSessionIds = [
+      ...answerContext.contextSessionIds,
+      ...retrievedSessionIds.filter(
+        (id) => !answerContext.contextSessionIds.includes(id),
+      ),
+    ];
     redactedRetrievedSessions = answerContext.redactedRetrievedSessions;
     context = scoreLongMemEvalRetrievedSessions(
       instance,

@@ -298,6 +298,56 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     expect(prompt).not.toContain('longmem_session');
   });
 
+  it('reserved hybrid retrieval keeps top-k for raw sessions and adds matched facts as a dated block', async () => {
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    const extractor = new ScriptedCompletionClient('dialect', [
+      '% nothing',
+      'degree(user, business_administration).',
+    ]);
+    // the noise session wins raw lexical retrieval on "degree"/"graduate"; only the
+    // extracted fact points at the evidence session
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      instance({
+        haystack_sessions: [
+          [
+            {
+              role: 'user',
+              content:
+                'Which degree should my nephew graduate with? Compare degree options.',
+            },
+            { role: 'assistant', content: 'Long generic degree comparison.' },
+          ],
+          [
+            {
+              role: 'user',
+              content: 'My major was Business Administration.',
+              has_answer: true,
+            },
+            { role: 'assistant', content: 'Long generic graduation explanation.' },
+          ],
+        ],
+      }),
+      reader,
+      judge,
+      {
+        topK: 1,
+        contextBytes: 4_096,
+        formation: 'hybrid',
+        hybridRetrieval: 'reserved',
+        extractor,
+      },
+    );
+    expect(observation.retrievedSessionIds).toEqual(['noise', 'evidence']);
+    const prompt = reader.calls[0]?.messages.at(-1)?.content ?? '';
+    expect(prompt).toContain('Remembered facts');
+    expect(prompt).toContain('degree(user, business_administration).');
+    expect(prompt).toMatch(/Remembered facts[\s\S]*- 2024-01-0\d[^\n]*degree\(user, business_administration\)\./);
+    expect(observation.retrieval?.recallAtK).toBe(1);
+  });
+
   it('counts top-k in distinct sessions when a session yields several matching facts', async () => {
     const reader = new ScriptedCompletionClient('reader', [
       'Business Administration',
