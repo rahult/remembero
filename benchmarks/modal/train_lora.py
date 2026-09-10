@@ -124,6 +124,43 @@ def check_data(data: str, heldout: str | None) -> None:
 # ---- train ----------------------------------------------------------------------------
 
 
+def load_base_model(model_id: str, torch):
+    """Text-only causal LM where the checkpoint offers one; multimodal wrapper (Gemma 4) otherwise."""
+    from transformers import AutoModelForCausalLM
+
+    kwargs = dict(dtype=torch.bfloat16, attn_implementation="sdpa")
+    try:
+        return AutoModelForCausalLM.from_pretrained(model_id, **kwargs)
+    except (ValueError, KeyError, OSError) as error:
+        from transformers import AutoModelForImageTextToText
+
+        print(f"AutoModelForCausalLM refused {model_id} ({str(error)[:80]}); loading the multimodal class")
+        return AutoModelForImageTextToText.from_pretrained(model_id, **kwargs)
+
+
+def reasoning_flags(base_model: str) -> list[str]:
+    """Serving flags that depend on the base model's chat template."""
+    lowered = base_model.lower()
+    if "qwen3" in lowered:
+        # Qwen3.5 opens a <think> block in the generation prompt; render the empty block the
+        # training rows carried and route anything before </think> into reasoning_content.
+        return [
+            "--reasoning-parser",
+            "qwen3",
+            "--default-chat-template-kwargs",
+            json.dumps({"enable_thinking": False}),
+        ]
+    if "gemma-4" in lowered or "gemma4" in lowered:
+        # Gemma 4 thinks only when asked; keep it off and parse just in case.
+        return [
+            "--reasoning-parser",
+            "gemma4",
+            "--default-chat-template-kwargs",
+            json.dumps({"enable_thinking": False}),
+        ]
+    return []
+
+
 @app.function(
     image=train_image,
     gpu=TRAIN_GPU,
@@ -143,7 +180,7 @@ def train(
     import torch
     from datasets import Dataset
     from peft import LoraConfig, PeftModel
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoTokenizer
     from trl import SFTConfig, SFTTrainer
 
     try:
@@ -160,9 +197,7 @@ def train(
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(
-        BASE_MODEL, dtype=torch.bfloat16, attn_implementation="sdpa"
-    )
+    model = load_base_model(BASE_MODEL, torch)
 
     train_rows = _to_prompt_completion(str(data_dir / "conversations.jsonl"))
     heldout_path = data_dir / "heldout.jsonl"
@@ -265,7 +300,7 @@ def train(
     tokenizer.save_pretrained(str(adapter_dir))
     if merge:
         merged_dir = run_dir / "merged"
-        base = AutoModelForCausalLM.from_pretrained(BASE_MODEL, dtype=torch.bfloat16)
+        base = load_base_model(BASE_MODEL, torch)
         merged = PeftModel.from_pretrained(base, str(adapter_dir)).merge_and_unload()
         merged.save_pretrained(str(merged_dir), safe_serialization=True)
         tokenizer.save_pretrained(str(merged_dir))
@@ -304,6 +339,12 @@ def serve() -> None:
     api_key = os.environ.get("VLLM_API_KEY")
     if not api_key:
         raise RuntimeError("VLLM_API_KEY missing: the endpoint is public without it; see the rembero-vllm secret")
+    metrics_path = Path(VOL) / "runs" / run / "metrics.json"
+    served_base = (
+        json.loads(metrics_path.read_text()).get("base_model", BASE_MODEL)
+        if metrics_path.exists()
+        else BASE_MODEL
+    )
     cmd = [
         "python",
         "-m",
@@ -313,7 +354,7 @@ def serve() -> None:
         "--served-model-name",
         SERVED_MODEL_NAME,
         # run-specific alias so benchmark result files name the run, like the Tinker proxy did
-        f"finetune/{BASE_MODEL.split('/')[-1].lower()}-{run}-modal",
+        f"finetune/{served_base.split('/')[-1].lower()}-{run}-modal",
         "--host",
         "0.0.0.0",
         "--port",
@@ -324,14 +365,7 @@ def serve() -> None:
         "8192",
         "--gpu-memory-utilization",
         "0.90",
-        # Qwen3.5's template opens a <think> block in the generation prompt; the parser moves
-        # everything up to </think> into reasoning_content so the harness sees only the answer.
-        "--reasoning-parser",
-        "qwen3",
-        # Render the empty <think></think> block the training rows carried, so the prompt is
-        # the exact token prefix the model was trained on and it answers without deliberating.
-        "--default-chat-template-kwargs",
-        json.dumps({"enable_thinking": False}),
+        *reasoning_flags(served_base),
         "--api-key",
         api_key,
     ]
@@ -349,6 +383,8 @@ def main(
     epochs: int = 1,
     lr: float = 2e-4,
     lora_rank: int = 32,
+    batch_size: int = 8,
+    grad_accum: int = 8,
     check_only: bool = False,
 ) -> None:
     check_data(data, heldout if Path(heldout).exists() else None)
@@ -359,7 +395,14 @@ def main(
         if Path(heldout).exists():
             batch.put_file(heldout, f"data/{run}/heldout.jsonl")
     print(f"uploaded data for run {run}; training on {TRAIN_GPU} ...")
-    metrics = train.remote(run=run, epochs=epochs, lr=lr, lora_rank=lora_rank)
+    metrics = train.remote(
+        run=run,
+        epochs=epochs,
+        lr=lr,
+        lora_rank=lora_rank,
+        batch_size=batch_size,
+        grad_accum=grad_accum,
+    )
     print(json.dumps(metrics, indent=2))
     print(
         "\nnext:\n"
