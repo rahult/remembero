@@ -76,6 +76,9 @@ serve_image = (
         {
             "HF_HOME": f"{VOL}/hf",
             "VLLM_LOGGING_LEVEL": "WARNING",
+            # Image env is fixed at deploy time from the local shell, so the container sees the
+            # run the deployer chose; reading os.environ inside serve() would see nothing.
+            "SERVE_RUN": SERVE_RUN,
             # The slim image has no nvcc; FlashInfer's sampler JIT-compiles at startup and dies.
             "VLLM_USE_FLASHINFER_SAMPLER": "0",
         }
@@ -363,7 +366,7 @@ def train(
 @modal.web_server(port=8000, startup_timeout=15 * 60)
 def serve() -> None:
     """OpenAI-compatible /v1/chat/completions over the merged weights of SERVE_RUN (default: latest)."""
-    run = SERVE_RUN
+    run = os.environ.get("SERVE_RUN", SERVE_RUN)
     if run == "latest":
         run = (Path(VOL) / "runs" / "latest").read_text().strip()
     merged = Path(VOL) / "runs" / run / "merged"
