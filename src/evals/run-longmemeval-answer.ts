@@ -64,6 +64,8 @@ interface Args {
   aggregationReaderBaseUrl: string | undefined;
   aggregationReaderApiKey: string | undefined;
   readerMaxTokens: number | undefined;
+  readerBaseUrl: string | undefined;
+  readerApiKey: string | undefined;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -90,6 +92,8 @@ Options:
   --hybrid-question-types <csv>  Use the extractor only for these question types; others run raw
                          (and make no extraction calls)
   --reserved-min-score <n>  reserved only: minimum lexical score for an appended fact (default 1)
+  --reader-base-url <url>  OpenAI-compatible endpoint for the reader (default: LLM_BASE_URL)
+  --reader-api-key <key>   Key for it (default: READER_API_KEY, else LLM_API_KEY)
   --reader-max-tokens <n>  Completion budget per reader call (default 4096; reasoning models
                          such as DeepSeek v4.1 Flash exhaust it thinking and return nothing)
   --aggregation-reader-model <id>  A separate reader for multi-session, temporal and
@@ -195,6 +199,8 @@ function parseArgs(argv: string[]): Args {
     aggregationReaderBaseUrl: undefined,
     aggregationReaderApiKey: undefined,
     readerMaxTokens: undefined,
+    readerBaseUrl: undefined,
+    readerApiKey: undefined,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -333,6 +339,10 @@ function parseArgs(argv: string[]): Args {
         throw new Error('--retrieval-unit must be session or turn');
       }
       args.retrievalUnit = value;
+    } else if (arg === '--reader-base-url') {
+      args.readerBaseUrl = requiredValue(argv, index++, arg).replace(/\/$/, '');
+    } else if (arg === '--reader-api-key') {
+      args.readerApiKey = requiredValue(argv, index++, arg);
     } else if (arg === '--reader-max-tokens') {
       args.readerMaxTokens = Number(requiredValue(argv, index++, arg));
     } else if (arg === '--aggregation-reader-model') {
@@ -430,8 +440,9 @@ async function main(): Promise<void> {
   const instances =
     args.limit === undefined ? available : available.slice(0, args.limit);
   const reader = new OpenRouterClient({
-    apiKey,
-    baseUrl,
+    // the reader may live on another endpoint (e.g. Ollama Cloud) while the judge stays put
+    apiKey: args.readerApiKey ?? process.env.READER_API_KEY ?? apiKey,
+    baseUrl: args.readerBaseUrl ?? baseUrl,
     model: args.readerModel,
   });
   const aggregationReader =
