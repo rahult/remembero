@@ -763,7 +763,9 @@ export async function evaluateLongMemEvalAnswerInstance(
           // one document per user turn; the session is what comes back to the reader
           let turnIndex = 0;
           for (const turn of session) {
-            if (turn.role !== 'user' || turn.content.trim() === '') continue;
+            // assistant turns are indexed too: assistant-memory questions ask what the
+            // assistant said, and the first turn-only run lost six of them
+            if (turn.content.trim() === '') continue;
             const turnOperationId = `${operationId}:t${turnIndex}`;
             sourceSessionIds.set(
               turnOperationId,
