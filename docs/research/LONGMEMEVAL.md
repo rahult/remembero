@@ -394,6 +394,33 @@ What this says:
   as documents, is the setting in which a more prolific extractor could pay off; it has not
   been run with r17.
 
+- **Multi-session is a retrieval problem with a known fix: more slots.** When every evidence
+  session is retrieved the reader answers 44 of 44 multi-session questions; with some missing
+  it answers 3 of 16. Multi-session questions have two to five evidence sessions and the type
+  had a top-k of five. Retrieval-only simulation on raw formation gives full-evidence
+  retrieval for 40, 46, 48, 55 and 57 of the 69 questions at k = 5, 8, 10, 15 and 20. Runs
+  on the 69 questions alone, Gemma 4 E2B as extractor, other settings unchanged:
+
+| multi-session only (69)               | correct | recall |
+| ------------------------------------- | ------: | -----: |
+| raw, k=5 (from the full-split run)    |      50 |  73.0% |
+| hybrid, k=5 (from the full-split run) |      55 |  78.0% |
+| raw, k=15                             |      57 |  94.4% |
+| hybrid, k=10                          |      57 |  93.6% |
+| **hybrid, k=15**                      |  **61** |  93.6% |
+| hybrid, k=5 + entity retrieval        |      48 |  85.9% |
+| hybrid, k=15 + entity retrieval       |      57 |  95.1% |
+| hybrid, k=15 + entity + 120KB context |      57 |  94.3% |
+
+Raising this one type's k to 15 lifts it from 50 to 61 with nothing else touched, since
+the flag is per type. The entity-keyed hop over the fact store
+(`--entity-retrieval`, one hop through shared relation-and-subject or shared entity)
+loses at every k: at k=5 its hits displace better lexical sessions, and at k=15 recall is
+already 95% so it can only add noise. A wider reader context did not recover the
+remaining reader errors. The extractor's contribution is the four answers between raw and
+hybrid at k=15, both at about 94% recall: when both formations retrieve the evidence, the
+facts listed under each session help the reader count.
+
 - **The reader itself moves about six answers between identical runs.** The routed run
   presented 148 questions with exactly the same formation and retrieved sessions as the raw
   baseline; 6 of them still flipped. Luna at temperature zero plus a GPT-4o judge is about
