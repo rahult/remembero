@@ -91,6 +91,10 @@ keeps answering, stop it with `modal container list` and `modal container stop -
 
 ## Other base models (Gemma 4)
 
+Since 2026-09-10 the main endpoint serves `r16-gemma4-e2b` (Gemma 4 E2B on the r14 data): it
+ties Qwen3.5-4B on both benchmarks and leads on LongMemEval (219/261 hybrid vs raw 214). Deploy
+with `SERVE_RUN=r16-gemma4-e2b`; `SERVE_RUN=r14` restores the Qwen checkpoint.
+
 `BASE_MODEL=google/gemma-4-E2B-it` (or `E4B-it`) trains with `--batch-size 4 --grad-accum 16`
 (262K vocabulary). Two fixes made it work: LoRA targets are enumerated as full Linear names
 because Gemma 4 wraps projections in a clipping module PEFT cannot adapt; and because
