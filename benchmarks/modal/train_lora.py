@@ -32,7 +32,8 @@ from pathlib import Path
 
 import modal
 
-APP_NAME = "rembero-finetune"
+# MODAL_APP_NAME lets a second serving app (another run, another GPU) coexist with the main one
+APP_NAME = os.environ.get("MODAL_APP_NAME", "rembero-finetune")
 VOLUME_NAME = "rembero-finetune"
 VOL = "/vol"
 BASE_MODEL = os.environ.get("BASE_MODEL", "Qwen/Qwen3.5-4B")
