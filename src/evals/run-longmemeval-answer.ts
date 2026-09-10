@@ -61,6 +61,8 @@ interface Args {
   temporalRangeModel: string | undefined;
   readingStrategy: 'direct' | 'notes' | 'two-call';
   aggregationReaderModel: string | undefined;
+  aggregationReaderBaseUrl: string | undefined;
+  aggregationReaderApiKey: string | undefined;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -89,6 +91,9 @@ Options:
   --reserved-min-score <n>  reserved only: minimum lexical score for an appended fact (default 1)
   --aggregation-reader-model <id>  A separate reader for multi-session, temporal and
                          knowledge-update questions; other types keep --reader-model
+  --aggregation-reader-base-url <url>  OpenAI-compatible endpoint for that reader (default:
+                         LLM_BASE_URL), e.g. http://127.0.0.1:11434/v1 for Ollama Cloud models
+  --aggregation-reader-api-key <key>  Key for it (default: AGGREGATION_READER_API_KEY, else LLM_API_KEY)
   --reading <direct|notes|two-call>  for multi-session, temporal and knowledge-update questions:
                          notes = dated items first, then an "Answer:" line that alone is judged;
                          two-call = one call enumerates dated items from the history, a second
@@ -184,6 +189,8 @@ function parseArgs(argv: string[]): Args {
     temporalRangeModel: undefined,
     readingStrategy: 'direct',
     aggregationReaderModel: undefined,
+    aggregationReaderBaseUrl: undefined,
+    aggregationReaderApiKey: undefined,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -324,6 +331,13 @@ function parseArgs(argv: string[]): Args {
       args.retrievalUnit = value;
     } else if (arg === '--aggregation-reader-model') {
       args.aggregationReaderModel = requiredValue(argv, index++, arg);
+    } else if (arg === '--aggregation-reader-base-url') {
+      args.aggregationReaderBaseUrl = requiredValue(argv, index++, arg).replace(
+        /\/$/,
+        '',
+      );
+    } else if (arg === '--aggregation-reader-api-key') {
+      args.aggregationReaderApiKey = requiredValue(argv, index++, arg);
     } else if (arg === '--reading') {
       const value = requiredValue(argv, index++, arg);
       if (value !== 'direct' && value !== 'notes' && value !== 'two-call') {
@@ -418,8 +432,12 @@ async function main(): Promise<void> {
     args.aggregationReaderModel === undefined
       ? undefined
       : new OpenRouterClient({
-          apiKey,
-          baseUrl,
+          // e.g. a local Ollama daemon signed in to Ollama Cloud (http://127.0.0.1:11434/v1)
+          apiKey:
+            args.aggregationReaderApiKey ??
+            process.env.AGGREGATION_READER_API_KEY ??
+            apiKey,
+          baseUrl: args.aggregationReaderBaseUrl ?? baseUrl,
           model: args.aggregationReaderModel,
         });
   const temporalRangeExtractor =
