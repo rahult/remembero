@@ -63,6 +63,7 @@ interface Args {
   aggregationReaderModel: string | undefined;
   aggregationReaderBaseUrl: string | undefined;
   aggregationReaderApiKey: string | undefined;
+  readerMaxTokens: number | undefined;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -89,6 +90,8 @@ Options:
   --hybrid-question-types <csv>  Use the extractor only for these question types; others run raw
                          (and make no extraction calls)
   --reserved-min-score <n>  reserved only: minimum lexical score for an appended fact (default 1)
+  --reader-max-tokens <n>  Completion budget per reader call (default 4096; reasoning models
+                         such as DeepSeek v4.1 Flash exhaust it thinking and return nothing)
   --aggregation-reader-model <id>  A separate reader for multi-session, temporal and
                          knowledge-update questions; other types keep --reader-model
   --aggregation-reader-base-url <url>  OpenAI-compatible endpoint for that reader (default:
@@ -191,6 +194,7 @@ function parseArgs(argv: string[]): Args {
     aggregationReaderModel: undefined,
     aggregationReaderBaseUrl: undefined,
     aggregationReaderApiKey: undefined,
+    readerMaxTokens: undefined,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -329,6 +333,8 @@ function parseArgs(argv: string[]): Args {
         throw new Error('--retrieval-unit must be session or turn');
       }
       args.retrievalUnit = value;
+    } else if (arg === '--reader-max-tokens') {
+      args.readerMaxTokens = Number(requiredValue(argv, index++, arg));
     } else if (arg === '--aggregation-reader-model') {
       args.aggregationReaderModel = requiredValue(argv, index++, arg);
     } else if (arg === '--aggregation-reader-base-url') {
@@ -507,6 +513,9 @@ async function main(): Promise<void> {
           hybridRetrieval: args.hybridRetrieval,
           retrievalUnit: args.retrievalUnit,
           readingStrategy: args.readingStrategy,
+          ...(args.readerMaxTokens === undefined
+            ? {}
+            : { readerMaxTokens: args.readerMaxTokens }),
           ...(aggregationReader === undefined ? {} : { aggregationReader }),
           ...(temporalRangeExtractor === undefined
             ? {}

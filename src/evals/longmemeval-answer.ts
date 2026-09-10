@@ -605,6 +605,8 @@ export async function evaluateLongMemEvalAnswerInstance(
     notesQuestionTypes?: ReadonlySet<string>;
     /** A reader used only for the aggregation question types (same set as notesQuestionTypes). */
     aggregationReader?: LongMemEvalCompletionClient;
+    /** Completion budget per reader call (default 4096; reasoning readers need more). */
+    readerMaxTokens?: number;
     /**
      * Directory of per-session extraction results keyed by extractor model and transcript
      * hash. Extraction is deterministic enough to replay, and it is two hours of a full dev
@@ -1219,7 +1221,7 @@ export async function evaluateLongMemEvalAnswerInstance(
     const readerCompletion = await activeReader.completeWithUsage(
       answerContext.messages,
       {
-        maxTokens: 4_096,
+        maxTokens: options.readerMaxTokens ?? 4_096,
       },
     );
     readerUsage = readerCompletion.usage;
@@ -1238,7 +1240,7 @@ export async function evaluateLongMemEvalAnswerInstance(
             content: `Relevant items from the history:\n${enumeration || 'No relevant items.'}\n\nCurrent date: ${instance.question_date}\nQuestion: ${instance.question}\nAnswer:`,
           },
         ],
-        { maxTokens: 4_096 },
+        { maxTokens: options.readerMaxTokens ?? 4_096 },
       );
       hypothesis = answerCompletion.content.trim();
       readerUsage = sumLlmUsage(readerUsage, answerCompletion.usage);
