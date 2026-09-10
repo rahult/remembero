@@ -343,11 +343,30 @@ What this says:
   three-day trip to Big Sur") and an absent vocabulary for events. r13 (facts embedded in
   long requests, empty schemas) and r14 (an event kind for exactly these asides) took
   extraction from 28% to 63% of sessions and extracted-only from 22 to 29 of 48 on the slice.
-- **What would move the number.** Raw retrieval is already at 83% recall and the reader
-  answers 96% of questions whose evidence it sees, so the remaining loss is retrieval on
-  temporal and multi-session questions. Extracted facts help there only if the reader also
-  gets the transcript; the next experiment is hybrid retrieval that reserves top-k slots for
-  raw sessions and adds facts as extra context rather than competing for the same slots.
+- **Reserved retrieval was tried next and did worse.** `--hybrid-retrieval reserved` fills
+  top-k from raw text exactly as raw formation does and appends up to 3k matched extracted
+  facts as a dated block, so facts add context instead of competing for slots. On the full
+  split: **206/261**, gained 7 and lost 15 against raw, with abstention accuracy down from
+  95% to 84% and knowledge-update down two. The block gives the reader loosely matching facts
+  from other sessions, which is exactly the material it needs to answer a question it should
+  decline, and it shows stale values next to current ones because nothing supersedes a fact
+  across sessions in this store (no `rembero_functional` declarations exist for invented
+  predicates). Its 91% "retrieval recall" is inflated by counting every fact's session.
+
+| formation (dev, 261) | accuracy    | recall | abstention | k-update | multi | ss-pref | temporal |
+| -------------------- | ----------- | ------ | ---------- | -------- | ----- | ------- | -------- |
+| raw                  | **214/261** | 83.4%  | 95%        | 37/44    | 50/69 | 11/15   | 52/66    |
+| hybrid r14, shared   | 211/261     | 85.2%  | 95%        | 39/44    | 51/69 | 8/15    | 49/66    |
+| hybrid r14, reserved | 206/261     | 91.2%* | 84%        | 35/44    | 49/69 | 10/15   | 50/66    |
+
+\* counts the sessions of appended facts as retrieved.
+
+- **What would move the number.** Raw retrieval is at 83% recall and the reader answers 96%
+  of questions whose evidence it sees, so the loss is retrieval on temporal and multi-session
+  questions. Two things follow from the reserved result: appended facts need a relevance
+  threshold well above lexical score 1 and a recency or supersession rule before the reader
+  sees them, and the abstention cases need the reader told that the fact block is
+  supplementary. Neither is a model change.
 
 ## Evidence boundary
 
