@@ -312,6 +312,31 @@ writes a named rule plus an explicit `?- goal.` line, which the MCP query tool a
 the SQLite bridge sent to the native parser, scoring 16/31 until the bridge routed such
 programs to the portable engine (24/31 after; r14 unchanged at 27).
 
+### Extraction recall on real sessions (2026-09-10)
+
+The synthetic benchmark says the small model is within a few cases of the frontier model. A
+direct measurement on real transcripts says otherwise. 3,400 LongMemEval-S haystack sessions
+that appear in no development-split question, are evidence for nothing and repeat no
+development text were labelled by Luna through the product's own transcript extraction path,
+guards included (`node dist/training/run-real-sessions.js label`; 2,459 sessions yielded
+16,785 facts, 6.8 per session with facts, 230 refused, 8.3M tokens). The last 300 are a
+measurement slice; `measure` runs a model on them and scores it against Luna's facts loosely
+(a fact matches when it shares a non-self constant with a fact on the other side, predicate
+names ignored).
+
+| extractor (282 scored sessions)  | finds any fact where Luna did | false alarms where Luna found none | fact recall | fact precision | facts |
+| -------------------------------- | ----------------------------: | ---------------------------------: | ----------: | -------------: | ----: |
+| Gemma 4 E2B r16 (synthetic data) |                         46.7% |                              29.8% |       10.0% |          41.9% |   321 |
+| Luna (reference)                 |                             – |                                  – |           – |              – | 1,503 |
+
+The small model writes about a fifth of the facts the frontier model writes from the same
+sessions and misses more than half the sessions that have anything to store. Luna's labels
+are verbose (`controller_is_new(gaming_controller)`), so the recall ceiling a product would
+want is below 100%, but a 10% loose match is a real gap, and it is the gap the LongMemEval
+formation runs kept pointing at without being able to name. Round 17 trains Gemma 4 E2B on
+the first 3,000 labelled sessions mixed into the r14 data (`export`; silent sessions capped
+at the number with facts) and is scored on the same slice.
+
 The remaining nine r13 misses are one-offs: a dropped word (`dark` for `dark_mode`), a
 hallucinated fact from CI noise, a manager/report direction, two generic-subject choices
 (`deadline`, `engineers`), and two cases Luna also misses.

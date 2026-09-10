@@ -1,0 +1,10 @@
+{
+  "base": "data/training-r14",
+  "labels": "data/real/labels.jsonl",
+  "realTrain": 3000,
+  "realTrainWithFacts": 2327,
+  "realHeldout": 100,
+  "train": 25144,
+  "heldout": 2071,
+  "generatedAt": "2026-09-10T11:01:36.348Z"
+}
