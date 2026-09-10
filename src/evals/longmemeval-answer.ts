@@ -703,7 +703,9 @@ export async function evaluateLongMemEvalAnswerInstance(
         // extracted formations hold several facts per session; fetch more so top-k
         // still counts distinct sessions after de-duplication below
         limit:
-          formation === 'raw' || reserved ? effectiveTopK : effectiveTopK * 8,
+          formation === 'raw' || reserved
+            ? effectiveTopK
+            : Math.min(100, effectiveTopK * 8),
         minimumScore: 1,
         kinds: ['fact'],
         sourceCharacterLimit: LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
@@ -754,7 +756,10 @@ export async function evaluateLongMemEvalAnswerInstance(
         snapshot.sources,
         options.embeddings!,
         {
-          limit: formation === 'raw' ? effectiveTopK : effectiveTopK * 8,
+          limit:
+            formation === 'raw'
+              ? effectiveTopK
+              : Math.min(100, effectiveTopK * 8),
           candidateLimit: 100,
           kinds: ['fact'],
           cache: semanticCache,
@@ -869,7 +874,7 @@ export async function evaluateLongMemEvalAnswerInstance(
         instance.question,
         snapshot.sources,
         {
-          limit: effectiveTopK * 3,
+          limit: Math.min(100, effectiveTopK * 3),
           minimumScore: options.reservedMinimumScore ?? 1,
           kinds: ['fact'],
           sourceCharacterLimit: LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
