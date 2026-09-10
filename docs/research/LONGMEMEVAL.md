@@ -457,6 +457,25 @@ standard error of about six, and keeps abstention at 95%. What each pattern did:
   knowledge-update answers in the combination and net out below the session unit.
 - **Entity-keyed retrieval** over the fact store lost at every k (multi-session section).
 
+### The composed policy on all 500 questions
+
+| all 500, lexical retrieval only                                          | accuracy    | recall | abstention | k-update | multi   | ss-asst | ss-pref | ss-user | temporal |
+| ------------------------------------------------------------------------ | ----------- | ------ | ---------- | -------- | ------- | ------- | ------- | ------- | -------- |
+| raw                                                                      | 391/500     | 82.7%  | 80%        | 66/78    | 83/133  | 52/56   | 21/30   | 65/70   | 104/133  |
+| **hybrid (Gemma 4 E2B), multi-session k=15, temporal k=10 + time range** | **414/500** | 88.6%  | 90%        | 67/78    | 101/133 | 50/56   | 19/30   | 64/70   | 113/133  |
+
+Gained 52 and lost 29 against raw; development 212 → 226, held-out test 179 → 188; about two
+and a half standard errors on 500. The two types the patterns targeted carry it: multi-session
++18 and temporal +9. Preference and assistant-memory drift by two, inside the reader noise.
+This is the first LongMemEval result in this document where the product's own extraction, run
+by a 2.3B-effective model, moves the score, and it does so with lexical retrieval alone; the
+earlier v5 policy (416/500) needed embedding-based routing on top of raw sessions. The two are
+complementary and have not been combined.
+
+Cost of the composed run over 500 questions: 10,089 extraction calls on an L4 (the dev half
+replayed from the cache), about $1 of GPU time, plus the reader and judge; the time-range
+extractor added one Luna call for each of the 133 temporal questions.
+
 - **The reader itself moves about six answers between identical runs.** The routed run
   presented 148 questions with exactly the same formation and retrieved sessions as the raw
   baseline; 6 of them still flipped. Luna at temperature zero plus a GPT-4o judge is about
