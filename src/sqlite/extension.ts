@@ -291,7 +291,10 @@ export function sqliteDatalogExecutionMode(
   }
   if (referencesSynthesizedClosure(program)) return 'portable';
   try {
-    if (parseQueryProgram(program).ground) return 'portable';
+    const normalized = parseQueryProgram(program);
+    // ground goals answer as a boolean row, and an explicit `?- goal.` line is a shape the
+    // native parser does not know; both belong to the portable engine
+    if (normalized.ground || normalized.target === 'explicit') return 'portable';
   } catch {
     // let the native parser keep its error contract
   }

@@ -134,6 +134,24 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
     }
   });
 
+  it('accepts an explicit ?- query line after a single rule, like the MCP query tool does', async () => {
+    const database = await openRememberoDatabase(':memory:');
+    try {
+      database.exec(`
+        CREATE TABLE blocker(project TEXT, blocker TEXT);
+        INSERT INTO blocker VALUES ('beacon','legal_signoff'),('atlas','budget');
+      `);
+      // a named rule plus an explicit goal is the shape some models write; the query
+      // normalizer accepts it, so the bridge must too rather than fail on the native parser
+      const rows = database.datalogQuery(
+        'beacon_blocker(B) :- blocker(beacon, B).\n?- beacon_blocker(B).',
+      );
+      expect(rows).toEqual([{ B: 'legal_signoff' }]);
+    } finally {
+      database.close();
+    }
+  });
+
   it('keeps variable-position fact queries working', async () => {
     const database = await openRememberoDatabase(':memory:');
     try {
