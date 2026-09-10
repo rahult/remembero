@@ -518,7 +518,7 @@ on OpenRouter.
 | **GLM 5.3 Flash (Ollama Cloud)**            | **435/500** |      2 | 70/78    | 108/133 | 115/133  |                          92.5% |
 | DeepSeek v4 Flash 0731 (Ollama Cloud)       | 413/500     |      2 | 62/78    | 99/133  | 113/133  |                          88.1% |
 | DeepSeek v4.1 Flash (OpenRouter), 4k budget | 423/500     |     16 | 69/78    | 104/133 | 116/133  |                          92.3% |
-| DeepSeek v4.1 Flash (OpenRouter), 16k       | 428/500     |      2 | –        | –       | –        |                              – |
+| DeepSeek v4.1 Flash (OpenRouter), 16k       | 428/500     |      2 | 66/78    | 103/133 | 114/133  |                          90.3% |
 
 Errors are cloud timeouts, or for DeepSeek v4.1 Flash at the default 4,096-token budget a
 reasoning model exhausting it before answering (`finish_reason=length`), all counted as wrong;
