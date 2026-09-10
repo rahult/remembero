@@ -1,0 +1,348 @@
+/**
+ * Real-session extraction: label with the frontier model, measure a small model, export
+ * training data. See real-sessions.ts for what is selected and why it cannot leak.
+ *
+ *   node dist/training/run-real-sessions.js label   --count 3400 --out data/real/labels.jsonl
+ *   node dist/training/run-real-sessions.js measure --labels data/real/labels.jsonl \
+ *        --model finetune/... --base-url https://.../v1 --offset 3100 --count 300 \
+ *        --out docs/research/results/extraction-recall-v1-<model>.json
+ *   node dist/training/run-real-sessions.js export  --labels data/real/labels.jsonl \
+ *        --train-count 3000 --heldout-count 100 --base data/training-r14 --out data/training-r17
+ *
+ * `label` and `measure` resume: sessions already in the output are skipped.
+ */
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { loadEnv } from '../env.js';
+import { loadLongMemEvalS } from '../evals/longmemeval.js';
+import { longMemEvalSplit } from '../evals/longmemeval-semantic.js';
+import { OpenRouterClient, type ChatMessage } from '../llm/client.js';
+import { rememberTranscriptText } from '../llm/pipeline.js';
+import { MemoryStore } from '../store/store.js';
+import { createRng } from './rng.js';
+import {
+  compareFactSets,
+  realTranscript,
+  selectTrainingSessions,
+  toRealConversation,
+  type SelectedSession,
+} from './real-sessions.js';
+
+interface LabelRow {
+  id: string;
+  date: string;
+  model: string;
+  facts: string[];
+  error?: string;
+  promptTokens?: number | null;
+  completionTokens?: number | null;
+}
+
+function flag(name: string, fallback?: string): string | undefined {
+  const index = process.argv.indexOf(name);
+  return index >= 0 && process.argv[index + 1] !== undefined
+    ? process.argv[index + 1]
+    : fallback;
+}
+
+function readRows(path: string): Map<string, LabelRow> {
+  const rows = new Map<string, LabelRow>();
+  if (!existsSync(path)) return rows;
+  for (const line of readFileSync(path, 'utf8').split('\n')) {
+    if (!line.trim()) continue;
+    const row = JSON.parse(line) as LabelRow;
+    rows.set(row.id, row);
+  }
+  return rows;
+}
+
+async function orderedSessions(seed: number): Promise<SelectedSession[]> {
+  const data = flag('--data', '.cache/longmemeval/longmemeval_s_cleaned.json')!;
+  const { instances } = await loadLongMemEvalS(resolve(data));
+  const chosen = selectTrainingSessions(instances, longMemEvalSplit);
+  chosen.sort((a, b) => a.id.localeCompare(b.id));
+  return createRng(seed).shuffle(chosen);
+}
+
+/** Run the product's transcript extraction on one session with a fresh, empty store. */
+async function extractOne(
+  client: OpenRouterClient,
+  session: SelectedSession,
+  maxTokens: number,
+  root: string,
+): Promise<LabelRow> {
+  let promptTokens: number | null = 0;
+  let completionTokens: number | null = 0;
+  const llm = {
+    complete: async (messages: ChatMessage[]): Promise<string> => {
+      const completion = await client.completeWithUsage(messages, {
+        maxTokens,
+      });
+      promptTokens =
+        promptTokens === null || completion.usage.promptTokens === null
+          ? null
+          : promptTokens + completion.usage.promptTokens;
+      completionTokens =
+        completionTokens === null || completion.usage.completionTokens === null
+          ? null
+          : completionTokens + completion.usage.completionTokens;
+      return completion.content;
+    },
+  };
+  const store = new MemoryStore(mkdtempSync(join(root, 'real-')));
+  try {
+    const result = await rememberTranscriptText(
+      { store, llm },
+      realTranscript(session.session),
+      'real',
+      { captureId: session.id, opId: session.id, sourceText: 'real session' },
+    );
+    return {
+      id: session.id,
+      date: session.date,
+      model: client.model,
+      facts: result.added,
+      promptTokens,
+      completionTokens,
+    };
+  } catch (error) {
+    return {
+      id: session.id,
+      date: session.date,
+      model: client.model,
+      facts: [],
+      error:
+        error instanceof Error ? error.message.slice(0, 200) : String(error),
+      promptTokens,
+      completionTokens,
+    };
+  }
+}
+
+async function runPool<T>(
+  items: readonly T[],
+  concurrency: number,
+  work: (item: T, index: number) => Promise<void>,
+): Promise<void> {
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+      while (next < items.length) {
+        const index = next++;
+        await work(items[index]!, index);
+      }
+    }),
+  );
+}
+
+async function label(): Promise<void> {
+  const out = flag('--out', 'data/real/labels.jsonl')!;
+  const count = Number(flag('--count', '3400'));
+  const offset = Number(flag('--offset', '0'));
+  const seed = Number(flag('--seed', '7'));
+  const concurrency = Number(flag('--concurrency', '8'));
+  const maxTokens = Number(flag('--max-tokens', '4096'));
+  const apiKey = flag('--api-key', process.env.LLM_API_KEY);
+  if (!apiKey) throw new Error('LLM_API_KEY is not set');
+  const client = new OpenRouterClient({
+    apiKey,
+    baseUrl: (
+      flag('--base-url', process.env.LLM_BASE_URL) ??
+      'https://openrouter.ai/api/v1'
+    ).replace(/\/$/, ''),
+    model: flag('--model', 'openai/gpt-5.6-luna')!,
+  });
+  mkdirSync(dirname(out), { recursive: true });
+  const done = readRows(out);
+  const sessions = (await orderedSessions(seed)).slice(offset, offset + count);
+  const todo = sessions.filter((s) => !done.has(s.id));
+  console.error(
+    `labelling ${todo.length} of ${sessions.length} sessions with ${client.model} (${done.size} already done)`,
+  );
+  const root = mkdtempSync(join(tmpdir(), 'rembero-real-'));
+  let finished = 0;
+  await runPool(todo, concurrency, async (session) => {
+    const row = await extractOne(client, session, maxTokens, root);
+    appendFileSync(out, `${JSON.stringify(row)}\n`);
+    finished += 1;
+    if (finished % 50 === 0) console.error(`[${finished}/${todo.length}]`);
+  });
+  const rows = [...readRows(out).values()];
+  const withFacts = rows.filter((r) => r.facts.length > 0).length;
+  const errors = rows.filter((r) => r.error).length;
+  console.log(
+    JSON.stringify({
+      sessions: rows.length,
+      withFacts,
+      errors,
+      facts: rows.reduce((n, r) => n + r.facts.length, 0),
+    }),
+  );
+}
+
+async function measure(): Promise<void> {
+  const labelsPath = flag('--labels', 'data/real/labels.jsonl')!;
+  const out = flag('--out')!;
+  const count = Number(flag('--count', '300'));
+  const offset = Number(flag('--offset', '3100'));
+  const seed = Number(flag('--seed', '7'));
+  const concurrency = Number(flag('--concurrency', '6'));
+  const maxTokens = Number(flag('--max-tokens', '512'));
+  const selfAtom = flag('--self', 'user')!;
+  const apiKey = flag(
+    '--api-key',
+    process.env.EXTRACTION_API_KEY ??
+      process.env.MODAL_SERVE_API_KEY ??
+      process.env.LLM_API_KEY,
+  );
+  if (!apiKey) throw new Error('no api key');
+  const client = new OpenRouterClient({
+    apiKey,
+    baseUrl: (
+      flag('--base-url', process.env.LLM_BASE_URL) ??
+      'https://openrouter.ai/api/v1'
+    ).replace(/\/$/, ''),
+    model: flag('--model')!,
+  });
+  const labels = readRows(labelsPath);
+  const sessions = (await orderedSessions(seed))
+    .slice(offset, offset + count)
+    .filter((s) => labels.has(s.id) && !labels.get(s.id)!.error);
+  console.error(
+    `measuring ${client.model} on ${sessions.length} labelled sessions`,
+  );
+  const root = mkdtempSync(join(tmpdir(), 'rembero-real-measure-'));
+  const perSession: Array<
+    {
+      id: string;
+      reference: string[];
+      model: string[];
+      error?: string;
+    } & ReturnType<typeof compareFactSets>
+  > = [];
+  await runPool(sessions, concurrency, async (session) => {
+    const row = await extractOne(client, session, maxTokens, root);
+    const reference = labels.get(session.id)!.facts;
+    perSession.push({
+      id: session.id,
+      reference,
+      model: row.facts,
+      ...(row.error ? { error: row.error } : {}),
+      ...compareFactSets(reference, row.facts, selfAtom),
+    });
+  });
+  const withReference = perSession.filter((s) => s.referenceFacts > 0);
+  const detected = withReference.filter((s) => s.modelFacts > 0).length;
+  const silentReference = perSession.filter((s) => s.referenceFacts === 0);
+  const falseAlarms = silentReference.filter((s) => s.modelFacts > 0).length;
+  const mean = (xs: number[]) =>
+    xs.length === 0 ? 0 : xs.reduce((a, b) => a + b, 0) / xs.length;
+  const summary = {
+    model: client.model,
+    referenceModel: [...labels.values()][0]?.model ?? null,
+    sessions: perSession.length,
+    sessionsWithReferenceFacts: withReference.length,
+    sessionDetectionRate:
+      withReference.length === 0 ? 0 : detected / withReference.length,
+    silentReferenceSessions: silentReference.length,
+    falseAlarmRate:
+      silentReference.length === 0 ? 0 : falseAlarms / silentReference.length,
+    meanFactRecall: mean(withReference.map((s) => s.recall)),
+    meanFactPrecision: mean(
+      perSession.filter((s) => s.modelFacts > 0).map((s) => s.precision),
+    ),
+    referenceFacts: perSession.reduce((n, s) => n + s.referenceFacts, 0),
+    modelFacts: perSession.reduce((n, s) => n + s.modelFacts, 0),
+    errors: perSession.filter((s) => s.error).length,
+  };
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, `${JSON.stringify({ summary, perSession }, null, 2)}\n`);
+  console.log(JSON.stringify(summary, null, 2));
+}
+
+async function exportData(): Promise<void> {
+  const labelsPath = flag('--labels', 'data/real/labels.jsonl')!;
+  const trainCount = Number(flag('--train-count', '3000'));
+  const heldoutCount = Number(flag('--heldout-count', '100'));
+  const seed = Number(flag('--seed', '7'));
+  const selfAtom = flag('--self', 'user')!;
+  const base = flag('--base', 'data/training-r14')!;
+  const out = flag('--out', 'data/training-r17')!;
+  const labels = readRows(labelsPath);
+  const ordered = (await orderedSessions(seed)).filter(
+    (s) => labels.has(s.id) && !labels.get(s.id)!.error,
+  );
+  const train = ordered.slice(0, trainCount);
+  const heldout = ordered.slice(trainCount, trainCount + heldoutCount);
+  const lines = (sessions: SelectedSession[]) => {
+    // a real store is mostly silence; cap "% nothing" rows at the number of rows with facts so
+    // the model learns to write, not to stay quiet
+    const withFacts = sessions.filter(
+      (s) => labels.get(s.id)!.facts.length > 0,
+    );
+    const silent = sessions
+      .filter((s) => labels.get(s.id)!.facts.length === 0)
+      .slice(0, withFacts.length);
+    return [...withFacts, ...silent].map((s) =>
+      JSON.stringify(
+        toRealConversation(s.session, labels.get(s.id)!.facts, selfAtom),
+      ),
+    );
+  };
+  const trainLines = lines(train);
+  const heldoutLines = lines(heldout);
+  mkdirSync(out, { recursive: true });
+  const baseTrain = readFileSync(join(base, 'conversations.jsonl'), 'utf8')
+    .trim()
+    .split('\n');
+  const baseHeld = readFileSync(join(base, 'heldout.jsonl'), 'utf8')
+    .trim()
+    .split('\n');
+  const merged = createRng(seed).shuffle([...baseTrain, ...trainLines]);
+  writeFileSync(join(out, 'conversations.jsonl'), `${merged.join('\n')}\n`);
+  writeFileSync(
+    join(out, 'heldout.jsonl'),
+    `${[...baseHeld, ...heldoutLines].join('\n')}\n`,
+  );
+  const manifest = {
+    base,
+    labels: labelsPath,
+    realTrain: trainLines.length,
+    realTrainWithFacts: train.filter((s) => labels.get(s.id)!.facts.length > 0)
+      .length,
+    realHeldout: heldoutLines.length,
+    train: merged.length,
+    heldout: baseHeld.length + heldoutLines.length,
+    generatedAt: new Date().toISOString(),
+  };
+  writeFileSync(
+    join(out, 'manifest.json'),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
+  console.log(JSON.stringify(manifest, null, 2));
+}
+
+const invokedDirectly =
+  process.argv[1] !== undefined &&
+  fileURLToPath(import.meta.url) === process.argv[1];
+
+if (invokedDirectly) {
+  loadEnv();
+  const command = process.argv[2];
+  if (command === 'label') await label();
+  else if (command === 'measure') await measure();
+  else if (command === 'export') await exportData();
+  else {
+    console.error('usage: run-real-sessions.js label|measure|export [flags]');
+    process.exit(1);
+  }
+}
