@@ -519,6 +519,7 @@ on OpenRouter.
 | DeepSeek v4 Flash 0731 (Ollama Cloud)       | 413/500     |      2 | 62/78    | 99/133  | 113/133  |                          88.1% |
 | DeepSeek v4.1 Flash (OpenRouter), 4k budget | 423/500     |     16 | 69/78    | 104/133 | 116/133  |                          92.3% |
 | DeepSeek v4.1 Flash (OpenRouter), 16k       | 428/500     |      2 | 66/78    | 103/133 | 114/133  |                          90.3% |
+| GLM 5.3 Flash for every type (Ollama Cloud) | 425/500     |      8 | 69/78    | 99/133  | 114/133  |                              – |
 
 Errors are cloud timeouts, or for DeepSeek v4.1 Flash at the default 4,096-token budget a
 reasoning model exhausting it before answering (`finish_reason=length`), all counted as wrong;
@@ -526,6 +527,14 @@ reasoning model exhausting it before answering (`finish_reason=length`), all cou
 and is the recommended aggregation reader: **435/500 (87.0%)**, against 391 for raw sessions
 with Luna at the start of this work. DeepSeek v4 Flash is below Luna; v4.1 Flash with room
 to think sits between Luna and GLM.
+
+GLM 5.3 Flash reading every type (`--reader-model glm-5.3-flash:cloud --reader-base-url
+http://127.0.0.1:11434/v1`) scored 425/500 with 8 errors, all of them the embedding provider
+answering HTTP 429 on multi-session questions during the semantic route, nothing to do with
+the reader; those eight count as wrong, so the reader itself is at about 433, a tie with the
+split arrangement, and it takes preference to 30/30. One reader is the simpler system, so
+the recommended configuration is GLM 5.3 Flash for everything, with the embedding client
+given a retry on 429.
 
 Cost of the composed run over 500 questions: 10,089 extraction calls on an L4 (the dev half
 replayed from the cache), about $1 of GPU time, plus the reader and judge; the time-range
