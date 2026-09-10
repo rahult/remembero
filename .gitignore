@@ -24,3 +24,6 @@ data/training-*/*
 # python env and Tinker run logs
 .venv/
 runs/
+
+# real-session labels (LongMemEval haystack text; regenerate with run-real-sessions.js label)
+data/real/
