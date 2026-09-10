@@ -58,6 +58,7 @@ interface Args {
   reservedMinimumScore: number | undefined;
   entityRetrieval: boolean;
   extractionCacheDir: string | undefined;
+  temporalRangeModel: string | undefined;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -84,6 +85,8 @@ Options:
   --hybrid-question-types <csv>  Use the extractor only for these question types; others run raw
                          (and make no extraction calls)
   --reserved-min-score <n>  reserved only: minimum lexical score for an appended fact (default 1)
+  --temporal-range-model <id>  Time-aware retrieval: this model reads the date range a
+                         temporal question refers to (or refuses); in-range sessions rank first
   --extraction-cache <dir>  Replay per-session extractions from this directory when present
                          (keyed by extractor model and transcript), else call and record
   --entity-retrieval     hybrid/extracted: one hop over the extracted facts from the question
@@ -170,6 +173,7 @@ function parseArgs(argv: string[]): Args {
     reservedMinimumScore: undefined,
     entityRetrieval: false,
     extractionCacheDir: undefined,
+    temporalRangeModel: undefined,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -308,6 +312,8 @@ function parseArgs(argv: string[]): Args {
         throw new Error('--retrieval-unit must be session or turn');
       }
       args.retrievalUnit = value;
+    } else if (arg === '--temporal-range-model') {
+      args.temporalRangeModel = requiredValue(argv, index++, arg);
     } else if (arg === '--extraction-cache') {
       args.extractionCacheDir = resolve(requiredValue(argv, index++, arg));
     } else if (arg === '--entity-retrieval') {
@@ -390,6 +396,14 @@ async function main(): Promise<void> {
     baseUrl,
     model: args.readerModel,
   });
+  const temporalRangeExtractor =
+    args.temporalRangeModel === undefined
+      ? undefined
+      : new OpenRouterClient({
+          apiKey,
+          baseUrl,
+          model: args.temporalRangeModel,
+        });
   const judge = new OpenRouterClient({
     apiKey,
     baseUrl,
@@ -448,6 +462,9 @@ async function main(): Promise<void> {
           factsInContext: args.factsInContext,
           hybridRetrieval: args.hybridRetrieval,
           retrievalUnit: args.retrievalUnit,
+          ...(temporalRangeExtractor === undefined
+            ? {}
+            : { temporalRangeExtractor }),
           entityRetrieval: args.entityRetrieval,
           ...(args.extractionCacheDir === undefined
             ? {}
