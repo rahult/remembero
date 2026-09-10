@@ -199,6 +199,36 @@ def save_processor_files(base_model: str, target: Path) -> None:
     print(f"copied processor files into {target}: {copied}")
 
 
+@app.function(image=train_image, volumes={VOL: volume}, timeout=30 * 60)
+def export_text_only(run: str) -> str:
+    """Re-save a merged multimodal checkpoint (Gemma 4) as its text-only causal LM.
+
+    vLLM's loader mismatched the multimodal wrapper's weight names on the merged save; the
+    plain Gemma4ForCausalLM layout loads cleanly, and this project never sends images or audio.
+    """
+    import torch
+    from transformers import AutoConfig, AutoModelForImageTextToText, AutoTokenizer
+
+    merged_dir = Path(VOL) / "runs" / run / "merged"
+    text_dir = Path(VOL) / "runs" / run / "merged-text"
+    config = AutoConfig.from_pretrained(str(merged_dir))
+    text_config = getattr(config, "text_config", None)
+    if text_config is None:
+        return f"{merged_dir} is already text-only"
+    full = AutoModelForImageTextToText.from_pretrained(str(merged_dir), dtype=torch.bfloat16)
+    language_model = getattr(full.model, "language_model", None) or getattr(full, "language_model")
+    text_cls = getattr(__import__("transformers"), text_config.architectures[0] if getattr(text_config, "architectures", None) else "Gemma4ForCausalLM")
+    text_model = text_cls(text_config)
+    missing, unexpected = text_model.model.load_state_dict(language_model.state_dict(), strict=False)
+    if hasattr(full, "lm_head") and hasattr(text_model, "lm_head"):
+        text_model.lm_head.load_state_dict(full.lm_head.state_dict())
+    print(f"text-only export: missing={list(missing)[:5]} unexpected={list(unexpected)[:5]}")
+    text_model.to(torch.bfloat16).save_pretrained(str(text_dir), safe_serialization=True)
+    AutoTokenizer.from_pretrained(str(merged_dir)).save_pretrained(str(text_dir))
+    volume.commit()
+    return str(text_dir)
+
+
 @app.function(image=train_image, volumes={VOL: volume}, timeout=15 * 60)
 def add_processor(run: str, base_model: str) -> str:
     """Patch an already-merged run with its base model's processor files."""
@@ -408,6 +438,9 @@ def serve() -> None:
     if run == "latest":
         run = (Path(VOL) / "runs" / "latest").read_text().strip()
     merged = Path(VOL) / "runs" / run / "merged"
+    # a text-only re-export (see export_text_only) is preferred when present
+    if (Path(VOL) / "runs" / run / "merged-text").exists():
+        merged = Path(VOL) / "runs" / run / "merged-text"
     if not merged.exists():
         raise RuntimeError(f"no merged weights at {merged}; train with merge=True first")
     api_key = os.environ.get("VLLM_API_KEY")
