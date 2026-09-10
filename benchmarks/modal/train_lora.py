@@ -177,7 +177,10 @@ def train(
     grad_accum: int = 8,
     max_length: int = 2048,
     merge: bool = True,
+    base_model: str = BASE_MODEL,
 ) -> dict:
+    # BASE_MODEL is read from the *local* environment at import; the container never sees
+    # it, so the caller passes it in. (Two "Gemma" runs silently trained Qwen before this.)
     import torch
     from datasets import Dataset
     from peft import LoraConfig, PeftModel
@@ -195,10 +198,10 @@ def train(
     data_dir = Path(VOL) / "data" / run
     started = time.time()
 
-    tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
+    tokenizer = AutoTokenizer.from_pretrained(base_model)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model = load_base_model(BASE_MODEL, torch)
+    model = load_base_model(base_model, torch)
 
     train_rows = _to_prompt_completion(str(data_dir / "conversations.jsonl"))
     heldout_path = data_dir / "heldout.jsonl"
@@ -278,7 +281,7 @@ def train(
     if checkpoints:
         print(f"resuming from {checkpoints[-1]}")
     trainer.train(resume_from_checkpoint=str(checkpoints[-1]) if checkpoints else None)
-    metrics: dict = {"run": run, "base_model": BASE_MODEL, "gpu": TRAIN_GPU}
+    metrics: dict = {"run": run, "base_model": base_model, "gpu": TRAIN_GPU}
     if eval_ds is not None:
         evaluation = trainer.evaluate()
         metrics["heldout_loss"] = evaluation.get("eval_loss")
@@ -301,7 +304,7 @@ def train(
     tokenizer.save_pretrained(str(adapter_dir))
     if merge:
         merged_dir = run_dir / "merged"
-        base = load_base_model(BASE_MODEL, torch)
+        base = load_base_model(base_model, torch)
         merged = PeftModel.from_pretrained(base, str(adapter_dir)).merge_and_unload()
         merged.save_pretrained(str(merged_dir), safe_serialization=True)
         tokenizer.save_pretrained(str(merged_dir))
@@ -395,7 +398,7 @@ def main(
         batch.put_file(data, f"data/{run}/conversations.jsonl")
         if Path(heldout).exists():
             batch.put_file(heldout, f"data/{run}/heldout.jsonl")
-    print(f"uploaded data for run {run}; training on {TRAIN_GPU} ...")
+    print(f"uploaded data for run {run}; training {BASE_MODEL} on {TRAIN_GPU} ...")
     metrics = train.remote(
         run=run,
         epochs=epochs,
@@ -403,6 +406,7 @@ def main(
         lora_rank=lora_rank,
         batch_size=batch_size,
         grad_accum=grad_accum,
+        base_model=BASE_MODEL,
     )
     print(json.dumps(metrics, indent=2))
     print(
