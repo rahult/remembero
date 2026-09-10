@@ -172,14 +172,31 @@ def lora_targets(model) -> list[str]:
 
 
 def save_processor_files(base_model: str, target: Path) -> None:
-    """Multimodal checkpoints (Gemma 4) need their processor next to the weights or vLLM refuses to load them."""
-    try:
-        from transformers import AutoProcessor
+    """Multimodal checkpoints (Gemma 4) need their processor configs next to the weights or
+    vLLM refuses to load them. Copy the hub's small config files that the merge did not write
+    (never weights, never the model config the merge produced)."""
+    import shutil
 
-        AutoProcessor.from_pretrained(base_model).save_pretrained(str(target))
-        print(f"saved processor files for {base_model} into {target}")
-    except Exception as error:  # text-only bases have no processor; that is fine
-        print(f"no processor saved for {base_model}: {str(error)[:100]}")
+    from huggingface_hub import snapshot_download
+
+    try:
+        snapshot = Path(
+            snapshot_download(
+                base_model,
+                allow_patterns=["*.json", "*.jinja", "*.txt", "*.model", "*.tiktoken"],
+            )
+        )
+    except Exception as error:
+        print(f"could not fetch processor files for {base_model}: {str(error)[:120]}")
+        return
+    copied = []
+    for path in snapshot.iterdir():
+        if path.is_dir() or path.name in {"config.json", "generation_config.json"}:
+            continue
+        if not (target / path.name).exists():
+            shutil.copy2(path, target / path.name)
+            copied.append(path.name)
+    print(f"copied processor files into {target}: {copied}")
 
 
 @app.function(image=train_image, volumes={VOL: volume}, timeout=15 * 60)
