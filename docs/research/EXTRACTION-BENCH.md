@@ -328,10 +328,18 @@ names ignored).
 | extractor (282 scored sessions)  | finds any fact where Luna did | false alarms where Luna found none | fact recall | fact precision | facts |
 | -------------------------------- | ----------------------------: | ---------------------------------: | ----------: | -------------: | ----: |
 | Gemma 4 E2B r16 (synthetic data) |                         46.7% |                              29.8% |       10.0% |          41.9% |   321 |
+| Gemma 4 E2B r17 (+3,000 real)    |                         50.2% |                               5.3% |       28.6% |          52.8% |   798 |
 | Luna (reference)                 |                             – |                                  – |           – |              – | 1,503 |
 
-The small model writes about a fifth of the facts the frontier model writes from the same
-sessions and misses more than half the sessions that have anything to store. Luna's labels
+Round 16 writes about a fifth of the facts the frontier model writes from the same sessions
+and misses more than half the sessions that have anything to store. Round 17, the same
+recipe plus 3,000 labelled real sessions (12% of its training rows), nearly triples loose
+fact recall, lifts precision ten points and cuts false alarms from 30% to 5%, while session
+detection stays at half: the sessions it skips are the ones Luna found only marginal facts
+in. The price is on the synthetic benchmark, where r17 scores 23/31 and 81/103 against r16's
+27–28 and 85–86: Luna's labels are verbose and free-form, and the closed-vocabulary benchmark
+rewards the opposite habit. Which model to serve depends on the job; the LongMemEval run of
+r17 is the tie-breaker for the product's transcript path. Luna's labels
 are verbose (`controller_is_new(gaming_controller)`), so the recall ceiling a product would
 want is below 100%, but a 10% loose match is a real gap, and it is the gap the LongMemEval
 formation runs kept pointing at without being able to name. Round 17 trains Gemma 4 E2B on

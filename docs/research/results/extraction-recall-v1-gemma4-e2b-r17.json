@@ -1,0 +1,5762 @@
+{
+  "summary": {
+    "model": "finetune/gemma-4-e2b-it-r17-gemma4-e2b-modal",
+    "referenceModel": "openai/gpt-5.6-luna",
+    "sessions": 282,
+    "sessionsWithReferenceFacts": 225,
+    "sessionDetectionRate": 0.5022222222222222,
+    "silentReferenceSessions": 57,
+    "falseAlarmRate": 0.05263157894736842,
+    "meanFactRecall": 0.28622863556196876,
+    "meanFactPrecision": 0.5277920833955317,
+    "referenceFacts": 1503,
+    "modelFacts": 798,
+    "errors": 0
+  },
+  "perSession": [
+    {
+      "id": "sharegpt_DsdOMQX_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_278874",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_Pcpbqqy_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_122225",
+      "reference": [
+        "values(user, rainforest_awareness).",
+        "supports(user, indigenous_people).",
+        "cares_about(user, amazon_rainforest_protection).",
+        "has_preference(user, sustainably_sourced_products).",
+        "has_preference(user, chocolate)."
+      ],
+      "model": [
+        "supports(user, indigenous_people).",
+        "likes(user, sustainably_sourced_products).",
+        "plans_to_look_for(user, sustainably_sourced_products).",
+        "has_sweet_tooth(user)."
+      ],
+      "referenceFacts": 5,
+      "modelFacts": 4,
+      "matchedReference": 2,
+      "matchedModel": 3,
+      "recall": 0.4,
+      "precision": 0.75
+    },
+    {
+      "id": "sharegpt_K8UeLPo_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "6a471944_1",
+      "reference": [
+        "interested_in(user, 'Naomi Alderman')."
+      ],
+      "model": [
+        "owns(user, bookshelf).",
+        "bookshelf_brand(bookshelf, ikea).",
+        "owns(user, sofa).",
+        "sofa_brand(sofa, west_elm).",
+        "likes(user, sleeker_modern_vibe).",
+        "interested_in(user, 'The Power').",
+        "interested_in(user, 'The Liars'' Gospel').",
+        "interested_in(user, naomi_alderman).",
+        "interested_in(user, geometric_bookends)."
+      ],
+      "referenceFacts": 1,
+      "modelFacts": 9,
+      "matchedReference": 1,
+      "matchedModel": 1,
+      "recall": 1,
+      "precision": 0.1111111111111111
+    },
+    {
+      "id": "sharegpt_puvUs0e_0",
+      "reference": [
+        "owns(user, youtube_channel).",
+        "channel_niche(youtube_channel, beauty).",
+        "subscriber_target(youtube_channel, 1000).",
+        "subscriber_target(youtube_channel, 10000).",
+        "watch_hours_target(youtube_channel, 40000).",
+        "monetization_goal(youtube_channel, user).",
+        "goal_timeframe(youtube_channel, '3 months')."
+      ],
+      "model": [],
+      "referenceFacts": 7,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "deb12028_2",
+      "reference": [
+        "owns_vehicle(user, '2018 Honda Civic Si').",
+        "has_modification(user, exhaust_system).",
+        "has_modification(user, sport_suspension).",
+        "owns_tires(user, high_performance_tires).",
+        "attended_meetup(user, 'Racking Up the Miles').",
+        "meetup_location('Racking Up the Miles', local_autoshop).",
+        "met_at(user, mechanic, 'Racking Up the Miles').",
+        "plans_schedule_meetup_with(user, mechanic).",
+        "plans_break_in_tires_on(user, regular_roads).",
+        "plans_test_vehicle_at(user, track).",
+        "last_track_event_at(user, 'Speed Demon Racing Track')."
+      ],
+      "model": [
+        "owns(user, '2018 Honda Civic Si').",
+        "has_upgrade(user, exhaust_system).",
+        "has_upgrade(user, sport_suspension).",
+        "plans_to_break_in(user, tires).",
+        "plans_to_test_on_track(user, car).",
+        "attended(user, 'Racking Up the Miles').",
+        "met(user, mechanic).",
+        "plans_to_schedule_meetup(user, mechanic).",
+        "plans_to_return_to_track(user, speed_demon_racing_track)."
+      ],
+      "referenceFacts": 11,
+      "modelFacts": 9,
+      "matchedReference": 8,
+      "matchedModel": 7,
+      "recall": 0.7272727272727273,
+      "precision": 0.7777777777777778
+    },
+    {
+      "id": "5d284d7d_2",
+      "reference": [
+        "inherited_camera(user, leica).",
+        "inherited_camera_from(user, grandfather).",
+        "received_camera_from(user, aunt).",
+        "camera_type(leica, rangefinder).",
+        "lens_model(leica, '50mm f/2 Summar').",
+        "shutter_speed_range(leica, '1/1000 to 1 second').",
+        "shutter_setting(leica, b).",
+        "shutter_setting(leica, t).",
+        "interested_in(user, vintage_camera_history).",
+        "interested_in(user, vintage_camera_communities).",
+        "interested_in(user, medium_format_photography)."
+      ],
+      "model": [
+        "owns(user, leica_iii_a).",
+        "inherited_from(leica_iii_a, grandfather).",
+        "inherited_from(leica_iii_a, aunt).",
+        "interested_in(user, vintage_cameras).",
+        "interested_in(user, photography).",
+        "interested_in(user, medium_format_photography).",
+        "interested_in(user, medium_format_cameras).",
+        "interested_in(user, leica_history).",
+        "interested_in(user, medium_format_camera_differences)."
+      ],
+      "referenceFacts": 11,
+      "modelFacts": 9,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 0.2727272727272727,
+      "precision": 0.3333333333333333
+    },
+    {
+      "id": "ultrachat_319337",
+      "reference": [
+        "uses(user, spotify).",
+        "interested_in(user, podcasts).",
+        "interested_in(user, sports_podcasts).",
+        "interested_in(user, pop_culture_podcasts)."
+      ],
+      "model": [
+        "uses(user, spotify).",
+        "interested_in(user, sports_and_pop_culture_podcasts).",
+        "interested_in(user, new_podcasts).",
+        "interested_in(user, sports_and_pop_culture_shows).",
+        "interested_in(user, new_shows).",
+        "interested_in(user, new_content).",
+        "interested_in(user, sports_and_pop_culture_content).",
+        "interested_in(user, pop_culture_content)."
+      ],
+      "referenceFacts": 4,
+      "modelFacts": 8,
+      "matchedReference": 1,
+      "matchedModel": 1,
+      "recall": 0.25,
+      "precision": 0.125
+    },
+    {
+      "id": "a35959ba_2",
+      "reference": [
+        "planning_trip(user, disney_world).",
+        "traveling_with(user, family).",
+        "visited(user, orlando).",
+        "visited(user, disney_world).",
+        "prior_visit_month(user, disney_world, february).",
+        "enjoyed_visit(user, disney_world).",
+        "has_younger_brother(user, younger_brother).",
+        "sensitive_to(younger_brother, crowds_and_long_waits).",
+        "considering_reservation(user, breakfast_at_be_our_guest_restaurant).",
+        "considering_table_request(user, rose_gallery)."
+      ],
+      "model": [
+        "trip_destination(user, disney_world).",
+        "trip_companion(user, family).",
+        "visited_before(user, orlando).",
+        "visited_in_month(user, orlando, february).",
+        "enjoyed_trip(user, disney_world).",
+        "has_younger_brother(user, younger_brother).",
+        "younger_brother_sensitive_to(younger_brother, crowds).",
+        "younger_brother_sensitive_to(younger_brother, long_waits).",
+        "considering_reservation(user, be_our_guest_restaurant).",
+        "considering_table_request(user, rose_gallery)."
+      ],
+      "referenceFacts": 10,
+      "modelFacts": 10,
+      "matchedReference": 9,
+      "matchedModel": 9,
+      "recall": 0.9,
+      "precision": 0.9
+    },
+    {
+      "id": "83addb61_4",
+      "reference": [
+        "used_leftovers_for_lunch(user, monday).",
+        "used_leftovers_for_lunch(user, tuesday).",
+        "leftovers_source(leftovers, pasta_with_marinara_sauce_and_vegetables).",
+        "planned_lunch(user, quinoa_and_veggie_bowl).",
+        "lunch_day(quinoa_and_veggie_bowl, thursday).",
+        "planned_side_dish(quinoa_and_veggie_bowl, lentil_soup).",
+        "freeze_remaining(user, lentil_soup).",
+        "meal_prep(user, hard_boiled_eggs).",
+        "add_to_meal(hard_boiled_eggs, quinoa_and_veggie_bowl)."
+      ],
+      "model": [
+        "plans_to_have_as_side_dish(user, lentil_soup).",
+        "plans_to_freeze(user, lentil_soup).",
+        "plans_to_use_in_meal(user, hard_boiled_eggs)."
+      ],
+      "referenceFacts": 9,
+      "modelFacts": 3,
+      "matchedReference": 4,
+      "matchedModel": 3,
+      "recall": 0.4444444444444444,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_7QD86cC_20",
+      "reference": [
+        "requested_era(ai_robot, '2050s')."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_536416",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "6d11b87d_2",
+      "reference": [
+        "meeting_time(running_group, '7 am')."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_1oT9jLk_9",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "b34a52aa_3",
+      "reference": [
+        "wake_time(user, '8:30 am').",
+        "wants_earlier_wake_time(user, weekends).",
+        "morning_habit(user, drink_full_glass_of_water).",
+        "morning_habit(user, take_vitamins).",
+        "gym_routine(user, weekends).",
+        "planned_gym_time(user, '9:30 am').",
+        "target_gym_time(user, '9:00 am').",
+        "goal(user, cook_more_at_home).",
+        "goal(user, eat_healthier).",
+        "plans_to_try(user, overnight_oats).",
+        "plans_to_try(user, muffin_tin_frittatas).",
+        "plans_to_make(user, trail_mix_with_nuts_and_dried_fruit)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_0OOcdq8_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "1de8082c",
+      "reference": [
+        "listens_to(user, indie_rock).",
+        "listens_to(user, alternative_music).",
+        "likes(user, 'Arctic Monkeys').",
+        "likes(user, 'The Black Keys').",
+        "likes(user, 'Foo Fighters').",
+        "listens_to(user, 'All Songs Considered').",
+        "owns(user, 'OK Computer').",
+        "interested_in(user, vinyl_collecting).",
+        "interested_in(user, guitar_techniques).",
+        "interested_in(user, songwriting)."
+      ],
+      "model": [],
+      "referenceFacts": 10,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "84fb50bb_3",
+      "reference": [
+        "likes(user, themes_of_hope_and_redemption).",
+        "interested_in(user, film_analysis).",
+        "interested_in(user, behind_the_scenes_stories).",
+        "interested_in(user, filmmaking_craft).",
+        "plans_to_start(user, movie_journal).",
+        "prefers_format(user, open_ended_movie_journal).",
+        "wants_to_record(user, thoughts_and_opinions_about_films_watched).",
+        "wants_to_reflect_on(user, viewing_experiences).",
+        "wants_to_discover(user, viewing_patterns).",
+        "interested_in(user, classic_films).",
+        "interested_in(user, hidden_film_gems)."
+      ],
+      "model": [
+        "interested_in(user, film_analysis).",
+        "interested_in(user, behind_the_scenes_stories).",
+        "interested_in(user, filmmaking_craft).",
+        "interested_in(user, film_journaling).",
+        "plans_to_start(user, movie_journal).",
+        "journal_style(user, open_ended).",
+        "journal_purpose(user, reflect_on_viewing_experiences).",
+        "journal_goal(user, discover_new_favorite_films).",
+        "journal_goal(user, discover_new_favorite_directors).",
+        "uses_for_discovery(user, streaming_services).",
+        "uses_for_discovery(user, word_of_mouth)."
+      ],
+      "referenceFacts": 11,
+      "modelFacts": 11,
+      "matchedReference": 4,
+      "matchedModel": 4,
+      "recall": 0.36363636363636365,
+      "precision": 0.36363636363636365
+    },
+    {
+      "id": "15232887_1",
+      "reference": [
+        "workout_days_per_week(user, 5).",
+        "workout_availability(user, morning_and_evening).",
+        "preferred_activity_time(user, running, evening).",
+        "preferred_activity_time(user, cycling, evening).",
+        "tennis_lessons_per_week(user, 1).",
+        "tennis_lesson_time(user, saturday_morning).",
+        "minimum_running_sessions_per_week(user, 3).",
+        "minimum_running_duration_minutes(user, 30).",
+        "cycling_sessions_per_week(user, 1).",
+        "cycling_duration_minutes(user, 45).",
+        "strength_training_time(user, friday_evening).",
+        "swimming_session_time(user, sunday_morning)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "debc34d7_1",
+      "reference": [
+        "likes_genre(user, '80s synth-pop').",
+        "listens_to_playlist(user, 'Retro Electro').",
+        "favorite_playlist(user, 'Retro Electro').",
+        "playlist_use_context('Retro Electro', morning_commute).",
+        "likes_artist(user, 'Depeche Mode').",
+        "likes_artist(user, 'The Human League').",
+        "interested_in_artist(user, thundercat).",
+        "interested_in_artist(user, 'Kamasi Washington').",
+        "favorite_song(user, 'Take On Me').",
+        "interested_in_music_style(user, jazz_fusion).",
+        "interested_in_music_style(user, indie_rock).",
+        "interested_in_music_style(user, synth_heavy_electronic_music)."
+      ],
+      "model": [
+        "likes(user, '80s synth-pop').",
+        "listens_to(user, retro_electro).",
+        "uses_playlist(user, 'Retro Electro').",
+        "favorite_song(user, 'Take On Me').",
+        "attended_concert(user, jazz_show).",
+        "attended_concert(user, rock_concert).",
+        "interested_in(user, jazz_fusion).",
+        "interested_in(user, indie_rock).",
+        "interested_in(user, synth_heavy_electronic_music).",
+        "interested_in(user, live_music).",
+        "interested_in(user, music_festivals)."
+      ],
+      "referenceFacts": 12,
+      "modelFacts": 11,
+      "matchedReference": 8,
+      "matchedModel": 7,
+      "recall": 0.6666666666666666,
+      "precision": 0.6363636363636364
+    },
+    {
+      "id": "c285b705_1",
+      "reference": [
+        "thesis_proposal_submitted_date(user, 'February 15th').",
+        "tool_selected(user, mendeley).",
+        "tool_selected(user, evernote).",
+        "literature_review_location(literature_review, subfolder_of_existing_research_folder).",
+        "research_methodology_alignment_commitment(user, research_questions_and_objectives).",
+        "pilot_study_conducted(user, pilot_study).",
+        "pilot_study_start_date(pilot_study, 'March 10th').",
+        "pilot_study_end_date(pilot_study, 'March 17th').",
+        "pilot_study_purpose(pilot_study, refine_survey_questions).",
+        "pilot_study_purpose(pilot_study, identify_study_design_issues).",
+        "main_study_basis(user, pilot_study)."
+      ],
+      "model": [],
+      "referenceFacts": 11,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_469996",
+      "reference": [
+        "likes(user, 'used Classical art as a basis for their work').",
+        "interested_in(user, one_art_movement_can_influence_so_many_other_forms_of_expression)."
+      ],
+      "model": [
+        "likes(user, classical_art).",
+        "interested_in(user, neoclassical_movement).",
+        "interested_in(user, baroque_and_rococo_periods).",
+        "interested_in(user, neoclassical_art_influence)."
+      ],
+      "referenceFacts": 2,
+      "modelFacts": 4,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_CcQ9JCK_7",
+      "reference": [
+        "occupation(user, physician)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "edf6c94c_3",
+      "reference": [
+        "planning(user, beach_trip).",
+        "trip_month(beach_trip, june).",
+        "planning(user, summer_outfit).",
+        "wore_shorts_to_work_on(user, may_15).",
+        "considering_bringing(user, portable_speaker).",
+        "considering_bringing(user, board_games).",
+        "considering_bringing(user, frisbee).",
+        "considering_bringing(user, beach_volleyball).",
+        "considering_bringing(user, cooler).",
+        "considering_bringing(user, beach_reads)."
+      ],
+      "model": [
+        "beach_trip_month(user, june).",
+        "wore_shorts_to_work(user, may_15).",
+        "plans_to_bring(user, portable_speaker).",
+        "plans_to_bring(user, board_games).",
+        "plans_to_bring(user, frisbee).",
+        "plans_to_bring(user, beach_volleyball).",
+        "plans_to_bring(user, cooler).",
+        "plans_to_bring(user, drinks).",
+        "plans_to_bring(user, snacks).",
+        "plans_to_bring(user, beach_reads)."
+      ],
+      "referenceFacts": 10,
+      "modelFacts": 10,
+      "matchedReference": 8,
+      "matchedModel": 8,
+      "recall": 0.8,
+      "precision": 0.8
+    },
+    {
+      "id": "d8cc8b5c_5",
+      "reference": [
+        "planning(user, surprise_party).",
+        "birthday_party_for(surprise_party, grandma).",
+        "loves(grandma, gardening).",
+        "loves(grandma, cooking).",
+        "loves(grandma, herbal_tea).",
+        "call_frequency(user, grandma, every_other_day).",
+        "party_location(surprise_party, backyard).",
+        "party_theme(surprise_party, garden).",
+        "customized_for(customized_tea_blend, grandma).",
+        "include_in_gift(user, soothing_message).",
+        "add_to_gift(user, stress_ball).",
+        "invite_to_video_call(user, grandma)."
+      ],
+      "model": [
+        "plans_surprise_party(user, grandma).",
+        "party_theme(surprise_party, garden).",
+        "party_location(surprise_party, backyard).",
+        "loves(grandma, gardening).",
+        "loves(grandma, cooking).",
+        "loves(grandma, herbal_tea).",
+        "calls(user, grandma, every_other_day).",
+        "plans_customized_tea_blend(user, grandma).",
+        "plans_photo_album(user, grandma).",
+        "plans_video_call(user, grandma)."
+      ],
+      "referenceFacts": 12,
+      "modelFacts": 10,
+      "matchedReference": 10,
+      "matchedModel": 10,
+      "recall": 0.8333333333333334,
+      "precision": 1
+    },
+    {
+      "id": "3197d998_7",
+      "reference": [
+        "watch_basketball_games(user, friends).",
+        "league_stage(basketball_team, semifinals).",
+        "play_date(basketball_team, '14th of May').",
+        "seating_arrangement(user, comfortable).",
+        "assign_seats(user, game_day).",
+        "provide_snacks_and_drinks(user, game_day).",
+        "create_schedule(user, game_day).",
+        "assign_tasks(user, friends)."
+      ],
+      "model": [
+        "team_semifinal(basketball_team, semifinals).",
+        "game_date(basketball_game, '14th of May').",
+        "plans_to_serve(user, protein_bars).",
+        "plans_to_serve(user, energy_drinks).",
+        "plans_to_set_up(user, photo_booth).",
+        "plans_to_create(user, game_day_schedule).",
+        "plans_to_assign_tasks(user, friends).",
+        "plans_to_set_up(user, comfortable_seating).",
+        "plans_to_assign_seats(user, friends).",
+        "plans_to_provide(user, snacks_and_drinks)."
+      ],
+      "referenceFacts": 8,
+      "modelFacts": 10,
+      "matchedReference": 4,
+      "matchedModel": 4,
+      "recall": 0.5,
+      "precision": 0.4
+    },
+    {
+      "id": "ultrachat_563664",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_I2cfkPp_63",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_564750",
+      "reference": [
+        "plans_to_try(user, moroccan_tagine).",
+        "plans_to_try(user, greek_moussaka).",
+        "plans_to_try(user, baklava).",
+        "plans_to_try(user, malabi)."
+      ],
+      "model": [],
+      "referenceFacts": 4,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ccb9811f",
+      "reference": [
+        "natural_light(living_room, plenty).",
+        "layout(living_room, floating).",
+        "sofa_type(living_room, sectional).",
+        "coffee_table_location(living_room, center).",
+        "plant_display_location(living_room, near_window).",
+        "plant_focal_point(living_room, statement_plant_or_large_planter)."
+      ],
+      "model": [
+        "plant_location(plants, living_room).",
+        "plant_light_condition(plants, plenty_natural_light).",
+        "plant_maintenance_preference(plants, low_maintenance).",
+        "plant_toxicity_concern(plants, pets).",
+        "furniture_layout_preference(living_room, floating_layout).",
+        "furniture_item(living_room, sectional_sofa).",
+        "furniture_item(living_room, coffee_table).",
+        "furniture_placement(coffee_table, center_of_room).",
+        "plant_display_preference(plants, near_window).",
+        "plant_display_preference(plants, plant_stand)."
+      ],
+      "referenceFacts": 6,
+      "modelFacts": 10,
+      "matchedReference": 6,
+      "matchedModel": 5,
+      "recall": 1,
+      "precision": 0.5
+    },
+    {
+      "id": "307ada00",
+      "reference": [
+        "hashtag_performs_well(user, '#fitnessmotivation').",
+        "branded_hashtag(user, '#mindfulmornings').",
+        "plans_to_create(user, yoga_routine_videos).",
+        "content_performs_well(yoga_routine_videos, instagram_stories).",
+        "wants_to_encourage_sharing(user, 'their own mindful morning routines using #mindfulmornings').",
+        "wants_to_learn_about(user, igtv).",
+        "wants_to_learn_about(user, instagram_live).",
+        "wants_to_learn_about(user, reels).",
+        "wants_to_learn_about(user, stories)."
+      ],
+      "model": [],
+      "referenceFacts": 9,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "b9c4fa1b",
+      "reference": [
+        "interested_in(user, authentic_indian_recipes).",
+        "interested_in(user, gujarati_cuisine).",
+        "interested_in(user, ringan_no_olo).",
+        "interested_in(user, gujarati_music).",
+        "interested_in(user, gujarati_dance).",
+        "interested_in(user, garba).",
+        "interested_in(user, raas).",
+        "interested_in(user, dandiya_raas).",
+        "interested_in(user, navratri).",
+        "wants_to_learn_about(user, cultural_significance_of_garba_and_raas).",
+        "wants_to_learn_about(user, cultural_significance_of_dandiya_raas).",
+        "wants_to_learn_about(user, nine_forms_of_goddess_durga)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "76ecc9b9_1",
+      "reference": [
+        "likes_book(user, the_nightingale).",
+        "posted_review_in(user, the_nightingale, book_lovers_facebook_group).",
+        "review_likes(the_nightingale_review, 12).",
+        "interested_in(user, historical_fiction).",
+        "interested_in(user, history).",
+        "participates_in(user, online_book_groups).",
+        "participates_in(user, online_history_groups).",
+        "interested_in(user, all_the_light_we_cannot_see).",
+        "interested_in(user, the_alice_network).",
+        "considering_starting(user, slack_university_alumni_group).",
+        "group_audience(slack_university_alumni_group, university_alumni)."
+      ],
+      "model": [
+        "interested_in(user, historical_fiction).",
+        "interested_in(user, history).",
+        "read_and_loved(user, 'The Nightingale').",
+        "posted_review_in(user, 'The Nightingale', 'Book Lovers').",
+        "review_likes(user, 'The Nightingale', 12).",
+        "interested_in(user, 'All the Light We Cannot See').",
+        "interested_in(user, 'The Alice Network').",
+        "interested_in(user, 'Goodreads historical fiction groups').",
+        "interested_in(user, 'Facebook historical fiction groups').",
+        "considering_starting(user, university_alumni_slack_group)."
+      ],
+      "referenceFacts": 11,
+      "modelFacts": 10,
+      "matchedReference": 7,
+      "matchedModel": 7,
+      "recall": 0.6363636363636364,
+      "precision": 0.7
+    },
+    {
+      "id": "sharegpt_WetAHhj_0",
+      "reference": [
+        "response_language(user, english).",
+        "uses_prompt_structure(user, 'Subject, Action, Context, Environment, Lightning, Artist, Style, Medium, Type, Color Sheme, Computer graphics, Quality, etc.').",
+        "requires_positive_prompt(user, 'short but full description of the scene, followed by short modifiers').",
+        "requires_negative_prompt(user, words_divided_by_only_commas_not_period).",
+        "requires_prompts_in_language(user, english).",
+        "requires_artist_matching_art_style(user, use_an_artist_matching_to_the_art_style).",
+        "avoids_artist_for_realistic_style(user, dont_write_any_artist_if_it_is_realistic_style_or_some_of_that)."
+      ],
+      "model": [
+        "response_language(user, english)."
+      ],
+      "referenceFacts": 7,
+      "modelFacts": 1,
+      "matchedReference": 2,
+      "matchedModel": 1,
+      "recall": 0.2857142857142857,
+      "precision": 1
+    },
+    {
+      "id": "725f95e1",
+      "reference": [
+        "planning_vacation(user, europe).",
+        "vacation_season(user, summer).",
+        "considering_purchase(user, work_laptop).",
+        "job_title(user, senior_software_engineer).",
+        "learning_goal(user, cloud_computing).",
+        "learning_goal(user, artificial_intelligence).",
+        "company_growth_area(company, cloud_computing).",
+        "company_growth_area(company, artificial_intelligence).",
+        "career_goal(user, technical_lead).",
+        "career_goal(user, architect).",
+        "leadership_development_interest(user, leadership).",
+        "mentorship_interest(user, junior_engineers)."
+      ],
+      "model": [
+        "vacation_destination(user, europe).",
+        "vacation_season(user, summer).",
+        "occupation(user, senior_software_engineer).",
+        "company_growth_area(user, cloud_computing).",
+        "company_growth_area(user, artificial_intelligence).",
+        "career_goal(user, technical_lead).",
+        "career_goal(user, architect).",
+        "promotion_level(user, senior_software_engineer).",
+        "career_growth_focus(user, leadership).",
+        "career_growth_focus(user, mentorship)."
+      ],
+      "referenceFacts": 12,
+      "modelFacts": 10,
+      "matchedReference": 10,
+      "matchedModel": 9,
+      "recall": 0.8333333333333334,
+      "precision": 0.9
+    },
+    {
+      "id": "ultrachat_49450",
+      "reference": [
+        "supports(user, sustainability).",
+        "supports(user, inclusivity).",
+        "hopes(user, other_industries_follow_their_lead).",
+        "hopes(user, more_companies_follow_suit).",
+        "prioritizes(user, sustainability).",
+        "prioritizes(user, inclusivity)."
+      ],
+      "model": [
+        "supports(user, sustainability).",
+        "supports(user, inclusivity).",
+        "values(user, positive_example).",
+        "hopes(user, other_industries_follow_their_lead).",
+        "hopes(user, companies_prioritize_sustainability_and_inclusivity)."
+      ],
+      "referenceFacts": 6,
+      "modelFacts": 5,
+      "matchedReference": 5,
+      "matchedModel": 3,
+      "recall": 0.8333333333333334,
+      "precision": 0.6
+    },
+    {
+      "id": "ultrachat_345394",
+      "reference": [
+        "believes(user, benefits_of_blockchain_and_iot_outweigh_risks).",
+        "interested_in(user, blockchain_and_iot)."
+      ],
+      "model": [],
+      "referenceFacts": 2,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "0eb28b73_1",
+      "reference": [
+        "accompanied_by(user, rachel).",
+        "visited_place(user, new_cafe).",
+        "location(new_cafe, downtown).",
+        "visited_place(user, new_bakery).",
+        "visit_day(new_cafe, first_sunday).",
+        "visit_day(new_bakery, third_sunday)."
+      ],
+      "model": [
+        "visited_with(user, rachel).",
+        "visited_on(user, bakery, third_sunday).",
+        "interested_in(user, bakery).",
+        "wants_to_return_to(user, bakery).",
+        "wants_to_ask(user, rachel, bakery_name)."
+      ],
+      "referenceFacts": 6,
+      "modelFacts": 5,
+      "matchedReference": 2,
+      "matchedModel": 3,
+      "recall": 0.3333333333333333,
+      "precision": 0.6
+    },
+    {
+      "id": "aeab3296",
+      "reference": [
+        "reminder_item(user, black_boots).",
+        "reminder_task(user, buckle).",
+        "reminder_timing(user, a_week).",
+        "reminder_preference(user, digital_reminder_on_my_phone).",
+        "tracking_method(user, 'Shoe Wear Log').",
+        "wear_count(black_boots, 5).",
+        "purchase_date(black_boots, 'February 10th')."
+      ],
+      "model": [
+        "reminder_preference(user, digital_reminder_on_phone).",
+        "reminder_timeframe(user, a_week).",
+        "shoe_wear_tracking_method(user, shoe_wear_log).",
+        "shoe_wear_data_entry(user, black_boots).",
+        "shoe_wear_count(black_boots, 5).",
+        "shoe_purchase_date(black_boots, february_10)."
+      ],
+      "referenceFacts": 7,
+      "modelFacts": 6,
+      "matchedReference": 5,
+      "matchedModel": 5,
+      "recall": 0.7142857142857143,
+      "precision": 0.8333333333333334
+    },
+    {
+      "id": "sharegpt_NYFuCmY_0",
+      "reference": [
+        "ros_package_contains(user, 'rospy/src/rospy/topics.py').",
+        "user_wants_to_create(user, new_ros_package).",
+        "new_ros_package_inherits_from(new_ros_package, rospy).",
+        "new_ros_package_overrides(new_ros_package, '_PublisherImpl.publish').",
+        "new_ros_package_overrides(new_ros_package, '_SubscriberImpl._invoke_callback')."
+      ],
+      "model": [],
+      "referenceFacts": 5,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "2b1f4207",
+      "reference": [
+        "pet_type(luna, cat).",
+        "cat_food_type(luna, grain_free).",
+        "cat_food_source(luna, petco).",
+        "pet_type(max, dog)."
+      ],
+      "model": [
+        "cat_food_brand(luna, petco).",
+        "cat_food_type(luna, grain_free).",
+        "litter_brand(luna, worlds_best_cat_litter).",
+        "litter_preference(luna, eco_friendly).",
+        "dog_name(max, max).",
+        "dog_type(max, dog).",
+        "chew_toy_brand(max, amazon).",
+        "chew_toy_material(max, durable).",
+        "chew_toy_reorder_plan(user, durable_chew_toys)."
+      ],
+      "referenceFacts": 4,
+      "modelFacts": 9,
+      "matchedReference": 4,
+      "matchedModel": 8,
+      "recall": 1,
+      "precision": 0.8888888888888888
+    },
+    {
+      "id": "ultrachat_13565",
+      "reference": [
+        "plans_to_read(user, understanding_exposure).",
+        "plans_to_read(user, the_photographers_eye).",
+        "interested_in(user, the_candid_frame).",
+        "interested_in(user, peter_mckinnon).",
+        "interested_in(user, mango_street).",
+        "wants_to_practice(user, portrait_photography).",
+        "wants_to_photograph(user, people)."
+      ],
+      "model": [
+        "plans_to_read(user, understanding_exposure).",
+        "plans_to_read(user, the_photographers_eye).",
+        "interested_in(user, the_candid_frame).",
+        "interested_in(user, peter_mckinnon).",
+        "interested_in(user, mango_street).",
+        "interested_in(user, portrait_photography).",
+        "wants_to_photograph(user, people)."
+      ],
+      "referenceFacts": 7,
+      "modelFacts": 7,
+      "matchedReference": 7,
+      "matchedModel": 7,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "9fa547ac_1",
+      "reference": [
+        "seating_plan(summer_bbq, picnic_tables_and_benches_in_the_backyard).",
+        "seating_plan(summer_bbq, comfortable_outdoor_couches_and_chairs_in_a_shaded_area)."
+      ],
+      "model": [],
+      "referenceFacts": 2,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "075f0e65_1",
+      "reference": [
+        "mother(user, mom).",
+        "considering_gift(user, loafers).",
+        "gift_for(loafers, mom).",
+        "shoe_color(loafers, black).",
+        "prefers_neutral_color(user, loafers)."
+      ],
+      "model": [
+        "ordered_online(user, sneakers).",
+        "considering_purchase(user, shoe_rack).",
+        "shoe_rack_preference(user, individual_slots).",
+        "considering_purchase(user, loafers).",
+        "gift_recipient(user, mom).",
+        "gift_occasion(user, birthday).",
+        "gift_color(user, black).",
+        "color_preference(user, neutral).",
+        "finish_preference(user, matte)."
+      ],
+      "referenceFacts": 5,
+      "modelFacts": 9,
+      "matchedReference": 5,
+      "matchedModel": 3,
+      "recall": 1,
+      "precision": 0.3333333333333333
+    },
+    {
+      "id": "ultrachat_496419",
+      "reference": [
+        "believes(user, using_a_woman_as_a_mere_symbol_was_ridiculous).",
+        "believes(user, using_a_woman_as_a_mere_symbol_was_outrageous).",
+        "believes(user, it_shows_how_little_they_actually_cared_about_giving_women_equal_rights).",
+        "believes(user, 'it''s not like they actually did anything to improve women''s lives during that time')."
+      ],
+      "model": [],
+      "referenceFacts": 4,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "21f8f481_3",
+      "reference": [
+        "friend(user, david).",
+        "colleague(user, david).",
+        "attended_event(user, 'David birthday party').",
+        "movie_night_movie(user, 'Knives Out').",
+        "planned_decluttering_start(user, living_room).",
+        "traveled_with(user, rachel).",
+        "traveled_with(user, mike).",
+        "photo_organization_method(user, event_albums).",
+        "photo_organization_method(user, tags_and_keywords).",
+        "delete_photo_types(user, duplicates_and_blurry_shots).",
+        "photo_sharing_service(user, google_photos)."
+      ],
+      "model": [],
+      "referenceFacts": 11,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ad72ce15",
+      "reference": [
+        "task_prioritization_method(user, eisenhower_matrix)."
+      ],
+      "model": [
+        "task_prioritization_method(user, eisenhower_matrix).",
+        "task_prioritization_method(user, deadlines).",
+        "task_prioritization_method(user, importance)."
+      ],
+      "referenceFacts": 1,
+      "modelFacts": 3,
+      "matchedReference": 1,
+      "matchedModel": 1,
+      "recall": 1,
+      "precision": 0.3333333333333333
+    },
+    {
+      "id": "ultrachat_69022",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "c38fb85b",
+      "reference": [
+        "seeks_recommendations_similar_to(user, schitts_creek).",
+        "seeks_recommendations_similar_to(user, fleabag).",
+        "interested_in(user, arrested_development).",
+        "interested_in(user, arrested_development_running_gags).",
+        "interested_in(user, russian_doll).",
+        "interested_in(user, time_loop_themes).",
+        "interested_in(user, existential_crisis_themes)."
+      ],
+      "model": [
+        "interested_in(user, 'Russian Doll').",
+        "interested_in(user, time_loop_shows).",
+        "interested_in(user, existential_crisis_shows).",
+        "interested_in(user, 'Schitt''s Creek').",
+        "interested_in(user, fleabag).",
+        "interested_in(user, 'Arrested Development').",
+        "interested_in(user, 'The Office (US)')."
+      ],
+      "referenceFacts": 7,
+      "modelFacts": 7,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 0.42857142857142855,
+      "precision": 0.42857142857142855
+    },
+    {
+      "id": "ultrachat_294894",
+      "reference": [
+        "dislikes(user, strong_alcohol).",
+        "plans_to_try(user, ayran).",
+        "interested_in(user, mullixhiu)."
+      ],
+      "model": [
+        "dislikes(user, strong_alcohol).",
+        "plans_to_try(user, ayran).",
+        "interested_in(user, mullixhiu).",
+        "interested_in(user, traditional_albanian_dishes).",
+        "interested_in(user, tirana_restaurants).",
+        "interested_in(user, restaurant_taste_and_budget).",
+        "interested_in(user, restaurant_menu).",
+        "interested_in(user, tave_kosi).",
+        "interested_in(user, ayran).",
+        "interested_in(user, tirana_cuisine).",
+        "interested_in(user, albanian_cuisine).",
+        "interested_in(user, european_cuisine)."
+      ],
+      "referenceFacts": 3,
+      "modelFacts": 12,
+      "matchedReference": 3,
+      "matchedModel": 4,
+      "recall": 1,
+      "precision": 0.3333333333333333
+    },
+    {
+      "id": "ultrachat_280434",
+      "reference": [
+        "interested_in(user, 'a mainstream pop song that prominently features the Chamberlin')."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_573581",
+      "reference": [
+        "plans_to_hike(user, gunung_putri).",
+        "goal_of_hike(user, 'best views of Bandung')."
+      ],
+      "model": [],
+      "referenceFacts": 2,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_59277",
+      "reference": [
+        "believes(user, collaboration_is_key_to_reducing_plastic_waste).",
+        "likes(user, sharing_success_stories_to_inspire_action).",
+        "likes(user, small_businesses_going_paperless)."
+      ],
+      "model": [
+        "values(user, collaboration).",
+        "likes(user, sharing_success_stories).",
+        "supports(user, small_business_paperless)."
+      ],
+      "referenceFacts": 3,
+      "modelFacts": 3,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "a51d15cd_1",
+      "reference": [
+        "move_to(user, melbourne).",
+        "accepted_into(user, 'University of Melbourne').",
+        "degree_level(user, masters).",
+        "study_field(user, 'International Relations').",
+        "enrollment_confirmed(user).",
+        "student_visa_applied(user).",
+        "bank_account_opening_plan(user, 'wait until I arrive in Melbourne').",
+        "bank_account_opening_preference(user, get_assistance_from_a_representative_in_person).",
+        "debit_or_credit_card_application_plan(user, 'wait until I arrive in Melbourne')."
+      ],
+      "model": [
+        "move_destination(user, melbourne).",
+        "degree_program(user, masters).",
+        "degree_field(user, international_relations).",
+        "university(user, university_of_melbourne).",
+        "enrollment_confirmed(user, university_of_melbourne).",
+        "student_visa_applied(user, australia).",
+        "bank_account_opening_delay(user, melbourne).",
+        "bank_account_opening_preference(user, in_person)."
+      ],
+      "referenceFacts": 9,
+      "modelFacts": 8,
+      "matchedReference": 4,
+      "matchedModel": 6,
+      "recall": 0.4444444444444444,
+      "precision": 0.75
+    },
+    {
+      "id": "sharegpt_9fgo8nM_8",
+      "reference": [
+        "h1b_status(user, 'H1B Approved').",
+        "degree(user, 'Master of Science in Industrial Engineering and Management').",
+        "degree_institution(user, 'Oklahoma State University').",
+        "degree_gpa(user, 3.7).",
+        "degree(user, 'Bachelor of Science in Mechanical Engineering').",
+        "degree_institution(user, 'University of Pune').",
+        "skill(user, 'MySQL').",
+        "skill(user, 'SQL').",
+        "skill(user, tableau).",
+        "skill(user, 'Advanced Excel').",
+        "employer(user, 'Salad and Go').",
+        "job_title(user, 'Supply Chain Analyst')."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_15124",
+      "reference": [
+        "plans_to_try(user, trello)."
+      ],
+      "model": [
+        "plans_to_use(user, trello).",
+        "plans_to_try(user, task_management_tools)."
+      ],
+      "referenceFacts": 1,
+      "modelFacts": 2,
+      "matchedReference": 1,
+      "matchedModel": 1,
+      "recall": 1,
+      "precision": 0.5
+    },
+    {
+      "id": "28c3216b_1",
+      "reference": [
+        "stayed_at(user, 'Hyatt Regency downtown').",
+        "stayed_in_month(user, 'Hyatt Regency downtown', april).",
+        "hotel_location('Hyatt Regency downtown', downtown).",
+        "convenient_for('Hyatt Regency downtown', convention_center).",
+        "great_stay_at(user, 'Hyatt Regency downtown').",
+        "bed_was_too_firm_for(user, 'Hyatt Regency downtown').",
+        "attended_conferences_at_hotels(user, conferences).",
+        "values(user, good_space_for_a_large_group).",
+        "visited(user, chicago).",
+        "visited_times(user, chicago, few).",
+        "never_explored(user, river_north)."
+      ],
+      "model": [],
+      "referenceFacts": 11,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_109577",
+      "reference": [
+        "interest(user, 'Byzantine jewelry')."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_297466",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "4b5568a5",
+      "reference": [
+        "considering_purchase(user, sustainable_jeans).",
+        "interested_in(user, everlane_denim).",
+        "owns(user, zara_high_waisted_jeans).",
+        "returned(user, black_turtleneck_sweater).",
+        "return_date(black_turtleneck_sweater, january_15).",
+        "interested_in(user, way_high_jean).",
+        "wash(way_high_jean, mid_wash).",
+        "interested_in(user, everlane_tops).",
+        "interested_in(user, everlane_shoes).",
+        "interested_in(user, recycled_cashmere_sweaters).",
+        "interested_in(user, recycled_cashmere_crew).",
+        "fit_concern(user, cashmere_sweaters)."
+      ],
+      "model": [
+        "interested_in(user, sustainable_jeans).",
+        "interested_in(user, everlane_denim).",
+        "owns(user, high_waisted_jeans).",
+        "owns(user, black_turtleneck_sweater).",
+        "returned(user, black_turtleneck_sweater).",
+        "returned_on(black_turtleneck_sweater, january_15).",
+        "likes(user, way_high_jean).",
+        "prefers_wash(user, mid_wash).",
+        "interested_in(user, everlane_tops).",
+        "interested_in(user, everlane_shoes).",
+        "interested_in(user, recycled_cashmere_sweaters).",
+        "had_fit_issue(user, cashmere_sweaters)."
+      ],
+      "referenceFacts": 12,
+      "modelFacts": 12,
+      "matchedReference": 10,
+      "matchedModel": 11,
+      "recall": 0.8333333333333334,
+      "precision": 0.9166666666666666
+    },
+    {
+      "id": "ultrachat_105479",
+      "reference": [
+        "interested_in(user, mindfulness_practices).",
+        "struggles_with(user, making_mindfulness_practices_a_habit).",
+        "intends_to_try(user, mindfulness_practices)."
+      ],
+      "model": [
+        "struggles_with(user, making_mindfulness_practices_a_habit).",
+        "plans_to_try(user, mindfulness_practices).",
+        "interested_in(user, scientific_studies_on_mindfulness).",
+        "skeptical_about(user, mindfulness_practices).",
+        "hopes_for(user, positive_impact_on_emotional_well_being).",
+        "hopes_for(user, positive_impact_on_academic_success)."
+      ],
+      "referenceFacts": 3,
+      "modelFacts": 6,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 1,
+      "precision": 0.5
+    },
+    {
+      "id": "ultrachat_360830",
+      "reference": [
+        "interested_in(user, haute_route).",
+        "prefers_hiking_difficulty(user, challenging)."
+      ],
+      "model": [
+        "wants_challenge(user, hiking).",
+        "interested_in(user, haute_route)."
+      ],
+      "referenceFacts": 2,
+      "modelFacts": 2,
+      "matchedReference": 1,
+      "matchedModel": 1,
+      "recall": 0.5,
+      "precision": 0.5
+    },
+    {
+      "id": "9a297400_2",
+      "reference": [
+        "struggling_with(user, baptiste_burst_healing).",
+        "improving(user, widowmaker_aim).",
+        "will_work_on(user, reaction_time).",
+        "will_work_on(user, positioning_during_ultimates).",
+        "interested_in(user, 'Cyberpunk 2077').",
+        "preordered(user, 'Cyberpunk 2077').",
+        "plans_to_play_on_release_day(user, 'Cyberpunk 2077').",
+        "considering_upgrade(user, graphics_card).",
+        "wants_to_experiment_with(user, different_roles_and_playstyles).",
+        "interested_in(user, 'Street Kid').",
+        "interested_in(user, nomad)."
+      ],
+      "model": [
+        "interested_in(user, cyberpunk_2077).",
+        "pre_ordered(user, cyberpunk_2077).",
+        "plans_to_play(user, cyberpunk_2077).",
+        "plans_to_experiment_with(user, different_roles_and_playstyles).",
+        "plans_to_try_different_combat_approaches(user, combat_and_exploration).",
+        "plans_to_start_with(user, stealthy_approach).",
+        "plans_to_switch_to(user, aggressive_playstyle).",
+        "interested_in(user, cyberpunk_2077_lifepaths).",
+        "interested_in(user, cyberpunk_2077_augmentations_and_cyberware)."
+      ],
+      "referenceFacts": 11,
+      "modelFacts": 9,
+      "matchedReference": 4,
+      "matchedModel": 4,
+      "recall": 0.36363636363636365,
+      "precision": 0.4444444444444444
+    },
+    {
+      "id": "ultrachat_96537",
+      "reference": [
+        "dislikes(user, celebrity_endorsements).",
+        "purchase_factor(user, quality).",
+        "purchase_factor(user, affordability)."
+      ],
+      "model": [
+        "purchase_basis(user, quality).",
+        "purchase_basis(user, affordability).",
+        "dislikes(user, celebrity_endorsements).",
+        "prefers(user, quality_and_affordability)."
+      ],
+      "referenceFacts": 3,
+      "modelFacts": 4,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 1,
+      "precision": 0.75
+    },
+    {
+      "id": "33bc1102",
+      "reference": [
+        "will_try(user, trello).",
+        "interested_in(user, machine_learning).",
+        "interested_in(user, natural_language_processing).",
+        "has_masters_degree_from(user, stanford).",
+        "considering_contacting(user, stanford_professors).",
+        "seeking_research_collaboration(user, machine_learning).",
+        "seeking_research_collaboration(user, natural_language_processing).",
+        "considering_phd_in(user, computer_science)."
+      ],
+      "model": [],
+      "referenceFacts": 8,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_4aJsGCH_0",
+      "reference": [
+        "case_compensation(case, cost_of_rectifying_the_defects).",
+        "case_compensation(case, cost_of_alternate_accommodation)."
+      ],
+      "model": [],
+      "referenceFacts": 2,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ef8cc173_1",
+      "reference": [
+        "work_hours_per_week(user, 40).",
+        "interested_in(user, freelance_writing).",
+        "interested_in(user, freelance_editing).",
+        "considering(user, side_hustle).",
+        "side_hustle_goal(user, supplement_income).",
+        "interested_in(user, upwork).",
+        "considering_project(user, tech_industry_writing).",
+        "taking_course(user, 'AI for marketing professionals').",
+        "interested_in(user, artificial_intelligence).",
+        "interested_in(user, machine_learning).",
+        "interested_in(user, ai_marketing)."
+      ],
+      "model": [
+        "work_hours_per_week(user, 40).",
+        "interested_in(user, freelance_writing).",
+        "interested_in(user, freelance_editing).",
+        "interested_in(user, tech_industry).",
+        "interested_in(user, artificial_intelligence).",
+        "interested_in(user, machine_learning).",
+        "taking_course(user, ai_for_marketing_professionals).",
+        "wants_to_learn_more_about(user, ai_and_ml_in_marketing)."
+      ],
+      "referenceFacts": 11,
+      "modelFacts": 8,
+      "matchedReference": 6,
+      "matchedModel": 6,
+      "recall": 0.5454545454545454,
+      "precision": 0.75
+    },
+    {
+      "id": "ultrachat_520554",
+      "reference": [
+        "commitment(user, reduce_my_use_of_single_use_plastics).",
+        "commitment(user, look_into_those_organizations).",
+        "commitment(user, 'see if I can donate or volunteer').",
+        "commitment(user, keep_supporting_these_organizations).",
+        "desire(user, see_sea_turtles_in_their_natural_habitats)."
+      ],
+      "model": [
+        "plans_to_reduce(user, single_use_plastics).",
+        "plans_to_look_into(user, sea_turtle_conservation_organizations).",
+        "plans_to_donate_or_volunteer(user, sea_turtle_conservation_organizations).",
+        "supports(user, sea_turtle_conservation_organizations).",
+        "supports(user, sea_turtle_conservation)."
+      ],
+      "referenceFacts": 5,
+      "modelFacts": 5,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "a0c40934_1",
+      "reference": [
+        "likes(user, italian_food).",
+        "likes(user, creamy_pasta_dishes).",
+        "watches(user, cooking_shows).",
+        "interested_in(user, 'The Best Thing I Ever Ate').",
+        "experiments_with(user, recipes).",
+        "experiments_with(user, flavors_and_ingredients).",
+        "interested_in(user, creamy_mushroom_fettuccine).",
+        "seeks(user, rich_comforting_pasta_dishes)."
+      ],
+      "model": [],
+      "referenceFacts": 8,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_546214",
+      "reference": [
+        "interested_in(user, technology_and_innovation)."
+      ],
+      "model": [
+        "interested_in(user, technology).",
+        "interested_in(user, innovation)."
+      ],
+      "referenceFacts": 1,
+      "modelFacts": 2,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_SzQ9LQj_0",
+      "reference": [
+        "lock_shortcut(figma_mac, shift_command_l)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_Wi7Op1u_112",
+      "reference": [
+        "latest_information_available_in(earth_day_2023, community).",
+        "whatsapp_group_url(earth_day_community, 'https://bit.ly/Earth-Day-Community')."
+      ],
+      "model": [],
+      "referenceFacts": 2,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_2kXmuD9_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_oy3hj4w_21",
+      "reference": [
+        "excluded_band(user, slayer).",
+        "excluded_band(user, anthrax).",
+        "excluded_band(user, megadeth).",
+        "songs_per_band(user, 1)."
+      ],
+      "model": [],
+      "referenceFacts": 4,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_468296",
+      "reference": [
+        "listens_to(user, traditional_irish_music).",
+        "interested_in(user, contemporary_irish_music).",
+        "prefers(user, music_with_a_beat)."
+      ],
+      "model": [
+        "listens_to(user, traditional_irish_music).",
+        "interested_in(user, contemporary_irish_music).",
+        "interested_in(user, harp_in_irish_music).",
+        "interested_in(user, modern_irish_musicians).",
+        "interested_in(user, contemporary_irish_music_with_beat).",
+        "associated_with(user, bagpipes, ireland).",
+        "not_fan_of(user, traditional_music).",
+        "not_fan_of(user, irish_music)."
+      ],
+      "referenceFacts": 3,
+      "modelFacts": 8,
+      "matchedReference": 2,
+      "matchedModel": 2,
+      "recall": 0.6666666666666666,
+      "precision": 0.25
+    },
+    {
+      "id": "sharegpt_ant8oEb_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "22aca1d5",
+      "reference": [
+        "heritage_region(user, gujarat).",
+        "heritage_region(user, punjab).",
+        "interested_in(user, indian_heritage).",
+        "interested_in(user, gujarati_cuisine).",
+        "interested_in(user, punjabi_cuisine).",
+        "interested_in(user, gujarati_history_and_cultural_traditions).",
+        "interested_in(user, punjabi_history_and_cultural_traditions).",
+        "wants_to_wear(user, traditional_gujarati_clothing).",
+        "wants_to_wear(user, traditional_punjabi_clothing).",
+        "interested_in(user, indian_cultural_events_in_the_us).",
+        "planning_trip_to(user, india).",
+        "has_extended_family_in(user, gujarat)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "b3429d32_1",
+      "reference": [
+        "considering_content(user, videos)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_297517",
+      "reference": [
+        "wants_to_try(user, djiboutian_cuisine)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_458180",
+      "reference": [
+        "travel_intent(user, moffat).",
+        "interested_in(user, moffat_christmas_festival).",
+        "wants_to_experience(user, moffat_traditions)."
+      ],
+      "model": [
+        "plans_to_visit(user, moffat).",
+        "interested_in(user, moffat_christmas_festival).",
+        "wants_to_experience(user, moffat_traditions)."
+      ],
+      "referenceFacts": 3,
+      "modelFacts": 3,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_509524",
+      "reference": [
+        "concerned_about(user, reducing_consumption_and_production_could_have_a_negative_impact_on_the_economy).",
+        "frustrated_by(user, politicians_and_businesses_prioritize_short_term_gains_over_sustainability)."
+      ],
+      "model": [],
+      "referenceFacts": 2,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "943fdca0",
+      "reference": [
+        "considering_trip(user, beach_trip).",
+        "trip_timing(beach_trip, late_march_or_early_april).",
+        "runs_at_time(user, morning).",
+        "struggles_to_wake_early_for(user, morning_runs).",
+        "interested_in(user, effects_of_winter_lack_of_sunlight_on_mood_and_energy)."
+      ],
+      "model": [
+        "considering_trip(user, beach_trip).",
+        "trip_time(user, late_march_or_early_april).",
+        "struggles_with(user, waking_early).",
+        "struggles_with(user, morning_runs).",
+        "plans_to_keep_in_mind(user, winter_blues_tips)."
+      ],
+      "referenceFacts": 5,
+      "modelFacts": 5,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 0.6,
+      "precision": 0.6
+    },
+    {
+      "id": "663337ce_2",
+      "reference": [
+        "effective_hashtag_count(user, '5-7').",
+        "post_likes(user, 57).",
+        "post_comments(user, 12).",
+        "interested_in(user, foodie_hashtags).",
+        "interested_in(user, homemade_food_hashtags).",
+        "uses_spreadsheet_for_tracking(user, hashtag_performance).",
+        "plans_to_try(user, hashtagify).",
+        "plans_to_track_hashtag(user, '#pastalover').",
+        "plans_to_track_hashtag(user, '#homemadewithlove')."
+      ],
+      "model": [
+        "hashtag_count_preference(user, '5-7 relevant hashtags per post').",
+        "hashtag_performance_tracking_tool(user, spreadsheet).",
+        "hashtag_performance_tracking_tool(user, hashtagify).",
+        "interested_in_hashtag(user, homemadewithlove).",
+        "interested_in_hashtag(user, pastalover)."
+      ],
+      "referenceFacts": 9,
+      "modelFacts": 5,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 0.3333333333333333,
+      "precision": 0.6
+    },
+    {
+      "id": "sharegpt_ulWORQI_0",
+      "reference": [],
+      "model": [
+        "reading(user, romans_8)."
+      ],
+      "referenceFacts": 0,
+      "modelFacts": 1,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "332737a3_1",
+      "reference": [
+        "wake_time(user, '7_am').",
+        "wake_frequency(user, daily).",
+        "has_project_manager(user, project_manager).",
+        "has_nephew(user, nephew)."
+      ],
+      "model": [],
+      "referenceFacts": 4,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_8lprfdF_0",
+      "reference": [
+        "on_press_destination(home, 'Sector G-9/1, Street 49, Islamabad')."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "66c23110_2",
+      "reference": [
+        "skin_type(user, combination).",
+        "skin_concern(user, dehydration).",
+        "moisturizer_preference(user, lightweight).",
+        "moisturizer_preference(user, non_greasy).",
+        "spf_preference(user, moisturizer_with_spf).",
+        "plans_to_buy(user, la_roche_posay_toleriane_ultra_fluid_face_moisturizer_spf_50).",
+        "sephora_points_goal(user, 300).",
+        "wants_to_redeem(user, free_skincare_product)."
+      ],
+      "model": [
+        "skin_type(user, combination).",
+        "skin_concern(user, dehydration).",
+        "moisturizer_preference(user, lightweight).",
+        "moisturizer_preference(user, non_greasy).",
+        "moisturizer_preference(user, spf).",
+        "selected_product(user, 'La Roche-Posay Toleriane Ultra Fluid Face Moisturizer SPF 50').",
+        "sephora_points_goal(user, 300).",
+        "sephora_points_status(user, close_to_300).",
+        "sephora_free_product_status(user, close_to_redeeming)."
+      ],
+      "referenceFacts": 8,
+      "modelFacts": 9,
+      "matchedReference": 6,
+      "matchedModel": 6,
+      "recall": 0.75,
+      "precision": 0.6666666666666666
+    },
+    {
+      "id": "ultrachat_228033",
+      "reference": [
+        "opinion(user, 'I don’t think feedback is all that important').",
+        "preference(user, 'The organizers should just do what they think is best').",
+        "concern(user, feedback_can_be_time_consuming_to_collect_and_analyze)."
+      ],
+      "model": [],
+      "referenceFacts": 3,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_326653",
+      "reference": [
+        "values(user, listen_to_their_customers_and_address_their_changing_needs)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_463016",
+      "reference": [
+        "fan(user, dallas_cowboys).",
+        "supports(user, dallas_cowboys).",
+        "hopeful_about(user, dallas_cowboys_future).",
+        "interested_in(user, ceedee_lamb)."
+      ],
+      "model": [
+        "fan_of(user, dallas_cowboys).",
+        "hopes_for(user, dallas_cowboys).",
+        "interested_in(user, ceedee_lamb)."
+      ],
+      "referenceFacts": 4,
+      "modelFacts": 3,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 0.75,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_210554",
+      "reference": [
+        "played(user, 'Assassin''s Creed Valhalla').",
+        "loved(user, 'Assassin''s Creed Valhalla').",
+        "fascinated_by(user, 'Norse mythology').",
+        "looking_forward_to(user, upcoming_releases)."
+      ],
+      "model": [
+        "played(user, 'Assassin''s Creed Valhalla').",
+        "loved(user, 'Assassin''s Creed Valhalla').",
+        "fascinated_by(user, 'Norse mythology').",
+        "appreciates(user, 'Ubisoft''s efforts to make the game more customizable and challenging').",
+        "looking_forward_to(user, 'Ubisoft upcoming releases')."
+      ],
+      "referenceFacts": 4,
+      "modelFacts": 5,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 0.75,
+      "precision": 0.6
+    },
+    {
+      "id": "ultrachat_408906",
+      "reference": [
+        "likes(user, kimono_elements_in_modern_clothing).",
+        "intends(user, check_out_kimono_designers_and_brands)."
+      ],
+      "model": [
+        "likes(user, kimono_elements_in_modern_clothing).",
+        "plans_to_check(user, kimono_inspired_designers_and_brands)."
+      ],
+      "referenceFacts": 2,
+      "modelFacts": 2,
+      "matchedReference": 1,
+      "matchedModel": 1,
+      "recall": 0.5,
+      "precision": 0.5
+    },
+    {
+      "id": "sharegpt_bph7DTk_7",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_jM9e92F_0",
+      "reference": [
+        "research_interest(user, computer_vision_applied_to_coffee).",
+        "research_interest(user, machine_learning_applied_to_coffee)."
+      ],
+      "model": [],
+      "referenceFacts": 2,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "6dfc99bf_1",
+      "reference": [
+        "interested_in(user, macro_photography).",
+        "uses_setup(user, makeshift_home_studio).",
+        "owns(user, coins).",
+        "owns(user, vintage_cameras).",
+        "owns(user, '1962 Jamaican stamp featuring Queen Elizabeth II').",
+        "stamp_year('1962 Jamaican stamp featuring Queen Elizabeth II', 1962).",
+        "stamp_country('1962 Jamaican stamp featuring Queen Elizabeth II', jamaica).",
+        "stamp_subject('1962 Jamaican stamp featuring Queen Elizabeth II', 'Queen Elizabeth II').",
+        "stamp_rarity('1962 Jamaican stamp featuring Queen Elizabeth II', rare).",
+        "purchase_price_dollars('1962 Jamaican stamp featuring Queen Elizabeth II', 50).",
+        "acquired_at('1962 Jamaican stamp featuring Queen Elizabeth II', local_antique_shop)."
+      ],
+      "model": [],
+      "referenceFacts": 11,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_360085",
+      "reference": [
+        "interested_in(user, music_evolution).",
+        "plans_to_listen_to(user, influential_albums)."
+      ],
+      "model": [],
+      "referenceFacts": 2,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_A7KJApk_21",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_R8WCZYs_0",
+      "reference": [
+        "theme_statement('To Kill a Mockingbird', 'Harper Lee''s novel To Kill a Mockingbird acknowledges that changing systemic prejudices like racism and sexism don''t happen over night or with the defeat of a single villain, but are instead the work of lifetimes, often happening incrementally, and dependent on a consistent commitment to empathy and understanding, even for those we might otherwise deem as villains.')."
+      ],
+      "model": [
+        "theme_statement(user, 'Harper Lee’s novel To Kill a Mockingbird acknowledges that changing systemic prejudices like racism and sexism don’t happen overnight or with the defeat of a single villain, but are instead the work of lifetimes, often happening incrementally, and dependent on a consistent commitment to empathy and understanding, even for those we might otherwise deem as villains.')."
+      ],
+      "referenceFacts": 1,
+      "modelFacts": 1,
+      "matchedReference": 1,
+      "matchedModel": 1,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_QXK8w1W_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "60d4332d",
+      "reference": [
+        "uses(user, strava).",
+        "cycles(user, cycling).",
+        "interested_in(user, running_group).",
+        "interested_in(user, running_buddy).",
+        "prefers_run_time(user, saturday_mornings).",
+        "prefers_running_partner_pace(user, similar_pace).",
+        "prefers_running_partner_schedule(user, similar_schedule)."
+      ],
+      "model": [
+        "uses_for(user, strava, cycling).",
+        "interested_in(user, running_group).",
+        "interested_in(user, running_buddy).",
+        "preferred_run_day(user, saturday).",
+        "preferred_run_time(user, morning).",
+        "interested_in(user, similar_pace_running_group)."
+      ],
+      "referenceFacts": 7,
+      "modelFacts": 6,
+      "matchedReference": 4,
+      "matchedModel": 3,
+      "recall": 0.5714285714285714,
+      "precision": 0.5
+    },
+    {
+      "id": "80d062b2_3",
+      "reference": [
+        "likes(user, minimalist_designs).",
+        "plans_to_redo(user, living_room).",
+        "likes(user, natural_materials).",
+        "likes(user, textiles).",
+        "considers(user, reclaimed_wood_coffee_table).",
+        "plans_to_check(user, coffee_table_size_and_shape).",
+        "considers(user, 'West Elm Mercury Vase').",
+        "considers(user, 'CB2 Glass Vase').",
+        "wants(user, affordable_stylish_planters).",
+        "has(user, plants)."
+      ],
+      "model": [
+        "likes(user, minimalist_designs).",
+        "plans_to_redo(user, living_room).",
+        "wants_atmosphere(user, modern_and_cozy).",
+        "likes(user, natural_materials_and_textiles).",
+        "plans_to_check(user, reclaimed_wood_coffee_table).",
+        "plans_to_check(user, mercury_vase).",
+        "plans_to_check(user, glass_vase).",
+        "wants_planters(user, affordable_and_stylish).",
+        "wants_planters(user, complements_reclaimed_wood_coffee_table)."
+      ],
+      "referenceFacts": 10,
+      "modelFacts": 9,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 0.3,
+      "precision": 0.3333333333333333
+    },
+    {
+      "id": "25156294",
+      "reference": [
+        "considering_project(user, sustainable_community_project).",
+        "land_inheritance(user, texas_land).",
+        "property_area_acres(texas_land, 20).",
+        "property_has_feature(texas_land, small_pond).",
+        "project_on_property(sustainable_community_project, texas_land).",
+        "considering_project(user, permaculture_project).",
+        "farmhouse_location(family_farmhouse, upstate_new_york).",
+        "property_area_acres(family_farmhouse, 10).",
+        "considering_business(user, small_nursery).",
+        "nursery_focus(small_nursery, native_plants).",
+        "nursery_focus(small_nursery, succulents).",
+        "considering_business(user, permaculture_consulting_business)."
+      ],
+      "model": [
+        "inherited_land_state(user, texas).",
+        "inherited_land_acres(user, 20).",
+        "inherited_land_pond(user, small).",
+        "farmhouse_location(user, upstate_new_york).",
+        "farmhouse_acres(user, 10).",
+        "farmhouse_purpose(user, garden_and_animals).",
+        "nursery_location(user, texas).",
+        "nursery_product(user, native_plants_and_succulents).",
+        "consulting_business_type(user, permaculture_consulting).",
+        "consulting_business_target(user, homeowners).",
+        "consulting_business_focus(user, sustainable_gardening_and_eco_friendly_living)."
+      ],
+      "referenceFacts": 12,
+      "modelFacts": 11,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 0.25,
+      "precision": 0.2727272727272727
+    },
+    {
+      "id": "07417b21",
+      "reference": [
+        "laptop_use(user, work_from_home).",
+        "uses_credit_cards(user, online_purchases).",
+        "prefers_no_annual_fee_credit_cards(user, cashback_rewards).",
+        "interested_in_cashback_offers(user, laptop_purchases).",
+        "interested_in_cashback_portals(user, online_purchases)."
+      ],
+      "model": [
+        "uses_credit_card_for(user, online_purchases).",
+        "seeks_laptop_for(user, work_from_home).",
+        "seeks_cashback_laptop_offers(user, laptops).",
+        "seeks_cashback_credit_cards(user, no_annual_fee).",
+        "interested_in(user, cashback_portals).",
+        "interested_in(user, cashback_credit_cards)."
+      ],
+      "referenceFacts": 5,
+      "modelFacts": 6,
+      "matchedReference": 3,
+      "matchedModel": 2,
+      "recall": 0.6,
+      "precision": 0.3333333333333333
+    },
+    {
+      "id": "ultrachat_166039",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_8355",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "82ea1455_1",
+      "reference": [
+        "propagation_duration(pothos_cuttings, '3 weeks')."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "0ad608b3",
+      "reference": [
+        "watch_era(pocket_watch, '19th-century').",
+        "found_in(pocket_watch, 'my grandfather’s attic').",
+        "discovered_by(pocket_watch, user).",
+        "contained_in(pocket_watch, trunk).",
+        "described_as(great_great_grandfather, a_world_traveler).",
+        "plans_to_inspect(user, the_watch).",
+        "plans_to_inspect(user, 'the trunk’s construction').",
+        "plans_to_research(user, 'great-great-grandfather’s travels').",
+        "plans_to_research(user, 'trunk styles and designs from the 19th century').",
+        "plans_to_explore(user, 'the attic’s history').",
+        "plans_to_ask(user, my_mom_about_the_history_of_the_house_and_the_attic).",
+        "plans_to_find(user, old_photographs_or_documents)."
+      ],
+      "model": [
+        "found_in(pocket_watch, grandfather_attic).",
+        "found_in(pocket_watch, trunk).",
+        "found_in(trunk, attic).",
+        "great_great_grandfather_traveler(great_great_grandfather).",
+        "research_travels(user, great_great_grandfather).",
+        "research_trunk_styles(user, trunk).",
+        "research_attic_history(user, attic).",
+        "ask_mom_about(user, house_and_attic_history)."
+      ],
+      "referenceFacts": 12,
+      "modelFacts": 8,
+      "matchedReference": 5,
+      "matchedModel": 6,
+      "recall": 0.4166666666666667,
+      "precision": 0.75
+    },
+    {
+      "id": "7af38385_1",
+      "reference": [
+        "dresser_condition(old_dresser, weird_smell).",
+        "plans_to_replace(user, old_dresser).",
+        "dresser_style_preference(user, modern).",
+        "dresser_drawer_preference(user, smooth_gliding).",
+        "brand_interest(user, room_and_board).",
+        "plans_to_check_website(user, room_and_board).",
+        "plans_to_subscribe(user, room_and_board_email_newsletter).",
+        "plans_to_get(user, bedroom_mirror).",
+        "mirror_style_preference(user, modern).",
+        "plans_to_upgrade(user, bedroom_decor).",
+        "plans_to_replace(user, old_nightstands).",
+        "nightstand_style_preference(user, modern)."
+      ],
+      "model": [
+        "plans_to_replace(user, old_dresser).",
+        "dresser_style(user, modern).",
+        "dresser_drawer_type(user, smooth_gliding).",
+        "plans_to_replace(user, old_nightstands).",
+        "plans_to_replace(user, old_mirror).",
+        "plans_to_replace(user, old_bedding).",
+        "plans_to_replace(user, old_throw_pillows).",
+        "plans_to_replace(user, old_bedroom_decor).",
+        "plans_to_replace(user, old_bedroom_furniture).",
+        "plans_to_replace(user, old_bedroom_nightstands)."
+      ],
+      "referenceFacts": 12,
+      "modelFacts": 10,
+      "matchedReference": 7,
+      "matchedModel": 4,
+      "recall": 0.5833333333333334,
+      "precision": 0.4
+    },
+    {
+      "id": "ultrachat_513898",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "6dfa3dc6_2",
+      "reference": [
+        "sister_age(sister, 25).",
+        "birthday_day(sister, 15).",
+        "bought_gift(user, silver_necklace).",
+        "gift_brand(silver_necklace, zara).",
+        "likes(user, gourmet_food_basket).",
+        "chooses(user, customized_cheese_knife).",
+        "handle_material(customized_cheese_knife, wood).",
+        "appreciates(friend, unique_handmade_items).",
+        "values(user, natural_grain_pattern).",
+        "intends_to_engrave(user, customized_cheese_knife).",
+        "engraving_subject(customized_cheese_knife, friend_name)."
+      ],
+      "model": [
+        "sister_age(sister, 25).",
+        "sister_birthday(sister, 15).",
+        "sister_gift(sister, silver_necklace).",
+        "necklace_brand(silver_necklace, zara).",
+        "gift_budget_range(friends_gifts, '30-$40').",
+        "gift_preference(user, gourmet_food_basket).",
+        "gift_preference(user, personalized_gift).",
+        "gift_preference(user, customized_cheese_knife).",
+        "knife_handle_material(customized_cheese_knife, wood).",
+        "knife_engraving(customized_cheese_knife, friend_name).",
+        "friend_appreciation(friend, unique_handmade_items)."
+      ],
+      "referenceFacts": 11,
+      "modelFacts": 11,
+      "matchedReference": 10,
+      "matchedModel": 9,
+      "recall": 0.9090909090909091,
+      "precision": 0.8181818181818182
+    },
+    {
+      "id": "sharegpt_gHycFws_39",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_iej2OEP_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "4048b32b_3",
+      "reference": [
+        "attended(user, workshop_on_social_media_activism).",
+        "uses_hashtag(user, '#HomelessnessMatters').",
+        "plans_to_create(user, '#MakeADifferenceMV').",
+        "hashtag_meaning('#MakeADifferenceMV', 'Make a Difference in My Voice').",
+        "plans_to_create(user, 'Facebook Group').",
+        "group_privacy('Facebook Group', private).",
+        "group_topic('Facebook Group', homelessness).",
+        "group_topic('Facebook Group', social_justice).",
+        "group_topic('Facebook Group', community_development)."
+      ],
+      "model": [],
+      "referenceFacts": 9,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_495375",
+      "reference": [
+        "likes(user, breaking_bad).",
+        "values(user, secondary_characters, depth).",
+        "considers(user, walter_white_transformation, compelling).",
+        "praises(user, bryan_cranston_portrayal_of_walter_white).",
+        "appreciates(user, breaking_bad_attention_to_detail).",
+        "values(user, scientific_accuracy_of_meth_making).",
+        "appreciates(user, color_palette_symbolism).",
+        "considers(user, breaking_bad, masterpiece)."
+      ],
+      "model": [],
+      "referenceFacts": 8,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "445e6a7a_2",
+      "reference": [
+        "book_loved(user, 'The Seven Husbands of Evelyn Hugo').",
+        "enjoys_narration(user, julia_whelan).",
+        "book_narration_enjoyed(user, 'The Hating Game').",
+        "book_narration_enjoyed(user, 'The Seven Husbands of Evelyn Hugo').",
+        "interested_in_audiobooks_narrated_by(user, julia_whelan).",
+        "interested_in_genre(user, mystery).",
+        "interested_in_genre(user, thriller).",
+        "plans_to_read(user, 'The 7 1/2 Deaths of Evelyn Hardcastle').",
+        "interested_in_book(user, 'The Shadow of the Wind').",
+        "interested_in_genre(user, gothic_mystery).",
+        "likes_book_element(user, puzzle_solving).",
+        "likes_book_element(user, atmospheric_setting)."
+      ],
+      "model": [
+        "enjoys_narration(user, julia_whelan).",
+        "interested_in(user, mystery_thriller_audiobooks).",
+        "plans_to_read(user, 'The 7 1/2 Deaths of Evelyn Hardcastle').",
+        "interested_in(user, 'The Shadow of the Wind').",
+        "interested_in(user, gothic_mystery).",
+        "interested_in(user, puzzle_solving).",
+        "interested_in(user, atmospheric_setting).",
+        "interested_in(user, 'The 7 1/2 Deaths of Evelyn Hardcastle').",
+        "interested_in(user, 'The Seven Husbands of Evelyn Hugo').",
+        "enjoys_narration(user, 'The Seven Husbands of Evelyn Hugo').",
+        "interested_in(user, 'The Hating Game')."
+      ],
+      "referenceFacts": 12,
+      "modelFacts": 11,
+      "matchedReference": 10,
+      "matchedModel": 10,
+      "recall": 0.8333333333333334,
+      "precision": 0.9090909090909091
+    },
+    {
+      "id": "ultrachat_273179",
+      "reference": [
+        "interested_in(user, honor_societies)."
+      ],
+      "model": [
+        "interested_in(user, honor_societies).",
+        "interested_in(user, phi_beta_kappa).",
+        "interested_in(user, benefits_of_joining_honor_societies)."
+      ],
+      "referenceFacts": 1,
+      "modelFacts": 3,
+      "matchedReference": 1,
+      "matchedModel": 1,
+      "recall": 1,
+      "precision": 0.3333333333333333
+    },
+    {
+      "id": "sharegpt_BWMyoNr_0",
+      "reference": [
+        "represents(user, clinic).",
+        "provider_of(yezza, clinic_appointment_system)."
+      ],
+      "model": [
+        "service_provider(clinic_appointment_system, yezza).",
+        "monthly_cost_rm(clinic_appointment_system, 197).",
+        "service_type(clinic_appointment_system, appointment_system).",
+        "service_type(clinic_appointment_system, e_commerce_store).",
+        "database_version(clinic_appointment_system, v2).",
+        "database_feature(clinic_appointment_system, cancel_general_request).",
+        "database_feature(clinic_appointment_system, cancel_special_request).",
+        "database_feature(clinic_appointment_system, date_submitted).",
+        "database_feature(clinic_appointment_system, current_date_and_time).",
+        "database_feature(clinic_appointment_system, custom_date).",
+        "database_feature(clinic_appointment_system, past_date).",
+        "database_feature(clinic_appointment_system, credibility)."
+      ],
+      "referenceFacts": 2,
+      "modelFacts": 12,
+      "matchedReference": 1,
+      "matchedModel": 12,
+      "recall": 0.5,
+      "precision": 1
+    },
+    {
+      "id": "c756d93e",
+      "reference": [
+        "commute_frequency(user, every_weekday)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_euAlNcy_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_311480",
+      "reference": [
+        "interested_in(user, tamil_language).",
+        "interested_in(user, tamil_culture).",
+        "interested_in(user, tamil_literature).",
+        "interested_in(user, tamil_cinema).",
+        "interested_in(user, tamil_music).",
+        "plans_to_read(user, tamil_writers).",
+        "plans_to_explore(user, tamil_literature).",
+        "plans_to_explore(user, tamil_cinema).",
+        "plans_to_explore(user, tamil_music).",
+        "seeks_online_resources(user, tamil_language_and_culture)."
+      ],
+      "model": [
+        "interested_in(user, tamil_literature).",
+        "interested_in(user, tamil_cinema).",
+        "interested_in(user, tamil_music).",
+        "plans_to_read(user, tamil_writers).",
+        "plans_to_watch(user, tamil_movies).",
+        "plans_to_watch(user, tamil_tv_shows).",
+        "interested_in(user, tamil_language).",
+        "interested_in(user, tamil_culture)."
+      ],
+      "referenceFacts": 10,
+      "modelFacts": 8,
+      "matchedReference": 9,
+      "matchedModel": 6,
+      "recall": 0.9,
+      "precision": 0.75
+    },
+    {
+      "id": "sharegpt_7DwoMJg_7",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_234097",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_142447",
+      "reference": [
+        "plans_visit(user, telemark).",
+        "plans_try(user, all_these_dishes).",
+        "likes(user, cheese).",
+        "plans_check(user, vegetarian_options).",
+        "interested_in(user, cheese_making_tours)."
+      ],
+      "model": [
+        "plans_to_visit(user, telemark).",
+        "likes(user, cheese).",
+        "plans_to_check(user, vegetarian_options).",
+        "plans_to_check(user, cheese_tours)."
+      ],
+      "referenceFacts": 5,
+      "modelFacts": 4,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 0.6,
+      "precision": 0.75
+    },
+    {
+      "id": "90f7041a_2",
+      "reference": [
+        "planning(user, workout_playlist).",
+        "attended(user, hip_hop_dance_party).",
+        "event_date(hip_hop_dance_party, february_18).",
+        "took_class(user, salsa).",
+        "interested_in(user, contemporary).",
+        "interested_in(user, afrobeat).",
+        "interested_in(user, urban_contemporary).",
+        "interested_in(user, lyrical_hip_hop).",
+        "interested_in(user, dance_workshops).",
+        "interested_in(user, dance_intensive_programs).",
+        "interested_in(user, online_dance_classes)."
+      ],
+      "model": [],
+      "referenceFacts": 11,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_59250",
+      "reference": [
+        "frustrated_with(user, 'government doesn''t prioritize investing in education').",
+        "supports(user, investing_in_education).",
+        "believes(user, all_students_can_access_quality_education_without_going_into_crippling_debt).",
+        "believes(user, government_is_more_concerned_with_balancing_budgets_and_limiting_loans).",
+        "wants(user, change_in_priorities)."
+      ],
+      "model": [],
+      "referenceFacts": 5,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_ckGVfWm_0",
+      "reference": [
+        "interest_in(user, the_history_of_the_peloponnesian_war)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_CyvhxCk_3",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_236018",
+      "reference": [
+        "likes(user, drive_in_watch_parties)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_113726",
+      "reference": [
+        "feeling_stressed(user, lately).",
+        "interested_in(user, gardening).",
+        "intends_to_try(user, gardening)."
+      ],
+      "model": [
+        "feeling_stressed(user, lately).",
+        "interested_in(user, gardening).",
+        "beginner_gardener(user)."
+      ],
+      "referenceFacts": 3,
+      "modelFacts": 3,
+      "matchedReference": 3,
+      "matchedModel": 2,
+      "recall": 1,
+      "precision": 0.6666666666666666
+    },
+    {
+      "id": "ultrachat_379237",
+      "reference": [
+        "concerned_about(user, police_drone_surveillance).",
+        "distrusts(user, police).",
+        "values(user, privacy_rights)."
+      ],
+      "model": [],
+      "referenceFacts": 3,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "f2835879_2",
+      "reference": [
+        "attended_music_festival(user, grant_park_music_festival).",
+        "event_location(grant_park_music_festival, grant_park).",
+        "festival_featured_artist(grant_park_music_festival, billie_eilish).",
+        "festival_featured_artist(grant_park_music_festival, khalid).",
+        "festival_featured_artist(grant_park_music_festival, the_1975).",
+        "attended_concert(user, the_lumineers).",
+        "concert_venue(the_lumineers_concert, wrigley_field).",
+        "enjoyed_concert(user, the_lumineers).",
+        "interested_in_music_genre(user, indie_rock).",
+        "interested_in_music_genre(user, pop_music).",
+        "considering_attending_concert(user, foster_the_people).",
+        "concert_date(foster_the_people_concert, september_20)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_Xjav4Y7_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_lxjNrXL_1",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "eca613fc",
+      "reference": [
+        "bottle_fed(luna, bottle_fed).",
+        "bottle_fed(leo, bottle_fed).",
+        "vaccination_planned(luna, next_month).",
+        "vaccination_planned(leo, next_month)."
+      ],
+      "model": [],
+      "referenceFacts": 4,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "c15dadce_3",
+      "reference": [
+        "friend(user, emily).",
+        "spouse(emily, david).",
+        "adopting(emily, baby_boy).",
+        "adopting(david, baby_boy).",
+        "adoption_source(baby_boy, foster_care_system).",
+        "planning_party(user, emily).",
+        "gift_choice(user, customized_picture_frame).",
+        "frame_style(customized_picture_frame, modern).",
+        "note_recipient(user, emily).",
+        "note_recipient(user, david).",
+        "note_acknowledges_adoption_journey(user).",
+        "note_welcomes_baby_to_family(user, baby_boy)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "14073b9c_1",
+      "reference": [
+        "works_during_commute(user, work)."
+      ],
+      "model": [
+        "uses_for(user, commute).",
+        "monthly_transportation_cost_dollars(user, 120).",
+        "uses_for(user, sensitive_work_documents).",
+        "concerned_about(user, hotspot_security)."
+      ],
+      "referenceFacts": 1,
+      "modelFacts": 4,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_a9hxnu5_0",
+      "reference": [
+        "builds_backoffice(user, backoffice).",
+        "backoffice_serves(backoffice, customer_support_team).",
+        "customer_support_team_attends_calls_by_phone(customer_support_team, customer_calls).",
+        "customer_support_team_searches_in_real_time(customer_support_team, customer_information).",
+        "customer_support_team_searches_for(customer_support_team, payment_methods).",
+        "customer_support_team_searches_for(customer_support_team, subscriptions).",
+        "customer_support_team_searches_for(customer_support_team, acquired_products)."
+      ],
+      "model": [
+        "builds(user, backoffice).",
+        "for(backoffice, customer_support_team).",
+        "handles(customer_support_team, phone_calls).",
+        "requires(customer_support_team, real_time_search).",
+        "searches_for(customer_support_team, payment_methods).",
+        "searches_for(customer_support_team, subscriptions).",
+        "searches_for(customer_support_team, acquired_products)."
+      ],
+      "referenceFacts": 7,
+      "modelFacts": 7,
+      "matchedReference": 7,
+      "matchedModel": 7,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_7ATc6lt_11",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_367985",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "9f554b46_3",
+      "reference": [
+        "brand(user, xyz_coffee).",
+        "posts_per_day(user, 3).",
+        "posting_frequency_period(user, first_week).",
+        "campaign_platform(campaign, facebook).",
+        "campaign_platform(campaign, instagram).",
+        "campaign_platform(campaign, twitter).",
+        "creating_content(user, instagram_stories).",
+        "creating_content(user, igtv).",
+        "interested_in(user, instagram_interactive_features).",
+        "interested_in(user, instagram_shopping)."
+      ],
+      "model": [
+        "brand(xyz_coffee, xyz_coffee).",
+        "social_media_platform(xyz_coffee, facebook).",
+        "social_media_platform(xyz_coffee, instagram).",
+        "social_media_platform(xyz_coffee, twitter).",
+        "posting_frequency(xyz_coffee, three_times_a_day).",
+        "posting_frequency(xyz_coffee, each_platform).",
+        "ad_budget_dollars(facebook_ad_campaign, 500).",
+        "ad_budget_dollars(facebook_ad_campaign, 1000).",
+        "content_platform(xyz_coffee, instagram_stories).",
+        "content_platform(xyz_coffee, igtv).",
+        "content_platform(xyz_coffee, instagram_shopping)."
+      ],
+      "referenceFacts": 10,
+      "modelFacts": 11,
+      "matchedReference": 7,
+      "matchedModel": 9,
+      "recall": 0.7,
+      "precision": 0.8181818181818182
+    },
+    {
+      "id": "ultrachat_269037",
+      "reference": [
+        "supports(user, music_for_social_change).",
+        "believes(user, music_is_a_universal_language).",
+        "interested_in(user, music_influence_on_beliefs).",
+        "concerned_about(user, exploitative_activism_in_music)."
+      ],
+      "model": [
+        "values(user, human_connection).",
+        "values(user, music_as_a_universal_language).",
+        "values(user, music_as_a_a_tool_for_social_change).",
+        "values(user, music_as_a_way_to_promote_positive_messages).",
+        "values(user, music_as_a_way_to_address_important_societal_issues).",
+        "values(user, music_as_a_way_to_promote_social_change)."
+      ],
+      "referenceFacts": 4,
+      "modelFacts": 6,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_444552",
+      "reference": [
+        "concerned_about(user, loss_of_movie_theater_experience)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_317508",
+      "reference": [
+        "plans_to_visit(user, 'Mostar Old Bridge Area').",
+        "plans_to_visit(user, 'Stećci Medieval Tombstones Graveyards')."
+      ],
+      "model": [],
+      "referenceFacts": 2,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "2ec2813b_2",
+      "reference": [
+        "area_rug_source(area_rug, target).",
+        "area_rug_color_description(area_rug, nice_pop_of_color).",
+        "coffee_table_source(coffee_table, 'IKEA').",
+        "living_room_wall_color_option(living_room, light_gray).",
+        "living_room_wall_color_option(living_room, beige).",
+        "paint_sample_testing_planned(user, living_room_walls).",
+        "armchair_condition(armchair, collecting_dust).",
+        "floor_vacuuming_needed(living_room, true).",
+        "shelf_dusting_needed(living_room, true)."
+      ],
+      "model": [],
+      "referenceFacts": 9,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "507dbf23_3",
+      "reference": [
+        "attended(user, gaming_convention).",
+        "won_prize_at(user, gaming_tournament).",
+        "likes(user, 'Razer BlackWidow Chroma V2').",
+        "wants_to_try(user, 'Romer-G switches').",
+        "plans_to_visit(user, local_electronics_store).",
+        "plans_to_start(user, twitch)."
+      ],
+      "model": [
+        "interested_in(user, gaming_keyboards).",
+        "likes(user, customizable_backlighting).",
+        "likes(user, macro_keys).",
+        "attended(user, gaming_convention).",
+        "won_prize(user, gaming_tournament).",
+        "plans_to_try(user, 'Razer BlackWidow Chroma V2').",
+        "plans_to_visit(user, local_electronics_store).",
+        "plans_to_start(user, twitch_streaming).",
+        "plans_to_share(user, gaming_experiences)."
+      ],
+      "referenceFacts": 6,
+      "modelFacts": 9,
+      "matchedReference": 4,
+      "matchedModel": 4,
+      "recall": 0.6666666666666666,
+      "precision": 0.4444444444444444
+    },
+    {
+      "id": "66e94928",
+      "reference": [
+        "has_boots(user, merrell_boots).",
+        "needs(user, hiking_socks).",
+        "needs(user, casual_shoes).",
+        "discarded(user, adidas_superstars).",
+        "condition(adidas_superstars, worn_out).",
+        "visits(user, state_park)."
+      ],
+      "model": [
+        "hiking_sock_preference(user, new_pair).",
+        "hiking_sock_brand_preference(user, merrell).",
+        "casual_shoe_preference(user, new_pair).",
+        "casual_shoe_brand_preference(user, adidas).",
+        "old_shoes_disposal(user, threw_away).",
+        "old_shoes_condition(user, worn_out).",
+        "old_shoes_purpose(user, served_their_purpose)."
+      ],
+      "referenceFacts": 6,
+      "modelFacts": 7,
+      "matchedReference": 1,
+      "matchedModel": 1,
+      "recall": 0.16666666666666666,
+      "precision": 0.14285714285714285
+    },
+    {
+      "id": "ultrachat_73033",
+      "reference": [
+        "participates_in(user, intense_physical_activity)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_380649",
+      "reference": [
+        "interested_in(user, sustainable_living).",
+        "wants_to_reduce(user, carbon_footprint).",
+        "wants_to_learn_more_about(user, sustainable_living).",
+        "committed_to(user, sustainable_living).",
+        "feels_overwhelmed_by(user, lifestyle_changes).",
+        "finds_it_hard_to_maintain(user, sustainable_habits)."
+      ],
+      "model": [],
+      "referenceFacts": 6,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "3a5010af_1",
+      "reference": [
+        "interested_in(user, data_analysis).",
+        "completed_courses_on(user, coursera, 12).",
+        "interested_in(user, datacamp).",
+        "interested_in(user, data_visualization).",
+        "interested_in(user, matplotlib).",
+        "interested_in(user, seaborn).",
+        "plans_to_take(user, 'Data Visualization with Python: Matplotlib and Seaborn').",
+        "plans_to_review(user, python_basics).",
+        "plans_to_learn(user, jupyter_notebooks).",
+        "confidence_in(user, data_analysis_foundation)."
+      ],
+      "model": [
+        "interested_in(user, data_analysis).",
+        "completed_courses(user, coursera).",
+        "completed_course_count(user, 12).",
+        "interested_in(user, data_visualization).",
+        "plans_to_start_with(user, 'Data Visualization with Python: Matplotlib and Seaborn').",
+        "plans_to_review(user, python_basics).",
+        "plans_to_familiarize_with(user, jupyter_notebooks)."
+      ],
+      "referenceFacts": 10,
+      "modelFacts": 7,
+      "matchedReference": 6,
+      "matchedModel": 7,
+      "recall": 0.6,
+      "precision": 1
+    },
+    {
+      "id": "97f67bff",
+      "reference": [
+        "cooking_at_home(user, frequently).",
+        "started_cooking_at_home_weeks_ago(user, 6).",
+        "cooking_start_recipe(user, chicken_parmesan).",
+        "cooking_start_source(chicken_parmesan, pinterest).",
+        "discovered_spice(user, sumac).",
+        "discovered_spice(user, zaatar).",
+        "near_work(middle_eastern_market, user).",
+        "interested_in(user, middle_eastern_cuisine).",
+        "interested_in(user, sumac).",
+        "interested_in(user, zaatar).",
+        "wants_to_try(user, sumac_chicken_shawarma).",
+        "interested_in(user, tahini_sauce)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ff6bccaa_3",
+      "reference": [
+        "likes(user, historical_dramas).",
+        "likes(user, 'The Witcher').",
+        "likes(user, 'The Great').",
+        "currently_watching(user, 'The Great').",
+        "watching_with(user, 'The Great', partner).",
+        "plans_to_watch(user, outlander).",
+        "interested_in(user, time_travel).",
+        "prefers(user, entertainment_over_historical_accuracy).",
+        "likes(user, 'Phoebe Fox').",
+        "likes(user, 'Sacha Dhawan').",
+        "likes(user, 'Elle Fanning').",
+        "likes_character(user, catherine)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "e7cc239c_4",
+      "reference": [
+        "has_access(user, 'HBO Max').",
+        "interested_in(user, watchmen).",
+        "plans_to_watch(user, watchmen).",
+        "watching_pace(user, watchmen, '2-3 episodes per week').",
+        "values_time_to_process_and_reflect(user, watchmen)."
+      ],
+      "model": [
+        "interested_in(user, 'The Expanse').",
+        "watched(user, 'The Expanse').",
+        "platform(user, 'Amazon Prime').",
+        "subscribed_to(user, 'HBO Max').",
+        "interested_in(user, westworld).",
+        "interested_in(user, 'Raised by Wolves').",
+        "interested_in(user, watchmen).",
+        "interested_in(user, 'The Leftovers').",
+        "plans_to_watch(user, watchmen).",
+        "watching_frequency(user, '2-3 episodes a week').",
+        "plans_to_pace_watching(user, watchmen)."
+      ],
+      "referenceFacts": 5,
+      "modelFacts": 11,
+      "matchedReference": 5,
+      "matchedModel": 4,
+      "recall": 1,
+      "precision": 0.36363636363636365
+    },
+    {
+      "id": "ba9f938b_2",
+      "reference": [
+        "sister_of(sister, user).",
+        "gluten_intolerant(sister).",
+        "learned_in_cooking_class(user, 'Italian pasta dish').",
+        "prepared_at_home(user, 'Italian pasta dish').",
+        "successful_substitution('Italian pasta dish', gluten_free_spaghetti).",
+        "uses_ingredient('Italian pasta dish', butter).",
+        "uses_ingredient('Italian pasta dish', cream).",
+        "uses_ingredient('Italian pasta dish', 'Parmesan cheese').",
+        "selected_ingredient('Italian pasta dish', heavy_cream).",
+        "plans_to_add('Italian pasta dish', 'sautéed mushrooms')."
+      ],
+      "model": [],
+      "referenceFacts": 10,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_opQbgPL_0",
+      "reference": [],
+      "model": [
+        "photo_style(table, '1960s Editorial').",
+        "focal_point_type(table, person).",
+        "mood_preference(table, glamorous).",
+        "mood_preference(table, opulent).",
+        "row_format_preference(table, comma_separated_sentences)."
+      ],
+      "referenceFacts": 0,
+      "modelFacts": 5,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "3410b52a_1",
+      "reference": [
+        "resides_in(user, us).",
+        "learning_language(user, english).",
+        "attends_classes(user, english_language_classes).",
+        "improving_skill(user, listening).",
+        "plans_to_watch(user, friends).",
+        "interested_in(user, american_culture).",
+        "interested_in(user, american_holidays).",
+        "plans_to_attend(user, local_memorial_day_ceremony).",
+        "plans_to_volunteer(user, local_veterans_organization)."
+      ],
+      "model": [
+        "language_learning_goal(user, improve_language_skills).",
+        "language_class(user, english).",
+        "listening_improvement_method(user, watching_english_tv_shows_and_movies_with_subtitles).",
+        "plans_to_watch(user, friends).",
+        "plans_to_find(user, friends_with_subtitles).",
+        "culture_learning_goal(user, learn_more_about_us_culture_and_customs).",
+        "plans_to_attend(user, local_memorial_day_ceremony).",
+        "plans_to_volunteer(user, local_veterans_organization)."
+      ],
+      "referenceFacts": 9,
+      "modelFacts": 8,
+      "matchedReference": 4,
+      "matchedModel": 4,
+      "recall": 0.4444444444444444,
+      "precision": 0.5
+    },
+    {
+      "id": "1b474144",
+      "reference": [
+        "decluttered(user, bookshelf).",
+        "bookshelf_goal(bookshelf, tidy_and_easy_to_find).",
+        "cleared(user, coffee_table).",
+        "coffee_table_goal(coffee_table, tidy_and_functional).",
+        "rearranged(user, living_room_furniture).",
+        "living_room_goal(living_room, cozy_atmosphere).",
+        "practices_on(user, yoga, sunday).",
+        "yoga_location(user, living_room).",
+        "considering_adding(user, plants_to_living_room).",
+        "prefers(user, low_maintenance_indoor_plants)."
+      ],
+      "model": [
+        "decluttered(user, bookshelf).",
+        "cleared_off(user, coffee_table).",
+        "rearranged(user, living_room_furniture).",
+        "yoga_practice_day(user, sunday).",
+        "yoga_location(user, living_room).",
+        "yoga_benefit(user, relaxation).",
+        "considering(user, living_room_plants)."
+      ],
+      "referenceFacts": 10,
+      "modelFacts": 7,
+      "matchedReference": 8,
+      "matchedModel": 5,
+      "recall": 0.8,
+      "precision": 0.7142857142857143
+    },
+    {
+      "id": "sharegpt_uD7CBng_20",
+      "reference": [
+        "project_manager(gdpot_nft_studio, 'kim terje grønli').",
+        "company_name(user, 'grønli digital development and investigation').",
+        "department_of(gdpot_nft_studio, grasrota_dao).",
+        "website_url(gdpot_nft_studio, 'withkoji.com/@gdpot').",
+        "website_url(doevaa_holding_company_dao, 'withkoji.com/doevaa').",
+        "blockchain(fakecorp_nft_collection, poligon_matic).",
+        "trait_count(fakecorp_nft_collection, 18).",
+        "descriptive_trait_count(fakecorp_nft_collection, 9).",
+        "valid_identifier_trait_count(fakecorp_nft_collection, 9).",
+        "collection_supply(fakecorp_nft_collection, 9999).",
+        "access_requirement(fakecorp_nft_collection, nft_ownership).",
+        "governance_model(doevaa_holding_company_dao, dao)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_Xlpa70t_0",
+      "reference": [
+        "proposed_to(user, madelyn).",
+        "engaged_to(user, madelyn).",
+        "committed_to(user, madelyn).",
+        "loves(user, madelyn).",
+        "bought_house_with(user, madelyn).",
+        "loves(user, mom).",
+        "loves(user, children).",
+        "birthday(user, '7/11/1980').",
+        "has_plan(user, a_plan)."
+      ],
+      "model": [],
+      "referenceFacts": 9,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_HJuS4Dl_11",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "68645973_1",
+      "reference": [
+        "attended(user, photography_workshop).",
+        "uses(user, 'Sony 24-70mm f/2.8 lens').",
+        "purchased_on('Sony 24-70mm f/2.8 lens', february_10).",
+        "purchase_price_dollars('Sony 24-70mm f/2.8 lens', 1200).",
+        "owns(user, 'Think Tank Urban Disguise 40L').",
+        "owns(user, 'Canon EOS 80D camera body').",
+        "replaced(user, 'Canon EOS 80D camera body', 'Sony A7R IV').",
+        "plans_to_sell(user, 'Canon EOS 80D camera body').",
+        "owns(user, 'Manfrotto tripod').",
+        "tripod_condition('Manfrotto tripod', shaky).",
+        "plans_to_purchase(user, 'Gitzo GT3543LS').",
+        "planned_purchase_time('Gitzo GT3543LS', next_month)."
+      ],
+      "model": [
+        "owns(user, 'Sony 24-70mm f/2.8').",
+        "purchased_on(user, 'Sony 24-70mm f/2.8', february_10).",
+        "purchase_price_dollars('Sony 24-70mm f/2.8', 1200).",
+        "lens_quality('Sony 24-70mm f/2.8', amazing).",
+        "owns(user, 'Think Tank Urban Disguise 40L').",
+        "owns(user, 'Canon EOS 80D').",
+        "owns(user, 'Sony A7R IV').",
+        "plans_to_purchase(user, 'Gitzo GT3543LS').",
+        "tripod_condition('Manfrotto tripod', shaky)."
+      ],
+      "referenceFacts": 12,
+      "modelFacts": 9,
+      "matchedReference": 8,
+      "matchedModel": 6,
+      "recall": 0.6666666666666666,
+      "precision": 0.6666666666666666
+    },
+    {
+      "id": "ultrachat_346810",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_43281",
+      "reference": [
+        "wants(user, continue_using_credit_cards).",
+        "does_not_want(user, change_spending_habits).",
+        "does_not_want(user, create_an_emergency_fund).",
+        "wants(user, a_quick_fix_to_debt_problem).",
+        "does_not_want(user, debt_settlement).",
+        "does_not_want(user, bankruptcy)."
+      ],
+      "model": [],
+      "referenceFacts": 6,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_yzR1YLf_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "6e2cca63_6",
+      "reference": [
+        "facebook_messenger_conversation_duration_hours(user, 1).",
+        "facebook_messenger_messages_sent(user, 43).",
+        "communication_style(user, genuine).",
+        "communication_style(user, friendly).",
+        "online_topics(user, casual_topics).",
+        "online_topics(user, hobbies).",
+        "online_topics(user, pop_culture).",
+        "in_person_topics(user, relationships).",
+        "in_person_topics(user, serious_life_decisions).",
+        "member_of(user, college_friends_whatsapp_group).",
+        "whatsapp_messages_sent(user, 150).",
+        "twitter_tweets_per_week(user, 10)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_332506",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_96128",
+      "reference": [
+        "scalp_sensitivity(user, sensitive).",
+        "prefers_bristles(user, soft).",
+        "considers_hair_type_when_choosing_scalp_brush(user, hair_type).",
+        "review_products_before_purchase(user, reviews)."
+      ],
+      "model": [
+        "scalp_sensitivity(user, sensitive).",
+        "bristle_preference(user, softer_bristles)."
+      ],
+      "referenceFacts": 4,
+      "modelFacts": 2,
+      "matchedReference": 1,
+      "matchedModel": 1,
+      "recall": 0.25,
+      "precision": 0.5
+    },
+    {
+      "id": "57a6a404_3",
+      "reference": [
+        "owns(user, gucci_sunglasses).",
+        "prefers_brand_over(user, gucci, h_and_m).",
+        "values_quality_and_style(user, gucci_sunglasses).",
+        "uses(user, microfiber_cloths).",
+        "finds_effective(user, microfiber_cloths).",
+        "prefers_material(user, sunglasses_pouch, microfiber).",
+        "prefers_pouch_without_attachment(user, sunglasses_pouch).",
+        "prefers_design(user, sunglasses_pouch, minimalist).",
+        "stores_in_separate_compartment(user, sunglasses).",
+        "intent_to_buy(user, handbag)."
+      ],
+      "model": [
+        "owns(user, gucci_sunglasses).",
+        "prefers(user, microfiber_pouch).",
+        "prefers(user, minimalist_design).",
+        "stores_in(user, separate_compartment).",
+        "uses(user, microfiber_cloths).",
+        "likes(user, gucci_sunglasses)."
+      ],
+      "referenceFacts": 10,
+      "modelFacts": 6,
+      "matchedReference": 4,
+      "matchedModel": 3,
+      "recall": 0.4,
+      "precision": 0.5
+    },
+    {
+      "id": "sharegpt_qwOn5J4_13",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "a864e7aa_5",
+      "reference": [
+        "move_month(user, march).",
+        "anxiety_source(user, new_job).",
+        "panic_attack_trigger(user, disagreement_with_my_sister).",
+        "relationship_status(user, sister_better).",
+        "anxiety_trigger(user, uncertainty).",
+        "anxiety_trigger(user, fear_of_confrontation).",
+        "anxiety_stressor(user, worry_a_lot_about_what_others_think_of_me).",
+        "self_care_activity(user, long_walks_in_the_park_on_weekends).",
+        "reads_book(user, 'The Power of Now').",
+        "book_author('The Power of Now', 'Eckhart Tolle').",
+        "mindfulness_practice(user, daily_activities).",
+        "plans_to_try(user, yoga)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "a8028ce7_2",
+      "reference": [
+        "reading_genre(user, fantasy).",
+        "reading_genre(user, thriller).",
+        "enjoys_genre(user, fantasy_romance).",
+        "read_books_by_author(user, sarah_j_maas, 2).",
+        "reread_books(user, a_court_of_thorns_and_roses, '3-4').",
+        "reading_pace(user, '1-2 books per week').",
+        "interested_in(user, the_all_souls_trilogy).",
+        "has_device(user, ereader).",
+        "device_acquired_month(ereader, march).",
+        "finished_books_on(ereader, 7).",
+        "interested_in(user, night_huntress_series).",
+        "plans_to_read(user, halfway_to_the_grave)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "9316aae3_2",
+      "reference": [
+        "trip_destination(user, new_york_city).",
+        "stayed_at(user, westin_times_square).",
+        "liked_location(user, westin_times_square).",
+        "considering_staying_at(user, aliz_hotel).",
+        "likes_feature(user, aliz_hotel_rooftop_bar_open_year_round).",
+        "interested_in(user, city_view_room_at_aliz_hotel).",
+        "wants_to_explore(user, off_the_beaten_path_neighborhoods).",
+        "interested_in(user, greenwich_village)."
+      ],
+      "model": [
+        "visited(user, nyc).",
+        "stayed_at(user, westin_times_square).",
+        "liked(user, westin_times_square).",
+        "likes(user, midtown_west).",
+        "likes(user, the_aliz_hotel).",
+        "likes(user, year_round_rooftop_bar).",
+        "interested_in(user, city_view_room).",
+        "interested_in(user, greenwich_village)."
+      ],
+      "referenceFacts": 8,
+      "modelFacts": 8,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 0.375,
+      "precision": 0.375
+    },
+    {
+      "id": "a0f8468c_3",
+      "reference": [
+        "plans_to_make(user, spaghetti).",
+        "uses_sauce(user, homemade_pasta_sauce).",
+        "cook_method(user, simmer).",
+        "will_reserve(user, pasta_water).",
+        "selected_bread(user, classic_garlic_bread).",
+        "selected_salad(user, 'Italian-style salad').",
+        "plans_to_make(user, extra_garlic_knots).",
+        "dessert_preference(user, light_and_sweet)."
+      ],
+      "model": [
+        "pasta_sauce_source(pasta_sauce, homemade).",
+        "pasta_sauce_made_at(pasta_sauce, last_week).",
+        "pasta_sauce_recipe(pasta_sauce, from_scratch).",
+        "pasta_sauce_paired_with(pasta_sauce, spaghetti).",
+        "pasta_sauce_paired_with(pasta_sauce, garlic_bread).",
+        "pasta_sauce_paired_with(pasta_sauce, garlic_knots).",
+        "pasta_sauce_paired_with(pasta_sauce, italian_style_salad).",
+        "pasta_sauce_paired_with(pasta_sauce, dessert).",
+        "dessert_preference(user, light_and_sweet)."
+      ],
+      "referenceFacts": 8,
+      "modelFacts": 9,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 0.375,
+      "precision": 0.3333333333333333
+    },
+    {
+      "id": "43c487f2_1",
+      "reference": [
+        "enjoys_genre(user, psychological_thrillers).",
+        "finished_book(user, 'The Silent Patient').",
+        "interested_in_genre(user, self_improvement).",
+        "finished_book(user, 'The 7 Habits of Highly Effective People').",
+        "found_helpful(user, 'The 7 Habits of Highly Effective People').",
+        "interested_in_book(user, mindset).",
+        "interested_in_book(user, essentialism).",
+        "reads_daily(user, reading).",
+        "uses_app_for_tracking(user, reading_progress)."
+      ],
+      "model": [],
+      "referenceFacts": 9,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_201948",
+      "reference": [
+        "supports(user, creating_green_spaces_for_wildlife).",
+        "supports(user, promoting_conservation_efforts).",
+        "supports(user, appreciating_urban_wildlife).",
+        "supports(user, preserving_natural_habitats_during_urban_growth)."
+      ],
+      "model": [],
+      "referenceFacts": 4,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "1692563c_1",
+      "reference": [
+        "bbq_sauce_taste(user, too_sweet).",
+        "friend(user, alex).",
+        "dry_rub_origin(alex, his_grandfather).",
+        "wood_chip_plan(user, applewood).",
+        "smoking_plan(user, chicken_breasts).",
+        "restaurant_interest(user, smokeys).",
+        "location(smokeys, downtown).",
+        "brisket_reputation(smokeys, great).",
+        "visit_plan(user, smokeys).",
+        "visit_companions(user, friends).",
+        "recipe_request_plan(user, alex)."
+      ],
+      "model": [
+        "tried_making(user, bbq_sauce).",
+        "prefers_sauce_flavor(user, not_too_sweet).",
+        "had_ribs_at(user, alex).",
+        "ribs_were_slow_cooked(ribs, alex).",
+        "dry_rub_secret(dry_rub, alex).",
+        "grandfather_made(dry_rub, alex_grandfather).",
+        "craves(user, ribs).",
+        "plans_to_try(user, applewood_wood_chips).",
+        "plans_to_smoke(user, chicken_breasts).",
+        "plans_to_visit(user, smokey_s).",
+        "plans_to_visit_with(user, smokey_s, friends).",
+        "plans_to_ask(user, alex, dry_rub_recipe)."
+      ],
+      "referenceFacts": 11,
+      "modelFacts": 12,
+      "matchedReference": 5,
+      "matchedModel": 6,
+      "recall": 0.45454545454545453,
+      "precision": 0.5
+    },
+    {
+      "id": "sharegpt_Yp4QbCg_13",
+      "reference": [
+        "writing_style(user, high_perplexity_and_burstiness).",
+        "content_style(user, human_written).",
+        "content_length_preference(user, 150).",
+        "content_topic(user, particle_counters).",
+        "industry_context(user, industrial_scientific_and_medical_applications)."
+      ],
+      "model": [],
+      "referenceFacts": 5,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "cfd21744_2",
+      "reference": [
+        "has_item(user, silk_blouse).",
+        "purchased_from(silk_blouse, local_boutique).",
+        "has_item(user, cashmere_blend_cardigan).",
+        "wears_often(user, cashmere_blend_cardigan).",
+        "has_item(user, high_waisted_trousers).",
+        "purchased_from(high_waisted_trousers, zara).",
+        "has_item(user, black_ankle_boots).",
+        "purchased_from(black_ankle_boots, 'Sam Edelman').",
+        "wears_often(user, black_ankle_boots).",
+        "comfortable(black_ankle_boots).",
+        "has_item(user, thin_black_patent_leather_belt).",
+        "plans_to_wear(user, thin_black_patent_leather_belt)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "bcf96d28_3",
+      "reference": [
+        "planning_to_buy(user, house).",
+        "preapproved_with(user, bank_of_america).",
+        "mortgage_preapproval_amount(user, 425000).",
+        "has_partner(user, partner).",
+        "credit_rating(user, good).",
+        "credit_rating(partner, good).",
+        "offer_status(house, accepted).",
+        "planning_to_finalize(user, mortgage_application).",
+        "planning_to_paint(user, walls).",
+        "planning_to_replace(user, living_room_flooring).",
+        "backyard_feature(house, a_big_patio_area).",
+        "planning_to_add(user, a_garden_bed_or_two)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_475462",
+      "reference": [
+        "believes(user, staying_informed_and_engaged_is_important).",
+        "believes(user, humans_are_adaptable).",
+        "values(user, technology_for_staying_informed_and_connected).",
+        "values(user, balance_with_technology_use).",
+        "takes_breaks_from(user, phone).",
+        "takes_breaks_from(user, social_media)."
+      ],
+      "model": [],
+      "referenceFacts": 6,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "178844cf",
+      "reference": [
+        "plans_to_set_up(user, shrimp_tank).",
+        "tank_volume_gallons(shrimp_tank, 5).",
+        "prefers_substrate(user, gentle_on_my_cherry_shrimp).",
+        "wants_substrate_not_to_cause(user, dig_or_burrow_excessively)."
+      ],
+      "model": [],
+      "referenceFacts": 4,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_OmfGuWY_0",
+      "reference": [
+        "prefers(user, presuming_the_stance_of_my_opponent).",
+        "goal(user, test_my_ability_to_argue_different_points)."
+      ],
+      "model": [],
+      "referenceFacts": 2,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_228248",
+      "reference": [
+        "plans_to_freeze(user, applesauce).",
+        "prefers(user, applesauce_muffins).",
+        "made(user, applesauce_muffins).",
+        "likes(user, applesauce_muffins)."
+      ],
+      "model": [
+        "plans_to_try(user, applesauce_in_recipes).",
+        "plans_to_freeze(user, homemade_applesauce).",
+        "made(user, applesauce_muffins).",
+        "likes(user, applesauce_muffins).",
+        "plans_to_make(user, applesauce_muffins).",
+        "uses_for(applesauce_muffins, fall_breakfast)."
+      ],
+      "referenceFacts": 4,
+      "modelFacts": 6,
+      "matchedReference": 3,
+      "matchedModel": 4,
+      "recall": 0.75,
+      "precision": 0.6666666666666666
+    },
+    {
+      "id": "ultrachat_184780",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "3a5cdafc",
+      "reference": [
+        "class_level(first_cooking_class, beginner).",
+        "class_focus(first_cooking_class, italian_cuisine).",
+        "class_dish(first_cooking_class, spaghetti_bolognese).",
+        "class_day(first_cooking_class, weekday).",
+        "class_time(first_cooking_class, morning).",
+        "class_season(first_cooking_class, winter).",
+        "class_frequency(first_cooking_class, one_time).",
+        "class_location(first_cooking_class, local_culinary_school).",
+        "class_instructor(first_cooking_class, chef_maria).",
+        "tracks_in_spreadsheet(user, recipes).",
+        "tracks_in_spreadsheet(user, cooking_classes).",
+        "spreadsheet_purpose(user, meal_planning)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "d20bb5aa_2",
+      "reference": [
+        "likes(user, korean_bbq).",
+        "interested_in(user, korean_sausages).",
+        "plans_to_try(user, spicy_gochujang_sausage).",
+        "plans_to_try(user, kimchi_chorizo_sausage).",
+        "plans_to_try(user, vegan_kimchi).",
+        "plans_to_try(user, vegan_sausage_options).",
+        "plans_to_try(user, mochi_waffle_sandwich).",
+        "plans_to_try(user, patbingsu).",
+        "plans_to_try(user, sahara).",
+        "plans_to_try(user, mamas_kitchen).",
+        "learned_to_make(user, falafel).",
+        "learned_to_make(user, shawarma)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "765ce8a7_2",
+      "reference": [
+        "music_preference(user, alternative_rock).",
+        "music_preference(user, energetic_upbeat_music).",
+        "open_to_discovering(user, new_artists).",
+        "interested_in(user, 'Imagine Dragons').",
+        "interested_in(user, 'The Black Keys')."
+      ],
+      "model": [
+        "interested_in(user, new_music).",
+        "interested_in(user, alternative_rock).",
+        "likes(user, energetic_upbeat_music).",
+        "interested_in(user, imagine_dragons).",
+        "interested_in(user, the_black_keys).",
+        "interested_in(user, live_music_events).",
+        "attended(user, bruno_mars_show).",
+        "show_location(bruno_mars_show, arena).",
+        "show_experience(user, incredible).",
+        "show_energy(bruno_mars_show, electric)."
+      ],
+      "referenceFacts": 5,
+      "modelFacts": 10,
+      "matchedReference": 4,
+      "matchedModel": 4,
+      "recall": 0.8,
+      "precision": 0.4
+    },
+    {
+      "id": "sharegpt_GrOzRFW_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "59a6150d_4",
+      "reference": [
+        "attended_workshop(user, birding_workshop).",
+        "workshop_organization(birding_workshop, 'local Audubon Society').",
+        "observed_bird_size(user, 'about the size of a Robin').",
+        "observed_bird_belly_color(user, more_of_a_golden_tone).",
+        "observed_bird_eye_ring(user, distinctive_white_eye_ring).",
+        "observed_bird_foraging_location(user, on_the_ground).",
+        "observed_bird_tail_length(user, relatively_long_compared_to_its_body).",
+        "journal_format(user, digital).",
+        "planned_trip(user, 'Costa Rica').",
+        "flights_booked_for(user, 'Costa Rica').",
+        "accommodations_booked_for(user, 'Costa Rica').",
+        "considering_guided_tour(user, 'Costa Rica')."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "4cef8a3c_3",
+      "reference": [
+        "interested_in(user, volunteer_opportunities).",
+        "interested_in(user, food_banks_and_pantries).",
+        "volunteered_at(user, church_holiday_food_drive).",
+        "performed_activity(user, sorting_donations).",
+        "performed_activity(user, packing_boxes).",
+        "food_drive_date(church_holiday_food_drive, december_10).",
+        "found_rewarding(user, church_holiday_food_drive).",
+        "interested_in(user, programs_serving_families_with_children).",
+        "interested_in(user, backpack_programs).",
+        "interested_in(user, summer_programs).",
+        "interested_in(user, mentorship_and_counseling_services)."
+      ],
+      "model": [
+        "interested_in(user, food_banks).",
+        "interested_in(user, pantries).",
+        "interested_in(user, food_bank_programs_for_families_with_children).",
+        "interested_in(user, backpack_programs).",
+        "interested_in(user, summer_programs).",
+        "interested_in(user, mentorship_and_counseling_services)."
+      ],
+      "referenceFacts": 11,
+      "modelFacts": 6,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 0.2727272727272727,
+      "precision": 0.5
+    },
+    {
+      "id": "a1714d2c_2",
+      "reference": [
+        "improving_skill(user, english).",
+        "attends(user, language_classes).",
+        "attends(user, cultural_orientation_sessions).",
+        "sibling(user, brother).",
+        "escaped_country(user, home_country).",
+        "escaped_country(brother, home_country).",
+        "located_in(user, refugee_camp).",
+        "attends(brother, skills_training_sessions).",
+        "volunteers_at(brother, camp_community_center).",
+        "interested_in(user, volunteer_work).",
+        "wants_to_give_back(user, community).",
+        "improving_skill(user, english_listening)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "04d9d56f_1",
+      "reference": [
+        "plans_to_give(user, customized_coffee_mug).",
+        "gift_for(customized_coffee_mug, coworker).",
+        "gift_message(customized_coffee_mug, 'Thanks for being an amazing colleague!').",
+        "gift_design(customized_coffee_mug, functional_and_sentimental).",
+        "plans_to_check_preview(user, customized_coffee_mug).",
+        "plans_to_add_icon(user, customized_coffee_mug).",
+        "gift_for(silver_necklace, best_friend).",
+        "gift_cost_approximately_usd(silver_necklace, 70).",
+        "wants_to_track(user, gift_expenses)."
+      ],
+      "model": [],
+      "referenceFacts": 9,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "3159942d_2",
+      "reference": [
+        "planning(user, garden_party).",
+        "first_sprouts_emerged(plants, 'March 5th').",
+        "length_feet(raised_bed, 8).",
+        "width_feet(raised_bed, 4).",
+        "height_feet(raised_bed, 3).",
+        "invited_guest_min(garden_party, 10).",
+        "invited_guest_max(garden_party, 12).",
+        "serving_at(garden_party, garden_fresh_appetizers).",
+        "serving_at(garden_party, drinks).",
+        "planning(user, herb_station).",
+        "planning(user, photo_stations)."
+      ],
+      "model": [
+        "raised_bed_length_feet(raised_bed, 8).",
+        "raised_bed_width_feet(raised_bed, 4).",
+        "raised_bed_height_feet(raised_bed, 3).",
+        "garden_party_guest_count_range(garden_party, '10-12').",
+        "garden_party_appetizer_type(garden_party, garden_fresh).",
+        "garden_party_drink_type(garden_party, garden_fresh).",
+        "garden_party_feature(garden_party, herb_station).",
+        "garden_party_feature(garden_party, photo_station).",
+        "garden_party_backdrop(garden_party, garden)."
+      ],
+      "referenceFacts": 11,
+      "modelFacts": 9,
+      "matchedReference": 9,
+      "matchedModel": 9,
+      "recall": 0.8181818181818182,
+      "precision": 1
+    },
+    {
+      "id": "be9d6307_1",
+      "reference": [
+        "participated_in(user, walk_for_hunger).",
+        "event_location(walk_for_hunger, local_park).",
+        "city(user, springfield).",
+        "prefers_activity_difficulty(user, challenging).",
+        "wants_activity_variety(user, outdoor_activities).",
+        "interested_in(user, mount_tom_state_reservation).",
+        "plans_to_visit(user, the_dam_cafe).",
+        "location(the_dam_cafe, holyoke).",
+        "considering_requesting_support(user, the_dam_cafe).",
+        "support_target(user, walk_for_hunger)."
+      ],
+      "model": [],
+      "referenceFacts": 10,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ee221574",
+      "reference": [
+        "interested_in(user, hiking).",
+        "plans_to_try(user, alltrails).",
+        "interested_in(user, connecting_with_people).",
+        "heard_of(user, meetup).",
+        "has_not_tried(user, meetup).",
+        "plans_to_try(user, meetup)."
+      ],
+      "model": [
+        "plans_to_try(user, alltrails).",
+        "plans_to_try(user, meetup).",
+        "plans_to_connect_with(user, people_with_similar_hiking_interests)."
+      ],
+      "referenceFacts": 6,
+      "modelFacts": 3,
+      "matchedReference": 4,
+      "matchedModel": 2,
+      "recall": 0.6666666666666666,
+      "precision": 0.6666666666666666
+    },
+    {
+      "id": "sharegpt_h10ilNn_0",
+      "reference": [
+        "recipe_instructions_style(user, without_proportions).",
+        "recipe_calories_requirement(user, include_calories).",
+        "recipe_format(user, dish_name_ingredients_preparation_time_calories_preparation_instructions)."
+      ],
+      "model": [],
+      "referenceFacts": 3,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "55a6940c_1",
+      "reference": [
+        "primary_care_physician(user, 'Dr. Smith').",
+        "diagnosed_with(user, uti).",
+        "prescribed_antibiotics_for(user, uti).",
+        "diagnosed_with(user, chronic_sinusitis).",
+        "diagnosed_by(user, chronic_sinusitis, 'ENT specialist')."
+      ],
+      "model": [],
+      "referenceFacts": 5,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_447398",
+      "reference": [
+        "interested_in(user, pilgrimage_sites)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_qEukY6n_14",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_s2CbGuL_0",
+      "reference": [
+        "preferred_platform(user, 'wave.video')."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "de47d59b_1",
+      "reference": [
+        "attended_film_festival(user, toronto_international_film_festival).",
+        "watched_film(user, 'The French Dispatch').",
+        "watched_film(user, dune).",
+        "films_watched_at(user, toronto_international_film_festival, 12).",
+        "film_stood_out_to(user, 'The French Dispatch').",
+        "film_stood_out_to(user, dune).",
+        "attended_panel(user, film_criticism).",
+        "volunteered_at(user, tiff_bell_lightbox).",
+        "performed_volunteer_duty(user, crowd_control).",
+        "performed_volunteer_duty(user, attendee_questions).",
+        "received_festival_voucher(user, toronto_international_film_festival).",
+        "used_voucher_for_screening(user, 'The Lost Daughter')."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "c51572bb_2",
+      "reference": [
+        "interested_in(user, watercolor_painting).",
+        "interested_in(user, glazing).",
+        "started_using(user, new_art_journal)."
+      ],
+      "model": [],
+      "referenceFacts": 3,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_naopDKi_27",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_DDC4OYu_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "0826def6_1",
+      "reference": [
+        "project_topic(user, ancient_civilizations).",
+        "saw_replica(user, tutankhamun_golden_mask).",
+        "took_photos(user, tutankhamun_golden_mask_replica).",
+        "interested_in(user, tutankhamun_military_campaigns).",
+        "interested_in(user, tutankhamun_art_and_architecture).",
+        "interested_in(user, tomb_kv62).",
+        "interested_in(user, tutankhamun_tomb_treasures)."
+      ],
+      "model": [
+        "interested_in(user, ancient_civilizations).",
+        "plans_to_work_on(user, ancient_civilizations_project).",
+        "saw_replica(user, golden_mask).",
+        "took_photos(user, golden_mask).",
+        "interested_in(user, pharaoh_tutankhamun).",
+        "interested_in(user, pharaoh_tutankhamun_military_campaigns).",
+        "interested_in(user, pharaoh_tutankhamun_art_and_architecture).",
+        "interested_in(user, tomb_kv62).",
+        "interested_in(user, tomb_treasures)."
+      ],
+      "referenceFacts": 7,
+      "modelFacts": 9,
+      "matchedReference": 2,
+      "matchedModel": 2,
+      "recall": 0.2857142857142857,
+      "precision": 0.2222222222222222
+    },
+    {
+      "id": "ultrachat_128882",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_WJ7F2cN_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "88ad913f_2",
+      "reference": [
+        "planning_trip(user, willow_springs_international_raceway).",
+        "trip_destination_state(willow_springs_international_raceway, california).",
+        "trip_purpose(user, auto_racing_event).",
+        "vehicle_tire_type(user, high_performance_tires).",
+        "route_preference(user, suitable_for_high_performance_driving).",
+        "event_date(auto_racing_event, may_1).",
+        "event_date(auto_racing_event, may_2).",
+        "practice_goal(user, heel_toe_downshifting).",
+        "practice_goal(user, threshold_braking).",
+        "practice_goal(user, smooth_gradual_braking).",
+        "practice_goal(user, smooth_deliberate_shifting)."
+      ],
+      "model": [
+        "plans_road_trip(user, willow_springs_international_raceway).",
+        "road_trip_destination(user, willow_springs_international_raceway).",
+        "road_trip_state(user, california).",
+        "road_trip_event(user, auto_racing_event).",
+        "car_tire_type(user, high_performance_tires).",
+        "car_tire_design(user, high_performance_driving).",
+        "analyzes_performance_data(user, digital_logger).",
+        "practices_shifting_technique(user, heel_toe_downshifting).",
+        "practices_braking_technique(user, threshold_braking).",
+        "focuses_on_braking_technique(user, smooth_gradual_brake_application)."
+      ],
+      "referenceFacts": 11,
+      "modelFacts": 10,
+      "matchedReference": 8,
+      "matchedModel": 7,
+      "recall": 0.7272727272727273,
+      "precision": 0.7
+    },
+    {
+      "id": "ultrachat_222974",
+      "reference": [
+        "musician(user).",
+        "has_band(user, band).",
+        "upcoming_gig(band, gig)."
+      ],
+      "model": [
+        "musician(user, user).",
+        "band_member(user, user).",
+        "considering_creating(user, street_team).",
+        "street_team_purpose(user, upcoming_gig)."
+      ],
+      "referenceFacts": 3,
+      "modelFacts": 4,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "f4593853_3",
+      "reference": [
+        "hosts(user, dinner_party).",
+        "dinner_party_theme(dinner_party, japanese_inspired).",
+        "dinner_party_timing(dinner_party, next_month).",
+        "plans_to_make(user, sushi).",
+        "plans_to_serve(user, edamame).",
+        "plans_to_serve(user, gyoza).",
+        "plans_to_make(user, maki_rolls).",
+        "plans_to_make(user, nigiri).",
+        "plans_to_serve(user, junmai_sake).",
+        "plans_to_serve(user, mochi_ice_cream).",
+        "plans_to_serve(user, daifuku)."
+      ],
+      "model": [
+        "hosting(user, japanese_inspired_dinner_party).",
+        "craves(user, japanese_food).",
+        "plans_to_make(user, edamame).",
+        "plans_to_make(user, gyoza).",
+        "plans_to_make(user, maki_rolls).",
+        "plans_to_make(user, nigiri).",
+        "plans_to_serve(user, sake).",
+        "chose_sake(user, junmai_sake).",
+        "chose_dessert(user, mochi_ice_cream).",
+        "chose_dessert(user, daifuku)."
+      ],
+      "referenceFacts": 11,
+      "modelFacts": 10,
+      "matchedReference": 7,
+      "matchedModel": 7,
+      "recall": 0.6363636363636364,
+      "precision": 0.7
+    },
+    {
+      "id": "ultrachat_312820",
+      "reference": [
+        "child_has_disability(user, child).",
+        "plans_to_research(user, child_disability).",
+        "plans_to_attend(user, workshops).",
+        "advocacy_concern(user, child_needs)."
+      ],
+      "model": [
+        "plans_to_research_online(user, child_disability).",
+        "plans_to_attend_workshops(user, child_disability)."
+      ],
+      "referenceFacts": 4,
+      "modelFacts": 2,
+      "matchedReference": 1,
+      "matchedModel": 2,
+      "recall": 0.25,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_8664",
+      "reference": [
+        "plans_to_scale(user, business)."
+      ],
+      "model": [
+        "plans_to_scale(user, business)."
+      ],
+      "referenceFacts": 1,
+      "modelFacts": 1,
+      "matchedReference": 1,
+      "matchedModel": 1,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_NzEB05Q_5",
+      "reference": [
+        "restaurant_city_preference(user, taipei).",
+        "restaurant_newness_preference(user, new_and_fresh).",
+        "restaurant_cuisine_preference(user, taiwanese).",
+        "restaurant_exclusion(user, michelin_restaurants).",
+        "restaurant_exclusion(user, fusion_restaurants)."
+      ],
+      "model": [],
+      "referenceFacts": 5,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_Y9mbtnD_0",
+      "reference": [],
+      "model": [
+        "os_installation_method(user, nixos).",
+        "os_installation_tool(user, nix).",
+        "os_configuration_language(user, nix_expression_language).",
+        "os_configuration_tool(user, nix_build).",
+        "os_ssl_certificate_generation_tool(user, oc_adm)."
+      ],
+      "referenceFacts": 0,
+      "modelFacts": 5,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_166255",
+      "reference": [
+        "fascinated_by(user, 'how different countries excel in different sports at the Winter Olympics')."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_3LFnGjR_0",
+      "reference": [
+        "interested_in(user, 'Monte Carlo integration').",
+        "interested_in(user, 'C++').",
+        "interested_in(user, python)."
+      ],
+      "model": [],
+      "referenceFacts": 3,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_371339",
+      "reference": [
+        "plans_to_compare(user, event_platforms).",
+        "plans_to_select(user, event_platform)."
+      ],
+      "model": [
+        "plans_to_check(user, online_event_platforms).",
+        "plans_to_compare(user, online_event_platforms)."
+      ],
+      "referenceFacts": 2,
+      "modelFacts": 2,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "d68838d0_2",
+      "reference": [
+        "wants_detailed_provenance_record(user, future_generations).",
+        "item_type(vase, hand_painted_chinese_vase).",
+        "era(vase, qing_dynasty).",
+        "acquired_from(vase, countryside_antique_fair).",
+        "purchase_price_dollars(vase, 800).",
+        "item_type(rolex_watch, vintage_rolex_watch).",
+        "year(rolex_watch, 1967).",
+        "inherited_from(rolex_watch, grandfather).",
+        "title(please_please_me_record, 'Please Please Me').",
+        "artist(please_please_me_record, 'The Beatles').",
+        "found_at(please_please_me_record, city_thrift_store).",
+        "inherited_from(vintage_brooch_collection, great_aunt)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_cXkL3cR_28",
+      "reference": [
+        "name(user, 'JR').",
+        "role(user, senior_pastor).",
+        "serves_at(user, westshore_christian_church).",
+        "hosted_outreach_event(user, church).",
+        "mother_death_date(mom, 'August 11, 2020').",
+        "cause_of_death(mom, heart_attack).",
+        "diagnosed_with(mom, cancer).",
+        "has_son(user, zach).",
+        "writing_style(user, conversational_compassion).",
+        "plans_to_write(user, book_on_grief).",
+        "dedication_target(book_on_grief, mom)."
+      ],
+      "model": [],
+      "referenceFacts": 11,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "6de8645d_1",
+      "reference": [
+        "desired_wake_time(user, weekdays, '7:15 am').",
+        "desired_wake_time(user, weekends, '8:00 am').",
+        "usual_bedtime(user, '11:00 pm').",
+        "usual_wake_time(user, weekdays, '7:15 am').",
+        "weekend_wake_time(user, varies).",
+        "woke_at(user, 'previous Saturday', '7:30 am').",
+        "woke_at(user, 'last Saturday', '9:30 am').",
+        "morning_habit(user, drink_a_glass_of_water).",
+        "morning_habit(user, do_some_light_stretching).",
+        "morning_habit(user, read_the_news).",
+        "news_reading_duration(user, '15-20 minutes').",
+        "previous_weekday_wake_time(user, '8:30 am')."
+      ],
+      "model": [
+        "wake_time_weekdays(user, '7:15 am').",
+        "wake_time_weekends(user, '8:00 am').",
+        "bedtime(user, '11:00 pm').",
+        "bedtime_adjustment_plan(user, '15 minutes earlier').",
+        "morning_activity(user, drink_a_glass_of_water).",
+        "morning_activity(user, light_stretching).",
+        "morning_activity(user, read_the_news).",
+        "morning_activity_duration(user, '15-20 minutes').",
+        "bedtime_routine_goal(user, relaxing_activities).",
+        "waking_up_naturally(user, weekends).",
+        "waking_up_naturally(user, weekdays)."
+      ],
+      "referenceFacts": 12,
+      "modelFacts": 11,
+      "matchedReference": 7,
+      "matchedModel": 8,
+      "recall": 0.5833333333333334,
+      "precision": 0.7272727272727273
+    },
+    {
+      "id": "bf3aebdb_2",
+      "reference": [
+        "has_card(user, amazon_rewards_visa_card).",
+        "has_rewards_points(user, amazon_rewards_visa_card).",
+        "received_coupon(user, amazon).",
+        "coupon_delivery_method(amazon_coupon, email).",
+        "prefers_more_offers(user, amazon)."
+      ],
+      "model": [
+        "plans_to_make_purchase(user, amazon).",
+        "received_coupon_in(user, email).",
+        "coupon_received_before(user, march_15).",
+        "hopes_to_receive_future_offers(user, amazon).",
+        "has_card(user, amazon_rewards_visa).",
+        "can_combine_coupon_and_cashback(user, amazon_rewards_visa).",
+        "can_redeem_points_for_statement_credit(user, amazon_rewards_visa).",
+        "can_redeem_points_for_amazon_gift_card(user, amazon_rewards_visa).",
+        "can_use_statement_credit_for_future_purchases(user, amazon_rewards_visa).",
+        "can_earn_points_at_other_merchants(user, amazon_rewards_visa)."
+      ],
+      "referenceFacts": 5,
+      "modelFacts": 10,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 0.6,
+      "precision": 0.3
+    },
+    {
+      "id": "d7ca6bea_1",
+      "reference": [
+        "attended_workshop(user, suspension_tuning).",
+        "workshop_event(suspension_tuning_workshop, 'Auto Racking Championship').",
+        "event_location('Auto Racking Championship', las_vegas).",
+        "practiced_drifting(user, local_track).",
+        "increased_confidence(user, drifting).",
+        "plans_to_attend(user, 'Regional Drifting Championship').",
+        "working_on(user, drifting_skills).",
+        "struggles_with(user, throttle_control).",
+        "struggles_with(user, drifting_transitions).",
+        "struggles_with(user, maintaining_consistent_speed).",
+        "interested_in(user, suspension_tuning).",
+        "seeks_to_improve(user, car_stability)."
+      ],
+      "model": [
+        "attended_workshop(user, suspension_tuning).",
+        "workshop_location(user, las_vegas).",
+        "attended_event(user, auto_racking_championship).",
+        "practiced_drifting(user, local_track).",
+        "plans_to_attend(user, regional_drifting_championship).",
+        "struggles_with(user, throttle_control).",
+        "struggles_with(user, transitions).",
+        "struggles_with(user, speed_management).",
+        "considers_car_setup(user, drifting)."
+      ],
+      "referenceFacts": 12,
+      "modelFacts": 9,
+      "matchedReference": 8,
+      "matchedModel": 7,
+      "recall": 0.6666666666666666,
+      "precision": 0.7777777777777778
+    },
+    {
+      "id": "c8c3892a_1",
+      "reference": [
+        "phone_model(user, iphone_12).",
+        "stand_design_preference(user, minimalist).",
+        "stand_use_location(user, home).",
+        "stand_preference(user, sturdy).",
+        "stand_size_preference(user, compact).",
+        "stand_budget_dollars(user, 20).",
+        "selected_phone_stand(user, 'Anker Ultra-Compact Phone Stand').",
+        "considering_accessory(user, 'Anker Screen Cleaning Kit').",
+        "has_screen_protector(user, iphone_12).",
+        "owns_accessory(user, portable_power_bank).",
+        "power_bank_usefulness(user, helpful).",
+        "storage_cleanup_activity(user, deleting_old_photos_and_videos)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_242238",
+      "reference": [
+        "interested_in(user, becoming_a_flight_attendant)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_xVETKi0_9",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_510178",
+      "reference": [
+        "interested_in(user, 'Holden''s rejection of societal norms').",
+        "believes(user, 'Holden''s rejection of conformity is not really helping him find a sense of belonging')."
+      ],
+      "model": [],
+      "referenceFacts": 2,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_325209",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "4152811a_1",
+      "reference": [
+        "exercise_routine_day(user, monday).",
+        "exercise_routine_day(user, wednesday).",
+        "exercise_routine_day(user, friday).",
+        "exercise_routine_time(user, morning).",
+        "cooking_session_day(user, thursday).",
+        "cooking_session_time(user, night).",
+        "calendar_type_for_cooking_reminder(user, digital_calendar).",
+        "meal_planning_day(user, sunday).",
+        "grocery_list_day(user, sunday).",
+        "meal_plan_includes(user, thursday_dinner).",
+        "meal_planning_style(user, theme_nights).",
+        "meal_planning_flexibility(user, flexible)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_146066",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "5a4c6387",
+      "reference": [
+        "vinaigrette_choice(user, lime_cilantro_vinaigrette).",
+        "cookbook_focus(cookbook, global_cuisine).",
+        "cookbook_gifted_by(cookbook, friend).",
+        "meal_prep_day(user, sunday).",
+        "meal_prep_batch_includes(user, rice).",
+        "meal_prep_batch_includes(user, quinoa).",
+        "meal_prep_benefit(user, reducing_food_waste).",
+        "meal_prep_benefit(user, reducing_stress).",
+        "meal_prep_benefit(user, saving_time).",
+        "diet_preference(user, more_plant_based).",
+        "cooking_technique_experiment(user, sous_vide).",
+        "cooking_technique_experiment(user, air_frying)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "26eedae1_2",
+      "reference": [
+        "owns(user, airbrush).",
+        "owns(user, compressor).",
+        "building_project(user, p_51_mustang).",
+        "scale(p_51_mustang, '1/48').",
+        "chose(user, vallejo_model_color_usaaf_set)."
+      ],
+      "model": [
+        "owns(user, airbrush).",
+        "owns(user, compressor).",
+        "plans_to_build(user, '1/48 scale P-51 Mustang').",
+        "plans_to_use(user, vallejo_model_color).",
+        "plans_to_use(user, vallejo_model_color_usaaf_set).",
+        "plans_to_thin(user, paints)."
+      ],
+      "referenceFacts": 5,
+      "modelFacts": 6,
+      "matchedReference": 3,
+      "matchedModel": 3,
+      "recall": 0.6,
+      "precision": 0.5
+    },
+    {
+      "id": "ultrachat_256330",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_bdOsvAI_18",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "f8e8d445_4",
+      "reference": [
+        "attended_workshop(user, writing_workshop).",
+        "workshop_venue(writing_workshop, local_bookstore).",
+        "workshop_focus(writing_workshop, memoirs).",
+        "workshop_helped_with(writing_workshop, writing_structure).",
+        "prefers_freewriting_prompts(user, freewriting).",
+        "experimenting_with_writing_form(user, haikus).",
+        "experimenting_with_writing_form(user, free_verse).",
+        "writing_project(user, childhood_essay_series).",
+        "interested_in_writing_technique(user, sensory_details)."
+      ],
+      "model": [
+        "attended_workshop(user, writing_memoirs).",
+        "workshop_location(user, local_bookstore).",
+        "workshop_helpfulness(user, helpful).",
+        "workshop_focus(user, memoirs).",
+        "writing_goal(user, series_of_essays_about_childhood).",
+        "writing_style_experimentation(user, haikus).",
+        "writing_style_experimentation(user, free_verse).",
+        "writing_goal(user, use_sensory_details).",
+        "writing_goal(user, vivid_language_and_imagery)."
+      ],
+      "referenceFacts": 9,
+      "modelFacts": 9,
+      "matchedReference": 4,
+      "matchedModel": 4,
+      "recall": 0.4444444444444444,
+      "precision": 0.4444444444444444
+    },
+    {
+      "id": "sharegpt_rraH1Q7_0",
+      "reference": [
+        "company(eko, company).",
+        "helps(eko, businesses).",
+        "supports(eko, online_physical_product_representation).",
+        "provides(eko, interactive_videos).",
+        "provides(eko, interactive_assembly_guides).",
+        "provides(eko, interactive_360_degree_videos).",
+        "improves(eko, engagement).",
+        "improves(eko, conversion).",
+        "retailer(rei, large_retailer).",
+        "sells(rei, outdoor_apparel).",
+        "sells(rei, outdoor_gear).",
+        "serves(rei, nature_enthusiasts)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "e8de3056_2",
+      "reference": [
+        "plans_to_attend(user, salsa_festival).",
+        "attends_classes(user, salsa).",
+        "instructor_of(maria, user).",
+        "provides_personalized_feedback(maria, user).",
+        "provides_encouragement(maria, user).",
+        "follows(user, 'SalsaWithSarah').",
+        "likes(user, 'SalsaWithSarah').",
+        "practices(user, footwork_exercises).",
+        "practices_in_front_of(user, mirror).",
+        "improving(user, turns).",
+        "friend_of(user, emily).",
+        "plans_to_take_class_with(user, emily)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_172276",
+      "reference": [
+        "interest(user, affordable_housing_and_homelessness_strategies)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_g6686PS_0",
+      "reference": [
+        "prefers_table_columns(user, perspective_summary)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_44465",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "723bf11f",
+      "reference": [
+        "breed(max, golden_retriever).",
+        "likes(max, peanut_butter).",
+        "flea_tick_prevention_interval(max, every_two_weeks).",
+        "toy_choice(max, kong_toy).",
+        "collar_brand(max, yellow_dog_design).",
+        "collar_material(max, nylon).",
+        "name_tag_type(max, engraved)."
+      ],
+      "model": [
+        "dog_breed(max, golden_retriever).",
+        "prefers_toy(max, kong_toy).",
+        "likes_treat(max, peanut_butter).",
+        "plans_to_buy(user, yellow_dog_design_nylon_collar).",
+        "plans_to_buy(user, engraved_name_tag)."
+      ],
+      "referenceFacts": 7,
+      "modelFacts": 5,
+      "matchedReference": 7,
+      "matchedModel": 3,
+      "recall": 1,
+      "precision": 0.6
+    },
+    {
+      "id": "ultrachat_332885",
+      "reference": [
+        "cleric_domain(user, war).",
+        "cleric_playstyle(user, close_combat).",
+        "cleric_playstyle(user, aggressive).",
+        "cleric_roleplay_theme(user, doubts_about_faith).",
+        "cleric_roleplay_theme(user, doubts_about_purpose)."
+      ],
+      "model": [
+        "wants_to_play(user, war_domain).",
+        "wants_character_to_be(user, more_than_just_a_healer_or_fighter).",
+        "wants_character_to_have(user, doubts_about_their_faith_and_purpose)."
+      ],
+      "referenceFacts": 5,
+      "modelFacts": 3,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "5fe4d2ee_2",
+      "reference": [
+        "likes_storage_option(user, stackable_containers).",
+        "likes(user, new_palette).",
+        "wardrobe_goal(user, minimalist_wardrobe).",
+        "prefers_clothing(user, high_quality_pieces).",
+        "prefers_clothing(user, versatile_pieces).",
+        "prefers_clothing(user, timeless).",
+        "values_clothing_attribute(user, comfortable).",
+        "plans_to_sort_clothing_into(user, keep).",
+        "plans_to_sort_clothing_into(user, 'donate/sell').",
+        "plans_to_sort_clothing_into(user, discard).",
+        "plans_to_track_wardrobe_with(user, spreadsheet).",
+        "wants_to_remove_from_wardrobe(user, trendy_or_impulse_buys)."
+      ],
+      "model": [
+        "likes(user, stackable_containers).",
+        "donated(user, three_old_sweaters, goodwill).",
+        "keeps(user, items_that_I_truly_love_and_wear_regularly).",
+        "wardrobe_style(user, minimalist).",
+        "wardrobe_focus(user, high_quality_versatile_pieces).",
+        "wardrobe_goal(user, timeless_and_make_me_feel_confident_and_comfortable).",
+        "wardrobe_inventory(user, spreadsheet)."
+      ],
+      "referenceFacts": 12,
+      "modelFacts": 7,
+      "matchedReference": 2,
+      "matchedModel": 2,
+      "recall": 0.16666666666666666,
+      "precision": 0.2857142857142857
+    },
+    {
+      "id": "d048ae4b_2",
+      "reference": [
+        "owned_since(user, tripod, 2018).",
+        "condition(tripod, great).",
+        "care_for(user, tripod).",
+        "model(tripod, manfrotto_befree).",
+        "friend(user, rachel).",
+        "used_on(rachel, camera_body, mountain_trip).",
+        "list_separately(user, camera_body).",
+        "mention_available(user, tripod, camera_listing).",
+        "test_interest_in_bundle(user, camera_body_and_tripod_bundle)."
+      ],
+      "model": [],
+      "referenceFacts": 9,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_nzDNOrq_29",
+      "reference": [
+        "proposal_focus(proposal, unity).",
+        "proposal_focus(proposal, celebrating_heritage).",
+        "proposal_focus(proposal, wellness).",
+        "proposal_focus(proposal, family).",
+        "proposal_focus(proposal, youth).",
+        "proposal_emphasis(proposal, phygital_experience).",
+        "proposal_emphasis(proposal, chinese_culture)."
+      ],
+      "model": [
+        "installation_theme(art_installation, unity).",
+        "installation_theme(art_installation, celebrating_heritage).",
+        "installation_theme(art_installation, wellness).",
+        "installation_theme(art_installation, family).",
+        "installation_theme(art_installation, youth).",
+        "installation_theme(art_installation, chinese_culture).",
+        "installation_experience_type(art_installation, phygital)."
+      ],
+      "referenceFacts": 7,
+      "modelFacts": 7,
+      "matchedReference": 6,
+      "matchedModel": 6,
+      "recall": 0.8571428571428571,
+      "precision": 0.8571428571428571
+    },
+    {
+      "id": "9f8fa5e4_5",
+      "reference": [
+        "plans_dish(user, grilled_tomato_avocado_salsa).",
+        "plans_dish(user, smoky_tomato_bbq_sauce).",
+        "plans_dish(user, cucumber_feta_tzatziki_sauce).",
+        "grows(user, tomatoes).",
+        "grows(user, cucumbers).",
+        "grows(user, dill).",
+        "has_supply(user, fresh_produce).",
+        "interested_in(user, experimenting_with_herbs_and_flavors)."
+      ],
+      "model": [
+        "plans_to_try(user, grilled_tomato_and_avocado_salsa).",
+        "plans_to_try(user, smoky_tomato_bbq_sauce).",
+        "plans_to_use(user, fresh_cucumbers).",
+        "plans_to_use(user, fresh_dill).",
+        "gardens(user, fresh_produce).",
+        "gardens(user, fresh_herbs).",
+        "gardens(user, fresh_cucumbers).",
+        "gardens(user, fresh_dill).",
+        "plans_to_make(user, cucumber_and_feta_tzatziki_sauce).",
+        "plans_to_experiment_with(user, herbs_and_flavors)."
+      ],
+      "referenceFacts": 8,
+      "modelFacts": 10,
+      "matchedReference": 2,
+      "matchedModel": 2,
+      "recall": 0.25,
+      "precision": 0.2
+    },
+    {
+      "id": "d9e0c03e",
+      "reference": [
+        "kayaking_day(user, saturday).",
+        "breakfast_plan(user, scrambled_eggs_and_toast).",
+        "breakfast_day(user, saturday).",
+        "laundry_day(user, sunday).",
+        "purchase_needed(user, milk).",
+        "purchase_needed(user, bread).",
+        "desk_organization_day(user, sunday).",
+        "paper_sorting_day(user, sunday).",
+        "morning_person_status(user, not_a_morning_person).",
+        "target_bedtime(user, '11 pm')."
+      ],
+      "model": [
+        "plans_to_try(user, kayaking).",
+        "plans_to_make(user, scrambled_eggs_and_toast).",
+        "plans_to_do(user, laundry).",
+        "plans_to_buy(user, milk).",
+        "plans_to_buy(user, bread).",
+        "plans_to_organize(user, desk).",
+        "plans_to_sort(user, papers).",
+        "plans_to_establish(user, better_bedtime_routine).",
+        "bedtime_goal(user, '11 pm')."
+      ],
+      "referenceFacts": 10,
+      "modelFacts": 9,
+      "matchedReference": 4,
+      "matchedModel": 4,
+      "recall": 0.4,
+      "precision": 0.4444444444444444
+    },
+    {
+      "id": "32d11490",
+      "reference": [
+        "interested_in(user, wire_wrapping).",
+        "interested_in(user, jewelry_making).",
+        "has_taken_class(user, wire_wrapping).",
+        "interested_in(user, filigree_pendant).",
+        "has_wire(user, '20_gauge_copper_wire').",
+        "plans_to_try(user, '20_gauge_copper_wire_for_filigree')."
+      ],
+      "model": [],
+      "referenceFacts": 6,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_1052",
+      "reference": [
+        "values_inclusive_wellness_programs(user, wellness_programs).",
+        "likes_setting_goals(user, wellness_program).",
+        "likes_offering_incentives(user, wellness_program).",
+        "likes_incentive(user, extra_time_off).",
+        "likes_incentive(user, gift_card).",
+        "likes_incentive(user, healthy_office_snacks)."
+      ],
+      "model": [
+        "plans_to_suggest(user, wellness_program_suggestions).",
+        "values(user, inclusive_wellness_programs).",
+        "values(user, wellness_program_goals).",
+        "values(user, wellness_program_incentives).",
+        "values(user, healthy_office_snacks)."
+      ],
+      "referenceFacts": 6,
+      "modelFacts": 5,
+      "matchedReference": 1,
+      "matchedModel": 1,
+      "recall": 0.16666666666666666,
+      "precision": 0.2
+    },
+    {
+      "id": "ultrachat_71299",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_428261",
+      "reference": [
+        "prefers(user, soap).",
+        "wants(user, pan_to_be_clean).",
+        "wants(user, not_spend_a_lot_of_time_cleaning).",
+        "indifferent_to(user, seasoning).",
+        "indifferent_to(user, rust_resistance)."
+      ],
+      "model": [
+        "prefers_cleaning_method(user, soap).",
+        "values_ease_of_cleaning(user, cast_iron_pan).",
+        "does_not_care_about(user, cast_iron_pan_seasoning).",
+        "does_not_care_about(user, cast_iron_pan_rust_resistance).",
+        "wants_quick_cleaning_method(user, cast_iron_pan).",
+        "wants_to_avoid_cleaning_effort(user, cast_iron_pan).",
+        "wants_to_use_pan_without_cleaning(user, cast_iron_pan)."
+      ],
+      "referenceFacts": 5,
+      "modelFacts": 7,
+      "matchedReference": 1,
+      "matchedModel": 1,
+      "recall": 0.2,
+      "precision": 0.14285714285714285
+    },
+    {
+      "id": "8c25f527",
+      "reference": [
+        "owns(user, antique_silver_locket).",
+        "owns(user, limited_edition_vinyl_record).",
+        "owns(user, vintage_embroidered_denim_jacket).",
+        "record_is_of_album(limited_edition_vinyl_record, debut_album).",
+        "record_edition_size(limited_edition_vinyl_record, 500).",
+        "record_edition_scope(limited_edition_vinyl_record, worldwide).",
+        "preordered(user, limited_edition_vinyl_record).",
+        "display_location(limited_edition_vinyl_record, living_room_shelf).",
+        "display_location(antique_silver_locket, living_room_shelf).",
+        "display_location(vintage_embroidered_denim_jacket, living_room_shelf).",
+        "interested_in(user, antique_silver_locket_history_and_craftsmanship)."
+      ],
+      "model": [
+        "owns(user, antique_silver_locket).",
+        "owns(user, limited_edition_vinyl_record).",
+        "pre_ordered(user, limited_edition_vinyl_record).",
+        "fan_of(user, artist).",
+        "favorite_album(user, artist_debut_album).",
+        "owns(user, vintage_embroidered_denim_jacket).",
+        "display_location(user, living_room).",
+        "display_item(user, antique_silver_locket).",
+        "display_item(user, limited_edition_vinyl_record).",
+        "likes_displaying(user, prized_possessions).",
+        "wants_to_learn_about(user, antique_silver_locket_history)."
+      ],
+      "referenceFacts": 11,
+      "modelFacts": 11,
+      "matchedReference": 10,
+      "matchedModel": 6,
+      "recall": 0.9090909090909091,
+      "precision": 0.5454545454545454
+    },
+    {
+      "id": "sharegpt_0SDNlJ3_63",
+      "reference": [
+        "founder(akeem_gardner, canurta).",
+        "degree(akeem_gardner, bachelor_of_arts).",
+        "major(akeem_gardner, psychology).",
+        "minor(akeem_gardner, philosophy).",
+        "degree(akeem_gardner, bachelor_of_laws).",
+        "competed_in(akeem_gardner, high_level_basketball_teams).",
+        "cultivated(akeem_gardner, hemp).",
+        "grasps(akeem_gardner, science).",
+        "uses(akeem_gardner, rational_problem_solving_techniques).",
+        "understands(akeem_gardner, regulatory_guidelines).",
+        "understands(akeem_gardner, ip).",
+        "understands(akeem_gardner, patent_strategy)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_474217",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_318178",
+      "reference": [
+        "interested_in(user, unique_wedding_traditions_in_china)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_72qIaGg_12",
+      "reference": [
+        "uses_software(user, autocad_lt_2013).",
+        "wants_default_right_click_action(user, zoom_window).",
+        "wants_to_customize_shortcut_menu(user, autocad_lt_2013)."
+      ],
+      "model": [],
+      "referenceFacts": 3,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_dnnAPyY_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ce919391_2",
+      "reference": [
+        "airline_elite_status(user, american_airlines_silver).",
+        "travel_plan(user, dallas).",
+        "considering_flight(user, dallas_to_san_antonio).",
+        "considering_hotel(user, san_antonio).",
+        "considering_credit_card(user, chase_sapphire_preferred).",
+        "considering_credit_card(user, citi_aadvantage_executive_world_elite_mastercard)."
+      ],
+      "model": [
+        "trip_destination(user, dallas).",
+        "trip_timing(user, next_month).",
+        "considering_flight(user, american_airlines).",
+        "elite_status(user, silver_elite).",
+        "elite_program(user, american_airlines).",
+        "considering_flight(user, dallas_to_san_antonio).",
+        "considering_hotel(user, san_antonio).",
+        "considering_credit_card(user, chase_sapphire_preferred).",
+        "considering_credit_card(user, citi_aadvantage_executive_world_elite_mastercard)."
+      ],
+      "referenceFacts": 6,
+      "modelFacts": 9,
+      "matchedReference": 5,
+      "matchedModel": 5,
+      "recall": 0.8333333333333334,
+      "precision": 0.5555555555555556
+    },
+    {
+      "id": "ultrachat_498253",
+      "reference": [
+        "concern(user, privacy_digital_transactions)."
+      ],
+      "model": [
+        "privacy_concern(user, digital_transactions)."
+      ],
+      "referenceFacts": 1,
+      "modelFacts": 1,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "334b53b1_1",
+      "reference": [
+        "planning_trip(user, tokyo).",
+        "prefers_trip_style(user, culture_and_adventure).",
+        "interested_in(user, japanese_alps).",
+        "considering_app(user, tripit).",
+        "considering_trip(user, costa_rica).",
+        "traveling_with(user, sister).",
+        "trip_occasion(costa_rica, sister_birthday).",
+        "had_difficulty_finding_resort(user, travelocity).",
+        "considering_travel_insurance(user, new_york_city).",
+        "considering_insurance_comparison_service(user, squaremouth).",
+        "owns_travel_adapter(user, europe).",
+        "travel_adapter_supports_multiple_devices(travel_adapter, multiple_devices)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "a0b8b0ad_5",
+      "reference": [
+        "likes_genre(user, indie_folk).",
+        "likes_podcast(user, 'All Songs Considered').",
+        "likes_podcast(user, pitchfork).",
+        "likes_artist(user, bon_iver).",
+        "likes_artist(user, fleet_foxes).",
+        "likes_artist(user, sufjan_stevens).",
+        "likes_artist(user, miles_davis).",
+        "likes_artist(user, john_coltrane).",
+        "prefers_music_feature(user, jazz_influence).",
+        "prefers_music_feature(user, improvisation).",
+        "prefers_music_quality(user, atmospheric).",
+        "prefers_music_quality(user, introspective)."
+      ],
+      "model": [
+        "interested_in(user, indie_folk).",
+        "interested_in(user, jazz).",
+        "interested_in(user, jazz_influenced_indie_folk).",
+        "likes_podcast(user, 'All Songs Considered').",
+        "likes_podcast(user, pitchfork).",
+        "interested_in(user, bon_iver).",
+        "interested_in(user, fleet_foxes).",
+        "interested_in(user, sufjan_stevens).",
+        "interested_in(user, miles_davis).",
+        "interested_in(user, john_coltrane)."
+      ],
+      "referenceFacts": 12,
+      "modelFacts": 10,
+      "matchedReference": 8,
+      "matchedModel": 8,
+      "recall": 0.6666666666666666,
+      "precision": 0.8
+    },
+    {
+      "id": "53ab4734",
+      "reference": [
+        "participates_in(user, running).",
+        "participates_in(user, soccer).",
+        "participates_in(user, tennis).",
+        "wants_workout_playlists_for(user, running).",
+        "wants_gps_watch(user, accurate_run_data).",
+        "seeks(user, running_coach).",
+        "prefers_coach_specialization(user, marathon_training).",
+        "prefers_coach_experience(user, similar_pace_runners).",
+        "prefers_coach_experience(user, multi_sport_athletes).",
+        "wants_customized_training_plan(user, soccer_and_tennis_schedules).",
+        "wants_customized_training_plan(user, running_goals).",
+        "wants_to_avoid(user, overdoing_it)."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "13b79e39_2",
+      "reference": [
+        "productive_period(user, '9:00 am-12:00 pm').",
+        "prefers_sleep_in(user, saturday).",
+        "morning_routine_duration(user, 15).",
+        "important_task_start_time(user, '9:15 am').",
+        "saturday_wake_time(user, '9:00 am').",
+        "saturday_planning_time(user, '9:00 am-10:00 am').",
+        "saturday_activity(user, plan_week).",
+        "saturday_activity(user, review_goals).",
+        "saturday_activity(user, make_to_do_list).",
+        "saturday_meal_prep_time(user, '10:00 am-10:30 am').",
+        "saturday_exercise_time(user, '10:30 am-11:00 am').",
+        "saturday_exercise_type(user, '30-minute walk or light stretching')."
+      ],
+      "model": [],
+      "referenceFacts": 12,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "9c4358a4",
+      "reference": [
+        "interested_in(user, trout_fishing).",
+        "planning_trip(user, lake_tahoe).",
+        "fishing_trip_with(user, friends).",
+        "visited(user, lake_tahoe).",
+        "enjoyed(user, lake_tahoe).",
+        "caught_trout(user, lake_tahoe).",
+        "camped(user, lake_tahoe).",
+        "wants_to_try(user, new_lures).",
+        "wants_to_try(user, new_tackle).",
+        "wants_to_try(user, new_nymphs).",
+        "wants_to_try(user, streamers)."
+      ],
+      "model": [
+        "fishing_trip_planned(user, soon).",
+        "fishing_trip_with(user, friends).",
+        "fishing_location_preference(user, california).",
+        "fishing_location_preference(user, lake_tahoe).",
+        "fishing_trip_location(user, lake_tahoe).",
+        "fishing_trip_duration(user, three_weeks).",
+        "fishing_trip_activity(user, camping).",
+        "fishing_trip_activity(user, trout_fishing).",
+        "fishing_trip_activity(user, new_lures).",
+        "fishing_trip_activity(user, new_tackle).",
+        "fishing_trip_activity(user, new_nymphs).",
+        "fishing_trip_activity(user, streamers)."
+      ],
+      "referenceFacts": 11,
+      "modelFacts": 12,
+      "matchedReference": 11,
+      "matchedModel": 8,
+      "recall": 1,
+      "precision": 0.6666666666666666
+    },
+    {
+      "id": "sharegpt_J9HjTMU_0",
+      "reference": [
+        "deployment_target(user, 'render.com').",
+        "deployment_method(user, render_blueprint).",
+        "wants_to_deploy(user, nginx_container).",
+        "has_repository(user, existing_repository).",
+        "repository_contains(existing_repository, render_yml).",
+        "render_yml_purpose(existing_repository, infrastructure).",
+        "wants_guidance_style(user, step_by_step).",
+        "wants_public_protocol(user, https)."
+      ],
+      "model": [
+        "deployment_platform(nginx, render).",
+        "deployment_method(nginx, blueprint).",
+        "repository_exists(nginx, existing).",
+        "infrastructure_as_code(nginx, render_yml).",
+        "public_access(nginx, https)."
+      ],
+      "referenceFacts": 8,
+      "modelFacts": 5,
+      "matchedReference": 2,
+      "matchedModel": 2,
+      "recall": 0.25,
+      "precision": 0.4
+    },
+    {
+      "id": "147ab7e9_6",
+      "reference": [
+        "historical_fiction_setting(user, '1920s')."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_mvtmr4e_19",
+      "reference": [
+        "target_role(user, vp_r_and_d)."
+      ],
+      "model": [],
+      "referenceFacts": 1,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "84fb50bb_1",
+      "reference": [
+        "watched(user, parasite).",
+        "film_rating(user, parasite, masterpiece).",
+        "likes(user, class_struggle_commentary).",
+        "interested_in(user, shoplifters).",
+        "interested_in(user, roma).",
+        "interested_in(user, 'The Handmaiden').",
+        "interested_in(user, 'The Girl with a Dragon Tattoo').",
+        "listens_to(user, 'The Ringer''s The Watch').",
+        "listens_to(user, 'The Film Bros').",
+        "learns_from(user, latest_movie_news_and_trends)."
+      ],
+      "model": [
+        "watched(user, parasite).",
+        "watched_on(user, parasite, amazon_prime).",
+        "likes(user, commentary_on_class_struggle).",
+        "interested_in(user, shoplifters).",
+        "interested_in(user, roma).",
+        "interested_in(user, 'The Handmaiden').",
+        "interested_in(user, 'The Girl with a Dragon Tattoo').",
+        "interested_in(user, film_related_podcasts).",
+        "listens_to(user, 'The Ringer’s The Watch').",
+        "listens_to(user, 'The Film Bros').",
+        "interested_in(user, filmmaking_and_the_industry)."
+      ],
+      "referenceFacts": 10,
+      "modelFacts": 11,
+      "matchedReference": 8,
+      "matchedModel": 8,
+      "recall": 0.8,
+      "precision": 0.7272727272727273
+    },
+    {
+      "id": "sharegpt_yK69lIT_0",
+      "reference": [
+        "had_conversation(user, maileen).",
+        "conversation_topic(conversation, meta_layoffs).",
+        "conversation_topic(conversation, young_adult_novels).",
+        "conversation_topic(conversation, crying_while_watching_movies_on_airplane)."
+      ],
+      "model": [],
+      "referenceFacts": 4,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_8f85nN2_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_33706",
+      "reference": [
+        "confidence_in_salary_negotiation(user, more_confident).",
+        "plan(user, negotiate_next_job_offer)."
+      ],
+      "model": [
+        "confident_about(user, negotiating_next_job_offer).",
+        "plans_to_use(user, negotiation_tips)."
+      ],
+      "referenceFacts": 2,
+      "modelFacts": 2,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "sharegpt_kRjBUsA_79",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "ultrachat_38171",
+      "reference": [
+        "prefers_device_style(user, luxurious).",
+        "wants_device_to_match_outfit(user, fitness_device).",
+        "wants_statement_device(user, fitness_device).",
+        "wants_device_to_track_health_and_fitness_progress(user, fitness_device).",
+        "has_budget_for(user, luxurious_fitness_device).",
+        "prefers_device_material(user, diamonds_or_gold)."
+      ],
+      "model": [
+        "fitness_journey_stage(user, starting).",
+        "wants_device_to_be_fashion_accessory(user, fitness_device).",
+        "wants_device_to_be_encrusted_with(user, diamonds).",
+        "wants_device_to_be_encrusted_with(user, gold).",
+        "wants_device_to_make_a_statement(user, fitness_device).",
+        "wants_device_to_track(user, health_and_fitness_progress).",
+        "has_budget_for(user, luxurious_fitness_device)."
+      ],
+      "referenceFacts": 6,
+      "modelFacts": 7,
+      "matchedReference": 4,
+      "matchedModel": 3,
+      "recall": 0.6666666666666666,
+      "precision": 0.42857142857142855
+    },
+    {
+      "id": "ultrachat_384353",
+      "reference": [
+        "wants_to_hike(user, pacific_crest_trail).",
+        "novice_in(user, long_distance_hiking).",
+        "prioritizes_safety(user, hiking)."
+      ],
+      "model": [
+        "wants_to_hike(user, pacific_crest_trail).",
+        "hiking_experience(user, long_distance_hiking).",
+        "wants_to_stay_safe(user, long_distance_hiking)."
+      ],
+      "referenceFacts": 3,
+      "modelFacts": 3,
+      "matchedReference": 2,
+      "matchedModel": 3,
+      "recall": 0.6666666666666666,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_zqQa6sO_0",
+      "reference": [
+        "name(linda_woo, 'Linda Woo').",
+        "pronouns(linda_woo, she_her).",
+        "gender(linda_woo, cisgender_woman).",
+        "age(linda_woo, 58).",
+        "ethnicity(linda_woo, chinese_asian_descent).",
+        "location(linda_woo, richmond).",
+        "children_count(linda_woo, 3).",
+        "grandchildren_count(linda_woo, 2).",
+        "spouse_deceased_years_ago(linda_woo, 10).",
+        "has_friend(linda_woo, new_male_friend)."
+      ],
+      "model": [],
+      "referenceFacts": 10,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "ultrachat_166104",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "sharegpt_q5xkR1c_0",
+      "reference": [],
+      "model": [],
+      "referenceFacts": 0,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 1,
+      "precision": 1
+    },
+    {
+      "id": "2f2884ad_1",
+      "reference": [
+        "owns(user, acrylic_paints).",
+        "owns(user, brushes).",
+        "interested_in(user, abstract_expressions).",
+        "inspired_by(user, contemporary_sculpture_exhibit).",
+        "visited(user, modern_art_museum)."
+      ],
+      "model": [
+        "interested_in(user, abstract_expressionism).",
+        "owns(user, acrylic_paints).",
+        "owns(user, brushes).",
+        "plans_to_start(user, warm_up_exercise).",
+        "plans_to_make(user, expressive_mark)."
+      ],
+      "referenceFacts": 5,
+      "modelFacts": 5,
+      "matchedReference": 2,
+      "matchedModel": 2,
+      "recall": 0.4,
+      "precision": 0.4
+    },
+    {
+      "id": "10123b35_2",
+      "reference": [
+        "plans(user, make_sweet_potato_fries_this_weekend).",
+        "cooking_method(sweet_potato_fries, pan_frying).",
+        "plans(user, make_hummus_this_weekend).",
+        "hummus_brand(hummus, local_brand).",
+        "prefers(user, hummus_spice_level, intense).",
+        "plans(user, adjust_hummus_spice_level).",
+        "likes(user, overnight_oats).",
+        "plans(user, try_breakfast_burrito).",
+        "includes(breakfast_burrito, sweet_potato)."
+      ],
+      "model": [
+        "obsessed_with(user, store_bought_hummus).",
+        "spicy_kick(store_bought_hummus, intense).",
+        "local_brand(store_bought_hummus, local).",
+        "plans_to_make(user, sweet_potato_fries).",
+        "plans_to_make(user, hummus).",
+        "plans_to_try(user, breakfast_burrito).",
+        "plans_to_add(user, sweet_potato, breakfast_burrito)."
+      ],
+      "referenceFacts": 9,
+      "modelFacts": 7,
+      "matchedReference": 4,
+      "matchedModel": 5,
+      "recall": 0.4444444444444444,
+      "precision": 0.7142857142857143
+    },
+    {
+      "id": "ultrachat_528926",
+      "reference": [
+        "bucket_list_item(user, 'attend a Middle Eastern wedding').",
+        "interest(user, 'learning some of these Middle Eastern dances').",
+        "plans_to_find(user, some_classes_or_videos_online).",
+        "goal(user, start_learning_belly_dance)."
+      ],
+      "model": [
+        "interested_in(user, middle_eastern_dances).",
+        "wants_to_learn(user, belly_dance).",
+        "wants_to_add_to_repertoire(user, middle_eastern_dances).",
+        "plans_to_search_for_classes(user, middle_eastern_dances).",
+        "plans_to_watch_videos(user, middle_eastern_dances)."
+      ],
+      "referenceFacts": 4,
+      "modelFacts": 5,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "23917fcd_1",
+      "reference": [
+        "prefers_scratching_post_style(user, vertical).",
+        "lives_in(user, small_apartment).",
+        "considering_brand(user, armarkat).",
+        "considering_brand(user, go_pet_club).",
+        "prefers_cat_food_flavor(luna, salmon).",
+        "brushes_regularly(user, luna).",
+        "considers_material_and_durability(user, scratching_post).",
+        "plans_to_read_reviews(user, scratching_post)."
+      ],
+      "model": [],
+      "referenceFacts": 8,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    },
+    {
+      "id": "85da7827",
+      "reference": [
+        "creates(user, handmade_jewelry).",
+        "creates(user, candles).",
+        "plans_display_at(user, summer_solstice_night_market).",
+        "considers_using(user, fresh_flowers).",
+        "considers_scent(user, lavender).",
+        "considers_scent(user, chamomile).",
+        "considers_bundle(user, summer_solstice_bundle).",
+        "bundle_includes(summer_solstice_bundle, candle).",
+        "bundle_includes(summer_solstice_bundle, jewelry).",
+        "bundle_includes(summer_solstice_bundle, small_potted_plant).",
+        "considers_promotion(user, limited_time_social_media_share_discount)."
+      ],
+      "model": [],
+      "referenceFacts": 11,
+      "modelFacts": 0,
+      "matchedReference": 0,
+      "matchedModel": 0,
+      "recall": 0,
+      "precision": 0
+    }
+  ]
+}
