@@ -459,13 +459,14 @@ standard error of about six, and keeps abstention at 95%. What each pattern did:
 
 ### The composed policy on all 500 questions
 
-| all 500, lexical retrieval only                                          | accuracy    | recall | abstention | k-update | multi   | ss-asst | ss-pref | ss-user | temporal |
-| ------------------------------------------------------------------------ | ----------- | ------ | ---------- | -------- | ------- | ------- | ------- | ------- | -------- |
-| raw                                                                      | 391/500     | 82.7%  | 80%        | 66/78    | 83/133  | 52/56   | 21/30   | 65/70   | 104/133  |
-| **hybrid (Gemma 4 E2B), multi-session k=15, temporal k=10 + time range** | **414/500** | 88.6%  | 90%        | 67/78    | 101/133 | 50/56   | 19/30   | 64/70   | 113/133  |
-| same + v5 semantic routing (embeddings on 95 questions)                  | **416/500** | 92.4%  | 93%        | 66/78    | 103/133 | 51/56   | 23/30   | 63/70   | 110/133  |
-| same + structured reading (dated notes, then an Answer line)             | 416/500     | 92.4%  | 90%        | 64/78    | 102/133 | 50/56   | 27/30   | 65/70   | 108/133  |
-| same + two-call reading (enumerate, then answer from the list)           | 401/500     | 92.4%  | 93%        | 64/78    | 94/133  | 50/56   | 26/30   | 65/70   | 102/133  |
+| all 500, lexical retrieval only                                               | accuracy    | recall | abstention | k-update | multi   | ss-asst | ss-pref | ss-user | temporal |
+| ----------------------------------------------------------------------------- | ----------- | ------ | ---------- | -------- | ------- | ------- | ------- | ------- | -------- |
+| raw                                                                           | 391/500     | 82.7%  | 80%        | 66/78    | 83/133  | 52/56   | 21/30   | 65/70   | 104/133  |
+| **hybrid (Gemma 4 E2B), multi-session k=15, temporal k=10 + time range**      | **414/500** | 88.6%  | 90%        | 67/78    | 101/133 | 50/56   | 19/30   | 64/70   | 113/133  |
+| same + v5 semantic routing (embeddings on 95 questions)                       | **416/500** | 92.4%  | 93%        | 66/78    | 103/133 | 51/56   | 23/30   | 63/70   | 110/133  |
+| same + structured reading (dated notes, then an Answer line)                  | 416/500     | 92.4%  | 90%        | 64/78    | 102/133 | 50/56   | 27/30   | 65/70   | 108/133  |
+| same + two-call reading (enumerate, then answer from the list)                | 401/500     | 92.4%  | 93%        | 64/78    | 94/133  | 50/56   | 26/30   | 65/70   | 102/133  |
+| **same as the 416 row, GLM 5.3 reading the aggregation types (Ollama Cloud)** | **433/500** | 92.4%  | 90%        | 67/78    | 109/133 | 52/56   | 26/30   | 63/70   | 116/133  |
 
 Gained 52 and lost 29 against raw; development 212 → 226, held-out test 179 → 188; about two
 and a half standard errors on 500. The two types the patterns targeted carry it: multi-session
@@ -493,9 +494,17 @@ not reduce its aggregation errors. The two-call variant (`--reading two-call`: o
 enumerates dated items from the history, a second answers from that list with the history
 withheld) is worse, 401/500, losing nine multi-session and eight temporal answers: the
 enumeration drops details the direct reader would have used, and the second call reasons over
-a lossy list. Both reader patterns are recorded as negative results. What remains on the
-reader side is the reader model itself; on the retrieval side recall is at 92% and the
-remaining misses are spread thin across types.
+a lossy list. Both reader patterns are recorded as negative results, which left the reader model itself.
+`--aggregation-reader-model glm-5.3:cloud --aggregation-reader-base-url
+http://127.0.0.1:11434/v1` sends the multi-session, temporal and knowledge-update questions
+(344 of 500) to GLM 5.3 through a local Ollama daemon signed in to Ollama Cloud, with Luna
+still reading the other types and GPT-4o still judging: **433/500 (86.6%)**, development 230,
+held-out test 203/239 (84.9%). Against the Luna-only run it gained 39 and lost 22;
+multi-session 103 → 109, temporal 110 → 116, and the reader's accuracy on fully-evidenced
+questions returned to 92.5%. One multi-session question timed out at the cloud endpoint and
+counts as wrong. So the 43 fully-evidenced misses were the reader's, and a stronger reader on
+the three aggregation types alone is worth seventeen answers on 500; the memory system's
+retrieval was already delivering the evidence.
 
 Cost of the composed run over 500 questions: 10,089 extraction calls on an L4 (the dev half
 replayed from the cache), about $1 of GPU time, plus the reader and judge; the time-range
