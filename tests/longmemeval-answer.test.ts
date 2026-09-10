@@ -276,7 +276,7 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     expect(sent.length).toBeLessThan(600);
   });
 
-  it('shows the retrieved session\'s remembered facts, dated, to the reader', async () => {
+  it("shows the retrieved session's remembered facts, dated, to the reader", async () => {
     const reader = new ScriptedCompletionClient('reader', [
       'Business Administration',
     ]);
@@ -292,7 +292,7 @@ describe('LongMemEval end-to-end answer evaluation', () => {
       extractor,
     });
     const prompt = reader.calls[0]?.messages.at(-1)?.content ?? '';
-    expect(prompt).toContain('Remembered facts');
+    expect(prompt).toMatch(/[Rr]emembered facts/);
     expect(prompt).toContain('degree(user, business_administration).');
     // the placeholder fact is plumbing, never shown
     expect(prompt).not.toContain('longmem_session');
@@ -326,7 +326,10 @@ describe('LongMemEval end-to-end answer evaluation', () => {
               content: 'My major was Business Administration.',
               has_answer: true,
             },
-            { role: 'assistant', content: 'Long generic graduation explanation.' },
+            {
+              role: 'assistant',
+              content: 'Long generic graduation explanation.',
+            },
           ],
         ],
       }),
@@ -342,10 +345,75 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     );
     expect(observation.retrievedSessionIds).toEqual(['noise', 'evidence']);
     const prompt = reader.calls[0]?.messages.at(-1)?.content ?? '';
-    expect(prompt).toContain('Remembered facts');
+    expect(prompt).toMatch(/[Rr]emembered facts/);
     expect(prompt).toContain('degree(user, business_administration).');
-    expect(prompt).toMatch(/Remembered facts[\s\S]*- 2024-01-0\d[^\n]*degree\(user, business_administration\)\./);
+    expect(prompt).toMatch(
+      /[Rr]emembered facts[\s\S]*- 2024-01-0\d[^\n]*degree\(user, business_administration\)\./,
+    );
     expect(observation.retrieval?.recallAtK).toBe(1);
+  });
+
+  it('routes by question type: hybrid only for the listed types, raw (no extraction) otherwise', async () => {
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    const extractor = new ScriptedCompletionClient('dialect', []);
+    // single-session-user is not in the hybrid set: no extraction call at all
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      instance(),
+      reader,
+      judge,
+      {
+        topK: 1,
+        contextBytes: 4_096,
+        formation: 'hybrid',
+        hybridQuestionTypes: new Set(['knowledge-update', 'multi-session']),
+        extractor,
+      },
+    );
+    expect(observation.status).toBe('judged');
+    expect(extractor.calls).toHaveLength(0);
+    expect(observation.extraction).toBeUndefined();
+    expect(observation.retrievedSessionIds).toEqual(['evidence']);
+  });
+
+  it('reserved facts honour a minimum score and are framed as supplementary', async () => {
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    const extractor = new ScriptedCompletionClient('dialect', [
+      '% nothing',
+      'degree(user, business_administration).',
+    ]);
+    const run = async (minimumScore: number) => {
+      const r = new ScriptedCompletionClient('reader', [
+        'Business Administration',
+      ]);
+      const j = new ScriptedCompletionClient('judge', ['yes']);
+      const x = new ScriptedCompletionClient('dialect', [
+        '% nothing',
+        'degree(user, business_administration).',
+      ]);
+      await evaluateLongMemEvalAnswerInstance(instance(), r, j, {
+        topK: 1,
+        contextBytes: 4_096,
+        formation: 'hybrid',
+        hybridRetrieval: 'reserved',
+        reservedMinimumScore: minimumScore,
+        extractor: x,
+      });
+      return r.calls[0]?.messages.at(-1)?.content ?? '';
+    };
+    void reader;
+    void judge;
+    void extractor;
+    const shown = await run(1);
+    expect(shown).toContain('degree(user, business_administration).');
+    expect(shown).toMatch(/supplementary|may be unrelated/i);
+    const hidden = await run(100_000);
+    expect(hidden).not.toContain('degree(user, business_administration).');
   });
 
   it('counts top-k in distinct sessions when a session yields several matching facts', async () => {

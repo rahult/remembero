@@ -417,7 +417,7 @@ export function buildLongMemEvalAnswerContext(
   const remembered =
     extraFacts.length === 0
       ? ''
-      : `\n### Remembered facts (extracted from earlier sessions, with the session date)\n${extraFacts
+      : `\n### Supplementary remembered facts (extracted earlier, with the session date; they may be unrelated to the question, so ignore any that do not concern it and never treat them as evidence on their own)\n${extraFacts
           .map(({ ts, clause }) => `- ${ts}: ${clause}`)
           .join('\n')}\n`;
   const user = `History chats:\n\n${history || '[no safe relevant history retrieved]'}\n${remembered}Current date: ${instance.question_date}\nQuestion: ${instance.question}\nAnswer:`;
@@ -498,11 +498,23 @@ export async function evaluateLongMemEvalAnswerInstance(
      * context as a dated block (their sessions count as retrieved).
      */
     hybridRetrieval?: 'shared' | 'reserved';
+    /** hybrid/extracted only: question types that use the extractor; other types run raw. */
+    hybridQuestionTypes?: ReadonlySet<string>;
+    /** reserved only: minimum lexical score for an appended fact (default 1). */
+    reservedMinimumScore?: number;
     /** Cut each assistant turn to this many characters before extraction (default: no cut). */
     extractionAssistantCharacters?: number;
   } = {},
 ): Promise<LongMemEvalAnswerObservation> {
-  const formation = options.formation ?? 'raw';
+  // formation can be routed by question type: a type outside the set runs raw formation,
+  // which also spares the extraction calls for it
+  const formation: LongMemEvalFormation =
+    options.formation !== undefined &&
+    options.formation !== 'raw' &&
+    options.hybridQuestionTypes !== undefined &&
+    !options.hybridQuestionTypes.has(instance.question_type)
+      ? 'raw'
+      : (options.formation ?? 'raw');
   if (formation !== 'raw' && options.extractor === undefined) {
     throw new Error(`formation "${formation}" needs an extractor client`);
   }
@@ -802,7 +814,7 @@ export async function evaluateLongMemEvalAnswerInstance(
         snapshot.sources,
         {
           limit: effectiveTopK * 3,
-          minimumScore: 1,
+          minimumScore: options.reservedMinimumScore ?? 1,
           kinds: ['fact'],
           sourceCharacterLimit: LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
         },

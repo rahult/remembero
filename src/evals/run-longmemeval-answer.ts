@@ -53,6 +53,8 @@ interface Args {
   extractionMaxTokens: number | undefined;
   factsInContext: boolean;
   hybridRetrieval: 'shared' | 'reserved';
+  hybridQuestionTypes: Set<string> | undefined;
+  reservedMinimumScore: number | undefined;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -73,6 +75,9 @@ Options:
   --hybrid-retrieval <shared|reserved>  hybrid only. shared (default): raw text and extracted
                          facts compete for the top-k session slots; reserved: raw text fills
                          top-k as in raw formation and matched facts are appended as a dated block
+  --hybrid-question-types <csv>  Use the extractor only for these question types; others run raw
+                         (and make no extraction calls)
+  --reserved-min-score <n>  reserved only: minimum lexical score for an appended fact (default 1)
   --no-facts-in-context  Do not list a retrieved session's matched extracted facts to the reader
   --extraction-max-tokens <n>  Completion budget per extraction call (default 512; reasoning
                          models such as Luna spend it on thinking and need 4096 or more)
@@ -149,6 +154,8 @@ function parseArgs(argv: string[]): Args {
     extractionMaxTokens: undefined,
     factsInContext: true,
     hybridRetrieval: 'shared',
+    hybridQuestionTypes: undefined,
+    reservedMinimumScore: undefined,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -272,6 +279,15 @@ function parseArgs(argv: string[]): Args {
         throw new Error('--hybrid-retrieval must be shared or reserved');
       }
       args.hybridRetrieval = value;
+    } else if (arg === '--hybrid-question-types') {
+      args.hybridQuestionTypes = new Set(
+        requiredValue(argv, index++, arg)
+          .split(',')
+          .map((v) => v.trim())
+          .filter(Boolean),
+      );
+    } else if (arg === '--reserved-min-score') {
+      args.reservedMinimumScore = Number(requiredValue(argv, index++, arg));
     } else if (arg === '--no-facts-in-context') {
       args.factsInContext = false;
     } else if (arg === '--extraction-max-tokens') {
@@ -407,6 +423,12 @@ async function main(): Promise<void> {
             : { extractionMaxTokens: args.extractionMaxTokens }),
           factsInContext: args.factsInContext,
           hybridRetrieval: args.hybridRetrieval,
+          ...(args.hybridQuestionTypes === undefined
+            ? {}
+            : { hybridQuestionTypes: args.hybridQuestionTypes }),
+          ...(args.reservedMinimumScore === undefined
+            ? {}
+            : { reservedMinimumScore: args.reservedMinimumScore }),
         },
       );
       completed++;
