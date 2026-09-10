@@ -171,6 +171,26 @@ def lora_targets(model) -> list[str]:
     return names
 
 
+def save_processor_files(base_model: str, target: Path) -> None:
+    """Multimodal checkpoints (Gemma 4) need their processor next to the weights or vLLM refuses to load them."""
+    try:
+        from transformers import AutoProcessor
+
+        AutoProcessor.from_pretrained(base_model).save_pretrained(str(target))
+        print(f"saved processor files for {base_model} into {target}")
+    except Exception as error:  # text-only bases have no processor; that is fine
+        print(f"no processor saved for {base_model}: {str(error)[:100]}")
+
+
+@app.function(image=train_image, volumes={VOL: volume}, timeout=15 * 60)
+def add_processor(run: str, base_model: str) -> str:
+    """Patch an already-merged run with its base model's processor files."""
+    target = Path(VOL) / "runs" / run / "merged"
+    save_processor_files(base_model, target)
+    volume.commit()
+    return str(target)
+
+
 def reasoning_flags(base_model: str) -> list[str]:
     """Serving flags that depend on the base model's chat template."""
     lowered = base_model.lower()
@@ -340,6 +360,7 @@ def train(
         merged = PeftModel.from_pretrained(base, str(adapter_dir)).merge_and_unload()
         merged.save_pretrained(str(merged_dir), safe_serialization=True)
         tokenizer.save_pretrained(str(merged_dir))
+        save_processor_files(base_model, merged_dir)
         metrics["merged_dir"] = str(merged_dir)
     (Path(VOL) / "runs" / "latest").write_text(run)
     metrics["wall_seconds"] = round(time.time() - started, 1)
