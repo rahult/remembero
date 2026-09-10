@@ -777,6 +777,38 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     expect(observation.readerUsage?.totalTokens).toBe(24);
   });
 
+  it('routes aggregation question types to a separate reader and leaves the rest with the default', async () => {
+    const base = new ScriptedCompletionClient('luna', [
+      'Business Administration',
+    ]);
+    const strong = new ScriptedCompletionClient('strong', [
+      'Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes', 'yes']);
+    await evaluateLongMemEvalAnswerInstance(
+      instance({ question_type: 'multi-session' }),
+      base,
+      judge,
+      {
+        topK: 1,
+        multiSessionTopK: 1,
+        contextBytes: 4_096,
+        formation: 'raw',
+        aggregationReader: strong,
+      },
+    );
+    expect(strong.calls).toHaveLength(1);
+    expect(base.calls).toHaveLength(0);
+    await evaluateLongMemEvalAnswerInstance(instance(), base, judge, {
+      topK: 1,
+      contextBytes: 4_096,
+      formation: 'raw',
+      aggregationReader: strong,
+    });
+    expect(strong.calls).toHaveLength(1);
+    expect(base.calls).toHaveLength(1);
+  });
+
   it('counts top-k in distinct sessions when a session yields several matching facts', async () => {
     const reader = new ScriptedCompletionClient('reader', [
       'Business Administration',

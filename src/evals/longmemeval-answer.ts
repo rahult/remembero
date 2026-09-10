@@ -603,6 +603,8 @@ export async function evaluateLongMemEvalAnswerInstance(
     readingStrategy?: 'direct' | 'notes' | 'two-call';
     /** Question types read with notes (default: multi-session, temporal-reasoning, knowledge-update). */
     notesQuestionTypes?: ReadonlySet<string>;
+    /** A reader used only for the aggregation question types (same set as notesQuestionTypes). */
+    aggregationReader?: LongMemEvalCompletionClient;
     /**
      * Directory of per-session extraction results keyed by extractor model and transcript
      * hash. Extraction is deterministic enough to replay, and it is two hours of a full dev
@@ -1210,7 +1212,11 @@ export async function evaluateLongMemEvalAnswerInstance(
       topScore,
     );
     const readerStarted = performance.now();
-    const readerCompletion = await reader.completeWithUsage(
+    const activeReader =
+      aggregationType && options.aggregationReader !== undefined
+        ? options.aggregationReader
+        : reader;
+    const readerCompletion = await activeReader.completeWithUsage(
       answerContext.messages,
       {
         maxTokens: 4_096,
@@ -1220,7 +1226,7 @@ export async function evaluateLongMemEvalAnswerInstance(
     if (twoCall) {
       // second call: answer from the enumerated items only, the history left behind
       const enumeration = readerCompletion.content.trim();
-      const answerCompletion = await reader.completeWithUsage(
+      const answerCompletion = await activeReader.completeWithUsage(
         [
           {
             role: 'system',

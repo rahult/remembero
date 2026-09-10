@@ -60,6 +60,7 @@ interface Args {
   extractionCacheDir: string | undefined;
   temporalRangeModel: string | undefined;
   readingStrategy: 'direct' | 'notes' | 'two-call';
+  aggregationReaderModel: string | undefined;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -86,6 +87,8 @@ Options:
   --hybrid-question-types <csv>  Use the extractor only for these question types; others run raw
                          (and make no extraction calls)
   --reserved-min-score <n>  reserved only: minimum lexical score for an appended fact (default 1)
+  --aggregation-reader-model <id>  A separate reader for multi-session, temporal and
+                         knowledge-update questions; other types keep --reader-model
   --reading <direct|notes|two-call>  for multi-session, temporal and knowledge-update questions:
                          notes = dated items first, then an "Answer:" line that alone is judged;
                          two-call = one call enumerates dated items from the history, a second
@@ -180,6 +183,7 @@ function parseArgs(argv: string[]): Args {
     extractionCacheDir: undefined,
     temporalRangeModel: undefined,
     readingStrategy: 'direct',
+    aggregationReaderModel: undefined,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -318,6 +322,8 @@ function parseArgs(argv: string[]): Args {
         throw new Error('--retrieval-unit must be session or turn');
       }
       args.retrievalUnit = value;
+    } else if (arg === '--aggregation-reader-model') {
+      args.aggregationReaderModel = requiredValue(argv, index++, arg);
     } else if (arg === '--reading') {
       const value = requiredValue(argv, index++, arg);
       if (value !== 'direct' && value !== 'notes' && value !== 'two-call') {
@@ -408,6 +414,14 @@ async function main(): Promise<void> {
     baseUrl,
     model: args.readerModel,
   });
+  const aggregationReader =
+    args.aggregationReaderModel === undefined
+      ? undefined
+      : new OpenRouterClient({
+          apiKey,
+          baseUrl,
+          model: args.aggregationReaderModel,
+        });
   const temporalRangeExtractor =
     args.temporalRangeModel === undefined
       ? undefined
@@ -475,6 +489,7 @@ async function main(): Promise<void> {
           hybridRetrieval: args.hybridRetrieval,
           retrievalUnit: args.retrievalUnit,
           readingStrategy: args.readingStrategy,
+          ...(aggregationReader === undefined ? {} : { aggregationReader }),
           ...(temporalRangeExtractor === undefined
             ? {}
             : { temporalRangeExtractor }),
