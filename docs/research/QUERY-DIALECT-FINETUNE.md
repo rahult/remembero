@@ -64,6 +64,9 @@ below are the corrected ones and are reproducible from the committed result file
 | **Qwen3.5-4B unified r7 (query+extraction)** | closure, v2 prompt    |        **29** |         26 |                 5 |
 | Qwen3.5-4B unified r10 (query+extraction)    | closure, v2 prompt    |            27 |         27 |                 5 |
 | Qwen3.5-4B r11 (r10 data, Modal H100)        | closure, v2 prompt    |            27 |         27 |                 5 |
+| Qwen3.5-4B r12–r15 (r14 data, 4 runs)        | closure, v2 prompt    |         26–28 |          – |                 5 |
+| Gemma 4 E4B r16 (r14 data)                   | closure, v2 prompt    |            24 |          – |                 – |
+| Gemma 4 E2B r16 (r14 data)                   | closure, v2 prompt    |            28 |          – |                 – |
 | openai/gpt-5.6-luna (frontier)               | sql-gated             |            30 |         31 |                 6 |
 | openai/gpt-5.6-luna (frontier)               | remembero-closure     |            29 |         29 |                 5 |
 | z-ai/glm-5.3 (frontier)                      | sql-gated             |            30 |         31 |                 6 |

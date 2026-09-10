@@ -1,0 +1,245 @@
+{
+  "benchmark": "extraction-bench-v1",
+  "vocabulary": "closed",
+  "generatedAt": "2026-09-10T03:52:12.327Z",
+  "cases": 103,
+  "runs": [
+    {
+      "model": "finetune/qwen3.5-4b-r14b-modal",
+      "score": {
+        "cases": 103,
+        "accuracy": 0.8640776699029126,
+        "mutationPrecision": 0.8823529411764706,
+        "mutationRecall": 0.8898305084745762,
+        "mutationF1": 0.8860759493670887,
+        "truePositives": 105,
+        "falsePositives": 14,
+        "falseNegatives": 13,
+        "safetyAccuracy": 1,
+        "safetyCases": 0,
+        "unexpectedErrors": 0,
+        "llmCalls": 110,
+        "usageResponses": 110,
+        "costResponses": 0,
+        "promptTokens": 108006,
+        "completionTokens": 1319,
+        "totalTokens": 109325,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "durationMs": 138797.63324700002,
+        "byPhenomenon": {
+          "direct": {
+            "cases": 12,
+            "correct": 12,
+            "accuracy": 1
+          },
+          "multi_fact": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "negation": {
+            "cases": 10,
+            "correct": 10,
+            "accuracy": 1
+          },
+          "coreference": {
+            "cases": 8,
+            "correct": 6,
+            "accuracy": 0.75
+          },
+          "first_person": {
+            "cases": 8,
+            "correct": 7,
+            "accuracy": 0.875
+          },
+          "supersession": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "distractor_prose": {
+            "cases": 8,
+            "correct": 7,
+            "accuracy": 0.875
+          },
+          "competitor_predicate": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "hedge": {
+            "cases": 9,
+            "correct": 9,
+            "accuracy": 1
+          },
+          "transcript": {
+            "cases": 8,
+            "correct": 7,
+            "accuracy": 0.875
+          },
+          "entity_normalization": {
+            "cases": 8,
+            "correct": 4,
+            "accuracy": 0.5
+          },
+          "date_number": {
+            "cases": 8,
+            "correct": 3,
+            "accuracy": 0.375
+          }
+        },
+        "driftRate": 0,
+        "driftedPredicates": {}
+      },
+      "failures": [
+        {
+          "id": "coref_3",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "lives_in(liam, osaka)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(liam, umbrella).\nlives_in(liam, osaka).",
+          "drift": []
+        },
+        {
+          "id": "coref_their",
+          "phenomenon": "coreference",
+          "actual": [
+            "leads(zed, sample_1).",
+            "standup_day(zed, sample_1).",
+            "leads(tom, platform).",
+            "standup_day(tom, tuesday)."
+          ],
+          "expected": "leads(zed, sample_1).\nstandup_day(zed, sample_1).\nleads(tom, platform_team).\nstandup_day(platform_team, tuesday).",
+          "drift": []
+        },
+        {
+          "id": "first_person_2",
+          "phenomenon": "first_person",
+          "actual": [
+            "dentist(zed, sample_1).",
+            "dentist(user, 'Dr Chen')."
+          ],
+          "expected": "dentist(zed, sample_1).\ndentist(user, dr_chen).",
+          "drift": []
+        },
+        {
+          "id": "distractor_only_noise",
+          "phenomenon": "distractor_prose",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1).",
+            "works_at(build, red)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).",
+          "drift": []
+        },
+        {
+          "id": "transcript_user_fact",
+          "phenomenon": "transcript",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "works_at(user, acme).",
+            "works_at(ledger, acme)."
+          ],
+          "expected": "works_at(zed, sample_1).\nworks_at(user, acme).",
+          "drift": []
+        },
+        {
+          "id": "normalize_0",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "dentist(zed, sample_1).",
+            "dentist(mira_chen, user)."
+          ],
+          "expected": "dentist(zed, sample_1).\ndentist(user, 'Mira Chen').",
+          "drift": []
+        },
+        {
+          "id": "normalize_3",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "codename(zed, sample_1).",
+            "codename(orchard, project)."
+          ],
+          "expected": "codename(zed, sample_1).\ncodename(project, orchard).",
+          "drift": []
+        },
+        {
+          "id": "normalize_5",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "speaks(zed, sample_1).",
+            "speaks(ava, mandarin_chinese)."
+          ],
+          "expected": "speaks(zed, sample_1).\nspeaks(ava, 'Mandarin Chinese').",
+          "drift": []
+        },
+        {
+          "id": "date_number_0",
+          "phenomenon": "date_number",
+          "actual": [
+            "filing_deadline(zed, sample_1).",
+            "filing_deadline(deadline, '2026-10-31')."
+          ],
+          "expected": "filing_deadline(zed, sample_1).\nfiling_deadline(filing, '2026-10-31').",
+          "drift": []
+        },
+        {
+          "id": "date_number_1",
+          "phenomenon": "date_number",
+          "actual": [
+            "started_at(zed, sample_1, sample_2).",
+            "started_at(mira, '2024-03-01', acme)."
+          ],
+          "expected": "started_at(zed, sample_1, sample_2).\nstarted_at(mira, acme, '2024-03-01').",
+          "drift": []
+        },
+        {
+          "id": "date_number_2",
+          "phenomenon": "date_number",
+          "actual": [
+            "team_size(zed, sample_1).",
+            "team_size(engineers, 7)."
+          ],
+          "expected": "team_size(zed, sample_1).\nteam_size(team, 7).",
+          "drift": []
+        },
+        {
+          "id": "date_number_4",
+          "phenomenon": "date_number",
+          "actual": [
+            "turns_age_in(zed, sample_1, sample_2).",
+            "turns_age_in(tom, 2027, 40)."
+          ],
+          "expected": "turns_age_in(zed, sample_1, sample_2).\nturns_age_in(tom, 40, 2027).",
+          "drift": []
+        },
+        {
+          "id": "date_number_time",
+          "phenomenon": "date_number",
+          "actual": [
+            "standup_time(zed, sample_1).",
+            "standup_time(standup, '9:30')."
+          ],
+          "expected": "standup_time(zed, sample_1).\nstandup_time(team, '9:30').",
+          "drift": []
+        },
+        {
+          "id": "normalize_hyphen",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "works_on(zed, sample_1).",
+            "works_on(dana, checkout)."
+          ],
+          "expected": "works_on(zed, sample_1).\nworks_on(dana, checkout_service).",
+          "drift": []
+        }
+      ]
+    }
+  ]
+}

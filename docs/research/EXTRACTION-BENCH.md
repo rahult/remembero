@@ -283,6 +283,35 @@ quoted; on LongMemEval it extracts facts from far more sessions than r13 (63% ag
 and is the served default, though on the full development split hybrid formation with its
 facts matches raw retrieval on accuracy rather than beating it (see that document).
 
+### Base-model matrix and the size of the noise (2026-09-10)
+
+Four Qwen3.5-4B runs on identical r14 data and two Gemma 4 runs on the same data, all rank-32
+LoRA, one epoch, evaluated with the same prompts and guards:
+
+| run                | base        | query /31 | extraction /103 | held-out loss | train (H100) |
+| ------------------ | ----------- | --------: | --------------: | ------------: | -----------: |
+| r14                | Qwen3.5-4B  |        27 |              91 |        0.0025 |       40 min |
+| r14b               | Qwen3.5-4B  |        26 |              89 |        0.0039 |       40 min |
+| r15 (batch 4 × 16) | Qwen3.5-4B  |        26 |              88 |        0.0028 |       46 min |
+| r15 (batch 4 × 16) | Qwen3.5-4B  |        27 |              85 |        0.0036 |       44 min |
+| r16                | Gemma 4 E4B |        24 |              84 |        0.0031 |       55 min |
+| r16                | Gemma 4 E2B |        28 |           85–86 |        0.0037 |       43 min |
+
+Four runs of one recipe span 26–27 queries and 85–91 extraction cases, so the training-run
+noise is about one query and three extraction cases either side. Nothing in the table clears
+it: Gemma 4 E2B, a 2.3B-effective model, ties Qwen3.5-4B on both benchmarks; Gemma 4 E4B is a
+query below the band on one run. The base model is not where the remaining performance is.
+
+Two engineering notes from the Gemma runs. Gemma 4 wraps each projection in a clipping module
+PEFT cannot adapt, so the trainer now names the inner Linear layers; its KV-sharing layers
+have no key/value parameters in transformers but vLLM requires them, so merged checkpoints are
+re-exported text-only with Google's original tensors restored (`export_text_only`,
+`restore_dropped_weights` in `benchmarks/modal/train_lora.py`). E4B needs more than an L4 to
+serve with an 8k context. And the E4B run exposed an engine bug worth more than the run: it
+writes a named rule plus an explicit `?- goal.` line, which the MCP query tool accepts but
+the SQLite bridge sent to the native parser, scoring 16/31 until the bridge routed such
+programs to the portable engine (24/31 after; r14 unchanged at 27).
+
 The remaining nine r13 misses are one-offs: a dropped word (`dark` for `dark_mode`), a
 hallucinated fact from CI noise, a manager/report direction, two generic-subject choices
 (`deadline`, `engineers`), and two cases Luna also misses.

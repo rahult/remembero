@@ -1,0 +1,289 @@
+{
+  "benchmark": "extraction-bench-v1",
+  "vocabulary": "closed",
+  "generatedAt": "2026-09-10T04:59:16.340Z",
+  "cases": 103,
+  "runs": [
+    {
+      "model": "finetune/qwen3.5-4b-r15-gemma4-e2b-modal",
+      "score": {
+        "cases": 103,
+        "accuracy": 0.8252427184466019,
+        "mutationPrecision": 0.9056603773584906,
+        "mutationRecall": 0.8135593220338984,
+        "mutationF1": 0.8571428571428572,
+        "truePositives": 96,
+        "falsePositives": 10,
+        "falseNegatives": 22,
+        "safetyAccuracy": 1,
+        "safetyCases": 0,
+        "unexpectedErrors": 8,
+        "llmCalls": 117,
+        "usageResponses": 117,
+        "costResponses": 0,
+        "promptTokens": 115148,
+        "completionTokens": 1488,
+        "totalTokens": 116636,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "durationMs": 102074.69553399998,
+        "byPhenomenon": {
+          "direct": {
+            "cases": 12,
+            "correct": 12,
+            "accuracy": 1
+          },
+          "multi_fact": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "negation": {
+            "cases": 10,
+            "correct": 9,
+            "accuracy": 0.9
+          },
+          "coreference": {
+            "cases": 8,
+            "correct": 0,
+            "accuracy": 0
+          },
+          "first_person": {
+            "cases": 8,
+            "correct": 7,
+            "accuracy": 0.875
+          },
+          "supersession": {
+            "cases": 8,
+            "correct": 8,
+            "accuracy": 1
+          },
+          "distractor_prose": {
+            "cases": 8,
+            "correct": 7,
+            "accuracy": 0.875
+          },
+          "competitor_predicate": {
+            "cases": 8,
+            "correct": 7,
+            "accuracy": 0.875
+          },
+          "hedge": {
+            "cases": 9,
+            "correct": 9,
+            "accuracy": 1
+          },
+          "transcript": {
+            "cases": 8,
+            "correct": 7,
+            "accuracy": 0.875
+          },
+          "entity_normalization": {
+            "cases": 8,
+            "correct": 7,
+            "accuracy": 0.875
+          },
+          "date_number": {
+            "cases": 8,
+            "correct": 4,
+            "accuracy": 0.5
+          }
+        },
+        "driftRate": 0,
+        "driftedPredicates": {}
+      },
+      "failures": [
+        {
+          "id": "coref_0",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(mira, acme).\nlives_in(mira, melbourne).",
+          "drift": [],
+          "error": "unknown predicate started_at/2; the vocabulary is closed. Use one of: lives_in/2, works_at/2"
+        },
+        {
+          "id": "coref_1",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(tom, initech).\nlives_in(tom, sydney).",
+          "drift": [],
+          "error": "unknown predicate started_at/2; the vocabulary is closed. Use one of: lives_in/2, works_at/2"
+        },
+        {
+          "id": "coref_2",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(priya, globex).\nlives_in(priya, lisbon).",
+          "drift": [],
+          "error": "unknown predicate started_at/2; the vocabulary is closed. Use one of: lives_in/2, works_at/2"
+        },
+        {
+          "id": "coref_3",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(liam, umbrella).\nlives_in(liam, osaka).",
+          "drift": [],
+          "error": "unknown predicate started_at/2; the vocabulary is closed. Use one of: lives_in/2, works_at/2"
+        },
+        {
+          "id": "coref_4",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(ava, hooli).\nlives_in(ava, toronto).",
+          "drift": [],
+          "error": "unknown predicate started_at/2; the vocabulary is closed. Use one of: lives_in/2, works_at/2"
+        },
+        {
+          "id": "coref_5",
+          "phenomenon": "coreference",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).\nworks_at(dana, vandelay).\nlives_in(dana, nairobi).",
+          "drift": [],
+          "error": "unknown predicate started_at/2; the vocabulary is closed. Use one of: lives_in/2, works_at/2"
+        },
+        {
+          "id": "coref_their",
+          "phenomenon": "coreference",
+          "actual": [
+            "leads(zed, sample_1).",
+            "standup_day(zed, sample_1).",
+            "leads(tom, platform).",
+            "standup_day(tom, tuesday)."
+          ],
+          "expected": "leads(zed, sample_1).\nstandup_day(zed, sample_1).\nleads(tom, platform_team).\nstandup_day(platform_team, tuesday).",
+          "drift": []
+        },
+        {
+          "id": "coref_two_sentences_back",
+          "phenomenon": "coreference",
+          "actual": [
+            "reports_to(zed, sample_1)."
+          ],
+          "expected": "reports_to(zed, sample_1).\nreports_to(priya, ava).",
+          "drift": [],
+          "error": "unknown predicate deploy_day/2; the vocabulary is closed. Use one of: reports_to/2"
+        },
+        {
+          "id": "first_person_2",
+          "phenomenon": "first_person",
+          "actual": [
+            "dentist(zed, sample_1).",
+            "dentist(user, 'Dr Chen')."
+          ],
+          "expected": "dentist(zed, sample_1).\ndentist(user, dr_chen).",
+          "drift": []
+        },
+        {
+          "id": "distractor_only_noise",
+          "phenomenon": "distractor_prose",
+          "actual": [
+            "works_at(zed, sample_1).",
+            "lives_in(zed, sample_1)."
+          ],
+          "expected": "works_at(zed, sample_1).\nlives_in(zed, sample_1).",
+          "drift": [],
+          "error": "unknown predicate deploy_stage/2; the vocabulary is closed. Use one of: lives_in/2, works_at/2"
+        },
+        {
+          "id": "competitor_5",
+          "phenomenon": "competitor_predicate",
+          "actual": [
+            "manager_of(tom, mira).",
+            "manager_of(dana, liam)."
+          ],
+          "expected": "manager_of(tom, mira).\nmanager_of(liam, dana).",
+          "drift": []
+        },
+        {
+          "id": "date_number_0",
+          "phenomenon": "date_number",
+          "actual": [
+            "filing_deadline(zed, sample_1).",
+            "filing_deadline('2026-10-31', sample_1)."
+          ],
+          "expected": "filing_deadline(zed, sample_1).\nfiling_deadline(filing, '2026-10-31').",
+          "drift": []
+        },
+        {
+          "id": "date_number_1",
+          "phenomenon": "date_number",
+          "actual": [
+            "started_at(zed, sample_1, sample_2).",
+            "started_at(mira, '2024-03-01', acme)."
+          ],
+          "expected": "started_at(zed, sample_1, sample_2).\nstarted_at(mira, acme, '2024-03-01').",
+          "drift": []
+        },
+        {
+          "id": "date_number_2",
+          "phenomenon": "date_number",
+          "actual": [
+            "team_size(zed, sample_1).",
+            "team_size(engineers, 7)."
+          ],
+          "expected": "team_size(zed, sample_1).\nteam_size(team, 7).",
+          "drift": []
+        },
+        {
+          "id": "date_number_4",
+          "phenomenon": "date_number",
+          "actual": [
+            "turns_age_in(zed, sample_1, sample_2).",
+            "turns_age_in(tom, 2027, 40)."
+          ],
+          "expected": "turns_age_in(zed, sample_1, sample_2).\nturns_age_in(tom, 40, 2027).",
+          "drift": []
+        },
+        {
+          "id": "negation_keep_other_facts",
+          "phenomenon": "negation",
+          "actual": [
+            "lives_in(mira, melbourne)."
+          ],
+          "expected": "lives_in(mira, melbourne).",
+          "drift": []
+        },
+        {
+          "id": "transcript_assistant_summary_ignored",
+          "phenomenon": "transcript",
+          "actual": [
+            "runs_on(zed, sample_1).",
+            "deploy_day(zed, sample_1).",
+            "deploy_day(ledger, friday)."
+          ],
+          "expected": "runs_on(zed, sample_1).\ndeploy_day(zed, sample_1).",
+          "drift": []
+        },
+        {
+          "id": "normalize_hyphen",
+          "phenomenon": "entity_normalization",
+          "actual": [
+            "works_on(zed, sample_1).",
+            "works_on(dana, checkout)."
+          ],
+          "expected": "works_on(zed, sample_1).\nworks_on(dana, checkout_service).",
+          "drift": []
+        }
+      ]
+    }
+  ]
+}

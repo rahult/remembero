@@ -88,3 +88,18 @@ keeps answering, stop it with `modal container list` and `modal container stop -
 - **Serving.** The template opens a `<think>` block, so vLLM runs `--reasoning-parser qwen3`
   and the harness receives only the text after `</think>` as `content`.
 - Fallback base if anything else fails: `BASE_MODEL=Qwen/Qwen3-4B-Instruct-2507`.
+
+## Other base models (Gemma 4)
+
+`BASE_MODEL=google/gemma-4-E2B-it` (or `E4B-it`) trains with `--batch-size 4 --grad-accum 16`
+(262K vocabulary). Two fixes made it work: LoRA targets are enumerated as full Linear names
+because Gemma 4 wraps projections in a clipping module PEFT cannot adapt; and because
+transformers drops the KV-sharing layers' key/value tensors on save while vLLM requires them,
+run `modal run benchmarks/modal/train_lora.py::export_text_only --run <run>` then
+`::restore_dropped_weights --run <run> --base-model <id>` before serving. `serve()` prefers
+the `merged-text` directory when present and picks reasoning flags from the run's recorded
+base. E4B needs `MODAL_SERVE_GPU=A100-40GB` (or L40S) for an 8k context; E2B fits an L4.
+`MODAL_APP_NAME=rembero-finetune-eval SERVE_RUN=<run>` deploys a second serving app so an
+evaluation can run without disturbing the main endpoint. Values read from `os.environ` at
+import time (`BASE_MODEL`, `SERVE_RUN`) are local-only: they are passed as arguments or baked
+into the image env, never read inside a container.
