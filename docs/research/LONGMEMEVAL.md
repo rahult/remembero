@@ -465,6 +465,7 @@ standard error of about six, and keeps abstention at 95%. What each pattern did:
 | **hybrid (Gemma 4 E2B), multi-session k=15, temporal k=10 + time range** | **414/500** | 88.6%  | 90%        | 67/78    | 101/133 | 50/56   | 19/30   | 64/70   | 113/133  |
 | same + v5 semantic routing (embeddings on 95 questions)                  | **416/500** | 92.4%  | 93%        | 66/78    | 103/133 | 51/56   | 23/30   | 63/70   | 110/133  |
 | same + structured reading (dated notes, then an Answer line)             | 416/500     | 92.4%  | 90%        | 64/78    | 102/133 | 50/56   | 27/30   | 65/70   | 108/133  |
+| same + two-call reading (enumerate, then answer from the list)           | 401/500     | 92.4%  | 93%        | 64/78    | 94/133  | 50/56   | 26/30   | 65/70   | 102/133  |
 
 Gained 52 and lost 29 against raw; development 212 → 226, held-out test 179 → 188; about two
 and a half standard errors on 500. The two types the patterns targeted carry it: multi-session
@@ -488,8 +489,13 @@ knowledge-update questions the reader lists every relevant dated item, then give
 "Answer:" line that alone is judged) was the natural next step and did nothing: 416 again,
 with 14 gained and 21 lost on the three types it touched, and three preference answers moved
 without the pattern applying to them. With Luna as reader, enumerating before answering does
-not reduce its aggregation errors; a stronger reader or a two-call read (enumerate, then
-answer from the enumeration only) is the untested remainder.
+not reduce its aggregation errors. The two-call variant (`--reading two-call`: one call
+enumerates dated items from the history, a second answers from that list with the history
+withheld) is worse, 401/500, losing nine multi-session and eight temporal answers: the
+enumeration drops details the direct reader would have used, and the second call reasons over
+a lossy list. Both reader patterns are recorded as negative results. What remains on the
+reader side is the reader model itself; on the retrieval side recall is at 92% and the
+remaining misses are spread thin across types.
 
 Cost of the composed run over 500 questions: 10,089 extraction calls on an L4 (the dev half
 replayed from the cache), about $1 of GPU time, plus the reader and judge; the time-range
