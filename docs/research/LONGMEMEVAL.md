@@ -421,6 +421,42 @@ remaining reader errors. The extractor's contribution is the four answers betwee
 hybrid at k=15, both at about 94% recall: when both formations retrieve the evidence, the
 facts listed under each session help the reader count.
 
+### Patterns from the literature, composed (2026-09-11)
+
+[LONGMEMEVAL-PATTERNS.md](LONGMEMEVAL-PATTERNS.md) reviews the paper's ablations and the
+public systems' reports. Three patterns with numbers behind them were implemented on the
+answer run and measured on the development split with the Gemma 4 E2B extractor, using a
+per-session extraction cache so each variant cost reader time only:
+
+| variant (dev, 261)                                         | accuracy    | recall | k-update | multi | ss-asst | ss-pref | ss-user | temporal |
+| ---------------------------------------------------------- | ----------- | ------ | -------- | ----- | ------- | ------- | ------- | -------- |
+| raw                                                        | 214/261     | 83.4%  | 37/44    | 50/69 | 26/28   | 11/15   | 38/39   | 52/66    |
+| hybrid, multi-session k=15                                 | 219/261     | 86.5%  | 37/44    | 60/69 | 27/28   | 7/15    | 37/39   | 51/66    |
+| keyed (facts in the session key), multi-session k=15       | 214/261     | 86.7%  | 36/44    | 55/69 | 26/28   | 10/15   | 38/39   | 49/66    |
+| keyed + turn units (user turns only), k=15, 120KB context  | 218/261     | 86.0%  | 37/44    | 60/69 | 21/28   | 12/15   | 39/39   | 49/66    |
+| keyed + turn units (all roles), multi-session k=15         | 216/261     | 87.7%  | 36/44    | 54/69 | 28/28   | 11/15   | 36/39   | 51/66    |
+| **hybrid, multi-session k=15, temporal k=10 + time range** | **224/261** | 88.5%  | 37/44    | 60/69 | 28/28   | 8/15    | 36/39   | 55/66    |
+| same, with turn units (all roles)                          | 218/261     | 86.5%  | 34/44    | 60/69 | 27/28   | 10/15   | 35/39   | 52/66    |
+
+The composed policy gains 21 questions against raw and loses 11, ten net on 261 with a
+standard error of about six, and keeps abstention at 95%. What each pattern did:
+
+- **Multi-session top-k 15** is the whole multi-session gain (50 → 60) and the largest
+  single lever found; see the multi-session section above.
+- **Time-aware retrieval** (`--temporal-range-model`, Luna reads the absolute range off the
+  question and question date, refusing when there is no cue, which it did for 46 of 66)
+  with temporal top-k 10 takes temporal from 52 to 55–56 and temporal recall from 75.6% to
+  87.5%; on the 66 questions alone raw scored 52, range 55, range + k=10 56.
+- **Fact-augmented keys** (the paper's best BM25 pattern) did not beat shared hybrid here:
+  keyed alone lost the multi-session gain, because on this benchmark the separate fact
+  documents are what make a session with several matching facts outrank one with a long
+  transcript. The pattern was measured with BM25 over whole sessions in the paper; our
+  scorer already reads source text, so the key was not adding information.
+- **Turn-level units** raise recall to the highest seen (87.7%) and fix assistant-memory
+  questions once assistant turns are indexed (21 → 28 of 28), but cost multi-session and
+  knowledge-update answers in the combination and net out below the session unit.
+- **Entity-keyed retrieval** over the fact store lost at every k (multi-session section).
+
 - **The reader itself moves about six answers between identical runs.** The routed run
   presented 148 questions with exactly the same formation and retrieved sessions as the raw
   baseline; 6 of them still flipped. Luna at temperature zero plus a GPT-4o judge is about
