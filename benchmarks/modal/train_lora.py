@@ -229,6 +229,41 @@ def export_text_only(run: str) -> str:
     return str(text_dir)
 
 
+@app.function(image=train_image, volumes={VOL: volume}, timeout=30 * 60, memory=65536)
+def restore_dropped_weights(run: str, base_model: str) -> str:
+    """Put back tensors transformers drops on save but vLLM requires.
+
+    Gemma 4's KV-sharing layers carry k_proj/v_proj/k_norm in Google's checkpoint; the
+    transformers implementation has no such parameters there, so a re-saved model lacks them
+    and vLLM refuses to load. LoRA never touched those layers, so the originals are exact.
+    """
+    import glob
+
+    from huggingface_hub import snapshot_download
+    from safetensors import safe_open
+    from safetensors.torch import load_file, save_file
+
+    text_dir = Path(VOL) / "runs" / run / "merged-text"
+    target = text_dir / "model.safetensors"
+    exported = load_file(str(target))
+    prefix = "model.language_model."
+    added = []
+    snapshot = snapshot_download(base_model, allow_patterns=["*.safetensors"])
+    for shard in glob.glob(f"{snapshot}/*.safetensors"):
+        with safe_open(shard, "pt") as st:
+            for key in st.keys():
+                if not key.startswith(prefix):
+                    continue
+                new_key = "model." + key[len(prefix):]
+                if new_key not in exported and ".self_attn." in new_key:
+                    exported[new_key] = st.get_tensor(key)
+                    added.append(new_key)
+    save_file(exported, str(target), metadata={"format": "pt"})
+    volume.commit()
+    print(f"restored {len(added)} tensors, e.g. {added[:3]}")
+    return str(target)
+
+
 @app.function(image=train_image, volumes={VOL: volume}, timeout=15 * 60)
 def add_processor(run: str, base_model: str) -> str:
     """Patch an already-merged run with its base model's processor files."""
