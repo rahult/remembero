@@ -124,9 +124,20 @@ Every fine-tuned round refused all six trap writes and made zero or one tool err
    `promised_update(_, _, Y)`; for a6 it says every `M` in `reports_to(M, _)` works on
    something and suggests `reports_to(_, M)`, which is the gold query. Gemma 4 E2B r16 repeated
    its query unchanged both times (`--empty-feedback`: 27/31, baseline the same day 27/31,
-   misses j2, j5, m4, a6 in both). The adapter has never seen a repair turn, so it takes the
-   "repeat it unchanged if correct" branch of the instruction. The next query round should
-   include repair-turn examples: question, wrong query, engine feedback, corrected query.
+   misses j2, j5, m4, a6 in both). The adapter had never seen a repair turn, so it took the
+   "repeat it unchanged if correct" branch of the instruction.
+
+   **r18** (r14 data plus 1,383 repair-turn conversations, `--repair-share 0.25`) learned the
+   behaviour: baseline 26/31 (j2, j5, j6, m2, m4), with `--empty-feedback` 27/31. j6 is the
+   proof: the first program put `afternoon` in the wrong argument of `review_slot`, the engine
+   said so and suggested the swap, and the model wrote `review_slot(P, _, afternoon)`. On j2
+   it also followed the suggestion, but the suggestion (`promised_update(_, _, P)`) makes the
+   program return projects where the question wants people; a swap probe cannot see that a
+   three-argument relation needs two variables. Extraction came in at 82/103, the low edge of
+   the band (r16 85–86, r17 81), so the repair turns cost nothing on the query side and
+   perhaps a little on extraction; r16 stays served. The next step for feedback is a smarter
+   suggestion (try adding the missing join variable, not only swapping), and for the
+   benchmark a v3 with enough questions for a one-answer gain to be visible.
 
 ## Round 4 (after the review)
 
