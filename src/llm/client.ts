@@ -86,7 +86,7 @@ export function emptyLlmUsageTotals(): LlmUsageTotals {
 
 export function addLlmUsage(
   totals: LlmUsageTotals,
-  usage: LlmUsage
+  usage: LlmUsage,
 ): LlmUsageTotals {
   const hasTokens =
     usage.promptTokens !== null ||
@@ -99,7 +99,8 @@ export function addLlmUsage(
     promptTokens: totals.promptTokens + (usage.promptTokens ?? 0),
     completionTokens: totals.completionTokens + (usage.completionTokens ?? 0),
     totalTokens: totals.totalTokens + (usage.totalTokens ?? 0),
-    cachedPromptTokens: totals.cachedPromptTokens + (usage.cachedPromptTokens ?? 0),
+    cachedPromptTokens:
+      totals.cachedPromptTokens + (usage.cachedPromptTokens ?? 0),
     reasoningTokens: totals.reasoningTokens + (usage.reasoningTokens ?? 0),
     costUsd: totals.costUsd + (usage.costUsd ?? 0),
   };
@@ -110,7 +111,7 @@ export class OpenRouterClient implements LlmClient {
 
   constructor(
     private config: LlmConfig,
-    private fetchFn: typeof fetch = fetch
+    private fetchFn: typeof fetch = fetch,
   ) {
     this.model = config.model;
   }
@@ -121,48 +122,63 @@ export class OpenRouterClient implements LlmClient {
 
   async completeWithUsage(
     messages: ChatMessage[],
-    options: LlmCompletionOptions = {}
+    options: LlmCompletionOptions = {},
   ): Promise<LlmCompletion> {
     if (
       options.maxTokens !== undefined &&
-      (!Number.isSafeInteger(options.maxTokens) || options.maxTokens < 1 || options.maxTokens > 16_384)
+      (!Number.isSafeInteger(options.maxTokens) ||
+        options.maxTokens < 1 ||
+        options.maxTokens > 16_384)
     ) {
       throw new Error('LLM max tokens must be an integer from 1 to 16384');
     }
     let lastError: Error | null = null;
-    for (let attempt = 0; attempt < 2; attempt++) {
+    // 429s and 5xx come in bursts (a cloud endpoint throttling concurrent callers);
+    // four attempts with a growing pause ride them out
+    for (let attempt = 0; attempt < 4; attempt++) {
+      if (attempt > 0) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 100 * 4 ** (attempt - 1)),
+        );
+      }
       try {
-        const response = await this.fetchFn(`${this.config.baseUrl}/chat/completions`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${this.config.apiKey}`,
-            'Content-Type': 'application/json',
+        const response = await this.fetchFn(
+          `${this.config.baseUrl}/chat/completions`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${this.config.apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: this.config.model,
+              messages: messages.map((message) => ({
+                ...message,
+                content: normalizeUnicodeScalarText(message.content),
+              })),
+              temperature: 0,
+              ...(options.maxTokens === undefined
+                ? {}
+                : { max_tokens: options.maxTokens }),
+            }),
+            signal: AbortSignal.timeout(60_000),
           },
-          body: JSON.stringify({
-            model: this.config.model,
-            messages: messages.map((message) => ({
-              ...message,
-              content: normalizeUnicodeScalarText(message.content),
-            })),
-            temperature: 0,
-            ...(options.maxTokens === undefined
-              ? {}
-              : { max_tokens: options.maxTokens }),
-          }),
-          signal: AbortSignal.timeout(60_000),
-        });
+        );
         if (!response.ok) {
           const detail = providerErrorDetail(await response.text());
           lastError = new Error(
             `LLM request failed with status ${response.status}` +
-            (detail === undefined ? '' : `: ${detail}`)
+              (detail === undefined ? '' : `: ${detail}`),
           );
           if (response.status === 429 || response.status >= 500) continue;
           throw lastError;
         }
         const data = (await response.json()) as {
           model?: unknown;
-          choices?: { finish_reason?: unknown; message?: { content?: string } }[];
+          choices?: {
+            finish_reason?: unknown;
+            message?: { content?: string };
+          }[];
           usage?: {
             prompt_tokens?: unknown;
             completion_tokens?: unknown;
@@ -177,14 +193,19 @@ export class OpenRouterClient implements LlmClient {
           const finishReason = data.choices?.[0]?.finish_reason;
           throw new Error(
             'LLM response had no message content' +
-            (typeof finishReason === 'string' ? ` (finish_reason=${finishReason})` : '')
+              (typeof finishReason === 'string'
+                ? ` (finish_reason=${finishReason})`
+                : ''),
           );
         }
         const promptTokens = finiteNonnegative(data.usage?.prompt_tokens);
-        const completionTokens = finiteNonnegative(data.usage?.completion_tokens);
+        const completionTokens = finiteNonnegative(
+          data.usage?.completion_tokens,
+        );
         return {
           content,
-          model: typeof data.model === 'string' ? data.model : this.config.model,
+          model:
+            typeof data.model === 'string' ? data.model : this.config.model,
           usage: {
             promptTokens,
             completionTokens,
@@ -194,17 +215,18 @@ export class OpenRouterClient implements LlmClient {
                 ? promptTokens + completionTokens
                 : null),
             cachedPromptTokens: finiteNonnegative(
-              data.usage?.prompt_tokens_details?.cached_tokens
+              data.usage?.prompt_tokens_details?.cached_tokens,
             ),
             reasoningTokens: finiteNonnegative(
-              data.usage?.completion_tokens_details?.reasoning_tokens
+              data.usage?.completion_tokens_details?.reasoning_tokens,
             ),
             costUsd: finiteNonnegative(data.usage?.cost),
           },
         };
       } catch (e) {
         lastError = e instanceof Error ? e : new Error(String(e));
-        if (!/status (429|5\d\d)|abort|fetch failed/i.test(lastError.message)) throw lastError;
+        if (!/status (429|5\d\d)|abort|fetch failed/i.test(lastError.message))
+          throw lastError;
       }
     }
     throw lastError ?? new Error('LLM request failed');
@@ -228,11 +250,16 @@ export function lazyClientFromEnv(): LlmClient {
 export function clientFromEnv(env = process.env): OpenRouterClient {
   const apiKey = env.LLM_API_KEY;
   if (!apiKey) {
-    throw new Error('LLM_API_KEY is not set — add it to .env or the environment');
+    throw new Error(
+      'LLM_API_KEY is not set — add it to .env or the environment',
+    );
   }
   return new OpenRouterClient({
     apiKey,
-    baseUrl: (env.LLM_BASE_URL ?? 'https://openrouter.ai/api/v1').replace(/\/$/, ''),
+    baseUrl: (env.LLM_BASE_URL ?? 'https://openrouter.ai/api/v1').replace(
+      /\/$/,
+      '',
+    ),
     model: env.LLM_MODEL ?? DEFAULT_MODEL,
   });
 }
