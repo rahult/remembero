@@ -9,7 +9,7 @@ import { isEntityMetadataDeclaration } from '../knowledge/identity.js';
 export const NOTHING_SENTINEL = '% nothing';
 export const UNANSWERABLE = 'unanswerable';
 
-export type QueryPromptVariant = 'baseline' | 'grounded';
+export type QueryPromptVariant = 'baseline' | 'grounded' | 'dialect';
 
 const PROMPT_CONTROL_CHARACTER = /[\u0000-\u001f\u007f\u0085\u2028\u2029]/g;
 

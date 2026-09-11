@@ -2064,6 +2064,38 @@ describe('recallQuestion', () => {
     );
   });
 
+  it('dialect variant: the writer answers in its training dialect with a rule program', async () => {
+    const llm = new ScriptedLlm(['q(Company) :- works_at(rahul, Company).']);
+    const result = await recallQuestion(
+      { store, llm },
+      'Where does Rahul work?',
+      ['default'],
+      { queryPromptVariant: 'dialect', answerMode: 'evidence' },
+    );
+    expect(result.status).toBe('answered');
+    expect(result.bindings).toEqual([{ Company: 'acme' }]);
+    expect(result.query).toContain('q(Company) :- works_at(rahul, Company).');
+    // the prompt is the card the adapter was trained on, over the store's own predicates
+    const system = llm.calls[0][0].content;
+    expect(system).toContain('Rule shape');
+    expect(system).toContain('works_at(A1, A2)');
+    expect(system).toContain('e.g. works_at(rahul, acme).');
+    expect(system).not.toContain('select Answer');
+  });
+
+  it('dialect variant: a closure goal over a stored binary predicate is accepted and evaluated', async () => {
+    store.assert('default', 'reports_to(maya, liam). reports_to(liam, ava).');
+    const llm = new ScriptedLlm(['?- reports_to_plus(maya, ava).']);
+    const result = await recallQuestion(
+      { store, llm },
+      'Is Ava above Maya in the chain?',
+      ['default'],
+      { queryPromptVariant: 'dialect', answerMode: 'deterministic' },
+    );
+    expect(result.status).toBe('answered');
+    expect(result.bindings).toEqual([{}]);
+  });
+
   it('tells the model how each goal of an empty join fared on its own', async () => {
     const llm = new ScriptedLlm([
       '?- works_at(maya, X), works_at(X, acme).', // wrong join: X is a company, not a person

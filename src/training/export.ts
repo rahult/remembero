@@ -6,19 +6,13 @@
  * dialect rather than memorized predicate names.
  */
 import { parseProgram, serializeClause } from '../engine/index.js';
+import { DIALECT_CARD } from '../llm/dialect.js';
 import { toRepairConversation } from './repair.js';
 import { createRng } from './rng.js';
 import type { Example, Rejection } from './verify.js';
 import { schemaListing, type World } from './worlds.js';
 
-export const DIALECT_CARD = `Write ONE Datalog program that answers the question. Reply with ONLY the program.
-- Rule shape: q(A, B) :- predicate(A), other(B, A).   The answer is the rule no other rule uses.
-- Variables start uppercase (X, Person). Constants are lowercase exactly as listed.
-- _ is a wildcard. \\+ predicate(X) means "no such fact". Comparisons: A != B, X = value.
-- Any binary predicate p also answers p_plus(X, Y): Y is reachable from X in ONE OR MORE hops.
-  Use p_plus for chains ("above", "below", "ultimately", "directly or transitively"). NEVER write recursive rules.
-- Yes/no: ask the ground goal: ?- p_plus(x, target).   Answers yes = true or yes = false.
-- Counting: count(*) as N where predicate(X, value)`;
+export { DIALECT_CARD } from '../llm/dialect.js';
 
 export function systemPrompt(world: World): string {
   return `You query a knowledge base with these predicates:\n${schemaListing(world)}\n\n${DIALECT_CARD}`;

@@ -31,7 +31,7 @@ import {
 } from '../engine/index.js';
 import type { ChatMessage } from '../llm/client.js';
 import type { MemoryStore, MemorySource } from '../store/store.js';
-import { DIALECT_CARD } from '../training/export.js';
+import { DIALECT_CARD, dialectSchemaListing } from '../llm/dialect.js';
 
 export interface EngineRecallOutcome {
   status: 'answered' | 'empty' | 'unparsable' | 'error';
@@ -43,47 +43,9 @@ export interface EngineRecallOutcome {
   error?: string;
 }
 
-const PLUMBING = /^(longmem_|rembero_)/;
-const MAX_LISTING_PREDICATES = 120;
-const MAX_SAMPLES = 3;
 const MAX_ROWS_RENDERED = 40;
 
-/** The store's predicates as `name(A1, A2)` lines with sample facts, plumbing excluded. */
-export function dialectSchemaListing(clauses: readonly Clause[]): string {
-  const samples = new Map<
-    string,
-    { arity: number; facts: string[]; count: number }
-  >();
-  for (const clause of clauses) {
-    if (isIntegrityConstraint(clause)) continue;
-    if (PLUMBING.test(clause.head.predicate)) continue;
-    const key = predKey(clause.head);
-    const entry = samples.get(key) ?? {
-      arity: clause.head.args.length,
-      facts: [],
-      count: 0,
-    };
-    entry.count += 1;
-    if (clause.body.length === 0 && entry.facts.length < MAX_SAMPLES) {
-      entry.facts.push(serializeClause(clause));
-    }
-    samples.set(key, entry);
-  }
-  return [...samples.entries()]
-    .sort((a, b) => b[1].count - a[1].count || a[0].localeCompare(b[0]))
-    .slice(0, MAX_LISTING_PREDICATES)
-    .map(([key, entry]) => {
-      const name = key.slice(0, key.lastIndexOf('/'));
-      const placeholders = Array.from(
-        { length: entry.arity },
-        (_, i) => `A${i + 1}`,
-      );
-      const examples =
-        entry.facts.length > 0 ? `   e.g. ${entry.facts.join(' ')}` : '';
-      return `${name}(${placeholders.join(', ')})${examples}`;
-    })
-    .join('\n');
-}
+export { dialectSchemaListing };
 
 export function engineRecallMessages(
   clauses: readonly Clause[],

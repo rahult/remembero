@@ -1,4 +1,6 @@
 import {
+  CLOSURE_SUFFIX,
+  parseQueryProgram,
   emptyResultFeedback,
   type Bindings,
   type AggregateOperator,
@@ -24,6 +26,7 @@ import {
   serializeQuerySpec,
   serializeTerm,
 } from '../engine/index.js';
+import { dialectQuerySystemPrompt } from './dialect.js';
 import type {
   MemoryStore,
   MemorySource,
@@ -1478,19 +1481,37 @@ export async function retrieveQuestion(
   const runPass = async (
     selection: RecallSchemaSelection,
   ): Promise<PassResult> => {
-    assertSafeForExternalLlm(selection.summary, 'memory schema');
+    const dialect = options.queryPromptVariant === 'dialect';
+    const systemPrompt = dialect
+      ? // the card the writer adapter was trained on, over the selected predicates
+        dialectQuerySystemPrompt(clauses, selection.availablePredicates)
+      : queryGenSystemPrompt(selection.summary, options.queryPromptVariant);
+    assertSafeForExternalLlm(systemPrompt, 'memory schema');
     const messages: ChatMessage[] = [
-      {
-        role: 'system',
-        content: queryGenSystemPrompt(
-          selection.summary,
-          options.queryPromptVariant,
-        ),
-      },
+      { role: 'system', content: systemPrompt },
       { role: 'user', content: question },
     ];
+    // rules the model authored alongside its query (dialect variant only)
+    let authored: Clause[] = [];
     const validateResponse = (response: string): QuerySpec | null => {
       if (UNANSWERABLE_RE.test(response)) return null;
+      if (dialect) {
+        const program = parseQueryProgram(response);
+        // body predicates may be stored, authored in this program, or a closure
+        // (p_plus) over a stored binary predicate
+        const known = new Set(selection.availablePredicates);
+        for (const rule of program.clauses) known.add(predKey(rule.head));
+        for (const key of selection.availablePredicates) {
+          const match = key.match(/^(.*)\/2$/);
+          if (match) known.add(`${match[1]}${CLOSURE_SUFFIX}/2`);
+        }
+        for (const rule of program.clauses) {
+          validateQueryPredicates(rule.body, known, question);
+        }
+        validateQueryPredicates(program.query.goals, known, question);
+        authored = program.clauses;
+        return program.query;
+      }
       const parsed = parseQuerySpec(response);
       validateQuerySpec(
         parsed,
@@ -1503,6 +1524,10 @@ export async function retrieveQuestion(
         ? view.resolver.canonicalizeQuery(parsed).query
         : parsed;
     };
+    const programText = (query: QuerySpec): string =>
+      authored.length === 0
+        ? serializeQuerySpec(query)
+        : `${authored.map(serializeClause).join('\n')}\n?- ${serializeQuerySpec(query)}.`;
     const evaluate = (query: QuerySpec, queryText: string): PassResult => {
       if (options.explain || trustMode === 'include_tentative') {
         const explanation = explainKnowledge(
@@ -1531,7 +1556,7 @@ export async function retrieveQuestion(
           ...(options.explain ? { explanation } : {}),
         };
       }
-      const bindings = evaluateQuerySpec(clauses, query).map(
+      const bindings = evaluateQuerySpec([...clauses, ...authored], query).map(
         (binding: Bindings) =>
           Object.fromEntries(
             Object.entries(binding).map(([name, term]) => [
@@ -1551,7 +1576,7 @@ export async function retrieveQuestion(
     if (query === null) {
       return { outcome: 'unanswerable', query: null, bindings: [] };
     }
-    let queryText = serializeQuerySpec(query);
+    let queryText = programText(query);
     let result = evaluate(query, queryText);
     if (result.outcome === 'answered') {
       const ambiguity = answeredQueryAmbiguity(
@@ -1595,7 +1620,7 @@ export async function retrieveQuestion(
           },
         };
       }
-      queryText = serializeQuerySpec(query);
+      queryText = programText(query);
       const queryReview: RecallQueryReview = {
         originalQuery,
         reviewedQuery: queryText,
@@ -1612,7 +1637,9 @@ export async function retrieveQuestion(
     // the query came back empty (unknown predicate, reversed direction, and for
     // a join how each goal fares alone). Stored constants may appear in it, so
     // it passes the same safety gate as the schema summary.
-    const feedback = emptyResultFeedback(clauses, query);
+    const feedback = emptyResultFeedback([...clauses, ...authored], query, {
+      authored,
+    });
     if (feedback.length > 0) {
       assertSafeForExternalLlm(feedback, 'empty-result feedback');
     }
@@ -1634,7 +1661,7 @@ export async function retrieveQuestion(
     if (query === null) {
       return { outcome: 'unanswerable', query: null, bindings: [] };
     }
-    queryText = serializeQuerySpec(query);
+    queryText = programText(query);
     result = evaluate(query, queryText);
     return result;
   };
