@@ -1,7 +1,7 @@
 {
   "benchmark": "agent-boundary-v2",
   "model": "finetune/gemma-4-e2b-it-r18-gemma4-e2b-modal",
-  "generatedAt": "2026-09-11T02:54:45.997Z",
+  "generatedAt": "2026-09-11T02:58:33.104Z",
   "settings": {
     "temperature": 0,
     "seeds": [
@@ -48,13 +48,13 @@
                 "passed": 4,
                 "queryCorrect": 4,
                 "total": 6,
-                "toolErrors": 3
+                "toolErrors": 2
               }
             ],
             "mean": 4,
             "queryMean": 4,
             "spread": 0,
-            "toolErrors": 3
+            "toolErrors": 2
           }
         }
       },
@@ -127,13 +127,13 @@
             "passed": 27,
             "queryCorrect": 27,
             "total": 31,
-            "toolErrors": 7
+            "toolErrors": 6
           }
         ],
         "mean": 27,
         "queryMean": 27,
         "spread": 0,
-        "toolErrors": 7
+        "toolErrors": 6
       }
     },
     "gate": {
@@ -224,7 +224,7 @@
       "passed": true,
       "queryCorrect": true,
       "toolErrors": 0,
-      "query": "blocked(P) :- status(P, blocked).\n?- blocked(X).",
+      "query": "blocked_project(P) :- status(P, blocked).",
       "answer": "The blocked projects are atlas and beacon.",
       "missing": [],
       "forbidden": [],
@@ -252,17 +252,14 @@
       "passed": false,
       "queryCorrect": false,
       "toolErrors": 0,
-      "query": "owed_blocked(P) :- promised_update(_, _, P), status(P, blocked).",
-      "answer": "atlas and beacon were promised an update.",
+      "query": "owed_blocked(P) :- promised_update(_, P, _), status(P, blocked).",
+      "answer": "No one was promised an update about a project that is currently blocked.",
       "missing": [
         "maya",
         "priya"
       ],
       "forbidden": [],
-      "extraEntities": [
-        "atlas",
-        "beacon"
-      ]
+      "extraEntities": []
     },
     {
       "id": "j3",
@@ -299,7 +296,7 @@
       "seed": 7,
       "passed": false,
       "queryCorrect": false,
-      "toolErrors": 3,
+      "toolErrors": 2,
       "query": "works_on(Y, Z) :- blocker(Z, legal_signoff).",
       "answer": "(no runnable query)",
       "missing": [
@@ -408,7 +405,7 @@
       "queryCorrect": true,
       "toolErrors": 0,
       "query": "reports_to_plus(Y, dana).",
-      "answer": "The people who directly or transitively report to dana are ava, nora, liam, maya, priya, and tom.",
+      "answer": "The people who report to dana are ava, nora, liam, maya, priya, and tom.",
       "missing": [],
       "forbidden": [],
       "extraEntities": []
@@ -521,7 +518,7 @@
       "queryCorrect": true,
       "toolErrors": 0,
       "gateRefusedTrap": true,
-      "query": "blocked(P) :- status(P, blocked).\n?- blocked(X).",
+      "query": "blocked_project(P) :- status(P, blocked).",
       "answer": "The blocked projects are atlas and beacon.",
       "missing": [],
       "forbidden": [],

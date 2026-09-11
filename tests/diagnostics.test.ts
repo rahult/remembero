@@ -14,6 +14,8 @@ const FACTS = parseProgram(`
   waits_on(atlas, vendor).
   works_on(maya, atlas).
   works_on(liam, beacon).
+  promised(liam, maya, atlas).
+  promised(ava, liam, beacon).
   prefers_meeting(maya, morning).
   employed(rahul) :- works_at(rahul, _).
 `);
@@ -161,6 +163,14 @@ describe('emptyResultFeedback: why a join came back empty', () => {
     expect(text).toMatch(/reports_to\(M, _\) alone matches 2 rows/);
     expect(text).toMatch(
       /Did you mean reports_to\(_, M\)\? That returns 1 row/,
+    );
+  });
+
+  it('suggests joining through a different column when the shared variable sits in the wrong one', () => {
+    // P is joined to status by the person column; the project is the third argument
+    const text = feedback('promised(_, P, _), status(P, blocked)');
+    expect(text).toMatch(
+      /Did you mean promised\(_, P, V1\), status\(V1, blocked\)\? That returns 1 row/,
     );
   });
 

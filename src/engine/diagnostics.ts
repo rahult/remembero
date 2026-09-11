@@ -456,6 +456,60 @@ export function emptyResultFeedback(
         });
       });
     }
+    // Rebind probe: the shared variable joins the right relations through the
+    // wrong column. Keep V where it is in literal A, put a fresh variable in
+    // another argument of A, and let the other goal use the fresh variable
+    // instead of V. This is the "promised_update(_, P, Proj), status(Proj, …)"
+    // shape a swap cannot reach.
+    if (suggestions.length < 3) {
+      const used = new Set<string>();
+      for (const g of goals) for (const v of goalVariables(g)) used.add(v);
+      let fresh = 1;
+      while (used.has(`V${fresh}`)) fresh += 1;
+      const freshName = `V${fresh}`;
+      outer: for (const literal of literals) {
+        for (let i = 0; i < literal.args.length; i += 1) {
+          const term = literal.args[i];
+          if (term.type !== 'var' || !shared(term.name, literal)) continue;
+          for (let j = 0; j < literal.args.length; j += 1) {
+            if (j === i) continue;
+            const other = literal.args[j];
+            if (other.type === 'var' && other.name !== term.name) continue;
+            const args = literal.args.slice();
+            args[j] = { type: 'var', name: freshName };
+            const rebound: Literal = { predicate: literal.predicate, args };
+            const rename = (lit: Literal): Literal => ({
+              predicate: lit.predicate,
+              args: lit.args.map((t) =>
+                t.type === 'var' && t.name === term.name
+                  ? { type: 'var', name: freshName }
+                  : t,
+              ),
+            });
+            const mutated: Goal[] = goals.map((g) => {
+              if (g === literal) return rebound;
+              if (isComparison(g)) return g;
+              if (isNegation(g)) return { not: rename(g.not) };
+              return rename(g);
+            });
+            const rows = count(mutated);
+            if (rows > 0) {
+              suggestions.push(
+                `Did you mean ${mutated
+                  .filter(
+                    (g): g is Literal => !isComparison(g) && !isNegation(g),
+                  )
+                  .map(serializeGoal)
+                  .join(
+                    ', ',
+                  )}? That returns ${rows} row${rows === 1 ? '' : 's'}.`,
+              );
+              break outer;
+            }
+          }
+        }
+      }
+    }
     parts.push(...suggestions);
   }
   return parts.join(' ');
