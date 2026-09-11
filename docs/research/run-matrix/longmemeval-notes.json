@@ -216,5 +216,9 @@
   "longmemeval-ms-v7-engine-recall-r19-glmflash-all133.json": {
     "knobs": "engine recall (r19 writes a program over the r19 store; rows to the reader)",
     "note": "multi-session only; rows on 64/133 (r16 store: 11), 108 vs 107 without: programs too broad (count owns(user,Y) = 8 items)"
+  },
+  "longmemeval-ms-v8-engine-recall-scoped-r19-glmflash-all133.json": {
+    "knobs": "engine recall over the r19 store, block tells the reader to count only fitting items",
+    "note": "multi-session only; 113 vs 107 baseline and 108 unscoped; answered 63: +5/-3; inside the band, directionally right"
   }
 }

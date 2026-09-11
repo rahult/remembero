@@ -682,6 +682,12 @@ question's concept (a constant or a predicate chosen from the question's words, 
 `dialect` card can carry as an example) and a rendering that lists the counted items with
 their sessions so the reader can drop the ones that do not fit.
 
+The second half of that was one wording change: the block now says the program may be broader
+than the question and asks the reader to count only the listed items that fit. Rerun:
+**113/133** against 107 without the block and 108 with the unscoped one; among the 63 questions
+with rows, 5 gained and 3 lost, and the rest of the movement is noise. The lever is live and
+pointing the right way; a repeat run and the scoped program are what would make it a result.
+
 The engine's own recall over remembered facts is the right shape (the counts it did produce
 listed the right items), but it needs the fact store to be dense before it can decide
 questions. That is the writer-training thread of the moonshot, not a retrieval change.
