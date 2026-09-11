@@ -35,7 +35,9 @@ import {
   acceptDistilled,
   assembleHaystack,
   parseQuestionReply,
+  parseTypeWeights,
   pickType,
+  predicateGroups,
   questionWriterPrompt,
   readerMessages,
   toDistilledConversation,
@@ -608,6 +610,11 @@ async function distillReader(): Promise<void> {
   });
   const trainPool = ordered.slice(0, trainCount).map(toLabelled);
   const heldPool = ordered.slice(trainCount).map(toLabelled);
+  // --type-weights multi-session=40,temporal-reasoning=35,… reweights the draw; multi-session
+  // and knowledge-update haystacks are seeded with sessions that carry the material
+  const weightsFlag = flag('--type-weights');
+  const weights =
+    weightsFlag === undefined ? undefined : parseTypeWeights(weightsFlag);
   mkdirSync(out, { recursive: true });
   const stats = {
     attempted: 0,
@@ -617,6 +624,8 @@ async function distillReader(): Promise<void> {
     errors: 0,
   };
   const byType: Record<string, number> = {};
+  const trainGroups = predicateGroups(trainPool);
+  const heldGroups = predicateGroups(heldPool);
 
   const produce = async (
     pool: LabelledSession[],
@@ -635,8 +644,12 @@ async function distillReader(): Promise<void> {
     await runPool(tasks, concurrency, async () => {
       if (kept >= want) return;
       stats.attempted += 1;
-      const haystack = assembleHaystack(pool, rng);
-      const type = pickType(rng);
+      const type =
+        weights === undefined ? pickType(rng) : pickType(rng, weights);
+      const haystack = assembleHaystack(pool, rng, {
+        seed: type,
+        groups: pool === trainPool ? trainGroups : heldGroups,
+      });
       try {
         const written = await client.completeWithUsage(
           [{ role: 'user', content: questionWriterPrompt(haystack, type) }],
@@ -702,6 +715,7 @@ async function distillReader(): Promise<void> {
   const manifest = {
     labels: labelsPath,
     teacher: model,
+    typeWeights: weightsFlag ?? 'default',
     seed,
     trainSessions: trainPool.length,
     heldoutSessions: heldPool.length,

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   assembleHaystack,
+  parseTypeWeights,
+  predicateGroups,
   parseQuestionReply,
   pickType,
   questionWriterPrompt,
@@ -82,5 +84,76 @@ describe('reader distillation data', () => {
       ),
     ).toBe(true);
     expect(acceptDistilled('single-session-user', '')).toBe(false);
+  });
+
+  it('seeds a multi-session haystack with sessions sharing a predicate and an update haystack with a changed value', () => {
+    const pool: LabelledSession[] = [
+      {
+        id: 'a',
+        date: '2023-01-01',
+        facts: ['bought(user, kit_a).'],
+        transcript: 'user: a',
+      },
+      {
+        id: 'b',
+        date: '2023-02-01',
+        facts: ['bought(user, kit_b).'],
+        transcript: 'user: b',
+      },
+      {
+        id: 'c',
+        date: '2023-03-01',
+        facts: ['bought(user, kit_c).'],
+        transcript: 'user: c',
+      },
+      {
+        id: 'd',
+        date: '2023-04-01',
+        facts: ['lives_in(user, austin).'],
+        transcript: 'user: d',
+      },
+      {
+        id: 'e',
+        date: '2023-05-01',
+        facts: ['lives_in(user, denver).'],
+        transcript: 'user: e',
+      },
+      ...Array.from({ length: 10 }, (_, i) => ({
+        id: `f${i}`,
+        date: `2023-06-${String(i + 1).padStart(2, '0')}`,
+        facts: [],
+        transcript: `user: filler ${i}`,
+      })),
+    ];
+    const groups = predicateGroups(pool);
+    expect(groups.get('bought')!.length).toBe(3);
+    const multi = assembleHaystack(pool, createRng(2), {
+      seed: 'multi-session',
+      groups,
+    });
+    expect(
+      multi.sessions.filter((s) => ['a', 'b', 'c'].includes(s.id)).length,
+    ).toBe(3);
+    const update = assembleHaystack(pool, createRng(3), {
+      seed: 'knowledge-update',
+      groups,
+    });
+    expect(
+      update.sessions.filter((s) => ['d', 'e'].includes(s.id)).length,
+    ).toBe(2);
+    expect(update.sessions.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('parses type weights from a flag', () => {
+    const w = parseTypeWeights(
+      'multi-session=40,temporal-reasoning=35,abstention=10',
+    );
+    expect(w.find(([t]) => t === 'multi-session')![1]).toBe(40);
+    expect(w.length).toBe(3);
+    const rng = createRng(1);
+    for (let i = 0; i < 50; i += 1)
+      expect(['multi-session', 'temporal-reasoning', 'abstention']).toContain(
+        pickType(rng, w),
+      );
   });
 });

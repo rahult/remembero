@@ -39,14 +39,59 @@ const TYPE_WEIGHTS: Array<[DistillType, number]> = [
   ['abstention', 14],
 ];
 
-export function pickType(rng: Rng): DistillType {
-  const total = TYPE_WEIGHTS.reduce((a, [, w]) => a + w, 0);
+export function pickType(
+  rng: Rng,
+  weights: ReadonlyArray<[DistillType, number]> = TYPE_WEIGHTS,
+): DistillType {
+  const total = weights.reduce((a, [, w]) => a + w, 0);
   let roll = rng.next() * total;
-  for (const [type, weight] of TYPE_WEIGHTS) {
+  for (const [type, weight] of weights) {
     roll -= weight;
     if (roll <= 0) return type;
   }
-  return TYPE_WEIGHTS[TYPE_WEIGHTS.length - 1][0];
+  return weights[weights.length - 1][0];
+}
+
+/** "multi-session=40,temporal-reasoning=35" → weight pairs; unknown types are an error. */
+export function parseTypeWeights(spec: string): Array<[DistillType, number]> {
+  const known = new Set(TYPE_WEIGHTS.map(([t]) => t));
+  return spec.split(',').map((part) => {
+    const [type, weight] = part.split('=').map((x) => x.trim());
+    if (!known.has(type as DistillType) || !Number.isFinite(Number(weight))) {
+      throw new Error(`bad type weight: ${part}`);
+    }
+    return [type as DistillType, Number(weight)];
+  });
+}
+
+/**
+ * Sessions grouped by a self-fact predicate they carry, for seeding haystacks: a
+ * multi-session question needs several sessions about the same kind of thing, a
+ * knowledge update needs two sessions where the same predicate has different values.
+ */
+export function predicateGroups(
+  pool: readonly LabelledSession[],
+  selfAtom = 'user',
+): Map<string, Array<{ session: LabelledSession; value: string }>> {
+  const groups = new Map<
+    string,
+    Array<{ session: LabelledSession; value: string }>
+  >();
+  for (const session of pool) {
+    const seen = new Set<string>();
+    for (const fact of session.facts) {
+      const match = /^([a-z][a-z0-9_]*)\(([^,()]+),\s*([^()]+)\)\.$/.exec(
+        fact.trim(),
+      );
+      if (match === null || match[2].trim() !== selfAtom || seen.has(match[1]))
+        continue;
+      seen.add(match[1]);
+      const list = groups.get(match[1]) ?? [];
+      list.push({ session, value: match[3].trim() });
+      groups.set(match[1], list);
+    }
+  }
+  return groups;
 }
 
 export interface Haystack {
@@ -64,16 +109,58 @@ function addDaysIso(iso: string, days: number): string {
   return new Date(base + days * 86_400_000).toISOString().slice(0, 10);
 }
 
-/** 5 to 15 sessions, date-ordered, question date 7 to 120 days after the latest. */
+export interface AssembleOptions {
+  /** Seed the haystack with material for the type (multi-session or knowledge-update). */
+  seed?: DistillType;
+  groups?: ReturnType<typeof predicateGroups>;
+}
+
+/**
+ * 5 to 15 sessions, date-ordered, question date 7 to 120 days after the latest. Seeded
+ * for multi-session (three to five sessions sharing a predicate) or knowledge-update (two
+ * sessions where a predicate's value changed), filled to size with random sessions.
+ */
 export function assembleHaystack(
   pool: readonly LabelledSession[],
   rng: Rng,
+  options: AssembleOptions = {},
 ): Haystack {
   const size = 5 + rng.int(11);
-  const sessions = rng
-    .shuffle(pool)
-    .slice(0, Math.min(size, pool.length))
-    .sort((a, b) => a.date.localeCompare(b.date));
+  const seeded: LabelledSession[] = [];
+  if (options.groups !== undefined && options.seed !== undefined) {
+    const candidates = [...options.groups.entries()];
+    if (options.seed === 'multi-session') {
+      const eligible = candidates.filter(
+        ([, list]) => new Set(list.map((e) => e.session.id)).size >= 3,
+      );
+      if (eligible.length > 0) {
+        const [, list] = rng.pick(eligible);
+        const distinct = [
+          ...new Map(list.map((e) => [e.session.id, e.session])).values(),
+        ];
+        seeded.push(...rng.shuffle(distinct).slice(0, 3 + rng.int(3)));
+      }
+    } else if (options.seed === 'knowledge-update') {
+      const eligible = candidates.filter(
+        ([, list]) => new Set(list.map((e) => e.value)).size >= 2,
+      );
+      if (eligible.length > 0) {
+        const [, list] = rng.pick(eligible);
+        const first = rng.pick(list);
+        const second = list.find(
+          (e) => e.value !== first.value && e.session.id !== first.session.id,
+        );
+        if (second !== undefined) seeded.push(first.session, second.session);
+      }
+    }
+  }
+  const seededIds = new Set(seeded.map((s) => s.id));
+  const filler = rng
+    .shuffle(pool.filter((s) => !seededIds.has(s.id)))
+    .slice(0, Math.max(0, Math.min(size, pool.length) - seeded.length));
+  const sessions = [...seeded, ...filler].sort((a, b) =>
+    a.date.localeCompare(b.date),
+  );
   const latest = sessions[sessions.length - 1]?.date ?? '2023-01-01';
   return { sessions, questionDate: addDaysIso(latest, 7 + rng.int(114)) };
 }
