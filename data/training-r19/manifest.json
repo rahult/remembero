@@ -1,0 +1,14 @@
+{
+  "base": "data/training-r18",
+  "labels": "data/real/labels-glmflash8.jsonl",
+  "realTrain": 3000,
+  "realTrainWithFacts": 2478,
+  "realHeldout": 100,
+  "train": 27853,
+  "heldout": 2245,
+  "generatedAt": "2026-09-11T04:07:05.043Z",
+  "timeRange": 1500,
+  "timeRangeTrain": 1425,
+  "timeRangeHeldout": 75,
+  "notes": "r18 data (r14 recipe + repair turns) + 3,000 real sessions labelled by z-ai/glm-5.3-flash capped at 8 atomic facts (2,478 with facts) + 1,500 time-range extractor examples"
+}

@@ -346,6 +346,30 @@ formation runs kept pointing at without being able to name. Round 17 trains Gemm
 the first 3,000 labelled sessions mixed into the r14 data (`export`; silent sessions capped
 at the number with facts) and is scored on the same slice.
 
+### Capped, atomic labels from the subscription model (2026-09-11)
+
+Luna's labels are verbose and uncapped, and r17 inherited that. The same 3,400 sessions were
+re-labelled by GLM 5.3 Flash through the product path with an instruction appended to the
+transcript prompt (`label --max-facts 8`: at most eight durable facts, one relation each,
+short lowercase atoms) and cut to eight. Ollama Cloud throttled the job to a handful of
+sessions a minute at any concurrency, so it ran on OpenRouter (`z-ai/glm-5.3-flash`, about
+$3). Against Luna's set: 2,690 sessions with facts (Luna 2,459), 15,377 facts, 5.7 per session
+with facts (Luna 6.8), atoms 8.1 characters on average (Luna 11.0), 2.2% quoted strings
+(Luna 6.6%); 118 sessions lost to the model spending its 4,096-token budget thinking, 21
+refused by the sensitive-transcript guard. These labels are `data/real/labels-glmflash8.jsonl`
+and the reference for the measurements below (283 scored sessions, the same slice).
+
+| extractor                        | finds any fact where GLM did | false alarms | fact recall | fact precision | facts |
+| -------------------------------- | ---------------------------: | -----------: | ----------: | -------------: | ----: |
+| Gemma 4 E2B r16                  |                        47.5% |        39.5% |       14.4% |          50.7% |   383 |
+| Gemma 4 E2B r18 (+ repair turns) |                        50.0% |        32.6% |       14.3% |          57.1% |   346 |
+| GLM 5.3 Flash capped (reference) |                            – |            – |           – |              – | 1,364 |
+
+Recall against the capped labels is 14%, four points above the 10% measured against Luna's,
+because the capped set drops the marginal facts the small model never wrote. This is the
+starting line for the moonshot's facts leg (60% at 85% precision). Round 19 trains on r18's
+data plus the first 3,000 of these sessions (2,478 with facts) plus the time-range task.
+
 The remaining nine r13 misses are one-offs: a dropped word (`dark` for `dark_mode`), a
 hallucinated fact from CI noise, a manager/report direction, two generic-subject choices
 (`deadline`, `engineers`), and two cases Luna also misses.
