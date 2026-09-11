@@ -57,6 +57,8 @@ interface Args {
   hybridQuestionTypes: Set<string> | undefined;
   reservedMinimumScore: number | undefined;
   entityRetrieval: boolean;
+  engineRecall: boolean;
+  engineRecallQuestionTypes: Set<string> | undefined;
   extractionCacheDir: string | undefined;
   temporalRangeModel: string | undefined;
   temporalRangeBaseUrl: string | undefined;
@@ -116,6 +118,10 @@ Options:
   --entity-retrieval     hybrid/extracted: one hop over the extracted facts from the question
                          (shared relation-and-subject or entity); found sessions take alternate
                          top-k slots with the lexical ranking
+  --engine-recall        hybrid/extracted: the memory system's own recall authors a Datalog
+                         query over the remembered facts (the extraction model writes it),
+                         executes it, and the reader sees the query and rows ahead of the chats
+  --engine-recall-question-types <csv>  Restrict engine recall to these question types
   --no-facts-in-context  Do not list a retrieved session's matched extracted facts to the reader
   --extraction-max-tokens <n>  Completion budget per extraction call (default 512; reasoning
                          models such as Luna spend it on thinking and need 4096 or more)
@@ -196,6 +202,8 @@ function parseArgs(argv: string[]): Args {
     hybridQuestionTypes: undefined,
     reservedMinimumScore: undefined,
     entityRetrieval: false,
+    engineRecall: false,
+    engineRecallQuestionTypes: undefined,
     extractionCacheDir: undefined,
     temporalRangeModel: undefined,
     temporalRangeBaseUrl: undefined,
@@ -379,6 +387,15 @@ function parseArgs(argv: string[]): Args {
       args.extractionCacheDir = resolve(requiredValue(argv, index++, arg));
     } else if (arg === '--entity-retrieval') {
       args.entityRetrieval = true;
+    } else if (arg === '--engine-recall') {
+      args.engineRecall = true;
+    } else if (arg === '--engine-recall-question-types') {
+      args.engineRecallQuestionTypes = new Set(
+        requiredValue(argv, index++, arg)
+          .split(',')
+          .map((v) => v.trim())
+          .filter(Boolean),
+      );
     } else if (arg === '--no-facts-in-context') {
       args.factsInContext = false;
     } else if (arg === '--extraction-max-tokens') {
@@ -501,6 +518,11 @@ async function main(): Promise<void> {
           baseUrl: args.extractionBaseUrl ?? baseUrl,
           model: args.extractionModel ?? args.readerModel,
         });
+  if (args.engineRecall && extractor === undefined) {
+    throw new Error('--engine-recall needs the extracted or hybrid formation');
+  }
+  // the writer that authors the engine's query is the extraction model
+  const engineWriter = extractor as OpenRouterClient;
   const embeddings =
     args.semanticQuestionTypes.size > 0 ? embeddingClientFromEnv() : undefined;
   let completed = 0;
@@ -548,6 +570,16 @@ async function main(): Promise<void> {
             ? {}
             : { temporalRangeExtractor }),
           entityRetrieval: args.entityRetrieval,
+          ...(args.engineRecall
+            ? {
+                engineRecall: {
+                  llm: engineWriter,
+                  ...(args.engineRecallQuestionTypes === undefined
+                    ? {}
+                    : { questionTypes: args.engineRecallQuestionTypes }),
+                },
+              }
+            : {}),
           ...(args.extractionCacheDir === undefined
             ? {}
             : { extractionCacheDir: args.extractionCacheDir }),
@@ -589,6 +621,11 @@ async function main(): Promise<void> {
       hybridRetrieval: args.hybridRetrieval,
       retrievalUnit: args.retrievalUnit,
       entityRetrieval: args.entityRetrieval,
+      engineRecall: args.engineRecall,
+      engineRecallQuestionTypes:
+        args.engineRecallQuestionTypes === undefined
+          ? null
+          : [...args.engineRecallQuestionTypes],
       hybridQuestionTypes:
         args.hybridQuestionTypes === undefined
           ? null

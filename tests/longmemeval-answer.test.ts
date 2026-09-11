@@ -298,6 +298,42 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     expect(prompt).not.toContain('longmem_session');
   });
 
+  it('engine recall: the memory system queries its own facts and the reader sees the rows', async () => {
+    const reader = new ScriptedCompletionClient('reader', [
+      'Business Administration',
+    ]);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    // extraction for each session, then the query the writer authors over the remembered facts
+    const extractor = new ScriptedCompletionClient('dialect', [
+      '% nothing',
+      'degree(user, business_administration).',
+      'q(Degree) :- degree(user, Degree).',
+    ]);
+    const result = await evaluateLongMemEvalAnswerInstance(
+      instance(),
+      reader,
+      judge,
+      {
+        topK: 1,
+        contextBytes: 4_096,
+        formation: 'hybrid',
+        extractor,
+        engineRecall: { llm: extractor },
+      },
+    );
+    const prompt = reader.calls[0]?.messages.at(-1)?.content ?? '';
+    expect(prompt).toContain('Memory engine result');
+    expect(prompt).toContain('q(Degree) :- degree(user, Degree).');
+    expect(prompt).toContain('Degree = business_administration');
+    // the writer saw its training dialect and the store's predicates, not the plumbing
+    const authoring = extractor.calls.at(-1)?.messages[0]?.content ?? '';
+    expect(authoring).toContain('degree(A1, A2)');
+    expect(authoring).toContain('Rule shape');
+    expect(authoring).not.toContain('longmem_session');
+    expect(result.engineRecall?.status).toBe('answered');
+    expect(result.engineRecall?.rows).toBe(1);
+  });
+
   it('reserved hybrid retrieval keeps top-k for raw sessions and adds matched facts as a dated block', async () => {
     const reader = new ScriptedCompletionClient('reader', [
       'Business Administration',

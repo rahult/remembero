@@ -36,6 +36,8 @@ import {
 import type { EmbeddingClient, EmbeddingUsage } from '../llm/embeddings.js';
 import type { Clause } from '../engine/index.js';
 import { rememberTranscriptText } from '../llm/pipeline.js';
+import type { LlmClient } from '../llm/client.js';
+import { engineRecall as runEngineRecall } from './engine-recall.js';
 import {
   expandByEntities,
   interleaveSessions,
@@ -113,6 +115,16 @@ export interface LongMemEvalCompletionClient {
   ): Promise<LlmCompletion>;
 }
 
+export interface LongMemEvalEngineRecall {
+  status: 'answered' | 'empty' | 'unparsable' | 'error';
+  query: string | null;
+  rows: number;
+  attempts: number;
+  ms: number;
+  usage: LlmUsage | null;
+  error?: string;
+}
+
 export interface LongMemEvalAnswerObservation {
   questionId: string;
   questionType: string;
@@ -140,6 +152,8 @@ export interface LongMemEvalAnswerObservation {
   /** Present when a time-range extractor ran: the range it read off the question, or null. */
   temporalRange?: { start: string; end: string } | null;
   temporalRangeUsage?: LlmUsage | null;
+  /** Present when the memory engine's own recall ran over the remembered facts. */
+  engineRecall?: LongMemEvalEngineRecall;
   formationMs: number;
   semanticPreparationMs: number;
   retrievalMs: number;
@@ -225,6 +239,8 @@ export interface LongMemEvalAnswerRun {
     hybridRetrieval: 'shared' | 'reserved' | 'keyed';
     retrievalUnit: 'session' | 'turn';
     entityRetrieval: boolean;
+    engineRecall?: boolean;
+    engineRecallQuestionTypes?: string[] | null;
     hybridQuestionTypes: string[] | null;
     factsInContext: boolean;
     readerMaxTokens: number;
@@ -449,6 +465,8 @@ interface AnswerContext {
   redactedRetrievedSessions: number;
 }
 
+const MAX_ENGINE_RENDER_CHARACTERS = 4_000;
+
 export function buildLongMemEvalAnswerContext(
   instance: LongMemEvalInstance,
   rankedSources: Array<{
@@ -463,6 +481,7 @@ export function buildLongMemEvalAnswerContext(
   contextBytes = DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES,
   extraFacts: Array<{ clause: string; ts: string }> = [],
   reading: 'direct' | 'notes' | 'enumerate' = 'direct',
+  engine?: { query: string; rendered: string },
 ): AnswerContext {
   validateOptions(Math.max(1, rankedSources.length), contextBytes);
   const usable = rankedSources.filter(
@@ -499,7 +518,11 @@ export function buildLongMemEvalAnswerContext(
       : `\n### Supplementary remembered facts (extracted earlier, with the session date; they may be unrelated to the question, so ignore any that do not concern it and never treat them as evidence on their own)\n${extraFacts
           .map(({ ts, clause }) => `- ${ts}: ${clause}`)
           .join('\n')}\n`;
-  const user = `History chats:\n\n${history || '[no safe relevant history retrieved]'}\n${remembered}Current date: ${instance.question_date}\nQuestion: ${instance.question}\nAnswer:`;
+  const engineBlock =
+    engine === undefined
+      ? ''
+      : `\n### Memory engine result\nThe memory system wrote this Datalog program over the facts it remembered from the whole history (every session, not only the chats above) and executed it. The rows are exact for the remembered facts, but facts can be missing or misread, so cross-check with the chats and prefer the chats where they disagree.\nProgram: ${engine.query.replace(/\s*\n\s*/g, ' ')}\n${engine.rendered.slice(0, MAX_ENGINE_RENDER_CHARACTERS)}\n`;
+  const user = `History chats:\n\n${history || '[no safe relevant history retrieved]'}\n${remembered}${engineBlock}Current date: ${instance.question_date}\nQuestion: ${instance.question}\nAnswer:`;
   assertSafeForExternalLlm(user, 'LongMemEval answer prompt');
   const system =
     instance.question_type === 'single-session-preference'
@@ -609,6 +632,19 @@ export async function evaluateLongMemEvalAnswerInstance(
     /** Question types that get the range treatment (default: temporal-reasoning). */
     temporalRangeQuestionTypes?: ReadonlySet<string>;
     /**
+     * Engine recall: after formation, the memory system's own recall path authors a Datalog
+     * query over the facts it remembered from the whole history (the writer model does the
+     * authoring), executes it, and the reader sees the query and its rows ahead of the
+     * chats. This is the moonshot composition: counting, latest-value and chaining come
+     * from the engine, the reader reads.
+     */
+    engineRecall?: {
+      /** The writer: authors the Datalog query (usage is accounted with extraction). */
+      llm: LongMemEvalCompletionClient;
+      /** Question types that get it (default: all). */
+      questionTypes?: ReadonlySet<string>;
+    };
+    /**
      * 'direct' (default) or 'notes': the reader first lists every relevant dated item, then
      * gives a final "Answer:" line, which alone is judged (the paper's Chain-of-Note reading).
      */
@@ -692,6 +728,7 @@ export async function evaluateLongMemEvalAnswerInstance(
   let extraction: LongMemEvalExtractionStats | undefined;
   let temporalRange: { start: string; end: string } | null | undefined;
   let temporalRangeUsage: LlmUsage | null = null;
+  let engineRecall: LongMemEvalEngineRecall | undefined;
   try {
     const store = new MemoryStore(root);
     const formationStarted = performance.now();
@@ -1205,12 +1242,76 @@ export async function evaluateLongMemEvalAnswerInstance(
     ).has(instance.question_type);
     const notes = options.readingStrategy === 'notes' && aggregationType;
     const twoCall = options.readingStrategy === 'two-call' && aggregationType;
+    let engine: { query: string; rendered: string } | undefined;
+    if (
+      options.engineRecall !== undefined &&
+      (options.engineRecall.questionTypes === undefined ||
+        options.engineRecall.questionTypes.has(instance.question_type))
+    ) {
+      const engineStarted = performance.now();
+      const writer = options.engineRecall.llm;
+      let engineUsage: LlmUsage | null = null;
+      const authoring: LlmClient = {
+        complete: async (messages) => {
+          if (process.env.REMBERO_ENGINE_DEBUG) {
+            const bytes = messages.reduce((a, m) => a + m.content.length, 0);
+            process.stderr.write(
+              `[engine-recall] ${instance.question_id} prompt ${bytes} chars, ${messages.length} messages\n`,
+            );
+          }
+          const completion = await writer.completeWithUsage(messages, {
+            maxTokens: 512,
+          });
+          if (process.env.REMBERO_ENGINE_DEBUG) {
+            process.stderr.write(
+              `[engine-recall] ${instance.question_id} system: ${messages[0]?.content.slice(0, 1500).replace(/\n/g, ' | ')}\n[engine-recall] ${instance.question_id} last user: ${messages.at(-1)?.content.slice(0, 600).replace(/\n/g, ' | ')}\n[engine-recall] ${instance.question_id} response: ${completion.content.slice(0, 300).replace(/\n/g, ' | ')}\n`,
+            );
+          }
+          engineUsage =
+            engineUsage === null
+              ? completion.usage
+              : sumLlmUsage(engineUsage, completion.usage);
+          return completion.content;
+        },
+      };
+      try {
+        const recall = await runEngineRecall(
+          store,
+          'longmemeval',
+          instance.question,
+          authoring,
+        );
+        engineRecall = {
+          status: recall.status,
+          query: recall.program,
+          rows: recall.rows,
+          attempts: recall.attempts,
+          ms: performance.now() - engineStarted,
+          usage: engineUsage,
+          ...(recall.error === undefined ? {} : { error: recall.error }),
+        };
+        if (recall.status === 'answered' && recall.program !== null) {
+          engine = { query: recall.program, rendered: recall.rendered };
+        }
+      } catch (error) {
+        engineRecall = {
+          status: 'error',
+          query: null,
+          rows: 0,
+          attempts: 0,
+          ms: performance.now() - engineStarted,
+          usage: engineUsage,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    }
     const answerContext = buildLongMemEvalAnswerContext(
       instance,
       rankedSources,
       contextBytes,
       extraFacts,
       twoCall ? 'enumerate' : notes ? 'notes' : 'direct',
+      engine,
     );
     contextSessionIds = [
       ...answerContext.contextSessionIds,
@@ -1301,6 +1402,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       ...(temporalRange === undefined
         ? {}
         : { temporalRange, temporalRangeUsage }),
+      ...(engineRecall === undefined ? {} : { engineRecall }),
       formationMs,
       semanticPreparationMs,
       retrievalMs,
@@ -1336,6 +1438,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       ...(temporalRange === undefined
         ? {}
         : { temporalRange, temporalRangeUsage }),
+      ...(engineRecall === undefined ? {} : { engineRecall }),
       formationMs,
       semanticPreparationMs,
       retrievalMs,
