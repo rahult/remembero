@@ -55,6 +55,8 @@ export interface Manifest {
   tasks?: string[];
   /** Repair-turn conversations added to the query task. */
   repairTurns?: number;
+  /** Time-range extractor examples (5% held out). */
+  timeRange?: number;
   /** Extraction examples rendered and verified, by kind. */
   extraction?: { count: number; byKind: Record<string, number> };
 }

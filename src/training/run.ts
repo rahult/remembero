@@ -4,6 +4,7 @@
  *   npm run train:data -- --examples 3000 --worlds 60 --paraphrases 3 --seed 7 --out data/training
  *   npm run train:data -- --no-paraphrase          # zero-cost dry run
  *   npm run train:data -- --repair-share 0.2       # add repair-turn conversations for 20% of query examples
+ *   npm run train:data -- --tasks query,extraction,timerange   # add the time-range extractor task
  *
  * Output: conversations.jsonl (train), heldout.jsonl (whole held-out worlds),
  * manifest.json (counts, rejections, paraphrase settings).
@@ -39,8 +40,12 @@ import {
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import type { LlmClient } from '../llm/client.js';
+import {
+  generateTimeRangeExamples,
+  toTimeRangeConversation,
+} from './timerange-data.js';
 
-export type TrainingTask = 'query' | 'extraction';
+export type TrainingTask = 'query' | 'extraction' | 'timerange';
 
 export interface RunOptions {
   /** Which task families to generate (default: both). */
@@ -51,6 +56,8 @@ export interface RunOptions {
   extractionPerKind?: number;
   /** Share of query examples that also get a repair-turn conversation (default 0). */
   repairShare?: number;
+  /** Time-range extractor examples to generate when the task is on (default 1500; 5% held out). */
+  timeRangeExamples?: number;
   /** Target number of verified templated examples before paraphrasing (ignored when rounds is set). */
   examples: number;
   /** Draw exactly this many candidate rounds per world; keeps data size comparable across runs. */
@@ -225,8 +232,29 @@ export async function generateTrainingData(
     trainText += extraction.train.map((l) => `${l}\n`).join('');
     heldText += extraction.heldout.map((l) => `${l}\n`).join('');
   }
+  let timeRange: number | undefined;
+  if (tasks.includes('timerange')) {
+    const examples = generateTimeRangeExamples(
+      createRng(options.seed * 48611 + 13),
+      options.timeRangeExamples ?? 1500,
+    );
+    const heldCount = Math.floor(examples.length / 20);
+    const lines = examples.map((e) =>
+      JSON.stringify(toTimeRangeConversation(e)),
+    );
+    heldText += lines
+      .slice(0, heldCount)
+      .map((l) => `${l}\n`)
+      .join('');
+    trainText += lines
+      .slice(heldCount)
+      .map((l) => `${l}\n`)
+      .join('');
+    timeRange = examples.length;
+  }
   const finalManifest: Manifest = {
     ...manifest,
+    ...(timeRange === undefined ? {} : { timeRange }),
     train: trainText.split('\n').filter(Boolean).length,
     heldout: heldText.split('\n').filter(Boolean).length,
     tasks,
@@ -270,6 +298,7 @@ if (invokedDirectly) {
     selfAtom: flag('--self', 'user'),
     extractionPerKind: Number(flag('--extraction-per-kind', '2')),
     repairShare: Number(flag('--repair-share', '0')),
+    timeRangeExamples: Number(flag('--timerange-examples', '1500')),
   });
   console.log(JSON.stringify(manifest, null, 2));
 }
