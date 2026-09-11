@@ -229,6 +229,61 @@ def export_text_only(run: str) -> str:
     return str(text_dir)
 
 
+gguf_image = (
+    modal.Image.debian_slim(python_version="3.12")
+    .apt_install("git", "cmake", "build-essential", "curl", "libcurl4-openssl-dev")
+    .run_commands(
+        "git clone --depth 1 https://github.com/ggml-org/llama.cpp /opt/llama.cpp",
+        "cmake -S /opt/llama.cpp -B /opt/llama.cpp/build -DGGML_NATIVE=OFF -DLLAMA_CURL=OFF",
+        "cmake --build /opt/llama.cpp/build --target llama-quantize -j 8",
+        "pip install -r /opt/llama.cpp/requirements/requirements-convert_hf_to_gguf.txt",
+        # the merged checkpoint's tokenizer config is written by transformers 5; the
+        # converter's pinned transformers cannot read it
+        "pip install 'transformers>=5.0,<6'",
+    )
+)
+
+
+@app.function(image=gguf_image, volumes={VOL: volume}, timeout=60 * 60, memory=32768, cpu=8)
+def export_gguf(run: str, quant: str = "Q8_0") -> str:
+    """Convert a run's text-only merged checkpoint to GGUF and quantize it, for Ollama.
+
+    The local-serving story: the writer runs under the user's own Ollama next to the
+    embedding model, no Modal endpoint in the product path. Uses llama.cpp's converter;
+    Gemma 4 text-only is a supported architecture (Ollama ships gemma4 GGUFs).
+    """
+    import subprocess
+
+    text_dir = Path(VOL) / "runs" / run / "merged-text"
+    if not text_dir.exists():
+        raise SystemExit(f"{text_dir} missing; run export_text_only first")
+    out_dir = Path(VOL) / "runs" / run / "gguf"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    f16 = out_dir / f"{run}-f16.gguf"
+    quantized = out_dir / f"{run}-{quant}.gguf"
+    subprocess.run(
+        [
+            "python",
+            "/opt/llama.cpp/convert_hf_to_gguf.py",
+            str(text_dir),
+            "--outfile",
+            str(f16),
+            "--outtype",
+            "f16",
+        ],
+        check=True,
+    )
+    subprocess.run(
+        ["/opt/llama.cpp/build/bin/llama-quantize", str(f16), str(quantized), quant],
+        check=True,
+    )
+    f16.unlink()
+    volume.commit()
+    size = quantized.stat().st_size / 2**30
+    print(f"wrote {quantized} ({size:.2f} GiB); download with: modal volume get rembero-finetune runs/{run}/gguf/{quantized.name} .")
+    return str(quantized)
+
+
 @app.function(image=train_image, volumes={VOL: volume}, timeout=30 * 60, memory=65536)
 def restore_dropped_weights(run: str, base_model: str) -> str:
     """Put back tensors transformers drops on save but vLLM requires.
