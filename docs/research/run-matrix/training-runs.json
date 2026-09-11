@@ -360,6 +360,21 @@
       "queryAlias": "finetune-gemma-4-e2b-it-r19-gemma4-e2b-modal",
       "extractionAlias": "finetune-gemma-4-e2b-it-r19-gemma4-e2b-modal",
       "notes": "real-session fact recall 14%→44% at 58% precision, false alarms 5%; max_length 2048 truncated 39% of real rows (fix in r20)"
+    },
+    {
+      "run": "reader-v1 E4B",
+      "date": "2026-09-11",
+      "base": "Gemma 4 E4B",
+      "platform": "Modal H100",
+      "data": "2,976 generated reader examples over GLM-labelled real sessions (Luna-rewritten questions), 24KB prompts, max_length 8192",
+      "tasks": "reader",
+      "minutes": 62,
+      "costUsd": 4.1,
+      "costNote": null,
+      "heldoutLoss": 0.0397,
+      "queryAlias": null,
+      "extractionAlias": null,
+      "notes": "first self-trained reader: LongMemEval 235/500 at the training context budget (single-session 54/70, multi 41/133, temporal 44/133)"
     }
   ]
 }

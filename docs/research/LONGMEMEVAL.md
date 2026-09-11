@@ -612,6 +612,30 @@ too broadly is the large part, and the small reader in training will be taught t
 directly (abstention examples where the history is genuinely silent, answered examples where
 it is not).
 
+**Reader v1: the first reader we trained (2026-09-11).** Gemma 4 E4B, LoRA r32, one epoch over
+2,976 examples generated without a teacher from the GLM-labelled real sessions (single-session,
+multi-session count and list, knowledge-update, temporal, abstention; questions rewritten by
+Luna; prompts rendered by the evaluation's own context builder with date distances, 24 KB).
+Served on an A100 as `finetune/gemma-4-e4b-it-reader-v1-gemma4-e4b-modal`. On the 500 from the
+r16 cache with the GLM Flash range:
+
+| reader v1 run                 | total   | k-update | multi   | assistant               | preference | user  | temporal | abstention |
+| ----------------------------- | ------- | -------- | ------- | ----------------------- | ---------- | ----- | -------- | ---------: |
+| default 160 KB context budget | 208/500 | 53/78    | 49/133  | 1/56 (55 overflowed 8k) | 7/30       | 56/70 | 42/133   |       0.60 |
+| 24 KB budget, as trained      | 235/500 | 51/78    | 41/133  | 39/56                   | 6/30       | 54/70 | 44/133   |       0.70 |
+| GLM 5.3 Flash (for reference) | 432/500 | 66/78    | 113/133 | 48/56                   | 28/30      | 61/70 | 116/133  |       0.93 |
+
+Where the training data had the type, the 4.5B reader is within ten points of GLM on a
+per-type basis (single-session-user 54 vs 61, assistant 39 vs 48, knowledge-update 51 vs 66);
+where it did not (preference, which needs general knowledge), it fails; and on the two
+aggregation types it reproduces the trained answer shape without the reasoning: counts that
+disagree with their own lists ("1: peace lily, basil plant"), and day counts between two dates
+that are wrong (24 days for January 8 to 15). Abstention is over-used (62 "does not say" among
+the misses). Reader v1 is a floor, not a result: the first milestone is Luna's 416. The v2
+data needs the aggregation types in volume and variety (counts verified against their lists,
+"days between" and "which came first" templates, up to fifteen sessions in context as the
+evaluation shows), and the preference type left to a general-knowledge fallback.
+
 The engine's own recall over remembered facts is the right shape (the counts it did produce
 listed the right items), but it needs the fact store to be dense before it can decide
 questions. That is the writer-training thread of the moonshot, not a retrieval change.

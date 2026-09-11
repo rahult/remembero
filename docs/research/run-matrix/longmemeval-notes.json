@@ -196,5 +196,9 @@
   "longmemeval-extraction-v14-composed-semantic-readerv1-e4b-e2b-all500.json": {
     "knobs": "reader = our Gemma 4 E4B reader v1 (3k generated examples); date distances; GLM range",
     "note": "first self-trained reader: 208/500; 55 assistant-memory prompts exceeded its 8k context (default 160KB budget vs 24KB in training)"
+  },
+  "longmemeval-extraction-v14-composed-semantic-readerv1-e4b-ctx24k-e2b-all500.json": {
+    "knobs": "reader = our Gemma 4 E4B reader v1; 24KB context budget (as trained); date distances; GLM range",
+    "note": "first self-trained reader, fair run: 235/500; single-session 54/70, assistant 39/56, knowledge-update 51/78; multi 41 and temporal 44 show learned answer shapes without the counting/arithmetic"
   }
 }
