@@ -4,7 +4,7 @@ One page on which models were tried in each role of the memory system, how they 
 the same benchmarks, and which one is preferred today. Numbers come from the result files in
 `results/`; the full per-run table is [RUN-MATRIX.md](RUN-MATRIX.md), and the plan for moving
 every remaining role onto our own models is [SELF-HOSTED-ROADMAP.md](SELF-HOSTED-ROADMAP.md).
-Last updated 2026-09-11.
+Last updated 2026-09-12.
 
 The system has four model roles. A **writer** turns text into Datalog facts and turns
 questions into Datalog queries (one fine-tuned adapter does both). A **reader** answers a
@@ -85,6 +85,8 @@ knowledge-update (344 of 500 questions); the other 156 stayed with Luna where a 
 | deepseek/deepseek-v4.1-flash, aggregation, 16k       | OpenRouter   |              428 |        103 |           114 |             28 | $0.57               |
 | gemma4:31b, all types (open weights)                 | Ollama Cloud |              347 |         86 |            60 |             28 | subscription        |
 | nemotron-3-super, all types (open weights, 16k)      | Ollama Cloud |              389 |         92 |           108 |             23 | subscription        |
+| Gemma 4 E4B reader v1 (ours, 3k generated examples)  | Modal A100   |  235 (24 KB ctx) |         41 |            44 |              6 | ≈$2.50/h A100       |
+| Gemma 4 E4B reader v2 (ours, 8.9k generated)         | Modal A100   |  231 (24 KB ctx) |         36 |            57 |              0 | ≈$2.50/h A100       |
 
 Reading the table:
 
@@ -97,6 +99,11 @@ Reading the table:
   is the simpler system and posts the best multi-session score.
 - DeepSeek v4 Flash is below Luna. DeepSeek v4.1 Flash is a reasoning model that empties a
   4k completion budget thinking; at 16k it lands between Luna and GLM.
+- Our own readers, trained on questions generated deterministically from labelled sessions,
+  sit at 235 and 231: within ten of GLM per type where the data had the type (single-session
+  user, assistant, knowledge-update) and far below on the aggregation types, where they learned
+  answer shapes without the reading. Reader v3 is distilled from GLM 5.3 Flash's answers to
+  generated questions over real haystacks.
 - The two open-weight models tried as self-hosting candidates are well below GLM. Gemma 4 31B
   ties GLM on single-session questions but answers "I do not know" to date arithmetic (84
   evidenced refusals); Nemotron 3 Super over-answers and loses knowledge updates. No model
