@@ -10,7 +10,7 @@ Rank-32 LoRA, one epoch, learning rate 2e-4 throughout. Query is the agent-bound
 (query-correct out of 31, closure condition, seed 7); extraction is the schema-conditioned
 extraction benchmark (closed vocabulary, 103 cases; v1.1 fixed four gold inputs on 2026-09-09,
 so rounds before r12 were scored on v1). Costs: Tinker at its per-token rate, Modal at
-H100 $0.001097/s over the run's wall time. Total training spend so far: **$67.68**
+H100 $0.001097/s over the run's wall time. Total training spend so far: **$72.28**
 (approximate for the Tinker rounds).
 
 | run | date | base | platform | tasks | data | min | cost | held-out loss | query /31 | extraction | notes |
@@ -38,6 +38,7 @@ H100 $0.001097/s over the run's wall time. Total training spend so far: **$67.68
 | r16b E2B | 2026-09-10 | Gemma 4 E2B | Modal H100 | query, extraction | = r14 data | 38.2 | $2.52 | 0.0031 | 27/31 | 85/103 (82.5%) | variance sample; matches r16 |
 | r17 E2B | 2026-09-10 | Gemma 4 E2B | Modal H100 | query, extraction | r14 data + 3,000 Luna-labelled real sessions | 60.5 | $3.98 + ≈$6 Luna labelling | 0.0194 | 23/31 | 81/103 (78.6%) | real-session fact recall 10%→29%; LongMemEval hybrid 201 (too prolific for shared retrieval) |
 | r18 E2B | 2026-09-11 | Gemma 4 E2B | Modal H100 | query, extraction | r14 data + 1,383 repair-turn conversations (--repair-share 0.25, from the paraphrase cache) | 55 | $3.62 | 0.0032 | 26/31 | 82/103 (79.6%) | first adapter trained on repair turns (engine feedback → corrected query); scored with and without --empty-feedback |
+| r19 E2B | 2026-09-11 | Gemma 4 E2B | Modal H100 | query, extraction, timerange | r18 data + 3,000 real sessions labelled by GLM 5.3 Flash capped at 8 atomic facts + 1,500 time-range examples | 70 | $4.60 + ≈$3 GLM labelling | 0.0220 | 26/31 | 86/103 (83.5%) | real-session fact recall 14%→44% at 58% precision, false alarms 5%; max_length 2048 truncated 39% of real rows (fix in r20) |
 
 ## LongMemEval-S answer runs
 

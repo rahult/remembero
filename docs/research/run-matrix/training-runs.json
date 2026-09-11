@@ -345,6 +345,21 @@
       "queryAlias": "finetune-gemma-4-e2b-it-r18-gemma4-e2b-modal",
       "extractionAlias": "finetune-gemma-4-e2b-it-r18-gemma4-e2b-modal",
       "notes": "first adapter trained on repair turns (engine feedback → corrected query); scored with and without --empty-feedback"
+    },
+    {
+      "run": "r19 E2B",
+      "date": "2026-09-11",
+      "base": "Gemma 4 E2B",
+      "platform": "Modal H100",
+      "data": "r18 data + 3,000 real sessions labelled by GLM 5.3 Flash capped at 8 atomic facts + 1,500 time-range examples",
+      "tasks": "query, extraction, timerange",
+      "minutes": 70,
+      "costUsd": 4.6,
+      "costNote": "+ ≈$3 GLM labelling",
+      "heldoutLoss": 0.022,
+      "queryAlias": "finetune-gemma-4-e2b-it-r19-gemma4-e2b-modal",
+      "extractionAlias": "finetune-gemma-4-e2b-it-r19-gemma4-e2b-modal",
+      "notes": "real-session fact recall 14%→44% at 58% precision, false alarms 5%; max_length 2048 truncated 39% of real rows (fix in r20)"
     }
   ]
 }
