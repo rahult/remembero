@@ -557,6 +557,13 @@ prompt. Gemma's failure is a prompt-following one (the abstention instruction is
 broadly) and might yield to a reader prompt tuned for it; that would be a per-model prompt,
 which the comparison has so far avoided.
 
+**Time-range extractor on the subscription (2026-09-11).** With GLM 5.3 Flash reading, swapping
+Luna for GLM 5.3 Flash as the time-range extractor on the 133 temporal questions gives 113
+against 116, with 33 ranges returned against 36 and 22 against 25 of those correct
+(`longmemeval-tr-v2-glmflash-range-glmflash-reader-e2b-all133.json`). The two refuse at the
+same rate, which is the property the paper says matters, so the recommended configuration now
+runs every model but the judge through the Ollama subscription.
+
 Cost of the composed run over 500 questions: 10,089 extraction calls on an L4 (the dev half
 replayed from the cache), about $1 of GPU time, plus the reader and judge; the time-range
 extractor added one Luna call for each of the 133 temporal questions.

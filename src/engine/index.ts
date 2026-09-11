@@ -77,6 +77,7 @@ export {
   type DiagnoseOptions,
   emptyResultFeedback,
   type EmptyResultFeedbackOptions,
+  goalVariables,
   type QueryDiagnostic,
 } from './diagnostics.js';
 export {

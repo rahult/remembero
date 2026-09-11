@@ -168,5 +168,9 @@
   "longmemeval-extraction-v12-composed-semantic-nemotron3super-reader-e2b-all500.json": {
     "knobs": "reader budget 16k",
     "note": "open-weight reasoning reader candidate"
+  },
+  "longmemeval-tr-v2-glmflash-range-glmflash-reader-e2b-all133.json": {
+    "knobs": "time range (GLM 5.3 Flash)",
+    "note": "temporal only; range extractor on the subscription ties Luna (116)"
   }
 }

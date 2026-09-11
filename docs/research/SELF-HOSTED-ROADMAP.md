@@ -90,6 +90,10 @@ here is proprietary data handling, not money.
 
 ### 4. A time-range extractor from our writer (one week, optional)
 
+**Interim step done 2026-09-11.** GLM 5.3 Flash on the subscription ties Luna in this role
+(113 vs 116 of 133 temporal, 33 vs 36 ranges), so the evaluation configuration no longer
+needs OpenRouter for it. Training our writer for the task remains the self-hosted end state.
+
 Only needed if the product adopts time-aware retrieval. The paper's warning is that a weak
 extractor that guesses ranges hurts; Luna helps because it refuses 70% of the time. The writer
 adapter can learn the task from synthetic data (question, current date → range or "none") if
@@ -131,8 +135,10 @@ needs no model at all, ours or anyone's. Four of its items bear directly on the 
 - **Solver-feedback repair on the query leg** (Logic-LM, SymbolLKG). Done 2026-09-11 on the
   engine side: `emptyResultFeedback` gives the repair turn per-goal match counts and a
   concrete argument-swap suggestion, in the product fallback and on the SQLite bridge. The
-  fine-tune ignores it (27/31 either way) because it never saw a repair turn; the training
-  data for the next query round needs repair-turn examples before this pays off
+  fine-tune ignores it (27/31 either way) because it never saw a repair turn. The data
+  generator now emits repair-turn conversations (`--repair-share`; a mutated program that
+  runs empty, the engine's feedback, the verified program, and the repeat-unchanged case for
+  legitimately empty answers); r18 trains on r14's data plus 1,383 of them
   ([QUERY-DIALECT-FINETUNE.md](QUERY-DIALECT-FINETUNE.md), finding 7).
 - **Salience and decay as derived scores** (MemoryBank, Generative Agents). Ranking facts for
   a session brief by recency and reinforcement, computed in the engine and never deleting,

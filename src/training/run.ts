@@ -3,6 +3,7 @@
  *
  *   npm run train:data -- --examples 3000 --worlds 60 --paraphrases 3 --seed 7 --out data/training
  *   npm run train:data -- --no-paraphrase          # zero-cost dry run
+ *   npm run train:data -- --repair-share 0.2       # add repair-turn conversations for 20% of query examples
  *
  * Output: conversations.jsonl (train), heldout.jsonl (whole held-out worlds),
  * manifest.json (counts, rejections, paraphrase settings).
@@ -48,6 +49,8 @@ export interface RunOptions {
   selfAtom?: string;
   /** Extraction examples attempted per kind per world (default 2; each is one rendering call). */
   extractionPerKind?: number;
+  /** Share of query examples that also get a repair-turn conversation (default 0). */
+  repairShare?: number;
   /** Target number of verified templated examples before paraphrasing (ignored when rounds is set). */
   examples: number;
   /** Draw exactly this many candidate rounds per world; keeps data size comparable across runs. */
@@ -201,6 +204,9 @@ export async function generateTrainingData(
     paraphraseModel: model,
     paraphrasesPerExample: model ? options.paraphrases : 0,
     rounds: roundsDrawn,
+    ...(options.repairShare === undefined
+      ? {}
+      : { repairShare: options.repairShare }),
   });
   const tasks = options.tasks ?? ['query', 'extraction'];
   let trainText = tasks.includes('query') ? train : '';
@@ -263,6 +269,7 @@ if (invokedDirectly) {
     tasks: flag('--tasks', 'query,extraction').split(',') as TrainingTask[],
     selfAtom: flag('--self', 'user'),
     extractionPerKind: Number(flag('--extraction-per-kind', '2')),
+    repairShare: Number(flag('--repair-share', '0')),
   });
   console.log(JSON.stringify(manifest, null, 2));
 }

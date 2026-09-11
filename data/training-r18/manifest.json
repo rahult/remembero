@@ -1,0 +1,59 @@
+{
+  "seed": 7,
+  "generatedAt": "2026-09-11T01:34:52.276Z",
+  "worlds": 60,
+  "heldoutWorlds": [
+    "world-7055",
+    "world-7056",
+    "world-7057",
+    "world-7058",
+    "world-7059",
+    "world-7060"
+  ],
+  "train": 23428,
+  "heldout": 2070,
+  "byCategory": {
+    "absence": 675,
+    "chain-filter": 945,
+    "count": 1520,
+    "direct": 7324,
+    "join": 877,
+    "leaves": 990,
+    "multihop-down": 2174,
+    "multihop-up": 2744,
+    "root": 1707,
+    "yes-no": 2340
+  },
+  "byDirection": {
+    "anchor-first": 8274,
+    "anchor-second": 6948,
+    "none": 6074
+  },
+  "rejectionsByTemplate": {},
+  "paraphraseModel": "openai/gpt-5.6-luna",
+  "paraphrasesPerExample": 3,
+  "rounds": 2,
+  "repairTurns": 1383,
+  "tasks": [
+    "query",
+    "extraction"
+  ],
+  "extraction": {
+    "count": 2819,
+    "byKind": {
+      "state": 179,
+      "first_person": 180,
+      "supersession": 180,
+      "negation": 180,
+      "hedge": 180,
+      "normalization": 177,
+      "date_number": 524,
+      "quoted_name": 176,
+      "implicit_subject": 180,
+      "transcript": 178,
+      "event": 358,
+      "distractor": 178,
+      "coreference": 149
+    }
+  }
+}

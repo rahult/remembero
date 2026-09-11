@@ -95,11 +95,21 @@ Reading the table:
 
 ## Time-range extractor (temporal questions)
 
-Only Luna has been tried. It returned a range for 20 of 66 dev temporal questions and refused
-the rest, which is the behaviour the paper found necessary (a small model that guesses ranges
-hurts). With temporal k 10 it took temporal from 52 to 56 of 66 on dev and 104 to 113–116 of
-133 on the full set. One call per temporal question. **Current preference: Luna**; GLM 5.3
-Flash would likely do the same job on the subscription and has not been tested in this role.
+The extractor reads a date range off a temporal question or refuses; in-range sessions rank
+first. The paper's warning is that a model that guesses ranges hurts, so the refusal rate
+matters as much as the ranges. Both rows below use GLM 5.3 Flash as the reader over the same
+cache, all 133 temporal questions.
+
+| time-range model        | where        | ranges returned /133 | correct among ranged | temporal /133 |
+| ----------------------- | ------------ | -------------------: | -------------------: | ------------: |
+| openai/gpt-5.6-luna     | OpenRouter   |                   36 |                   25 |           116 |
+| **glm-5.3-flash:cloud** | Ollama Cloud |                   33 |                   22 |           113 |
+
+The two are inside the reader noise of each other and refuse at the same rate (about three
+questions in four). Without any range, temporal was 104/133 on the full set with Luna reading.
+**Current preference: GLM 5.3 Flash on the subscription** (`--temporal-range-model
+glm-5.3-flash:cloud --temporal-range-base-url http://127.0.0.1:11434/v1`), which removes the
+last OpenRouter call from the recommended evaluation configuration apart from the judge.
 
 ## Labeller (training data from real transcripts)
 

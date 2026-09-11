@@ -339,6 +339,30 @@ export function diagnoseQuery(
   return out;
 }
 
+function expressionVariables(e: ScalarExpression, into: Set<string>): void {
+  if ('kind' in e) {
+    if (e.kind === 'unary') expressionVariables(e.operand, into);
+    else {
+      expressionVariables(e.left, into);
+      expressionVariables(e.right, into);
+    }
+  } else if (e.type === 'var') into.add(e.name);
+}
+
+/** Names of the variables a goal mentions (literal, negated literal or comparison). */
+export function goalVariables(goal: Goal): Set<string> {
+  const names = new Set<string>();
+  if (isComparison(goal)) {
+    expressionVariables(goal.left, names);
+    expressionVariables(goal.right, names);
+  } else {
+    for (const t of (isNegation(goal) ? goal.not : goal).args) {
+      if (t.type === 'var') names.add(t.name);
+    }
+  }
+  return names;
+}
+
 export interface EmptyResultFeedbackOptions {
   /** Model-authored rules; their bodies are the goals that get counted. */
   authored?: Clause[];
@@ -409,29 +433,8 @@ export function emptyResultFeedback(
 
     // Mutation probe: move a shared variable to another argument position of
     // its literal and report the swaps that make the whole query return rows.
-    const expressionVars = (e: ScalarExpression, into: Set<string>): void => {
-      if ('kind' in e) {
-        if (e.kind === 'unary') expressionVars(e.operand, into);
-        else {
-          expressionVars(e.left, into);
-          expressionVars(e.right, into);
-        }
-      } else if (e.type === 'var') into.add(e.name);
-    };
-    const goalVars = (g: Goal): Set<string> => {
-      const names = new Set<string>();
-      if (isComparison(g)) {
-        expressionVars(g.left, names);
-        expressionVars(g.right, names);
-      } else {
-        for (const t of (isNegation(g) ? g.not : g).args) {
-          if (t.type === 'var') names.add(t.name);
-        }
-      }
-      return names;
-    };
     const shared = (name: string, owner: Literal): boolean =>
-      goals.some((g) => g !== owner && goalVars(g).has(name));
+      goals.some((g) => g !== owner && goalVariables(g).has(name));
     const suggestions: string[] = [];
     for (const literal of literals) {
       if (suggestions.length >= 3) break;

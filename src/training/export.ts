@@ -6,6 +6,8 @@
  * dialect rather than memorized predicate names.
  */
 import { parseProgram, serializeClause } from '../engine/index.js';
+import { toRepairConversation } from './repair.js';
+import { createRng } from './rng.js';
 import type { Example, Rejection } from './verify.js';
 import { schemaListing, type World } from './worlds.js';
 
@@ -57,6 +59,8 @@ export interface Manifest {
   rounds: number;
   /** Task families in the file. */
   tasks?: string[];
+  /** Repair-turn conversations added to the query task. */
+  repairTurns?: number;
   /** Extraction examples rendered and verified, by kind. */
   extraction?: { count: number; byKind: Record<string, number> };
 }
@@ -95,15 +99,32 @@ export function exportDataset(input: {
   paraphraseModel: string | null;
   paraphrasesPerExample: number;
   rounds?: number;
+  /**
+   * Fraction of examples that also get a repair-turn conversation (wrong or
+   * legitimately empty program, engine feedback, verified program). Default 0.
+   */
+  repairShare?: number;
 }): { train: string; heldout: string; manifest: Manifest } {
   const byId = new Map(input.worlds.map((w) => [w.id, w]));
   const train: string[] = [];
   const heldout: string[] = [];
+  const repairRng = createRng(input.seed * 104729 + 7);
+  let repairTurns = 0;
   for (const example of input.examples) {
     const world = byId.get(example.world);
     if (!world) throw new Error(`unknown world ${example.world}`);
-    const line = JSON.stringify(toConversation(world, example));
-    (input.heldoutWorldIds.has(world.id) ? heldout : train).push(line);
+    const bucket = input.heldoutWorldIds.has(world.id) ? heldout : train;
+    bucket.push(JSON.stringify(toConversation(world, example)));
+    if (
+      (input.repairShare ?? 0) > 0 &&
+      repairRng.next() < (input.repairShare ?? 0)
+    ) {
+      const repair = toRepairConversation(world, example, repairRng);
+      if (repair !== undefined) {
+        bucket.push(JSON.stringify(repair));
+        repairTurns += 1;
+      }
+    }
   }
   return {
     train: `${train.join('\n')}\n`,
@@ -124,6 +145,7 @@ export function exportDataset(input: {
       paraphraseModel: input.paraphraseModel,
       paraphrasesPerExample: input.paraphrasesPerExample,
       rounds: input.rounds ?? 0,
+      repairTurns,
     },
   };
 }

@@ -499,6 +499,40 @@ describe('training: export', () => {
     );
   });
 
+  it('adds repair-turn conversations for a share of the examples when asked', () => {
+    const world = generateWorld(9);
+    const { examples, rejections } = verifyAll(
+      world,
+      generateCandidates(world, createRng(9)),
+    );
+    const { train, manifest } = exportDataset({
+      worlds: [world],
+      examples,
+      heldoutWorldIds: new Set(),
+      rejections,
+      seed: 9,
+      paraphraseModel: null,
+      paraphrasesPerExample: 0,
+      repairShare: 1,
+    });
+    const lines = train
+      .trim()
+      .split('\n')
+      .map(
+        (l) =>
+          JSON.parse(l) as {
+            messages: Array<{ role: string; content: string }>;
+          },
+      );
+    const repairs = lines.filter((l) => l.messages.length === 5);
+    expect(repairs.length).toBeGreaterThan(0);
+    expect(manifest.repairTurns).toBe(repairs.length);
+    expect(lines.length).toBe(examples.length + repairs.length);
+    for (const r of repairs) {
+      expect(r.messages[3].content).toMatch(/returned no (rows|results)/);
+    }
+  });
+
   it('serializes the assistant program canonically', () => {
     const world = generateWorld(9);
     const example = {
