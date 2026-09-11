@@ -405,6 +405,21 @@
       "queryAlias": null,
       "extractionAlias": null,
       "notes": "LongMemEval 231/500 vs v1 235: temporal up, multi and knowledge-update down; generated questions do not transfer"
+    },
+    {
+      "run": "reader-v3 E4B",
+      "date": "2026-09-12",
+      "base": "Gemma 4 E4B",
+      "platform": "Modal H100",
+      "data": "3,000 GLM 5.3 Flash-distilled reader examples over assembled real haystacks (7 types; k-update only 82), 24KB prompts, max_length 8192",
+      "tasks": "reader",
+      "minutes": 75,
+      "costUsd": 5.0,
+      "costNote": "+ ≈$15 teacher calls",
+      "heldoutLoss": 0.7286,
+      "queryAlias": null,
+      "extractionAlias": null,
+      "notes": "LongMemEval 320/500 (v2 231): single-session types match GLM; multi 60 and temporal 65 are the gap"
     }
   ]
 }

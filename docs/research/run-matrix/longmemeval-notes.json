@@ -208,5 +208,9 @@
   "longmemeval-extraction-v14-composed-semantic-readerv2-e4b-ctx24k-e2b-all500.json": {
     "knobs": "reader = our Gemma 4 E4B reader v2 (8,885 generated examples); 24KB context; date distances; GLM range",
     "note": "231 vs v1 235: temporal 44\u219257, multi 41\u219236, k-update 51\u219245, preference 0; the generated distribution does not transfer"
+  },
+  "longmemeval-extraction-v14-composed-semantic-readerv3-e4b-ctx24k-e2b-all500.json": {
+    "knobs": "reader = our Gemma 4 E4B reader v3 (3,000 GLM-distilled examples); 24KB context; date distances; GLM range",
+    "note": "320/500: single-session types at or above GLM (63/70, 50/56, 25/30), k-update 57/78; gap is multi 60/133 and temporal 65/133"
   }
 }

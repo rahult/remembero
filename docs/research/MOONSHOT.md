@@ -15,7 +15,7 @@ distance to each target is known today.
 | facts  | schema-conditioned extraction, 103 cases, closed vocabulary           | 85–86 (Gemma 4 E2B r16)            | 96 (Luna)               | **100**                                             |
 |        | fact recall on real transcripts vs frontier labels, at precision      | 29% at 53% (r17); 10% at 42% (r16) | –                       | **60% at 85%**                                      |
 | recall | query-correct on the agent-boundary benchmark, closure condition, /31 | 27–28                              | 30 (GLM 5.3), 29 (Luna) | **31 on three seeds**, then ≥95% on a harder v3 set |
-| read   | LongMemEval-S, 500 questions, GPT-4o judge, all retrieval ours        | never measured with a small reader | 432 (GLM 5.3 Flash)     | **450 with a reader we trained**                    |
+| read   | LongMemEval-S, 500 questions, GPT-4o judge, all retrieval ours        | **320 (reader v3, ours, 4.5B)**    | 432 (GLM 5.3 Flash)     | **450 with a reader we trained**                    |
 |        | retrieval recall at the per-type k                                    | 92.5%                              | same                    | **96%**                                             |
 |        | abstention accuracy on the 30 unanswerable questions                  | 0.93 (GLM reader)                  | –                       | **0.97**                                            |
 

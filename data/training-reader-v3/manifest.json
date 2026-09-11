@@ -1,0 +1,26 @@
+{
+  "labels": "data/real/labels-glmflash8.jsonl",
+  "teacher": "z-ai/glm-5.3-flash",
+  "seed": 7,
+  "trainSessions": 3000,
+  "heldoutSessions": 213,
+  "train": 3000,
+  "heldout": 200,
+  "byType": {
+    "single-session-assistant": 220,
+    "single-session-user": 450,
+    "abstention": 598,
+    "temporal-reasoning": 756,
+    "single-session-preference": 299,
+    "multi-session": 793,
+    "knowledge-update": 84
+  },
+  "stats": {
+    "attempted": 4375,
+    "kept": 3200,
+    "noQuestion": 11,
+    "rejected": 484,
+    "errors": 660
+  },
+  "generatedAt": "2026-09-11T16:47:51.966Z"
+}

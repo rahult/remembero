@@ -619,12 +619,13 @@ Luna; prompts rendered by the evaluation's own context builder with date distanc
 Served on an A100 as `finetune/gemma-4-e4b-it-reader-v1-gemma4-e4b-modal`. On the 500 from the
 r16 cache with the GLM Flash range:
 
-| reader v1 run                     | total   | k-update | multi   | assistant               | preference | user  | temporal | abstention |
-| --------------------------------- | ------- | -------- | ------- | ----------------------- | ---------- | ----- | -------- | ---------: |
-| default 160 KB context budget     | 208/500 | 53/78    | 49/133  | 1/56 (55 overflowed 8k) | 7/30       | 56/70 | 42/133   |       0.60 |
-| 24 KB budget, as trained          | 235/500 | 51/78    | 41/133  | 39/56                   | 6/30       | 54/70 | 44/133   |       0.70 |
-| reader v2, 24 KB (8,885 examples) | 231/500 | 45/78    | 36/133  | 37/56                   | 0/30       | 56/70 | 57/133   |       0.63 |
-| GLM 5.3 Flash (for reference)     | 432/500 | 66/78    | 113/133 | 48/56                   | 28/30      | 61/70 | 116/133  |       0.93 |
+| reader v1 run                      | total   | k-update | multi   | assistant               | preference | user  | temporal | abstention |
+| ---------------------------------- | ------- | -------- | ------- | ----------------------- | ---------- | ----- | -------- | ---------: |
+| default 160 KB context budget      | 208/500 | 53/78    | 49/133  | 1/56 (55 overflowed 8k) | 7/30       | 56/70 | 42/133   |       0.60 |
+| 24 KB budget, as trained           | 235/500 | 51/78    | 41/133  | 39/56                   | 6/30       | 54/70 | 44/133   |       0.70 |
+| reader v2, 24 KB (8,885 examples)  | 231/500 | 45/78    | 36/133  | 37/56                   | 0/30       | 56/70 | 57/133   |       0.63 |
+| reader v3, 24 KB (3,000 distilled) | 320/500 | 57/78    | 60/133  | 50/56                   | 25/30      | 63/70 | 65/133   |       0.67 |
+| GLM 5.3 Flash (for reference)      | 432/500 | 66/78    | 113/133 | 48/56                   | 28/30      | 61/70 | 116/133  |       0.93 |
 
 Where the training data had the type, the 4.5B reader is within ten points of GLM on a
 per-type basis (single-session-user 54 vs 61, assistant 39 vs 48, knowledge-update 51 vs 66);
@@ -649,6 +650,18 @@ source. Reader v3 is the teacher-distilled variant from the design's second path
 Flash writes questions of the six types over assembled real haystacks and answers them with
 its reasoning, the labelled facts verify counts and dates where they can, and the preference
 type is included.
+
+**Reader v3** (3,000 examples distilled from GLM 5.3 Flash over assembled real haystacks,
+one epoch, held-out loss 0.73 on the teacher's own text): **320/500**. Single-session-user
+63/70 and single-session-assistant 50/56 are above GLM's 61 and 48, preference 25/30 is
+within noise of its 28, knowledge-update is 57 against 66 (the distilled set had only 82
+update examples, because random haystacks rarely contain a changed fact). The remaining gap is
+two types: multi-session 60 against 113 and temporal 65 against 116, together 104 of the 112
+answers between this reader and GLM. Abstention is 0.67. A 4.5B model reading a 24 KB context
+now equals the frontier reader on everything except counting across sessions and date
+arithmetic, which is exactly where the engine is meant to help (structured evidence, engine
+recall over the denser r19 store) and where the next distillation round concentrates its
+examples.
 
 **r19 as the extractor on the 500 (2026-09-11).** With GLM 5.3 Flash reading and ranging, the
 writer trained on capped real-session labels scores **426/500** against 425 for r16 under the
