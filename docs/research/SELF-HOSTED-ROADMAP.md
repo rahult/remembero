@@ -104,6 +104,37 @@ GPT-4o is the LongMemEval protocol's judge and the reason our numbers are compar
 published ones. A local judge can run alongside as a second opinion, never as the reported
 number.
 
+## Engine work that removes model calls altogether
+
+The literature survey in [FACTS-AND-MEMORY-RESEARCH.md](FACTS-AND-MEMORY-RESEARCH.md) points the
+same way as the model roadmap: every capability moved into the Datalog engine is one that
+needs no model at all, ours or anyone's. Four of its items bear directly on the legs above.
+
+- **Bi-temporal, append-only facts** (Zep/Graphiti, ROMEM). Facts carry `valid_from`,
+  `valid_to` and `recorded_at`; a rule resolves the current value as the latest valid one and
+  the old value stays with its interval. This is the deterministic answer to the
+  knowledge-update questions and to "what did I say in May", and it is what would let the
+  temporal route (roadmap item 4) work from stored intervals instead of a model guessing a
+  date range from the question. First item in the survey's own priority order, and the one
+  that most reduces what the reader has to infer.
+- **Solver-feedback repair on the query leg** (Logic-LM, SymbolLKG). The product already
+  retries query authoring through review and repair passes with the same small model; the
+  survey's addition is to feed engine diagnostics (empty result, unknown predicate, arity
+  mismatch) back into that loop rather than only the parse error. Zero extra models; it lifts
+  the query leg's 27–28/31 without a training round.
+- **Salience and decay as derived scores** (MemoryBank, Generative Agents). Ranking facts for
+  a session brief by recency and reinforcement, computed in the engine and never deleting,
+  replaces the semantic route for the common "what matters now" case and lowers how often
+  roadmap item 2's embedding model is consulted.
+- **Incremental rule maintenance** (DBSP, DRed). Keeps derived facts current under write-gated
+  updates without recomputing; a cost item for the million-fact benchmark, not a model item,
+  but it is what keeps the zero-model path fast enough to be the default.
+
+The survey's evaluation suggestions fit the same programme: BeliefShift measures whether a
+memory drifts under model pressure, which a write-gated store should resist by construction,
+and LongMemEval-V2's best published result is 74.9%, so a proof-carrying system with our own
+writer has room to place. Both are eval-only and can use the frontier judge.
+
 ## What does not need doing
 
 - Replacing the writer: it is ours, it ties the frontier model on the synthetic benchmarks
@@ -126,4 +157,5 @@ number.
 | judge               | GPT-4o, eval only                 | unchanged                                |
 
 Order of attack: 1 and 2 are cheap and independent and remove every runtime third-party call
-except the reader; 3 is the real project; 4 and 5 follow if their features are wanted.
+except the reader; 3 is the real project; 4 and 5 follow if their features are wanted. The
+bi-temporal engine work runs alongside, since it shrinks what 3 and 4 have to do.
