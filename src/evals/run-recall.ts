@@ -1,5 +1,11 @@
 #!/usr/bin/env node
-import { existsSync, lstatSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  lstatSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { loadEnv } from '../env.js';
@@ -35,7 +41,8 @@ const USAGE = `Usage: npm run eval:recall -- [options]
 
 Options:
   --models <a,b>       OpenRouter model IDs (default: LLM_MODEL or ${DEFAULT_MODEL})
-  --variants <a,b>     baseline,grounded (default: baseline,grounded)
+  --variants <a,b>     baseline,grounded,dialect (default: baseline,grounded); dialect is the
+                       rule-shaped card the fine-tuned writer is trained on
   --cases <a,b>        Run only selected case IDs
   --schema-predicate-limit <n>  Detailed predicate budget for each recall pass
   --json               Print machine-readable JSON
@@ -45,7 +52,10 @@ Options:
 function listValue(argv: string[], index: number, flag: string): string[] {
   const value = argv[index + 1];
   if (!value) throw new Error(`${flag} needs a comma-separated value`);
-  const items = value.split(',').map((item) => item.trim()).filter(Boolean);
+  const items = value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
   if (items.length === 0) throw new Error(`${flag} needs at least one value`);
   return items;
 }
@@ -66,7 +76,14 @@ function parseArgs(argv: string[]): EvalArgs {
       index++;
     } else if (arg === '--variants') {
       const variants = listValue(argv, index, arg);
-      if (variants.some((variant) => variant !== 'baseline' && variant !== 'grounded')) {
+      if (
+        variants.some(
+          (variant) =>
+            variant !== 'baseline' &&
+            variant !== 'grounded' &&
+            variant !== 'dialect',
+        )
+      ) {
         throw new Error(`unknown variant: ${variants.join(', ')}`);
       }
       args.variants = variants as QueryPromptVariant[];
@@ -78,14 +95,17 @@ function parseArgs(argv: string[]): EvalArgs {
       args.json = true;
     } else if (arg === '--output') {
       const value = argv[index + 1];
-      if (!value || value.trim() === '') throw new Error('--output needs a path');
+      if (!value || value.trim() === '')
+        throw new Error('--output needs a path');
       args.output = value;
       args.json = true;
       index++;
     } else if (arg === '--schema-predicate-limit') {
       const value = Number(argv[index + 1]);
       if (!Number.isInteger(value) || value < 1 || value > 256) {
-        throw new Error('--schema-predicate-limit needs an integer from 1 to 256');
+        throw new Error(
+          '--schema-predicate-limit needs an integer from 1 to 256',
+        );
       }
       args.schemaPredicateLimit = value;
       index++;
@@ -120,7 +140,7 @@ async function runConfiguration(
   caseIds: Set<string> | null,
   apiKey: string,
   baseUrl: string,
-  schemaPredicateLimit: number | undefined
+  schemaPredicateLimit: number | undefined,
 ): Promise<RecallEvalObservation[]> {
   const root = mkdtempSync(join(tmpdir(), 'rembero-recall-eval-'));
   try {
@@ -128,7 +148,7 @@ async function runConfiguration(
     store.importClauses('default', RECALL_EVAL_PROGRAM);
     const client = new OpenRouterClient({ apiKey, baseUrl, model });
     const cases = RECALL_EVAL_CASES.filter((testCase) =>
-      caseIds === null ? true : caseIds.has(testCase.id)
+      caseIds === null ? true : caseIds.has(testCase.id),
     );
     const observations: RecallEvalObservation[] = [];
     for (const testCase of cases) {
@@ -156,7 +176,7 @@ async function runConfiguration(
             ...(testCase.trustMode === undefined
               ? {}
               : { trustMode: testCase.trustMode }),
-          }
+          },
         );
         observations.push({
           case: testCase,
@@ -165,7 +185,9 @@ async function runConfiguration(
           status: result.status,
           query: result.query,
           actualRows:
-            result.query === null ? [] : bindingRows(result.bindings, result.query),
+            result.query === null
+              ? []
+              : bindingRows(result.bindings, result.query),
           llmCalls,
           usage,
           durationMs: performance.now() - started,
@@ -197,12 +219,24 @@ async function main(): Promise<void> {
   if (args.caseIds !== null) {
     const known = new Set(RECALL_EVAL_CASES.map((testCase) => testCase.id));
     const unknown = [...args.caseIds].filter((id) => !known.has(id));
-    if (unknown.length > 0) throw new Error(`unknown case ID: ${unknown.join(', ')}`);
+    if (unknown.length > 0)
+      throw new Error(`unknown case ID: ${unknown.join(', ')}`);
   }
   const apiKey = process.env.LLM_API_KEY;
-  if (!apiKey) throw new Error('LLM_API_KEY is not set — add it to .env or the environment');
-  const baseUrl = (process.env.LLM_BASE_URL ?? 'https://openrouter.ai/api/v1').replace(/\/$/, '');
-  const runs: { model: string; variant: QueryPromptVariant; schemaPredicateLimit: number | null; score: ReturnType<typeof scoreRecallEval>; observations: RecallEvalObservation[] }[] = [];
+  if (!apiKey)
+    throw new Error(
+      'LLM_API_KEY is not set — add it to .env or the environment',
+    );
+  const baseUrl = (
+    process.env.LLM_BASE_URL ?? 'https://openrouter.ai/api/v1'
+  ).replace(/\/$/, '');
+  const runs: {
+    model: string;
+    variant: QueryPromptVariant;
+    schemaPredicateLimit: number | null;
+    score: ReturnType<typeof scoreRecallEval>;
+    observations: RecallEvalObservation[];
+  }[] = [];
 
   for (const model of args.models) {
     for (const variant of args.variants) {
@@ -213,7 +247,7 @@ async function main(): Promise<void> {
         args.caseIds,
         apiKey,
         baseUrl,
-        args.schemaPredicateLimit
+        args.schemaPredicateLimit,
       );
       runs.push({
         model,
@@ -226,7 +260,11 @@ async function main(): Promise<void> {
   }
 
   if (args.json) {
-    const text = JSON.stringify({ generatedAt: new Date().toISOString(), runs }, null, 2);
+    const text = JSON.stringify(
+      { generatedAt: new Date().toISOString(), runs },
+      null,
+      2,
+    );
     if (args.output === undefined) console.log(text);
     else {
       writeJsonOutput(args.output, text);
@@ -236,26 +274,39 @@ async function main(): Promise<void> {
     return;
   }
 
-  console.log('\nmodel | variant | schema limit | cases | accuracy | precision | recall | F1 | answerability | errors | seconds | input tokens | output tokens | cost USD');
-  console.log('--- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---:');
+  console.log(
+    '\nmodel | variant | schema limit | cases | accuracy | precision | recall | F1 | answerability | errors | seconds | input tokens | output tokens | cost USD',
+  );
+  console.log(
+    '--- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---:',
+  );
   for (const run of runs) {
     const cost =
       run.score.costResponses === run.score.llmCalls
         ? run.score.costUsd.toFixed(6)
         : `${run.score.costUsd.toFixed(6)} partial`;
     console.log(
-      `${run.model} | ${run.variant} | ${run.schemaPredicateLimit ?? 'default'} | ${run.score.cases} | ${percent(run.score.accuracy)} | ${percent(run.score.precision)} | ${percent(run.score.recall)} | ${percent(run.score.f1)} | ${percent(run.score.answerabilityAccuracy)} | ${run.score.errors} | ${(run.score.durationMs / 1000).toFixed(1)} | ${run.score.promptTokens} | ${run.score.completionTokens} | ${cost}`
+      `${run.model} | ${run.variant} | ${run.schemaPredicateLimit ?? 'default'} | ${run.score.cases} | ${percent(run.score.accuracy)} | ${percent(run.score.precision)} | ${percent(run.score.recall)} | ${percent(run.score.f1)} | ${percent(run.score.answerabilityAccuracy)} | ${run.score.errors} | ${(run.score.durationMs / 1000).toFixed(1)} | ${run.score.promptTokens} | ${run.score.completionTokens} | ${cost}`,
     );
   }
 
   for (const run of runs) {
-    const failures = run.observations.filter((observation) => !observationIsCorrect(observation));
+    const failures = run.observations.filter(
+      (observation) => !observationIsCorrect(observation),
+    );
     if (failures.length === 0) continue;
     console.log(`\nFailures for ${run.model} / ${run.variant}:`);
     for (const failure of failures) {
-      const actual = failure.actualRows.map((row) => `[${row.join(', ')}]`).join(', ') || '(none)';
-      const expected = failure.case.expectedRows.map((row) => `[${row.join(', ')}]`).join(', ') || '(none)';
-      console.log(`- ${failure.case.id}: query=${failure.query ?? '(unanswerable)'}; expected=${expected}; actual=${actual}${failure.error ? `; error=${failure.error}` : ''}`);
+      const actual =
+        failure.actualRows.map((row) => `[${row.join(', ')}]`).join(', ') ||
+        '(none)';
+      const expected =
+        failure.case.expectedRows
+          .map((row) => `[${row.join(', ')}]`)
+          .join(', ') || '(none)';
+      console.log(
+        `- ${failure.case.id}: query=${failure.query ?? '(unanswerable)'}; expected=${expected}; actual=${actual}${failure.error ? `; error=${failure.error}` : ''}`,
+      );
     }
   }
   if (runs.some((run) => run.score.errors > 0)) process.exitCode = 1;

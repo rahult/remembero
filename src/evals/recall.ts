@@ -3,6 +3,7 @@ import {
   isComparison,
   isNegation,
   parseQuerySpec,
+  parseQueryProgram,
   type Goal,
   type ScalarExpression,
   type Term,
@@ -15,7 +16,8 @@ import type { LlmUsageTotals } from '../llm/client.js';
 export const RECALL_EVAL_DISTRACTOR_COUNT = 100;
 const RECALL_EVAL_DISTRACTORS = Array.from(
   { length: RECALL_EVAL_DISTRACTOR_COUNT },
-  (_, index) => `eval_noise_${String(index).padStart(3, '0')}(subject_${index}, value_${index}).`
+  (_, index) =>
+    `eval_noise_${String(index).padStart(3, '0')}(subject_${index}, value_${index}).`,
 ).join('\n');
 
 export const RECALL_EVAL_PROGRAM = `
@@ -200,7 +202,13 @@ export const RECALL_EVAL_CASES: RecallEvalCase[] = [
     question: 'Who was born more than 5 years before Mira?',
     expectedQuery: 'required',
     expectedRows: [['chen'], ['rahul']],
-    tags: ['comparison', 'arithmetic', 'join', 'multi-answer', 'projected-answer'],
+    tags: [
+      'comparison',
+      'arithmetic',
+      'join',
+      'multi-answer',
+      'projected-answer',
+    ],
   },
   {
     id: 'ground_true',
@@ -310,7 +318,9 @@ function rowKey(row: readonly string[]): string {
 }
 
 function sameSet(left: Set<string>, right: Set<string>): boolean {
-  return left.size === right.size && [...left].every((value) => right.has(value));
+  return (
+    left.size === right.size && [...left].every((value) => right.has(value))
+  );
 }
 
 function visitTerm(term: Term, order: string[], seen: Set<string>): void {
@@ -323,7 +333,7 @@ function visitTerm(term: Term, order: string[], seen: Set<string>): void {
 function visitExpression(
   expression: ScalarExpression,
   order: string[],
-  seen: Set<string>
+  seen: Set<string>,
 ): void {
   if (!isArithmeticExpression(expression)) {
     visitTerm(expression, order, seen);
@@ -342,44 +352,72 @@ function visitGoal(goal: Goal, order: string[], seen: Set<string>): void {
     visitExpression(goal.left, order, seen);
     visitExpression(goal.right, order, seen);
   } else {
-    for (const term of (isNegation(goal) ? goal.not.args : goal.args)) {
+    for (const term of isNegation(goal) ? goal.not.args : goal.args) {
       visitTerm(term, order, seen);
     }
   }
 }
 
-export function bindingRows(bindings: Record<string, string>[], query: string): string[][] {
-  const spec = parseQuerySpec(query);
+export function bindingRows(
+  bindings: Record<string, string>[],
+  query: string,
+): string[][] {
+  // the dialect variant records a whole program; its query is the last `?-` line, and the
+  // answer columns are the sink rule's head variables in order
+  const normalized = parseQueryProgram(query);
+  const spec = normalized.query;
+  if (normalized.clauses.length > 0 && spec.kind === 'relational') {
+    const [first] = spec.goals;
+    if (first !== undefined && !isNegation(first) && !isComparison(first)) {
+      const order = first.args.flatMap((t) =>
+        t.type === 'var' ? [t.name] : [],
+      );
+      return bindings.map((binding) =>
+        order
+          .filter((variable) => variable in binding)
+          .map((variable) => binding[variable]),
+      );
+    }
+  }
   if (spec.kind === 'aggregate') {
-    return bindings.map((binding) => (spec.as in binding ? [binding[spec.as]] : []));
+    return bindings.map((binding) =>
+      spec.as in binding ? [binding[spec.as]] : [],
+    );
   }
   if (spec.project !== undefined) {
     const project = spec.project;
     return bindings.map((binding) =>
       project
         .filter((variable) => variable in binding)
-        .map((variable) => binding[variable])
+        .map((variable) => binding[variable]),
     );
   }
   const order: string[] = [];
   const seen = new Set<string>();
   for (const goal of spec.goals) visitGoal(goal, order, seen);
   return bindings.map((binding) =>
-    order.filter((variable) => variable in binding).map((variable) => binding[variable])
+    order
+      .filter((variable) => variable in binding)
+      .map((variable) => binding[variable]),
   );
 }
 
-export function observationIsCorrect(observation: RecallEvalObservation): boolean {
-  if (observation.error || observation.status === 'schema_budget_exhausted') return false;
+export function observationIsCorrect(
+  observation: RecallEvalObservation,
+): boolean {
+  if (observation.error || observation.status === 'schema_budget_exhausted')
+    return false;
   const expectedQuery = observation.case.expectedQuery === 'required';
   if ((observation.query !== null) !== expectedQuery) return false;
   return sameSet(
     new Set(observation.case.expectedRows.map(rowKey)),
-    new Set(observation.actualRows.map(rowKey))
+    new Set(observation.actualRows.map(rowKey)),
   );
 }
 
-export function scoreRecallEval(observations: RecallEvalObservation[]): RecallEvalScore {
+export function scoreRecallEval(
+  observations: RecallEvalObservation[],
+): RecallEvalScore {
   let truePositives = 0;
   let falsePositives = 0;
   let falseNegatives = 0;
@@ -415,7 +453,10 @@ export function scoreRecallEval(observations: RecallEvalObservation[]): RecallEv
     truePositives + falseNegatives === 0
       ? 1
       : truePositives / (truePositives + falseNegatives);
-  const f1 = precision + recall === 0 ? 0 : (2 * precision * recall) / (precision + recall);
+  const f1 =
+    precision + recall === 0
+      ? 0
+      : (2 * precision * recall) / (precision + recall);
   const cases = observations.length;
   return {
     cases,
@@ -427,43 +468,51 @@ export function scoreRecallEval(observations: RecallEvalObservation[]): RecallEv
     truePositives,
     falsePositives,
     falseNegatives,
-    errors: observations.filter((observation) => observation.error !== undefined).length,
-    schemaBudgetExhaustions: observations.filter(
-      (observation) => observation.status === 'schema_budget_exhausted'
+    errors: observations.filter(
+      (observation) => observation.error !== undefined,
     ).length,
-    llmCalls: observations.reduce((total, observation) => total + observation.llmCalls, 0),
+    schemaBudgetExhaustions: observations.filter(
+      (observation) => observation.status === 'schema_budget_exhausted',
+    ).length,
+    llmCalls: observations.reduce(
+      (total, observation) => total + observation.llmCalls,
+      0,
+    ),
     usageResponses: observations.reduce(
       (total, observation) => total + observation.usage.usageResponses,
-      0
+      0,
     ),
     costResponses: observations.reduce(
       (total, observation) => total + observation.usage.costResponses,
-      0
+      0,
     ),
     promptTokens: observations.reduce(
       (total, observation) => total + observation.usage.promptTokens,
-      0
+      0,
     ),
     completionTokens: observations.reduce(
       (total, observation) => total + observation.usage.completionTokens,
-      0
+      0,
     ),
     totalTokens: observations.reduce(
       (total, observation) => total + observation.usage.totalTokens,
-      0
+      0,
     ),
     cachedPromptTokens: observations.reduce(
       (total, observation) => total + observation.usage.cachedPromptTokens,
-      0
+      0,
     ),
     reasoningTokens: observations.reduce(
       (total, observation) => total + observation.usage.reasoningTokens,
-      0
+      0,
     ),
     costUsd: observations.reduce(
       (total, observation) => total + observation.usage.costUsd,
-      0
+      0,
     ),
-    durationMs: observations.reduce((total, observation) => total + observation.durationMs, 0),
+    durationMs: observations.reduce(
+      (total, observation) => total + observation.durationMs,
+      0,
+    ),
   };
 }

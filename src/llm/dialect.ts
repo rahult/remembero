@@ -75,3 +75,23 @@ export function dialectQuerySystemPrompt(
 ): string {
   return `You query a knowledge base with these predicates:\n${dialectSchemaListing(clauses, allowed)}\n\n${DIALECT_CARD}`;
 }
+
+/**
+ * Small models mix the two dialects: a rule prefixed with `?- ` ("?- q(X) :- p(X)."),
+ * or a bare query wrapped in code fences. Normalize before parsing.
+ */
+export function normalizeDialectResponse(response: string): string {
+  const unfenced = response
+    .replace(/^```[a-z]*\n?/gim, '')
+    .replace(/```\s*$/gm, '')
+    .trim();
+  return unfenced
+    .split('\n')
+    .map((line) => {
+      const trimmed = line.trim();
+      return /^\?-\s*.+:-/.test(trimmed)
+        ? trimmed.replace(/^\?-\s*/, '')
+        : line;
+    })
+    .join('\n');
+}

@@ -1,0 +1,1992 @@
+{
+  "generatedAt": "2026-09-11T03:37:46.063Z",
+  "runs": [
+    {
+      "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+      "variant": "grounded",
+      "schemaPredicateLimit": null,
+      "score": {
+        "cases": 26,
+        "accuracy": 0.8846153846153846,
+        "answerabilityAccuracy": 0.9230769230769231,
+        "precision": 0.9523809523809523,
+        "recall": 0.8,
+        "f1": 0.8695652173913043,
+        "truePositives": 20,
+        "falsePositives": 1,
+        "falseNegatives": 5,
+        "errors": 1,
+        "schemaBudgetExhaustions": 0,
+        "llmCalls": 46,
+        "usageResponses": 46,
+        "costResponses": 0,
+        "promptTokens": 146001,
+        "completionTokens": 658,
+        "totalTokens": 146659,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "durationMs": 29098.79012199999
+      },
+      "observations": [
+        {
+          "case": {
+            "id": "direct_employer",
+            "question": "Where does Rahul work?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "acme"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "single-answer"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "works_at(rahul, Company)",
+          "actualRows": [
+            [
+              "acme"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2552,
+            "completionTokens": 13,
+            "totalTokens": 2565,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 1312.9587080000001
+        },
+        {
+          "case": {
+            "id": "lexical_employer",
+            "question": "Who is Mira employed by?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "acme"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "lexical"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "works_at(mira, Company)",
+          "actualRows": [
+            [
+              "acme"
+            ]
+          ],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 0,
+            "promptTokens": 5283,
+            "completionTokens": 26,
+            "totalTokens": 5309,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 1603.6560829999999
+        },
+        {
+          "case": {
+            "id": "multiple_workers",
+            "question": "Who works at Acme?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rahul"
+              ],
+              [
+                "mira"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "multi-answer"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "works_at(X, acme)",
+          "actualRows": [
+            [
+              "rahul"
+            ],
+            [
+              "mira"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2514,
+            "completionTokens": 13,
+            "totalTokens": 2527,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 573.906708
+        },
+        {
+          "case": {
+            "id": "reusable_company_size",
+            "question": "How many people work at Acme?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "2"
+              ]
+            ],
+            "tags": [
+              "aggregate-rule",
+              "derived",
+              "single-answer"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "count(*) as Count where works_at(Person, acme)",
+          "actualRows": [
+            [
+              "2"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2516,
+            "completionTokens": 18,
+            "totalTokens": 2534,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 670.5987919999998
+        },
+        {
+          "case": {
+            "id": "derived_colleague",
+            "question": "Who are Rahul's colleagues?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "mira"
+              ]
+            ],
+            "tags": [
+              "derived",
+              "inequality"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "colleague(Y, rahul)",
+          "actualRows": [
+            [
+              "mira"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2554,
+            "completionTokens": 10,
+            "totalTokens": 2564,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 512.6675000000005
+        },
+        {
+          "case": {
+            "id": "conjunctive_location",
+            "question": "Who both works at Acme and lives in Melbourne?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rahul"
+              ]
+            ],
+            "tags": [
+              "join",
+              "constraint"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "works_at(X, acme), lives_in(X, melbourne)",
+          "actualRows": [
+            [
+              "rahul"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2543,
+            "completionTokens": 22,
+            "totalTokens": 2565,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 747.2004999999999
+        },
+        {
+          "case": {
+            "id": "dentist_city_join",
+            "question": "Which city does Rahul's dentist live in?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "'New York'"
+              ]
+            ],
+            "tags": [
+              "join",
+              "quoted-atom",
+              "projected-answer"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select City where dentist(rahul, Dentist), lives_in(Dentist, City)",
+          "actualRows": [
+            [
+              "'New York'"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2578,
+            "completionTokens": 23,
+            "totalTokens": 2601,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 763.5944170000002
+        },
+        {
+          "case": {
+            "id": "project_language",
+            "question": "Which language does the Atlas project use?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rust"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "lexical"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "uses_language(atlas, Language)",
+          "actualRows": [
+            [
+              "rust"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2536,
+            "completionTokens": 12,
+            "totalTokens": 2548,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 536.212708
+        },
+        {
+          "case": {
+            "id": "project_owner",
+            "question": "Which project does Rahul own?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "atlas"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "inverse-direction"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "project_owner(Y, rahul)",
+          "actualRows": [
+            [
+              "atlas"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2574,
+            "completionTokens": 12,
+            "totalTokens": 2586,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 542.6188750000001
+        },
+        {
+          "case": {
+            "id": "confusable_atlas_owner",
+            "question": "Who owns Atlas?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rahul"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "confusable-nonempty",
+              "owner-vs-language"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "project_owner(atlas, Owner)",
+          "actualRows": [
+            [
+              "rahul"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2532,
+            "completionTokens": 12,
+            "totalTokens": 2544,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 538.5095419999998
+        },
+        {
+          "case": {
+            "id": "confusable_atlas_language",
+            "question": "What language does Atlas use?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rust"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "confusable-nonempty",
+              "language-vs-owner"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "uses_language(atlas, Language)",
+          "actualRows": [
+            [
+              "rust"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2534,
+            "completionTokens": 12,
+            "totalTokens": 2546,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 546.7492089999996
+        },
+        {
+          "case": {
+            "id": "confusable_rahul_location",
+            "question": "Where does Rahul live?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "melbourne"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "confusable-nonempty",
+              "home-vs-work"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "lives_in(rahul, City)",
+          "actualRows": [
+            [
+              "melbourne"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2573,
+            "completionTokens": 13,
+            "totalTokens": 2586,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 654.1375829999997
+        },
+        {
+          "case": {
+            "id": "confusable_rahul_employer",
+            "question": "Who employs Rahul?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "acme"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "confusable-nonempty",
+              "work-vs-home"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "works_at(rahul, Y)",
+          "actualRows": [
+            [
+              "acme"
+            ]
+          ],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 0,
+            "promptTokens": 5359,
+            "completionTokens": 26,
+            "totalTokens": 5385,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 1115.7718329999989
+        },
+        {
+          "case": {
+            "id": "recursive_ancestor",
+            "question": "Who are Alice's descendants?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "bob"
+              ],
+              [
+                "carol"
+              ],
+              [
+                "dan"
+              ]
+            ],
+            "tags": [
+              "recursive",
+              "multi-answer"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "no_match",
+          "query": "ancestor(Y, alice)",
+          "actualRows": [],
+          "llmCalls": 4,
+          "usage": {
+            "calls": 4,
+            "usageResponses": 4,
+            "costResponses": 0,
+            "promptTokens": 15326,
+            "completionTokens": 40,
+            "totalTokens": 15366,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 2076.1095000000005
+        },
+        {
+          "case": {
+            "id": "grandparent",
+            "question": "Who is Alice's grandchild?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "carol"
+              ]
+            ],
+            "tags": [
+              "derived",
+              "join"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "grandparent(alice, Grandchild)",
+          "actualRows": [
+            [
+              "carol"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2513,
+            "completionTokens": 11,
+            "totalTokens": 2524,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 524.9444160000003
+        },
+        {
+          "case": {
+            "id": "numeric_comparison",
+            "question": "Who was born before 1990?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "chen"
+              ],
+              [
+                "rahul"
+              ]
+            ],
+            "tags": [
+              "comparison",
+              "multi-answer",
+              "projected-answer"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "select X where birth_year(X, Y), Y < 1990",
+          "actualRows": [
+            [
+              "rahul"
+            ],
+            [
+              "chen"
+            ]
+          ],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 0,
+            "promptTokens": 5089,
+            "completionTokens": 43,
+            "totalTokens": 5132,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 1719.3743749999994
+        },
+        {
+          "case": {
+            "id": "arithmetic_offset",
+            "question": "Who was born more than 5 years before Mira?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "chen"
+              ],
+              [
+                "rahul"
+              ]
+            ],
+            "tags": [
+              "comparison",
+              "arithmetic",
+              "join",
+              "multi-answer",
+              "projected-answer"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "unanswerable",
+          "query": null,
+          "actualRows": [],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 0,
+            "promptTokens": 5104,
+            "completionTokens": 60,
+            "totalTokens": 5164,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 1951.9873749999988,
+          "error": "unexpected '(' after query at line 1"
+        },
+        {
+          "case": {
+            "id": "ground_true",
+            "question": "Does Chen work at Initech?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              []
+            ],
+            "tags": [
+              "boolean",
+              "positive"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "works_at(chen, initech)",
+          "actualRows": [
+            []
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2540,
+            "completionTokens": 13,
+            "totalTokens": 2553,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 570.1497079999972
+        },
+        {
+          "case": {
+            "id": "ground_false",
+            "question": "Does Mira work at Initech?",
+            "expectedQuery": "required",
+            "expectedRows": [],
+            "tags": [
+              "boolean",
+              "negative"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "no_match",
+          "query": "works_at(mira, initech)",
+          "actualRows": [],
+          "llmCalls": 4,
+          "usage": {
+            "calls": 4,
+            "usageResponses": 4,
+            "costResponses": 0,
+            "promptTokens": 15398,
+            "completionTokens": 56,
+            "totalTokens": 15454,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 2338.6727500000015
+        },
+        {
+          "case": {
+            "id": "ground_true_language",
+            "question": "Does the Atlas project use Rust?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              []
+            ],
+            "tags": [
+              "boolean",
+              "positive",
+              "prompt-generalization"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "uses_language(atlas, rust)",
+          "actualRows": [
+            []
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2535,
+            "completionTokens": 12,
+            "totalTokens": 2547,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 533.4862079999984
+        },
+        {
+          "case": {
+            "id": "ground_false_language",
+            "question": "Does the Kiln project use Rust?",
+            "expectedQuery": "required",
+            "expectedRows": [],
+            "tags": [
+              "boolean",
+              "negative",
+              "prompt-generalization"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "no_match",
+          "query": "uses_language(kiln, rust)",
+          "actualRows": [],
+          "llmCalls": 4,
+          "usage": {
+            "calls": 4,
+            "usageResponses": 4,
+            "costResponses": 0,
+            "promptTokens": 15384,
+            "completionTokens": 52,
+            "totalTokens": 15436,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 2341.526332999998
+        },
+        {
+          "case": {
+            "id": "missing_entity",
+            "question": "Where does Noor work?",
+            "expectedQuery": "required",
+            "expectedRows": [],
+            "tags": [
+              "empty",
+              "sample-leakage"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "no_match",
+          "query": "select Company where works_at(noor, Company)",
+          "actualRows": [],
+          "llmCalls": 4,
+          "usage": {
+            "calls": 4,
+            "usageResponses": 4,
+            "costResponses": 0,
+            "promptTokens": 15342,
+            "completionTokens": 64,
+            "totalTokens": 15406,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 2569.5887079999993
+        },
+        {
+          "case": {
+            "id": "missing_location",
+            "question": "Where does Priya live?",
+            "expectedQuery": "required",
+            "expectedRows": [],
+            "tags": [
+              "empty",
+              "prompt-generalization"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "no_match",
+          "query": "lives_in(priya, City)",
+          "actualRows": [],
+          "llmCalls": 4,
+          "usage": {
+            "calls": 4,
+            "usageResponses": 4,
+            "costResponses": 0,
+            "promptTokens": 15374,
+            "completionTokens": 52,
+            "totalTokens": 15426,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 2263.601999999999
+        },
+        {
+          "case": {
+            "id": "unexpressible_reason",
+            "question": "Why does Rahul work at Acme?",
+            "expectedQuery": "unanswerable",
+            "expectedRows": [],
+            "tags": [
+              "unanswerable",
+              "related-schema"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "works_at(rahul, acme)",
+          "actualRows": [
+            []
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2555,
+            "completionTokens": 14,
+            "totalTokens": 2569,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 582.8159579999992
+        },
+        {
+          "case": {
+            "id": "unknown_attribute",
+            "question": "What is Rahul's favorite color?",
+            "expectedQuery": "unanswerable",
+            "expectedRows": [],
+            "tags": [
+              "unanswerable",
+              "unknown-predicate"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "unanswerable",
+          "query": null,
+          "actualRows": [],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 0,
+            "promptTokens": 7639,
+            "completionTokens": 16,
+            "totalTokens": 7655,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 937.1443749999999
+        },
+        {
+          "case": {
+            "id": "tentative_preference",
+            "question": "What might Rahul's favorite color be?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "blue"
+              ]
+            ],
+            "tags": [
+              "tentative",
+              "direct",
+              "single-answer"
+            ],
+            "trustMode": "include_tentative"
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "grounded",
+          "status": "answered",
+          "query": "favorite_color(rahul, V)",
+          "actualRows": [
+            [
+              "blue"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 2554,
+            "completionTokens": 13,
+            "totalTokens": 2567,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 570.8059580000008
+        }
+      ]
+    },
+    {
+      "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+      "variant": "dialect",
+      "schemaPredicateLimit": null,
+      "score": {
+        "cases": 26,
+        "accuracy": 0.8076923076923077,
+        "answerabilityAccuracy": 0.8846153846153846,
+        "precision": 0.9047619047619048,
+        "recall": 0.76,
+        "f1": 0.8260869565217391,
+        "truePositives": 19,
+        "falsePositives": 2,
+        "falseNegatives": 6,
+        "errors": 2,
+        "schemaBudgetExhaustions": 0,
+        "llmCalls": 48,
+        "usageResponses": 48,
+        "costResponses": 0,
+        "promptTokens": 214358,
+        "completionTokens": 806,
+        "totalTokens": 215164,
+        "cachedPromptTokens": 0,
+        "reasoningTokens": 0,
+        "costUsd": 0,
+        "durationMs": 31415.158165999997
+      },
+      "observations": [
+        {
+          "case": {
+            "id": "direct_employer",
+            "question": "Where does Rahul work?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "acme"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "single-answer"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(Y) :- works_at(rahul, Y).\n?- q(Y).",
+          "actualRows": [
+            [
+              "acme"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4387,
+            "completionTokens": 17,
+            "totalTokens": 4404,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 663.0964999999997
+        },
+        {
+          "case": {
+            "id": "lexical_employer",
+            "question": "Who is Mira employed by?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "acme"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "lexical"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(Y) :- works_at_plus(mira, Y).\n?- q(Y).",
+          "actualRows": [
+            [
+              "acme"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4388,
+            "completionTokens": 19,
+            "totalTokens": 4407,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 723.5218330000025
+        },
+        {
+          "case": {
+            "id": "multiple_workers",
+            "question": "Who works at Acme?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rahul"
+              ],
+              [
+                "mira"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "multi-answer"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(X) :- works_at(X, acme).\n?- q(X).",
+          "actualRows": [
+            [
+              "rahul"
+            ],
+            [
+              "mira"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4387,
+            "completionTokens": 17,
+            "totalTokens": 4404,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 673.1069160000006
+        },
+        {
+          "case": {
+            "id": "reusable_company_size",
+            "question": "How many people work at Acme?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "2"
+              ]
+            ],
+            "tags": [
+              "aggregate-rule",
+              "derived",
+              "single-answer"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "count(*) as N where works_at(X, acme)",
+          "actualRows": [
+            [
+              "2"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4389,
+            "completionTokens": 17,
+            "totalTokens": 4406,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 658.4241250000014
+        },
+        {
+          "case": {
+            "id": "derived_colleague",
+            "question": "Who are Rahul's colleagues?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "mira"
+              ]
+            ],
+            "tags": [
+              "derived",
+              "inequality"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(Y) :- colleague(Y, rahul).\n?- q(Y).",
+          "actualRows": [
+            [
+              "mira"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4389,
+            "completionTokens": 14,
+            "totalTokens": 4403,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 593.1864170000008
+        },
+        {
+          "case": {
+            "id": "conjunctive_location",
+            "question": "Who both works at Acme and lives in Melbourne?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rahul"
+              ]
+            ],
+            "tags": [
+              "join",
+              "constraint"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(X) :- works_at(X, acme), lives_in(X, melbourne).\n?- q(X).",
+          "actualRows": [
+            [
+              "rahul"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4392,
+            "completionTokens": 26,
+            "totalTokens": 4418,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 824.9728750000031
+        },
+        {
+          "case": {
+            "id": "dentist_city_join",
+            "question": "Which city does Rahul's dentist live in?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "'New York'"
+              ]
+            ],
+            "tags": [
+              "join",
+              "quoted-atom",
+              "projected-answer"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(Y) :- dentist(rahul, Y).\n?- q(Y).",
+          "actualRows": [
+            [
+              "dr_chen"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4392,
+            "completionTokens": 15,
+            "totalTokens": 4407,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 602.3183750000026
+        },
+        {
+          "case": {
+            "id": "project_language",
+            "question": "Which language does the Atlas project use?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rust"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "lexical"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(V) :- uses_language(atlas, V).\n?- q(V).",
+          "actualRows": [
+            [
+              "rust"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4390,
+            "completionTokens": 16,
+            "totalTokens": 4406,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 624.1505000000034
+        },
+        {
+          "case": {
+            "id": "project_owner",
+            "question": "Which project does Rahul own?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "atlas"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "inverse-direction"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(Y) :- project_owner(Y, rahul).\n?- q(Y).",
+          "actualRows": [
+            [
+              "atlas"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4388,
+            "completionTokens": 16,
+            "totalTokens": 4404,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 628.3315000000002
+        },
+        {
+          "case": {
+            "id": "confusable_atlas_owner",
+            "question": "Who owns Atlas?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rahul"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "confusable-nonempty",
+              "owner-vs-language"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(Y) :- project_owner(atlas, Y).\n?- q(Y).",
+          "actualRows": [
+            [
+              "rahul"
+            ]
+          ],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 0,
+            "promptTokens": 8922,
+            "completionTokens": 33,
+            "totalTokens": 8955,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 1282.5423329999976
+        },
+        {
+          "case": {
+            "id": "confusable_atlas_language",
+            "question": "What language does Atlas use?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "rust"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "confusable-nonempty",
+              "language-vs-owner"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(V) :- uses_language(atlas, V).\n?- q(V).",
+          "actualRows": [
+            [
+              "rust"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4388,
+            "completionTokens": 16,
+            "totalTokens": 4404,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 629.9996249999967
+        },
+        {
+          "case": {
+            "id": "confusable_rahul_location",
+            "question": "Where does Rahul live?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "melbourne"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "confusable-nonempty",
+              "home-vs-work"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(V) :- lives_in(rahul, V).\n?- q(V).",
+          "actualRows": [
+            [
+              "melbourne"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4387,
+            "completionTokens": 17,
+            "totalTokens": 4404,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 654.6210419999989
+        },
+        {
+          "case": {
+            "id": "confusable_rahul_employer",
+            "question": "Who employs Rahul?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "acme"
+              ]
+            ],
+            "tags": [
+              "direct",
+              "confusable-nonempty",
+              "work-vs-home"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(Y) :- works_at(rahul, Y).\n?- q(Y).",
+          "actualRows": [
+            [
+              "acme"
+            ]
+          ],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 0,
+            "promptTokens": 8923,
+            "completionTokens": 34,
+            "totalTokens": 8957,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 1355.469250000002
+        },
+        {
+          "case": {
+            "id": "recursive_ancestor",
+            "question": "Who are Alice's descendants?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "bob"
+              ],
+              [
+                "carol"
+              ],
+              [
+                "dan"
+              ]
+            ],
+            "tags": [
+              "recursive",
+              "multi-answer"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "no_match",
+          "query": "q(Y) :- ancestor_plus(Y, alice).\n?- q(Y).",
+          "actualRows": [],
+          "llmCalls": 6,
+          "usage": {
+            "calls": 6,
+            "usageResponses": 6,
+            "costResponses": 0,
+            "promptTokens": 27988,
+            "completionTokens": 94,
+            "totalTokens": 28082,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 3816.8300420000014
+        },
+        {
+          "case": {
+            "id": "grandparent",
+            "question": "Who is Alice's grandchild?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "carol"
+              ]
+            ],
+            "tags": [
+              "derived",
+              "join"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(Y) :- grandparent(alice, Y).\n?- q(Y).",
+          "actualRows": [
+            [
+              "carol"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4389,
+            "completionTokens": 14,
+            "totalTokens": 4403,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 592.1142499999987
+        },
+        {
+          "case": {
+            "id": "numeric_comparison",
+            "question": "Who was born before 1990?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "chen"
+              ],
+              [
+                "rahul"
+              ]
+            ],
+            "tags": [
+              "comparison",
+              "multi-answer",
+              "projected-answer"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(X) :- birth_year(X, Y), Y < 1990.\n?- q(X).",
+          "actualRows": [
+            [
+              "rahul"
+            ],
+            [
+              "chen"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4392,
+            "completionTokens": 24,
+            "totalTokens": 4416,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 791.1281670000026
+        },
+        {
+          "case": {
+            "id": "arithmetic_offset",
+            "question": "Who was born more than 5 years before Mira?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "chen"
+              ],
+              [
+                "rahul"
+              ]
+            ],
+            "tags": [
+              "comparison",
+              "arithmetic",
+              "join",
+              "multi-answer",
+              "projected-answer"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "unanswerable",
+          "query": null,
+          "actualRows": [],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 0,
+            "promptTokens": 8855,
+            "completionTokens": 58,
+            "totalTokens": 8913,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 1763.547375000002,
+          "error": "arithmetic expressions may contain only numbers and variables at line 1"
+        },
+        {
+          "case": {
+            "id": "ground_true",
+            "question": "Does Chen work at Initech?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              []
+            ],
+            "tags": [
+              "boolean",
+              "positive"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "works_at(chen, initech)",
+          "actualRows": [
+            []
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4389,
+            "completionTokens": 13,
+            "totalTokens": 4402,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 575.0736249999973
+        },
+        {
+          "case": {
+            "id": "ground_false",
+            "question": "Does Mira work at Initech?",
+            "expectedQuery": "required",
+            "expectedRows": [],
+            "tags": [
+              "boolean",
+              "negative"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "no_match",
+          "query": "works_at(mira, initech)",
+          "actualRows": [],
+          "llmCalls": 4,
+          "usage": {
+            "calls": 4,
+            "usageResponses": 4,
+            "costResponses": 0,
+            "promptTokens": 17756,
+            "completionTokens": 56,
+            "totalTokens": 17812,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 2411.115791999997
+        },
+        {
+          "case": {
+            "id": "ground_true_language",
+            "question": "Does the Atlas project use Rust?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              []
+            ],
+            "tags": [
+              "boolean",
+              "positive",
+              "prompt-generalization"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "uses_language(atlas, rust)",
+          "actualRows": [
+            []
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4389,
+            "completionTokens": 12,
+            "totalTokens": 4401,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 552.0378329999949
+        },
+        {
+          "case": {
+            "id": "ground_false_language",
+            "question": "Does the Kiln project use Rust?",
+            "expectedQuery": "required",
+            "expectedRows": [],
+            "tags": [
+              "boolean",
+              "negative",
+              "prompt-generalization"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "no_match",
+          "query": "uses_language(kiln, rust)",
+          "actualRows": [],
+          "llmCalls": 4,
+          "usage": {
+            "calls": 4,
+            "usageResponses": 4,
+            "costResponses": 0,
+            "promptTokens": 17756,
+            "completionTokens": 52,
+            "totalTokens": 17808,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 2268.4493749999965
+        },
+        {
+          "case": {
+            "id": "missing_entity",
+            "question": "Where does Noor work?",
+            "expectedQuery": "required",
+            "expectedRows": [],
+            "tags": [
+              "empty",
+              "sample-leakage"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "no_match",
+          "query": "q(Y) :- works_at(noor, Y).\n?- q(Y).",
+          "actualRows": [],
+          "llmCalls": 4,
+          "usage": {
+            "calls": 4,
+            "usageResponses": 4,
+            "costResponses": 0,
+            "promptTokens": 17788,
+            "completionTokens": 70,
+            "totalTokens": 17858,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 2704.317332999999
+        },
+        {
+          "case": {
+            "id": "missing_location",
+            "question": "Where does Priya live?",
+            "expectedQuery": "required",
+            "expectedRows": [],
+            "tags": [
+              "empty",
+              "prompt-generalization"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "no_match",
+          "query": "q(V) :- lives_in(priya, V).\n?- q(V).",
+          "actualRows": [],
+          "llmCalls": 4,
+          "usage": {
+            "calls": 4,
+            "usageResponses": 4,
+            "costResponses": 0,
+            "promptTokens": 17788,
+            "completionTokens": 70,
+            "totalTokens": 17858,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 2742.217375
+        },
+        {
+          "case": {
+            "id": "unexpressible_reason",
+            "question": "Why does Rahul work at Acme?",
+            "expectedQuery": "unanswerable",
+            "expectedRows": [],
+            "tags": [
+              "unanswerable",
+              "related-schema"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(V) :- works_at(rahul, V).\n?- q(V).",
+          "actualRows": [
+            [
+              "acme"
+            ]
+          ],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 0,
+            "promptTokens": 8836,
+            "completionTokens": 35,
+            "totalTokens": 8871,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 1312.9216250000027
+        },
+        {
+          "case": {
+            "id": "unknown_attribute",
+            "question": "What is Rahul's favorite color?",
+            "expectedQuery": "unanswerable",
+            "expectedRows": [],
+            "tags": [
+              "unanswerable",
+              "unknown-predicate"
+            ]
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "unanswerable",
+          "query": null,
+          "actualRows": [],
+          "llmCalls": 2,
+          "usage": {
+            "calls": 2,
+            "usageResponses": 2,
+            "costResponses": 0,
+            "promptTokens": 9494,
+            "completionTokens": 34,
+            "totalTokens": 9528,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 1310.7711659999986,
+          "error": "unknown predicate likes_color/2 — available in this schema: ancestor/2, ancestor_plus/2, birth_year/2, birth_year_plus/2, colleague/2, colleague_plus/2, company_size/2, company_size_plus/2, dentist/2, dentist_plus/2, eval_noise_000/2, eval_noise_000_plus/2, eval_noise_001/2, eval_noise_001_plus/2, eval_noise_002/2, eval_noise_002_plus/2, eval_noise_003/2, eval_noise_003_plus/2, eval_noise_004/2, eval_noise_004_plus/2, eval_noise_005/2, eval_noise_005_plus/2, eval_noise_006/2, eval_noise_006_plus/2, eval_noise_007/2, eval_noise_007_plus/2, eval_noise_008/2, eval_noise_008_plus/2, eval_noise_009/2, eval_noise_009_plus/2, eval_noise_010/2, eval_noise_010_plus/2, eval_noise_011/2, eval_noise_011_plus/2, eval_noise_012/2, eval_noise_012_plus/2, eval_noise_013/2, eval_noise_013_plus/2, eval_noise_014/2, eval_noise_014_plus/2, eval_noise_015/2, eval_noise_015_plus/2, eval_noise_016/2, eval_noise_016_plus/2, eval_noise_017/2, eval_noise_017_plus/2, eval_noise_018/2, eval_noise_018_plus/2, eval_noise_019/2, eval_noise_019_plus/2, eval_noise_020/2, eval_noise_020_plus/2, eval_noise_021/2, eval_noise_021_plus/2, eval_noise_022/2, eval_noise_022_plus/2, eval_noise_023/2, eval_noise_023_plus/2, eval_noise_024/2, eval_noise_024_plus/2, eval_noise_025/2, eval_noise_025_plus/2, eval_noise_026/2, eval_noise_026_plus/2, ... (161 more shown in schema)"
+        },
+        {
+          "case": {
+            "id": "tentative_preference",
+            "question": "What might Rahul's favorite color be?",
+            "expectedQuery": "required",
+            "expectedRows": [
+              [
+                "blue"
+              ]
+            ],
+            "tags": [
+              "tentative",
+              "direct",
+              "single-answer"
+            ],
+            "trustMode": "include_tentative"
+          },
+          "model": "finetune/gemma-4-e2b-it-r16-gemma4-e2b-modal",
+          "variant": "dialect",
+          "status": "answered",
+          "query": "q(V) :- favorite_color(rahul, V).\n?- q(V).",
+          "actualRows": [
+            [
+              "blue"
+            ]
+          ],
+          "llmCalls": 1,
+          "usage": {
+            "calls": 1,
+            "usageResponses": 1,
+            "costResponses": 0,
+            "promptTokens": 4416,
+            "completionTokens": 17,
+            "totalTokens": 4433,
+            "cachedPromptTokens": 0,
+            "reasoningTokens": 0,
+            "costUsd": 0
+          },
+          "durationMs": 660.8929169999974
+        }
+      ]
+    }
+  ]
+}

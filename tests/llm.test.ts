@@ -2083,6 +2083,32 @@ describe('recallQuestion', () => {
     expect(system).not.toContain('select Answer');
   });
 
+  it('dialect variant: tolerates a rule the model prefixed with ?-', async () => {
+    const llm = new ScriptedLlm(['?- q(Company) :- works_at(rahul, Company).']);
+    const result = await recallQuestion(
+      { store, llm },
+      'Where does Rahul work?',
+      ['default'],
+      { queryPromptVariant: 'dialect', answerMode: 'deterministic' },
+    );
+    expect(result.bindings).toEqual([{ Company: 'acme' }]);
+  });
+
+  it('dialect variant: an empty rule program gets a why-not summary instead of a parse error', async () => {
+    const llm = new ScriptedLlm([
+      'q(Company) :- works_at(zed, Company).',
+      'q(Company) :- works_at(zed, Company).',
+    ]);
+    const result = await recallQuestion(
+      { store, llm },
+      'Where does Zed work?',
+      ['default'],
+      { queryPromptVariant: 'dialect', answerMode: 'evidence' },
+    );
+    expect(result.status).toBe('no_match');
+    expect(result.answer).toMatch(/zed|no stored fact|not/i);
+  });
+
   it('dialect variant: a closure goal over a stored binary predicate is accepted and evaluated', async () => {
     store.assert('default', 'reports_to(maya, liam). reports_to(liam, ava).');
     const llm = new ScriptedLlm(['?- reports_to_plus(maya, ava).']);

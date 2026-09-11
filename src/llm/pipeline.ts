@@ -26,7 +26,10 @@ import {
   serializeQuerySpec,
   serializeTerm,
 } from '../engine/index.js';
-import { dialectQuerySystemPrompt } from './dialect.js';
+import {
+  dialectQuerySystemPrompt,
+  normalizeDialectResponse,
+} from './dialect.js';
 import type {
   MemoryStore,
   MemorySource,
@@ -1496,7 +1499,7 @@ export async function retrieveQuestion(
     const validateResponse = (response: string): QuerySpec | null => {
       if (UNANSWERABLE_RE.test(response)) return null;
       if (dialect) {
-        const program = parseQueryProgram(response);
+        const program = parseQueryProgram(normalizeDialectResponse(response));
         // body predicates may be stored, authored in this program, or a closure
         // (p_plus) over a stored binary predicate
         const known = new Set(selection.availablePredicates);

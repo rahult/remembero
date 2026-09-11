@@ -139,6 +139,17 @@ Every fine-tuned round refused all six trap writes and made zero or one tool err
    suggestion (try adding the missing join variable, not only swapping), and for the
    benchmark a v3 with enough questions for a one-answer gain to be visible.
 
+8. **The product prompt is not the bottleneck (2026-09-11).** The product's recall path
+   prompts in a `select … where` form the adapter never trained on. Adding the training
+   card as a `dialect` variant and measuring both on the 26-case recall eval
+   (`npm run eval:recall -- --variants grounded,dialect`) with r16 gives grounded 23/26 and
+   dialect 21/26. The fine-tune reads the product's schema summary, with its sample facts,
+   better than the placeholder listing the card needs on a live store. Shared misses: the
+   descendants question answered as `ancestor(Y, alice)` (arguments reversed), and the
+   dentist-city two-hop join flattened to one hop. Two bugs found on the way and fixed: the
+   why-not explainer parsed the recorded query with the query-only parser, so a rule program
+   raised instead of explaining; and the harness's binding-row reader did the same.
+
 ## Round 4 (after the review)
 
 Round 4 was trained after the adversarial review with every data defect below fixed and

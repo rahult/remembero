@@ -19,7 +19,7 @@ import {
   isIntegrityConstraint,
   isNegation,
   materialize,
-  parseQuerySpec,
+  parseQueryProgram,
   predKey,
   serializeClause,
   serializeGoal,
@@ -27,10 +27,7 @@ import {
   serializeTerm,
 } from '../engine/index.js';
 import type { MemorySource } from '../store/store.js';
-import {
-  explainKnowledge,
-  type ExplainKnowledgeResult,
-} from './graph.js';
+import { explainKnowledge, type ExplainKnowledgeResult } from './graph.js';
 import {
   canonicalizeKnowledge,
   literalKnowledge,
@@ -90,7 +87,13 @@ export type WhyNotGraphNode =
       goal: string;
       bindings: Record<string, string>;
     }
-  | { id: string; kind: 'rule'; rule: number; clause: string; aggregate: boolean }
+  | {
+      id: string;
+      kind: 'rule';
+      rule: number;
+      clause: string;
+      aggregate: boolean;
+    }
   | { id: string; kind: 'observed'; fact: string };
 
 export interface WhyNotGraphEdge {
@@ -107,8 +110,7 @@ export interface WhyNotGraph {
 
 export type WhyNotStatus = 'satisfied' | 'blocked';
 
-export interface ExplainWhyNotOptions
-  extends Omit<EvaluateOptions, 'metrics'> {
+export interface ExplainWhyNotOptions extends Omit<EvaluateOptions, 'metrics'> {
   entityIdentity?: EntityIdentityMode;
   trustMode?: TrustViewMode;
   maxFailures?: number;
@@ -172,8 +174,11 @@ function failureSummary(failure: WhyNotFailure): string {
 
 /** Produce a local, source-text-free summary from complete deterministic blockers. */
 export function summarizeWhyNot(
-  result: Pick<ExplainWhyNotResult, 'status' | 'evaluatedQuery' | 'failures' | 'explanation'>,
-  maxFailures = DEFAULT_WHY_NOT_SUMMARY_FAILURES
+  result: Pick<
+    ExplainWhyNotResult,
+    'status' | 'evaluatedQuery' | 'failures' | 'explanation'
+  >,
+  maxFailures = DEFAULT_WHY_NOT_SUMMARY_FAILURES,
 ): string {
   if (
     !Number.isSafeInteger(maxFailures) ||
@@ -181,7 +186,7 @@ export function summarizeWhyNot(
     maxFailures > MAX_WHY_NOT_SUMMARY_FAILURES
   ) {
     throw new EngineSafetyError(
-      `why-not summary failures must be from 1 to ${MAX_WHY_NOT_SUMMARY_FAILURES}`
+      `why-not summary failures must be from 1 to ${MAX_WHY_NOT_SUMMARY_FAILURES}`,
     );
   }
   if (result.status === 'satisfied') {
@@ -193,11 +198,14 @@ export function summarizeWhyNot(
   const failures = leafFailures(result.failures);
   const selected = failures.slice(0, maxFailures).map(failureSummary);
   const remainder = failures.length - selected.length;
-  const detail = selected.length === 0
-    ? 'No grounded repairable blocker was available.'
-    : `${selected.join('; ')}${
-        remainder > 0 ? `; plus ${remainder} additional blocker${remainder === 1 ? '' : 's'}` : ''
-      }.`;
+  const detail =
+    selected.length === 0
+      ? 'No grounded repairable blocker was available.'
+      : `${selected.join('; ')}${
+          remainder > 0
+            ? `; plus ${remainder} additional blocker${remainder === 1 ? '' : 's'}`
+            : ''
+        }.`;
   return `No stored result matches ${result.evaluatedQuery}. ${detail}`;
 }
 
@@ -216,7 +224,13 @@ interface DiagnosticLimits {
 interface DiagnosticContext {
   originalClauses: Clause[];
   originalSources: Map<string, MemorySource[]>;
-  explanationOptions: Omit<ExplainWhyNotOptions, 'maxFailures' | 'maxDiagnosticDepth' | 'maxCandidatesPerFailure' | 'maxEvidenceFacts'>;
+  explanationOptions: Omit<
+    ExplainWhyNotOptions,
+    | 'maxFailures'
+    | 'maxDiagnosticDepth'
+    | 'maxCandidatesPerFailure'
+    | 'maxEvidenceFacts'
+  >;
   factsByPredicate: Map<string, MaterializedFact[]>;
   rulesByPredicate: Map<string, RuleDefinition[]>;
   limits: DiagnosticLimits;
@@ -228,7 +242,7 @@ function boundedOption(
   value: number | undefined,
   fallback: number,
   maximum: number,
-  label: string
+  label: string,
 ): number {
   const resolved = value ?? fallback;
   if (!Number.isSafeInteger(resolved) || resolved < 1 || resolved > maximum) {
@@ -251,7 +265,9 @@ function termFromValue(value: string | number): Term {
 
 function termEqual(left: Term, right: Term): boolean {
   return (
-    (left.type === 'atom' && right.type === 'atom' && left.value === right.value) ||
+    (left.type === 'atom' &&
+      right.type === 'atom' &&
+      left.value === right.value) ||
     (left.type === 'num' && right.type === 'num' && left.value === right.value)
   );
 }
@@ -262,9 +278,10 @@ function resolveTerm(term: Term, bindings: Bindings): Term {
 
 function substituteExpression(
   expression: ScalarExpression,
-  bindings: Bindings
+  bindings: Bindings,
 ): ScalarExpression {
-  if (!isArithmeticExpression(expression)) return resolveTerm(expression, bindings);
+  if (!isArithmeticExpression(expression))
+    return resolveTerm(expression, bindings);
   if (expression.kind === 'unary') {
     return {
       ...expression,
@@ -301,7 +318,7 @@ function substituteGoal(goal: Goal, bindings: Bindings): Goal {
 
 function bindingsJson(bindings: Bindings): Record<string, string> {
   return Object.fromEntries(
-    Object.entries(bindings).map(([name, term]) => [name, serializeTerm(term)])
+    Object.entries(bindings).map(([name, term]) => [name, serializeTerm(term)]),
   );
 }
 
@@ -309,7 +326,7 @@ function bindingKey(bindings: Bindings): string {
   return JSON.stringify(
     Object.entries(bindings)
       .sort(([left], [right]) => left.localeCompare(right))
-      .map(([name, term]) => [name, serializeTerm(term)])
+      .map(([name, term]) => [name, serializeTerm(term)]),
   );
 }
 
@@ -323,9 +340,12 @@ function groundLiteral(fact: MaterializedFact): Literal {
 function matchLiteral(
   pattern: Literal,
   fact: MaterializedFact,
-  bindings: Bindings
+  bindings: Bindings,
 ): Bindings | undefined {
-  if (pattern.predicate !== fact.predicate || pattern.args.length !== fact.values.length) {
+  if (
+    pattern.predicate !== fact.predicate ||
+    pattern.args.length !== fact.values.length
+  ) {
     return undefined;
   }
   let next = bindings;
@@ -345,14 +365,14 @@ function matchLiteral(
 
 function relation(
   context: DiagnosticContext,
-  literal: Literal
+  literal: Literal,
 ): MaterializedFact[] {
   return context.factsByPredicate.get(predKey(literal)) ?? [];
 }
 
 function deduplicateBindings(
   values: Bindings[],
-  context: DiagnosticContext
+  context: DiagnosticContext,
 ): Bindings[] {
   const seen = new Set<string>();
   const result: Bindings[] = [];
@@ -363,7 +383,7 @@ function deduplicateBindings(
     result.push(value);
     if (result.length > context.limits.maxFailures) {
       throw new EngineLimitError(
-        `why-not diagnostic frontier exceeded ${context.limits.maxFailures} bindings`
+        `why-not diagnostic frontier exceeded ${context.limits.maxFailures} bindings`,
       );
     }
   }
@@ -373,7 +393,7 @@ function deduplicateBindings(
 function advanceGoal(
   context: DiagnosticContext,
   goal: Goal,
-  bindings: Bindings
+  bindings: Bindings,
 ): Bindings[] {
   if (isComparison(goal)) {
     return comparisonMatches(goal, bindings) ? [bindings] : [];
@@ -383,11 +403,11 @@ function advanceGoal(
     const unbound = literal.args.find((term) => term.type === 'var');
     if (unbound?.type === 'var') {
       throw new EngineSafetyError(
-        `negated variable ${unbound.name} is not bound by an earlier positive relation`
+        `negated variable ${unbound.name} is not bound by an earlier positive relation`,
       );
     }
     return relation(context, literal).some(
-      (fact) => matchLiteral(literal, fact, {}) !== undefined
+      (fact) => matchLiteral(literal, fact, {}) !== undefined,
     )
       ? []
       : [bindings];
@@ -400,7 +420,7 @@ function advanceGoal(
 
 function evidenceFor(
   context: DiagnosticContext,
-  fact: MaterializedFact
+  fact: MaterializedFact,
 ): WhyNotObservedFact {
   const literal = groundLiteral(fact);
   const serialized = `${serializeGoal(literal)}.`;
@@ -408,7 +428,7 @@ function evidenceFor(
   if (existing !== undefined) return existing;
   if (context.evidenceByFact.size >= context.limits.maxEvidence) {
     throw new EngineLimitError(
-      `why-not evidence exceeded ${context.limits.maxEvidence} facts`
+      `why-not evidence exceeded ${context.limits.maxEvidence} facts`,
     );
   }
   const explanation = explainKnowledge(
@@ -418,7 +438,7 @@ function evidenceFor(
     {
       ...context.explanationOptions,
       maxRows: 1,
-    }
+    },
   );
   const observed: WhyNotObservedFact = {
     id: stableId('observed', serialized),
@@ -433,11 +453,11 @@ function nearbyFacts(
   context: DiagnosticContext,
   literal: Literal,
   bindings: Bindings,
-  exactOnly = false
+  exactOnly = false,
 ): WhyNotObservedFact[] {
   const resolved = substituteLiteral(literal, bindings);
   const known = resolved.args.map((term) =>
-    term.type === 'atom' || term.type === 'num' ? term : undefined
+    term.type === 'atom' || term.type === 'num' ? term : undefined,
   );
   const ranked = relation(context, resolved)
     .map((fact, index) => ({
@@ -450,7 +470,7 @@ function nearbyFacts(
           termEqual(known[position]!, termFromValue(value))
             ? total + 1
             : total,
-        0
+        0,
       ),
     }))
     .filter(({ exact }) => !exactOnly || exact)
@@ -458,7 +478,7 @@ function nearbyFacts(
       (left, right) =>
         Number(right.exact) - Number(left.exact) ||
         right.score - left.score ||
-        left.index - right.index
+        left.index - right.index,
     )
     .slice(0, context.limits.maxCandidates);
   return ranked.map(({ fact }) => evidenceFor(context, fact));
@@ -471,16 +491,21 @@ function newFailure(
   bindings: Bindings,
   path: Array<string | number>,
   nearby: WhyNotObservedFact[] = [],
-  rules: WhyNotRuleAttempt[] = []
+  rules: WhyNotRuleAttempt[] = [],
 ): WhyNotFailure {
   if (++context.failures > context.limits.maxFailures) {
     throw new EngineLimitError(
-      `why-not explanation exceeded ${context.limits.maxFailures} failures`
+      `why-not explanation exceeded ${context.limits.maxFailures} failures`,
     );
   }
   const serializedGoal = serializeGoal(substituteGoal(goal, bindings));
   return {
-    id: stableId('failure', [path, reason, serializedGoal, bindingsJson(bindings)]),
+    id: stableId('failure', [
+      path,
+      reason,
+      serializedGoal,
+      bindingsJson(bindings),
+    ]),
     reason,
     goal: serializedGoal,
     bindings: bindingsJson(bindings),
@@ -492,7 +517,7 @@ function newFailure(
 function seedRuleBindings(
   rule: Clause,
   requested: Literal,
-  outerBindings: Bindings
+  outerBindings: Bindings,
 ): Bindings | undefined {
   const resolved = substituteLiteral(requested, outerBindings);
   const bindings: Bindings = {};
@@ -524,7 +549,7 @@ function diagnoseSequence(
   seeds: Bindings[],
   depth: number,
   path: Array<string | number>,
-  visited: ReadonlySet<string>
+  visited: ReadonlySet<string>,
 ): { solutions: Bindings[]; failures: WhyNotFailure[] } {
   let frontier = seeds;
   const failures: WhyNotFailure[] = [];
@@ -540,8 +565,8 @@ function diagnoseSequence(
             bindings,
             depth,
             [...path, goalIndex, bindingIndex],
-            visited
-          )
+            visited,
+          ),
         );
       } else {
         next.push(...advanced);
@@ -560,7 +585,7 @@ function diagnoseRule(
   outerBindings: Bindings,
   depth: number,
   path: Array<string | number>,
-  visited: ReadonlySet<string>
+  visited: ReadonlySet<string>,
 ): WhyNotRuleAttempt | undefined {
   const seeded = seedRuleBindings(definition.clause, requested, outerBindings);
   if (seeded === undefined) return undefined;
@@ -570,7 +595,7 @@ function diagnoseRule(
     [seeded],
     depth + 1,
     [...path, 'rule', definition.number],
-    visited
+    visited,
   );
   const aggregate = isAggregateRule(definition.clause)
     ? definition.clause.aggregate
@@ -578,24 +603,28 @@ function diagnoseRule(
   const globalCount =
     aggregate?.op === 'count' &&
     !definition.clause.head.args.some(
-      (term) =>
-        term.type === 'var' && term.name !== aggregate.as
+      (term) => term.type === 'var' && term.name !== aggregate.as,
     );
-  const failures = result.solutions.length === 0 && !globalCount
-    ? result.failures
-    : [
-        newFailure(
-          context,
-          isAggregateRule(definition.clause)
-            ? 'aggregate_result_mismatch'
-            : 'rule_output_mismatch',
-          requested,
-          outerBindings,
-          [...path, 'rule', definition.number, 'output']
-        ),
-      ];
+  const failures =
+    result.solutions.length === 0 && !globalCount
+      ? result.failures
+      : [
+          newFailure(
+            context,
+            isAggregateRule(definition.clause)
+              ? 'aggregate_result_mismatch'
+              : 'rule_output_mismatch',
+            requested,
+            outerBindings,
+            [...path, 'rule', definition.number, 'output'],
+          ),
+        ];
   return {
-    id: stableId('rule-attempt', [path, definition.number, serializeClause(definition.clause)]),
+    id: stableId('rule-attempt', [
+      path,
+      definition.number,
+      serializeClause(definition.clause),
+    ]),
     rule: definition.number,
     clause: serializeClause(definition.clause),
     aggregate: isAggregateRule(definition.clause),
@@ -609,11 +638,11 @@ function diagnoseGoal(
   bindings: Bindings,
   depth: number,
   path: Array<string | number>,
-  visited: ReadonlySet<string>
+  visited: ReadonlySet<string>,
 ): WhyNotFailure {
   if (depth > context.limits.maxDepth) {
     throw new EngineLimitError(
-      `why-not explanation exceeded depth ${context.limits.maxDepth}`
+      `why-not explanation exceeded depth ${context.limits.maxDepth}`,
     );
   }
   if (isComparison(goal)) {
@@ -626,7 +655,7 @@ function diagnoseGoal(
       goal,
       bindings,
       path,
-      nearbyFacts(context, goal.not, bindings, true)
+      nearbyFacts(context, goal.not, bindings, true),
     );
   }
 
@@ -634,14 +663,7 @@ function diagnoseGoal(
   const signature = serializeGoal(resolved);
   const nearby = nearbyFacts(context, goal, bindings);
   if (visited.has(signature)) {
-    return newFailure(
-      context,
-      'recursive_cycle',
-      goal,
-      bindings,
-      path,
-      nearby
-    );
+    return newFailure(context, 'recursive_cycle', goal, bindings, path, nearby);
   }
   const definitions = context.rulesByPredicate.get(predKey(goal)) ?? [];
   if (definitions.length === 0) {
@@ -657,7 +679,7 @@ function diagnoseGoal(
       bindings,
       depth,
       path,
-      nestedVisited
+      nestedVisited,
     );
     return attempt === undefined ? [] : [attempt];
   });
@@ -671,7 +693,7 @@ function diagnoseGoal(
     bindings,
     path,
     nearby,
-    attempts
+    attempts,
   );
 }
 
@@ -692,7 +714,7 @@ function rulesByPredicate(clauses: Clause[]): Map<string, RuleDefinition[]> {
 function graphFor(
   query: string,
   status: WhyNotStatus,
-  failures: WhyNotFailure[]
+  failures: WhyNotFailure[],
 ): WhyNotGraph {
   const queryId = stableId('query', query);
   const nodes = new Map<string, WhyNotGraphNode>([
@@ -703,7 +725,11 @@ function graphFor(
     const id = stableId('why-not-edge', [kind, from, to]);
     edges.set(id, { id, kind, from, to });
   };
-  const visitFailure = (failure: WhyNotFailure, parent: string, edgeKind: 'fails_at' | 'blocked_by') => {
+  const visitFailure = (
+    failure: WhyNotFailure,
+    parent: string,
+    edgeKind: 'fails_at' | 'blocked_by',
+  ) => {
     nodes.set(failure.id, {
       id: failure.id,
       kind: 'failure',
@@ -713,7 +739,11 @@ function graphFor(
     });
     addEdge(edgeKind, parent, failure.id);
     for (const observed of failure.nearby) {
-      nodes.set(observed.id, { id: observed.id, kind: 'observed', fact: observed.fact });
+      nodes.set(observed.id, {
+        id: observed.id,
+        kind: 'observed',
+        fact: observed.fact,
+      });
       addEdge('observed', failure.id, observed.id);
     }
     for (const rule of failure.rules) {
@@ -725,13 +755,18 @@ function graphFor(
         aggregate: rule.aggregate,
       });
       addEdge('attempts', failure.id, rule.id);
-      for (const nested of rule.failures) visitFailure(nested, rule.id, 'blocked_by');
+      for (const nested of rule.failures)
+        visitFailure(nested, rule.id, 'blocked_by');
     }
   };
   for (const failure of failures) visitFailure(failure, queryId, 'fails_at');
   return {
-    nodes: [...nodes.values()].sort((left, right) => left.id.localeCompare(right.id)),
-    edges: [...edges.values()].sort((left, right) => left.id.localeCompare(right.id)),
+    nodes: [...nodes.values()].sort((left, right) =>
+      left.id.localeCompare(right.id),
+    ),
+    edges: [...edges.values()].sort((left, right) =>
+      left.id.localeCompare(right.id),
+    ),
   };
 }
 
@@ -744,7 +779,7 @@ export function explainWhyNot(
   clauses: Clause[],
   query: string,
   sourceIndex: Map<string, MemorySource[]> = new Map(),
-  options: ExplainWhyNotOptions = {}
+  options: ExplainWhyNotOptions = {},
 ): ExplainWhyNotResult {
   const {
     entityIdentity,
@@ -760,34 +795,42 @@ export function explainWhyNot(
       requestedFailures,
       DEFAULT_MAX_WHY_NOT_FAILURES,
       MAX_WHY_NOT_FAILURES,
-      'maxFailures'
+      'maxFailures',
     ),
     maxDepth: boundedOption(
       requestedDepth,
       DEFAULT_MAX_WHY_NOT_DEPTH,
       MAX_WHY_NOT_DEPTH,
-      'maxDiagnosticDepth'
+      'maxDiagnosticDepth',
     ),
     maxCandidates: boundedOption(
       requestedCandidates,
       DEFAULT_MAX_WHY_NOT_CANDIDATES,
       MAX_WHY_NOT_CANDIDATES,
-      'maxCandidatesPerFailure'
+      'maxCandidatesPerFailure',
     ),
     maxEvidence: boundedOption(
       requestedEvidence,
       DEFAULT_MAX_WHY_NOT_EVIDENCE,
       MAX_WHY_NOT_EVIDENCE,
-      'maxEvidenceFacts'
+      'maxEvidenceFacts',
     ),
   };
-  const view = entityIdentity === 'canonical'
-    ? canonicalizeKnowledge(clauses, sourceIndex, trustMode)
-    : literalKnowledge(clauses, sourceIndex, trustMode);
-  const parsed = parseQuerySpec(query);
-  const evaluated = entityIdentity === 'canonical'
-    ? view.resolver.canonicalizeQuery(parsed).query
-    : parsed;
+  // Same normalizer as the query tool and explainKnowledge: a goal list, a `?-`
+  // query, or a rule program whose sink rule (or explicit `?-` line) is the target.
+  // Authored rules join the clauses so their heads can be diagnosed like any rule.
+  const program = parseQueryProgram(query);
+  const clausesWithAuthored =
+    program.clauses.length === 0 ? clauses : [...clauses, ...program.clauses];
+  const view =
+    entityIdentity === 'canonical'
+      ? canonicalizeKnowledge(clausesWithAuthored, sourceIndex, trustMode)
+      : literalKnowledge(clausesWithAuthored, sourceIndex, trustMode);
+  const parsed = program.query;
+  const evaluated =
+    entityIdentity === 'canonical'
+      ? view.resolver.canonicalizeQuery(parsed).query
+      : parsed;
   const explanationOptions = {
     ...evaluateOptions,
     ...(entityIdentity === undefined ? {} : { entityIdentity }),
@@ -797,9 +840,10 @@ export function explainWhyNot(
     clauses,
     query,
     sourceIndex,
-    explanationOptions
+    explanationOptions,
   );
   const evaluatedQuery = serializeQuerySpec(evaluated);
+  clauses = clausesWithAuthored;
   if (explanation.rows.length > 0) {
     const summaryInput = {
       status: 'satisfied' as const,
@@ -815,7 +859,9 @@ export function explainWhyNot(
       explanation,
       failures: [],
       graph: graphFor(evaluatedQuery, 'satisfied', []),
-      ...(trustMode === undefined || trustMode === 'accepted' ? {} : { trustMode }),
+      ...(trustMode === undefined || trustMode === 'accepted'
+        ? {}
+        : { trustMode }),
     };
   }
 
@@ -843,10 +889,12 @@ export function explainWhyNot(
     [{}],
     1,
     ['query'],
-    new Set()
+    new Set(),
   );
   if (diagnosed.solutions.length > 0) {
-    throw new Error('why-not diagnostic disagreed with deterministic query evaluation');
+    throw new Error(
+      'why-not diagnostic disagreed with deterministic query evaluation',
+    );
   }
   const summaryInput = {
     status: 'blocked' as const,
@@ -862,6 +910,8 @@ export function explainWhyNot(
     explanation,
     failures: diagnosed.failures,
     graph: graphFor(evaluatedQuery, 'blocked', diagnosed.failures),
-    ...(trustMode === undefined || trustMode === 'accepted' ? {} : { trustMode }),
+    ...(trustMode === undefined || trustMode === 'accepted'
+      ? {}
+      : { trustMode }),
   };
 }

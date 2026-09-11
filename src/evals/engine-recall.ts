@@ -31,7 +31,11 @@ import {
 } from '../engine/index.js';
 import type { ChatMessage } from '../llm/client.js';
 import type { MemoryStore, MemorySource } from '../store/store.js';
-import { DIALECT_CARD, dialectSchemaListing } from '../llm/dialect.js';
+import {
+  DIALECT_CARD,
+  dialectSchemaListing,
+  normalizeDialectResponse,
+} from '../llm/dialect.js';
 
 export interface EngineRecallOutcome {
   status: 'answered' | 'empty' | 'unparsable' | 'error';
@@ -102,13 +106,6 @@ export function crossProductEstimate(
     for (const v of vars) bound.add(v);
   }
   return estimate;
-}
-
-function stripFences(text: string): string {
-  return text
-    .replace(/^```[a-z]*\n?/gim, '')
-    .replace(/```\s*$/gm, '')
-    .trim();
 }
 
 /** Rows as `X = a, Y = b` lines, each followed by the dates of the facts that mention its constants. */
@@ -211,7 +208,7 @@ export async function engineRecall(
   let lastError: string | undefined;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     attempts += 1;
-    const response = stripFences(await writer.complete(messages));
+    const response = normalizeDialectResponse(await writer.complete(messages));
     let normalized;
     try {
       normalized = parseQueryProgram(response);
