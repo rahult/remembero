@@ -106,19 +106,22 @@ Reading the table:
 
 The extractor reads a date range off a temporal question or refuses; in-range sessions rank
 first. The paper's warning is that a model that guesses ranges hurts, so the refusal rate
-matters as much as the ranges. Both rows below use GLM 5.3 Flash as the reader over the same
-cache, all 133 temporal questions.
+matters as much as the ranges. All rows use GLM 5.3 Flash as the reader over the same cache,
+all 133 temporal questions.
 
-| time-range model        | where        | ranges returned /133 | correct among ranged | temporal /133 |
-| ----------------------- | ------------ | -------------------: | -------------------: | ------------: |
-| openai/gpt-5.6-luna     | OpenRouter   |                   36 |                   25 |           116 |
-| **glm-5.3-flash:cloud** | Ollama Cloud |                   33 |                   22 |           113 |
+| time-range model                 | where        | ranges returned /133 | correct among ranged | temporal /133 |
+| -------------------------------- | ------------ | -------------------: | -------------------: | ------------: |
+| openai/gpt-5.6-luna              | OpenRouter   |                   36 |                   25 |           116 |
+| glm-5.3-flash:cloud              | Ollama Cloud |                   33 |                   22 |           113 |
+| **Gemma 4 E2B r19 (our writer)** | Modal L4     |                   27 |                   18 |           114 |
 
-The two are inside the reader noise of each other and refuse at the same rate (about three
+The three are inside the reader noise of each other and refuse at the same rate (about three
 questions in four). Without any range, temporal was 104/133 on the full set with Luna reading.
-**Current preference: GLM 5.3 Flash on the subscription** (`--temporal-range-model
-glm-5.3-flash:cloud --temporal-range-base-url http://127.0.0.1:11434/v1`), which removes the
-last OpenRouter call from the recommended evaluation configuration apart from the judge.
+Round 19 of the writer trained on 1,500 synthetic (question, date) → range-or-refuse examples
+in the harness's own prompt and does the job at parity. **Current preference: Gemma 4 E2B
+r19**, the writer (`--temporal-range-model finetune/gemma-4-e2b-it-r19-gemma4-e2b-modal
+--temporal-range-base-url <its endpoint>/v1`); no external model remains in the recommended
+evaluation configuration except the reader and the judge.
 
 ## Embeddings (semantic route)
 
