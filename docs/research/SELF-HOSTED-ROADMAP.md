@@ -50,6 +50,10 @@ leaves.
 
 ### 2. Local embeddings for the semantic route (one week)
 
+**Done 2026-09-11 (measurement).** nomic-embed-text through a local Ollama daemon ties the hosted
+model on held-out recall and MRR; it is the preferred embedding model. The product default stays
+the hosted model until a local server is part of the install.
+
 The semantic route is worth about two answers on 500 and fires on a fifth of questions; it is
 the only runtime call that sends user text to a third party besides the answer leg. Candidates
 with open weights that a vLLM or Ollama process can serve next to the writer:

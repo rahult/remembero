@@ -64,17 +64,39 @@ accepted fallback.
 The default was selected on the deterministic development split with the routing, chunks,
 top-k, source safety, and lexical guard held fixed:
 
-| Model | Dev Recall@5 | Dev MRR | p95 | Cost | Decision |
-| --- | ---: | ---: | ---: | ---: | --- |
-| Perplexity 0.6B | 86.7% | 75.0% | 9.2 s | $0.004485 | default |
-| Qwen3 8B | 80.0% | 61.6% | 39.8 s | $0.011240 | rejected |
-| Perplexity 4B | 80.0% | 66.7% | 12.2 s | $0.033635 | rejected |
-| NVIDIA Nemotron 1B free | not run | not run | not run | $0 | unavailable under account privacy policy |
+| Model                   | Dev Recall@5 | Dev MRR |     p95 |      Cost | Decision                                 |
+| ----------------------- | -----------: | ------: | ------: | --------: | ---------------------------------------- |
+| Perplexity 0.6B         |        86.7% |   75.0% |   9.2 s | $0.004485 | default                                  |
+| Qwen3 8B                |        80.0% |   61.6% |  39.8 s | $0.011240 | rejected                                 |
+| Perplexity 4B           |        80.0% |   66.7% |  12.2 s | $0.033635 | rejected                                 |
+| NVIDIA Nemotron 1B free |      not run | not run | not run |        $0 | unavailable under account privacy policy |
 
 The larger eligible models were less accurate, slower, and more expensive, so they were
 stopped before held-out evaluation. The free endpoint was rejected rather than weakening
 privacy settings. See the
 [machine-readable matrix](research/results/semantic-model-matrix-v1-summary.json).
+
+### Local embedding models (2026-09-11)
+
+The same selection benchmark, rerun under today's routing (15 development and 14 held-out
+preference questions routed) with open-weight models served by a local Ollama daemon through
+`REMBERO_EMBEDDING_BASE_URL=http://127.0.0.1:11434/v1`, against the hosted default rerun the
+same day:
+
+| model                         | where        | dev R@5 | dev MRR | held-out R@5 | held-out MRR | p95 (Mac M-series) |
+| ----------------------------- | ------------ | ------: | ------: | -----------: | -----------: | -----------------: |
+| perplexity/pplx-embed-v1-0.6b | OpenRouter   |  100.0% |   83.9% |        86.7% |        75.6% |                3 s |
+| **nomic-embed-text** (274 MB) | local Ollama |  100.0% |   78.0% |        86.7% |        75.6% |               29 s |
+| qwen3-embedding:0.6b          | local Ollama |   86.7% |   65.2% |        86.7% |        66.7% |               75 s |
+| bge-m3                        | local Ollama |       – |       – |            – |            – |     runner crashed |
+
+nomic-embed-text ties the hosted model on held-out recall and MRR and is the local
+replacement; the wall time is the laptop embedding 1.7M tokens of candidate chunks, not the
+model, and disappears on a GPU or with the derived-vector cache warm. Qwen3-Embedding-0.6B is
+behind on MRR. The Ollama runner intermittently dropped requests mid-batch (HTTP 400, "Post
+…/tokenize: EOF"); the client now retries that as transient. Results in
+`runs/local/semantic-*.json` were produced by `node dist/evals/run-longmemeval-semantic.js`
+with `REMBERO_EMBEDDING_MODEL` set to each tag.
 
 The first cache layer is a 2,000-entry in-process LRU. The second is
 `.semantic-embeddings/`, a restart-safe derived cache containing only vectors, content/model
@@ -91,10 +113,10 @@ semantic retrieval and leaves every other question on local lexical search. Ques
 are split deterministically by SHA-256 before policy selection.
 
 | Preference metric | Development lexical | Development policy | Held-out lexical | Held-out policy |
-| --- | ---: | ---: | ---: | ---: |
-| Precision@5 | 8.0% | 17.3% | 9.3% | 12.0% |
-| Recall@5 | 40.0% | 86.7% | 46.7% | 60.0% |
-| MRR | 30.6% | 75.0% | 16.1% | 47.2% |
+| ----------------- | ------------------: | -----------------: | ---------------: | --------------: |
+| Precision@5       |                8.0% |              17.3% |             9.3% |           12.0% |
+| Recall@5          |               40.0% |              86.7% |            46.7% |           60.0% |
+| MRR               |               30.6% |              75.0% |            16.1% |           47.2% |
 
 Across all 30 preference questions, Recall@5 improves from 43.3% to 73.3% and MRR from
 23.3% to 61.1%. The 22 routed requests used 2,266,050 provider tokens and cost $0.0090642,

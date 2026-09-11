@@ -115,6 +115,21 @@ questions in four). Without any range, temporal was 104/133 on the full set with
 glm-5.3-flash:cloud --temporal-range-base-url http://127.0.0.1:11434/v1`), which removes the
 last OpenRouter call from the recommended evaluation configuration apart from the judge.
 
+## Embeddings (semantic route)
+
+Selection benchmark rerun 2026-09-11 under today's routing; details in
+[SEMANTIC-KNOWLEDGE-SEARCH.md](../SEMANTIC-KNOWLEDGE-SEARCH.md).
+
+| model                         | where        | held-out R@5 | held-out MRR | note                          |
+| ----------------------------- | ------------ | -----------: | -----------: | ----------------------------- |
+| perplexity/pplx-embed-v1-0.6b | OpenRouter   |        86.7% |        75.6% | hosted default until now      |
+| **nomic-embed-text**          | local Ollama |        86.7% |        75.6% | ties; 274 MB; runs on any GPU |
+| qwen3-embedding:0.6b          | local Ollama |        86.7% |        66.7% | behind on ranking             |
+
+**Current preference: nomic-embed-text served locally** (`REMBERO_EMBEDDING_MODEL=nomic-embed-text
+REMBERO_EMBEDDING_BASE_URL=http://127.0.0.1:11434/v1`), with the hosted model as the fallback
+where no local server exists.
+
 ## Labeller (training data from real transcripts)
 
 Only Luna has been used, through the product's own transcript extraction path with the guards
