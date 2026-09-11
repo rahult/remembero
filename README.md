@@ -22,7 +22,7 @@ remembero init                 # hooks + core-profile MCP registration + CLAUDE.
 `remembero init` installs two Claude Code hooks (ambient capture of durable facts on Stop,
 a deterministic memory brief injected at SessionStart), registers the MCP server with the
 8-tool `core` profile, and prints a CLAUDE.md snippet to paste. Then, in chat:
-*"Remember that my dentist is Dr Chen"* → later, *"Who's my dentist?"*.
+_"Remember that my dentist is Dr Chen"_ → later, _"Who's my dentist?"_.
 
 Daily commands:
 
@@ -147,7 +147,7 @@ Before publishing, run `npm run ship:check` and review the explicit
 "Who are Rahul's colleagues?"  ──▶  ?- colleague(rahul, X)  ──▶  "Rahul's colleague is Mira."
 ```
 
-Facts nobody ever stated directly (like `colleague(rahul, mira)`) are *derived*, not stored.
+Facts nobody ever stated directly (like `colleague(rahul, mira)`) are _derived_, not stored.
 
 ## Install
 
@@ -157,30 +157,30 @@ npm install -g remembero        # or run ad hoc with: npx -y remembero
 
 Configuration is via environment variables (a `.env` file in the working directory also works):
 
-| Variable | Required | Default |
-|---|---|---|
-| `LLM_API_KEY` | for `remember`, `recall`, or semantic search | — (an [OpenRouter](https://openrouter.ai) key) |
-| `LLM_BASE_URL` | no | `https://openrouter.ai/api/v1` |
-| `LLM_MODEL` | no | `anthropic/claude-sonnet-5` |
-| `REMBERO_EMBEDDING_MODEL` | no | `perplexity/pplx-embed-v1-0.6b` |
-| `REMBERO_EMBEDDING_BASE_URL` | no | `LLM_BASE_URL` or `https://openrouter.ai/api/v1` |
-| `REMBERO_HOME` | no | `~/.rembero` (memories live in `$REMBERO_HOME/memory/`) |
-| `REMBERO_LLM_ALLOWED_NAMESPACES` | no | all namespaces (comma-separated allowlist when set; empty blocks all LLM export) |
-| `REMBERO_AUTO_CAPTURE_DAILY_CAP` | no | `10` unique attempts per namespace/UTC day |
-| `REMBERO_AUTO_CAPTURE_TAIL_BYTES` | no | `24576` bytes (maximum `49152`) |
-| `REMBERO_MCP_PROFILE` | no | `full`; `core` registers only the 12 daily-driver MCP tools (also `serve --profile core`) |
-| `REMBERO_WEB_DEMO` | no | `false`; the web console shows your real memory by default — `true` (or `--demo`) opens the seeded fictional sandbox |
-| `REMBERO_VALID_TIME_MODE` | no | `delete`; set `archive_until` to preserve superseded facts (`remembero init` registrations default to `archive_until`) |
-| `REMBERO_RECALL_SCHEMA_PREDICATE_LIMIT` | no | `8` detailed predicates on the first recall pass (range: 1–256) |
-| `REMBERO_RECALL_ANSWER_MODE` | no | `evidence` (compact local rendering, no model call); `deterministic` for bare bindings; `natural` to have the LLM phrase the answer |
-| `REMBERO_SELF` | no | constant naming you in remembered text (`user` by default): "I live in Osaka" becomes `lives_in(<self>, osaka)` |
-| `REMBERO_EXTRACTION_VOCABULARY` | no | `open` (default) or `closed`: only predicates already in the schema (or aliased via `rembero_predicate_alias(from, to).`) may be added by extraction |
-| `REMBERO_INTEGRITY_MODE` | no | `no_new_violations` (default; writes that add a violation are refused); `strict` refuses any violating write and is what `remembero init` registers; `off` disables the gate |
-| `REMBERO_INTEGRITY_NAMESPACES` | no | target namespace only; `*` or a comma-separated governed view when enforcement is active |
-| `REMBERO_CHECK_MODE` | no | `off`; use `strict` or migration mode `no_regressions` |
-| `REMBERO_CHECK_SUITE` | with check mode | regular JSON v1 suite file path |
-| `REMBERO_CHECK_NAMESPACES` | no | target namespace only; `*` or a comma-separated governed view |
-| `REMBERO_ENTITY_IDENTITY` | no | `off`; use `canonical` for explicit position-scoped alias projection |
+| Variable                                | Required                                     | Default                                                                                                                                                                      |
+| --------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LLM_API_KEY`                           | for `remember`, `recall`, or semantic search | — (an [OpenRouter](https://openrouter.ai) key)                                                                                                                               |
+| `LLM_BASE_URL`                          | no                                           | `https://openrouter.ai/api/v1`                                                                                                                                               |
+| `LLM_MODEL`                             | no                                           | `anthropic/claude-sonnet-5`                                                                                                                                                  |
+| `REMBERO_EMBEDDING_MODEL`               | no                                           | `perplexity/pplx-embed-v1-0.6b`                                                                                                                                              |
+| `REMBERO_EMBEDDING_BASE_URL`            | no                                           | `LLM_BASE_URL` or `https://openrouter.ai/api/v1`                                                                                                                             |
+| `REMBERO_HOME`                          | no                                           | `~/.rembero` (memories live in `$REMBERO_HOME/memory/`)                                                                                                                      |
+| `REMBERO_LLM_ALLOWED_NAMESPACES`        | no                                           | all namespaces (comma-separated allowlist when set; empty blocks all LLM export)                                                                                             |
+| `REMBERO_AUTO_CAPTURE_DAILY_CAP`        | no                                           | `10` unique attempts per namespace/UTC day                                                                                                                                   |
+| `REMBERO_AUTO_CAPTURE_TAIL_BYTES`       | no                                           | `24576` bytes (maximum `49152`)                                                                                                                                              |
+| `REMBERO_MCP_PROFILE`                   | no                                           | `full`; `core` registers only the 12 daily-driver MCP tools (also `serve --profile core`)                                                                                    |
+| `REMBERO_WEB_DEMO`                      | no                                           | `false`; the web console shows your real memory by default — `true` (or `--demo`) opens the seeded fictional sandbox                                                         |
+| `REMBERO_VALID_TIME_MODE`               | no                                           | `delete`; set `archive_until` to preserve superseded facts (`remembero init` registrations default to `archive_until`)                                                       |
+| `REMBERO_RECALL_SCHEMA_PREDICATE_LIMIT` | no                                           | `8` detailed predicates on the first recall pass (range: 1–256)                                                                                                              |
+| `REMBERO_RECALL_ANSWER_MODE`            | no                                           | `evidence` (compact local rendering, no model call); `deterministic` for bare bindings; `natural` to have the LLM phrase the answer                                          |
+| `REMBERO_SELF`                          | no                                           | constant naming you in remembered text (`user` by default): "I live in Osaka" becomes `lives_in(<self>, osaka)`                                                              |
+| `REMBERO_EXTRACTION_VOCABULARY`         | no                                           | `open` (default) or `closed`: only predicates already in the schema (or aliased via `rembero_predicate_alias(from, to).`) may be added by extraction                         |
+| `REMBERO_INTEGRITY_MODE`                | no                                           | `no_new_violations` (default; writes that add a violation are refused); `strict` refuses any violating write and is what `remembero init` registers; `off` disables the gate |
+| `REMBERO_INTEGRITY_NAMESPACES`          | no                                           | target namespace only; `*` or a comma-separated governed view when enforcement is active                                                                                     |
+| `REMBERO_CHECK_MODE`                    | no                                           | `off`; use `strict` or migration mode `no_regressions`                                                                                                                       |
+| `REMBERO_CHECK_SUITE`                   | with check mode                              | regular JSON v1 suite file path                                                                                                                                              |
+| `REMBERO_CHECK_NAMESPACES`              | no                                           | target namespace only; `*` or a comma-separated governed view                                                                                                                |
+| `REMBERO_ENTITY_IDENTITY`               | no                                           | `off`; use `canonical` for explicit position-scoped alias projection                                                                                                         |
 
 The `REMBERO_*` names and `.rembero` directories are stable compatibility contracts;
 renaming the package and CLI does not move or hide existing memory.
@@ -199,6 +199,25 @@ Opt-in `semantic-search`, `semantic-index`, `semantic_search_knowledge`, and
 `prepare_semantic_search` also require the embedding provider key and report their own usage
 and cost.
 
+### Run the model locally
+
+The extraction and query model is a 2.3B fine-tune of Gemma 4 E2B (round r19; see
+[docs/research/MODEL-COMPARISON.md](docs/research/MODEL-COMPARISON.md)). Served as a Q8_0 GGUF
+by llama.cpp on a laptop it scores the same as the bf16 model on a cloud GPU, so
+`remember` and `recall` need no third-party model:
+
+```sh
+brew install llama.cpp
+llama-server -m /path/to/r19-gemma4-e2b-Q8_0.gguf --port 8081 -c 8192 -ngl 99 --alias rembero-writer
+export LLM_BASE_URL=http://127.0.0.1:8081/v1 LLM_MODEL=rembero-writer LLM_API_KEY=local
+```
+
+With `REMBERO_RECALL_ANSWER_MODE` at its default (`evidence`) every runtime model call is that
+local writer. For the optional semantic route, `nomic-embed-text` under Ollama
+(`REMBERO_EMBEDDING_MODEL=nomic-embed-text REMBERO_EMBEDDING_BASE_URL=http://127.0.0.1:11434/v1`)
+ties the hosted embedding model. Building the GGUF from a training run is documented in
+[benchmarks/modal/README.md](benchmarks/modal/README.md).
+
 ## Use from Claude Code (MCP)
 
 For a framework-neutral model → tool → Remembero → model integration, including typed
@@ -211,11 +230,12 @@ claude mcp add remembero --env LLM_API_KEY=sk-or-... -- npx -y remembero serve
 
 From a git checkout instead: `claude mcp add remembero -- node /path/to/rembero/dist/cli.js serve`
 
-To make agents use memory *proactively*, add a snippet like this to your `CLAUDE.md`
+To make agents use memory _proactively_, add a snippet like this to your `CLAUDE.md`
 (or system prompt):
 
 ```markdown
 ## Memory (Remembero)
+
 - At the start of tasks, use `recall` to check for relevant remembered context.
 - When I state something durable — a preference, decision, relationship, or fact about
   me or a project — store it with `remember`. Updates ("X is now Y") supersede old facts.
@@ -433,7 +453,10 @@ trust state, checkpoints, and recorded history are authoritative in the same SQL
 import { openRememberoDatabase } from 'remembero';
 
 const db = await openRememberoDatabase('app.db');
-db.prepare('INSERT INTO works_at(person, company) VALUES (?, ?)').run('mira', 'acme');
+db.prepare('INSERT INTO works_at(person, company) VALUES (?, ?)').run(
+  'mira',
+  'acme',
+);
 console.log(db.datalogQuery('employed(X) :- works_at(X, _).'));
 
 db.memory.assert('default', 'prefers(mira, tea).', {
@@ -531,8 +554,8 @@ import { openDatalogDatabase, sqliteDatalogExecutionMode } from 'remembero';
 
 const db = await openDatalogDatabase('world.db');
 const rule = 'colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.';
-console.log(db.datalogSql(rule));   // inspect the generated SELECT
-console.log(db.datalogPlan(rule));  // inspect routing and referenced schema
+console.log(db.datalogSql(rule)); // inspect the generated SELECT
+console.log(db.datalogPlan(rule)); // inspect routing and referenced schema
 console.log(db.datalogQuery(rule)); // execute it and parse the JSON rows
 console.log(sqliteDatalogExecutionMode(rule)); // "native"
 db.close();

@@ -11,6 +11,23 @@ phrase the answer; recalled facts no longer leave the process unless `natural` i
 Rationale and measurements in [docs/research/SELF-HOSTED-ROADMAP.md](docs/research/SELF-HOSTED-ROADMAP.md).
 Restore the old behaviour with `REMBERO_RECALL_ANSWER_MODE=natural` or a per-call `answerMode`.
 
+The engine bounds the candidate facts a query may visit (`maxCandidateVisits`, default five
+million), so a rule that cross-joins wildcard goals fails closed in under two seconds instead
+of holding the evaluator; `maxFacts` and `maxRows` count results and never tripped on it.
+
+An empty recall result now carries the engine's account of why before the model's retry:
+how many rows each goal of a join matches alone, and which argument swap or re-join of a
+shared variable would return rows (`emptyResultFeedback`, also `datalogFeedback` on the SQLite
+bridge). The why-not explainer and the recall harness accept rule programs, which the new
+`dialect` query prompt variant (`queryPromptVariant: 'dialect'`, the fine-tune's training
+card) produces.
+
+The chat and embedding clients retry rate limits and transient upstream failures with
+backoff (four attempts).
+
+The fine-tuned writer (Gemma 4 E2B r19) can be exported to GGUF and served locally with
+llama.cpp; see "Run the model locally" in the README.
+
 ## 0.56.0
 
 The daily-driver release; see [docs/MIGRATING-0.56.md](docs/MIGRATING-0.56.md).
