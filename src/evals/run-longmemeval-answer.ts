@@ -566,6 +566,20 @@ async function main(): Promise<void> {
     prepareSemantic: args.prepareSemantic,
     formation: args.formation,
     extractionModel: extractor?.model ?? null,
+    settings: {
+      aggregationReaderModel: aggregationReader?.model ?? null,
+      temporalRangeModel: temporalRangeExtractor?.model ?? null,
+      readingStrategy: args.readingStrategy,
+      hybridRetrieval: args.hybridRetrieval,
+      retrievalUnit: args.retrievalUnit,
+      entityRetrieval: args.entityRetrieval,
+      hybridQuestionTypes:
+        args.hybridQuestionTypes === undefined
+          ? null
+          : [...args.hybridQuestionTypes],
+      factsInContext: args.factsInContext,
+      readerMaxTokens: args.readerMaxTokens ?? 4096,
+    },
   });
   const serialized = stringifyBoundedResult(run, 'LongMemEval answer run');
   if (args.output !== undefined) {

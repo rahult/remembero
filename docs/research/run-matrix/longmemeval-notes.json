@@ -1,0 +1,165 @@
+{
+  "$comment": "Facts older result files do not record (settings were added to the run metadata on 2026-09-11). Keyed by result file name.",
+  "longmemeval-extraction-v1-raw-dev40.json": {
+    "note": "first 40 dev questions, almost all single-session-user; slice retired"
+  },
+  "longmemeval-extraction-v1-extracted-r11-dev40.json": {
+    "note": "same slice; 39% of extraction calls failed (4096 context, since 8192)"
+  },
+  "longmemeval-extraction-v1-raw-strat48.json": {
+    "note": "stratified 8-per-type dev slice (runs/modal/lme-cases48.txt)"
+  },
+  "longmemeval-extraction-v1-hybrid-r13-strat48.json": {
+    "note": "strat48"
+  },
+  "longmemeval-extraction-v1-extracted-r12-strat48.json": {
+    "note": "strat48"
+  },
+  "longmemeval-extraction-v1-extracted-r13-strat48.json": {
+    "note": "strat48"
+  },
+  "longmemeval-extraction-v1-hybrid-r14-strat48.json": {
+    "note": "strat48; a second run of the same settings scored 33, see v2"
+  },
+  "longmemeval-extraction-v1-extracted-r14-strat48.json": {
+    "note": "strat48"
+  },
+  "longmemeval-extraction-v1-hybrid-luna-strat48.json": {
+    "knobs": "Luna as extractor, 4096-token budget",
+    "note": "strat48; $2.35 of Luna extraction; slice-level lead of r14 over this was noise"
+  },
+  "longmemeval-extraction-v2-hybrid-r14-strat48.json": {
+    "knobs": "facts shown to reader",
+    "note": "strat48 rerun of v1-hybrid-r14: retrieval matched in 25/48, 4 answers moved → slice too small"
+  },
+  "longmemeval-extraction-v1-raw-dev261.json": {
+    "note": "dev baseline"
+  },
+  "longmemeval-extraction-v2-hybrid-r14-dev261.json": {
+    "knobs": "facts shown",
+    "note": "gained 12 / lost 15 vs raw"
+  },
+  "longmemeval-extraction-v1-hybrid-r14-dev261-nofacts.json": {
+    "knobs": "facts not shown",
+    "note": ""
+  },
+  "longmemeval-extraction-v3-hybrid-reserved-r14-dev261.json": {
+    "knobs": "reserved",
+    "note": "abstention 95%→84%: appended facts invite answers that should be declined"
+  },
+  "longmemeval-extraction-v2-hybrid-gemma4-e2b-dev261.json": {
+    "note": "first E2B run; +20/-15 vs raw"
+  },
+  "longmemeval-extraction-v4-hybrid-routed-e2b-dev261.json": {
+    "knobs": "routed: knowledge-update,multi-session",
+    "note": "148 raw-formation questions flipped 6 answers vs the raw run: reader noise ≈6/261"
+  },
+  "longmemeval-extraction-v4-reserved200-routed-e2b-dev261.json": {
+    "knobs": "reserved ≥200, supplementary framing, routed",
+    "note": "abstention restored to 95%"
+  },
+  "longmemeval-extraction-v2-hybrid-gemma4-e2b-r17-dev261.json": {
+    "note": "r17 wrote 3× the facts; they crowd raw sessions out of shared slots"
+  },
+  "longmemeval-extraction-v5-keyed-turn-k15-wide-e2b-dev261.json": {
+    "knobs": "keyed, turn units (user only), 120KB context",
+    "note": "assistant-memory 21/28: assistant turns were not indexed"
+  },
+  "longmemeval-extraction-v5-hybrid-msk15-e2b-dev261.json": {
+    "note": "",
+    "knobs": "facts shown"
+  },
+  "longmemeval-extraction-v5-keyed-turn2-msk15-e2b-dev261.json": {
+    "knobs": "keyed, turn units (all roles)",
+    "note": ""
+  },
+  "longmemeval-extraction-v5-keyed-msk15-e2b-dev261.json": {
+    "knobs": "keyed",
+    "note": "keyed alone loses the multi-session gain"
+  },
+  "longmemeval-extraction-v6-hybrid-msk15-tk10-range-e2b-dev261.json": {
+    "note": "composed policy on dev: +21/-11 vs raw",
+    "knobs": "time range (Luna)"
+  },
+  "longmemeval-extraction-v6-hybrid-turn-msk15-tk10-range-e2b-dev261.json": {
+    "note": "",
+    "knobs": "time range (Luna); turn units"
+  },
+  "longmemeval-extraction-v6-raw-all500.json": {
+    "note": "full-500 baseline"
+  },
+  "longmemeval-extraction-v6-composed-e2b-all500.json": {
+    "note": "composed, lexical only: dev 226, test 188",
+    "knobs": "time range (Luna)"
+  },
+  "longmemeval-extraction-v7-composed-semantic-e2b-all500.json": {
+    "note": "+ semantic route: dev 223, test 193; 43 fully-evidenced misses left",
+    "knobs": "time range (Luna)"
+  },
+  "longmemeval-extraction-v8-composed-semantic-notes-e2b-all500.json": {
+    "note": "structured reading: null result",
+    "knobs": "time range (Luna); reading notes"
+  },
+  "longmemeval-extraction-v9-composed-semantic-twocall-e2b-all500.json": {
+    "note": "two-call reading: negative result",
+    "knobs": "time range (Luna); reading two-call"
+  },
+  "longmemeval-extraction-v10-composed-semantic-glmreader-e2b-all500.json": {
+    "note": "GLM 5.3 via Ollama Cloud on aggregation types; test 203",
+    "knobs": "time range (Luna)",
+    "reader": "openai/gpt-5.6-luna / glm-5.3:cloud (agg)"
+  },
+  "longmemeval-extraction-v10-composed-semantic-glmflashreader-e2b-all500.json": {
+    "note": "GLM 5.3 Flash on aggregation types; best split-reader result",
+    "knobs": "time range (Luna)",
+    "reader": "openai/gpt-5.6-luna / glm-5.3-flash:cloud (agg)"
+  },
+  "longmemeval-extraction-v10-composed-semantic-dsflashreader-e2b-all500.json": {
+    "note": "DeepSeek v4 Flash 0731 via Ollama Cloud; below Luna",
+    "knobs": "time range (Luna)",
+    "reader": "openai/gpt-5.6-luna / deepseek-v4-flash:0731:cloud (agg)"
+  },
+  "longmemeval-extraction-v10-composed-semantic-ds41flashreader-e2b-all500.json": {
+    "note": "DeepSeek v4.1 Flash via OpenRouter, 4k budget: 16 length errors",
+    "knobs": "time range (Luna); reader budget 4k",
+    "reader": "openai/gpt-5.6-luna / deepseek/deepseek-v4.1-flash (agg)"
+  },
+  "longmemeval-extraction-v10-composed-semantic-ds41flash16k-e2b-all500.json": {
+    "note": "same with 16k budget",
+    "knobs": "time range (Luna); reader budget 16k",
+    "reader": "openai/gpt-5.6-luna / deepseek/deepseek-v4.1-flash (agg)"
+  },
+  "longmemeval-extraction-v11-composed-semantic-glmflash-allreader-e2b-all500.json": {
+    "note": "GLM 5.3 Flash for every type; rerun after the embedding 429 backoff; RECOMMENDED CONFIGURATION",
+    "knobs": "time range (Luna)"
+  },
+  "longmemeval-ms-v1-raw-k15.json": {
+    "note": "multi-session only"
+  },
+  "longmemeval-ms-v1-hybrid-e2b-k10.json": {
+    "note": "multi-session only"
+  },
+  "longmemeval-ms-v1-hybrid-e2b-k15.json": {
+    "note": "multi-session only; target ≥58 met"
+  },
+  "longmemeval-ms-v1-hybrid-e2b-k5-entity.json": {
+    "knobs": "entity retrieval",
+    "note": "multi-session only; entity hop displaces lexical sessions"
+  },
+  "longmemeval-ms-v1-hybrid-e2b-k15-entity.json": {
+    "knobs": "entity retrieval",
+    "note": "multi-session only"
+  },
+  "longmemeval-ms-v1-hybrid-e2b-k15-entity-wide.json": {
+    "knobs": "entity retrieval, 120KB context",
+    "note": "multi-session only"
+  },
+  "longmemeval-tr-v1-raw-range.json": {
+    "knobs": "time range (Luna)",
+    "note": "temporal only; range found for 20/66"
+  },
+  "longmemeval-tr-v1-raw-range-k10.json": {
+    "knobs": "time range (Luna)",
+    "note": "temporal only"
+  }
+}

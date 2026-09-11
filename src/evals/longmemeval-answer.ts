@@ -217,6 +217,18 @@ export interface LongMemEvalAnswerRun {
   judgeProtocol: 'longmemeval-official-compatible-v1';
   formation: (typeof LONGMEMEVAL_FORMATION_LABELS)[LongMemEvalFormation];
   extractionModel: string | null;
+  /** Every knob that shaped the run, so a results file explains itself. */
+  settings?: {
+    aggregationReaderModel: string | null;
+    temporalRangeModel: string | null;
+    readingStrategy: 'direct' | 'notes' | 'two-call';
+    hybridRetrieval: 'shared' | 'reserved' | 'keyed';
+    retrievalUnit: 'session' | 'turn';
+    entityRetrieval: boolean;
+    hybridQuestionTypes: string[] | null;
+    factsInContext: boolean;
+    readerMaxTokens: number;
+  };
   retrieval:
     'remembero-local-source-search' | 'remembero-adaptive-source-search';
   answerContextPolicy: 'user-turns-except-assistant-memory';
@@ -1549,6 +1561,7 @@ export function longMemEvalAnswerRun(
     prepareSemantic?: boolean;
     formation?: LongMemEvalFormation;
     extractionModel?: string | null;
+    settings?: LongMemEvalAnswerRun['settings'];
   } = {},
 ): LongMemEvalAnswerRun {
   const topK = options.topK ?? DEFAULT_LONGMEMEVAL_ANSWER_TOP_K;
@@ -1579,6 +1592,7 @@ export function longMemEvalAnswerRun(
     embeddingModel: options.embeddingModel ?? null,
     judgeProtocol: 'longmemeval-official-compatible-v1',
     formation: LONGMEMEVAL_FORMATION_LABELS[options.formation ?? 'raw'],
+    ...(options.settings === undefined ? {} : { settings: options.settings }),
     extractionModel: options.extractionModel ?? null,
     retrieval:
       options.embeddingModel === undefined || options.embeddingModel === null
