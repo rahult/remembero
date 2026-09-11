@@ -33,6 +33,7 @@ export type ReaderExampleType =
   | 'multi-session-list'
   | 'knowledge-update'
   | 'temporal-reasoning'
+  | 'temporal-between'
   | 'abstention';
 
 export interface ReaderExample {
@@ -102,6 +103,8 @@ export function templatedQuestion(
         /\s+\?/,
         '?',
       );
+    case 'temporal-between':
+      return `How many days passed between when I ${p} ${value === null ? '' : plain(value)} and the other thing I mentioned? Which came first?`;
     case 'abstention':
       return `What have I told you about what I ${p}?`;
   }
@@ -138,7 +141,10 @@ export function generateReaderExamples(
   options: ReaderDataOptions = {},
 ): ReaderExample[] {
   const perType = options.perType ?? 200;
-  const distractorCount = options.distractors ?? 3;
+  const maxDistractors = options.distractors ?? 12;
+  // the evaluation shows up to fifteen sessions for multi-session questions and four for
+  // the rest; vary the distractor count so the reader sees both regimes
+  const distractorCount = () => 2 + rng.int(Math.max(1, maxDistractors - 1));
   const self = options.selfAtom ?? 'user';
 
   // facts about the self atom, grouped by predicate; each entry knows its session
@@ -178,7 +184,7 @@ export function generateReaderExamples(
     questionDate?: string,
   ): ReaderExample => {
     const ids = new Set(evidence.map((s) => s.id));
-    const distractors = pickDistractors(ids, distractorCount);
+    const distractors = pickDistractors(ids, distractorCount());
     const latest =
       evidence
         .map((s) => s.date)
@@ -244,14 +250,24 @@ export function generateReaderExamples(
       .shuffle([...bySession.values()])
       .slice(0, Math.min(8, bySession.size));
     if (chosen.length < 3) continue;
-    const items = chosen
-      .sort((a, b) => a.session.date.localeCompare(b.session.date))
-      .map((c) => `${plain(c.values[0])} (${c.session.date})`);
+    // count distinct values; a value stated in two sessions is one item with its first date
+    const firstDate = new Map<string, string>();
+    for (const c of [...chosen].sort((a, b) =>
+      a.session.date.localeCompare(b.session.date),
+    )) {
+      for (const v of c.values) {
+        const key = plain(v).toLowerCase();
+        if (!firstDate.has(key)) firstDate.set(key, c.session.date);
+      }
+    }
+    const items = [...firstDate.entries()]
+      .sort((a, b) => a[1].localeCompare(b[1]))
+      .map(([value, date]) => `${value} (${date})`);
     const type: ReaderExampleType =
       i % 2 === 0 ? 'multi-session-count' : 'multi-session-list';
     const gold =
       type === 'multi-session-count'
-        ? `${chosen.length}: ${items.join(', ')}.`
+        ? `${items.length}: ${items.join(', ')}.`
         : `${items.join(', ')}.`;
     out.push(
       finish(
@@ -319,13 +335,44 @@ export function generateReaderExamples(
     );
   }
 
+  // temporal-between: two dated facts, the day count between them and which came first
+  for (let i = 0; i < perType; i += 1) {
+    const predicate = rng.pick(predicates);
+    const first = rng.pick(byPredicate.get(predicate)!);
+    const otherPredicate = rng.pick(predicates);
+    const second = rng.pick(byPredicate.get(otherPredicate)!);
+    if (
+      second.session.id === first.session.id ||
+      second.session.date === first.session.date
+    )
+      continue;
+    const [a, b] =
+      first.session.date < second.session.date
+        ? [first, second]
+        : [second, first];
+    const days = daysBetween(a.session.date, b.session.date);
+    const weeks = Math.round(days / 7);
+    const gold = `${days} day${days === 1 ? '' : 's'} (about ${weeks} week${weeks === 1 ? '' : 's'}). ${plain(a.fact.args[1])} came first, on ${a.session.date}; ${plain(b.fact.args[1])} was on ${b.session.date}.`;
+    const question = `How many days passed between when I ${words(first.fact.predicate)} ${plain(first.fact.args[1])} and when I ${words(second.fact.predicate)} ${plain(second.fact.args[1])}? Which came first?`;
+    out.push(
+      finish(
+        'temporal-between',
+        predicate,
+        [a.session, b.session],
+        gold,
+        question,
+        questionDateAfter(b.session.date),
+      ),
+    );
+  }
+
   // abstention: a predicate none of the shown sessions carries
   for (let i = 0; i < perType; i += 1) {
     const predicate = rng.pick(predicates);
     const carrying = new Set(
       byPredicate.get(predicate)!.map((e) => e.session.id),
     );
-    const distractors = pickDistractors(carrying, distractorCount + 1);
+    const distractors = pickDistractors(carrying, distractorCount() + 1);
     if (distractors.length === 0) continue;
     const example = finish(
       'abstention',
@@ -353,7 +400,9 @@ export function toReaderConversation(example: ReaderExample): Conversation {
     question_type:
       example.type === 'abstention'
         ? 'single-session-user'
-        : example.type.replace(/-(count|list)$/, ''),
+        : example.type === 'temporal-between'
+          ? 'temporal-reasoning'
+          : example.type.replace(/-(count|list)$/, ''),
     question: example.question,
     question_date: `${example.questionDate.replace(/-/g, '/')} (Sat) 09:00`,
     answer: '',

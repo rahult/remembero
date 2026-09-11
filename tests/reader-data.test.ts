@@ -65,6 +65,12 @@ const SESSIONS: LabelledSession[] = [
     ['owns(user, corgi).'],
     'The corgi chewed a shoe.',
   ),
+  session(
+    's9',
+    '2023-06-20',
+    ['bought(user, zero_kit).'],
+    'Another Zero kit, on sale.',
+  ),
 ];
 
 describe('reader training data', () => {
@@ -73,11 +79,25 @@ describe('reader training data', () => {
     questionDate: '2023-07-01',
   });
 
-  it('builds a count question whose gold is the number of sessions sharing the predicate', () => {
+  it('builds a count question whose gold counts distinct values, each with its first date', () => {
     const count = examples.find((e) => e.type === 'multi-session-count')!;
-    expect(count.evidenceSessionIds.sort()).toEqual(['s2', 's3', 's4']);
+    expect(count.evidenceSessionIds.sort()).toEqual(['s2', 's3', 's4', 's9']);
+    // zero kit appears in two sessions and counts once
     expect(count.gold).toMatch(/^3\b/);
     expect(count.gold).toContain('spitfire kit');
+    expect(count.gold.match(/zero kit/g)!.length).toBe(1);
+  });
+
+  it('builds a between-two-facts temporal question with the day count and order', () => {
+    const between = examples.find((e) => e.type === 'temporal-between')!;
+    expect(between.evidenceSessionIds.length).toBe(2);
+    expect(between.gold).toMatch(/^\d+ days? \(about \d+ weeks?\)/);
+    expect(between.gold).toMatch(/came first/);
+  });
+
+  it('varies the number of distractor sessions up to twelve', () => {
+    const counts = new Set(examples.map((e) => e.distractorSessionIds.length));
+    expect(Math.max(...counts)).toBeGreaterThan(3);
   });
 
   it('builds a knowledge-update question whose gold is the later value', () => {
