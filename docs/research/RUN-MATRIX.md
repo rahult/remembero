@@ -10,7 +10,7 @@ Rank-32 LoRA, one epoch, learning rate 2e-4 throughout. Query is the agent-bound
 (query-correct out of 31, closure condition, seed 7); extraction is the schema-conditioned
 extraction benchmark (closed vocabulary, 103 cases; v1.1 fixed four gold inputs on 2026-09-09,
 so rounds before r12 were scored on v1). Costs: Tinker at its per-token rate, Modal at
-H100 $0.001097/s over the run's wall time. Total training spend so far: **$76.38**
+H100 $0.001097/s over the run's wall time. Total training spend so far: **$80.68**
 (approximate for the Tinker rounds).
 
 | run | date | base | platform | tasks | data | min | cost | held-out loss | query /31 | extraction | notes |
@@ -40,6 +40,7 @@ H100 $0.001097/s over the run's wall time. Total training spend so far: **$76.38
 | r18 E2B | 2026-09-11 | Gemma 4 E2B | Modal H100 | query, extraction | r14 data + 1,383 repair-turn conversations (--repair-share 0.25, from the paraphrase cache) | 55 | $3.62 | 0.0032 | 26/31 | 82/103 (79.6%) | first adapter trained on repair turns (engine feedback → corrected query); scored with and without --empty-feedback |
 | r19 E2B | 2026-09-11 | Gemma 4 E2B | Modal H100 | query, extraction, timerange | r18 data + 3,000 real sessions labelled by GLM 5.3 Flash capped at 8 atomic facts + 1,500 time-range examples | 70 | $4.60 + ≈$3 GLM labelling | 0.0220 | 26/31 | 86/103 (83.5%) | real-session fact recall 14%→44% at 58% precision, false alarms 5%; max_length 2048 truncated 39% of real rows (fix in r20) |
 | reader-v1 E4B | 2026-09-11 | Gemma 4 E4B | Modal H100 | reader | 2,976 generated reader examples over GLM-labelled real sessions (Luna-rewritten questions), 24KB prompts, max_length 8192 | 62 | $4.10 | 0.0397 | – | – | first self-trained reader: LongMemEval 235/500 at the training context budget (single-session 54/70, multi 41/133, temporal 44/133) |
+| r20 E2B | 2026-09-11 | Gemma 4 E2B | Modal H100 | query, extraction, timerange | = r19 data, --max-length 4096 (no truncated real-session rows) | 66 | $4.30 | 0.0237 | 25/31 | 86/103 (83.5%) | real recall 45.7% (r19 44.4%), loose precision 57%, judged precision ≈96%; the truncation was not the bottleneck |
 
 ## LongMemEval-S answer runs
 

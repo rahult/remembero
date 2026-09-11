@@ -375,6 +375,21 @@
       "queryAlias": null,
       "extractionAlias": null,
       "notes": "first self-trained reader: LongMemEval 235/500 at the training context budget (single-session 54/70, multi 41/133, temporal 44/133)"
+    },
+    {
+      "run": "r20 E2B",
+      "date": "2026-09-11",
+      "base": "Gemma 4 E2B",
+      "platform": "Modal H100",
+      "data": "= r19 data, --max-length 4096 (no truncated real-session rows)",
+      "tasks": "query, extraction, timerange",
+      "minutes": 66,
+      "costUsd": 4.3,
+      "costNote": null,
+      "heldoutLoss": 0.0237,
+      "queryAlias": "finetune-gemma-4-e2b-it-r20-gemma4-e2b-modal",
+      "extractionAlias": "finetune-gemma-4-e2b-it-r20-gemma4-e2b-modal",
+      "notes": "real recall 45.7% (r19 44.4%), loose precision 57%, judged precision ≈96%; the truncation was not the bottleneck"
     }
   ]
 }

@@ -460,6 +460,105 @@ async function exportReader(): Promise<void> {
   console.log(JSON.stringify(manifest, null, 2));
 }
 
+/** "yes" / "no" at the start of a judge reply; anything else is undecided. */
+export function parseSupportVerdict(reply: string): boolean | undefined {
+  const head = reply.trim().toLowerCase().slice(0, 4);
+  if (head.startsWith('yes')) return true;
+  if (head.startsWith('no')) return false;
+  return undefined;
+}
+
+/**
+ * Judged precision. `measure` scores a model fact as precise only when it shares a
+ * constant with a reference fact, so a true fact the capped labeller skipped, or a
+ * paraphrase (sustainably_sourced_products vs sustainable_products), counts as
+ * imprecise. This samples the unmatched model facts and asks a judge whether the
+ * transcript states or clearly implies each one, giving the precision the loose
+ * match understates.
+ */
+async function judgeUnmatched(): Promise<void> {
+  const resultsPath = flag('--results')!;
+  const sample = Number(flag('--sample', '150'));
+  const seed = Number(flag('--seed', '7'));
+  const model = flag('--model', 'z-ai/glm-5.3-flash')!;
+  const apiKey = flag('--api-key', process.env.LLM_API_KEY);
+  if (!apiKey) throw new Error('LLM_API_KEY is not set');
+  const client = new OpenRouterClient({
+    apiKey,
+    baseUrl: (
+      flag('--base-url', process.env.LLM_BASE_URL) ??
+      'https://openrouter.ai/api/v1'
+    ).replace(/\/$/, ''),
+    model,
+  });
+  const results = JSON.parse(readFileSync(resultsPath, 'utf8')) as {
+    summary: { model: string };
+    perSession: Array<{ id: string; reference: string[]; model: string[] }>;
+  };
+  const sessions = new Map(
+    (await orderedSessions(seed)).map((s) => [s.id, s] as const),
+  );
+  // unmatched = model facts sharing no non-self constant with any reference fact
+  const constants = (fact: string) =>
+    (fact.match(/\(([^)]*)\)/)?.[1] ?? '')
+      .split(',')
+      .map((a) => a.trim().replace(/^'|'$/g, '').toLowerCase())
+      .filter((a) => a.length > 0 && a !== 'user');
+  const candidates: Array<{ id: string; fact: string }> = [];
+  for (const row of results.perSession) {
+    const referenceConstants = new Set(row.reference.flatMap(constants));
+    for (const fact of row.model) {
+      if (!constants(fact).some((c) => referenceConstants.has(c))) {
+        candidates.push({ id: row.id, fact });
+      }
+    }
+  }
+  const chosen = createRng(seed).shuffle(candidates).slice(0, sample);
+  let supported = 0;
+  let unsupported = 0;
+  let undecided = 0;
+  const rows: Array<{
+    id: string;
+    fact: string;
+    verdict: boolean | undefined;
+  }> = [];
+  await runPool(chosen, 8, async ({ id, fact }) => {
+    const session = sessions.get(id);
+    if (session === undefined) return;
+    const transcript = realTranscript(session.session).slice(0, 12_000);
+    const completion = await client.completeWithUsage(
+      [
+        {
+          role: 'user',
+          content: `Below is a chat transcript and one fact a memory system extracted about the user ("user" is the person talking to the assistant). Does the transcript state or clearly imply this fact? Answer "yes" or "no" first, then one short reason.\n\nFact: ${fact}\n\nTranscript:\n${transcript}`,
+        },
+      ],
+      { maxTokens: 400 },
+    );
+    const verdict = parseSupportVerdict(completion.content);
+    if (verdict === true) supported += 1;
+    else if (verdict === false) unsupported += 1;
+    else undecided += 1;
+    rows.push({ id, fact, verdict });
+  });
+  const out = {
+    model: results.summary.model,
+    judge: model,
+    unmatchedFacts: candidates.length,
+    judged: rows.length,
+    supported,
+    unsupported,
+    undecided,
+    supportedShare:
+      rows.length === 0 ? null : supported / (supported + unsupported),
+    rows,
+  };
+  const outPath = flag('--out');
+  if (outPath !== undefined)
+    writeFileSync(outPath, `${JSON.stringify(out, null, 2)}\n`);
+  console.log(JSON.stringify({ ...out, rows: undefined }));
+}
+
 const invokedDirectly =
   process.argv[1] !== undefined &&
   fileURLToPath(import.meta.url) === process.argv[1];
@@ -471,9 +570,10 @@ if (invokedDirectly) {
   else if (command === 'measure') await measure();
   else if (command === 'export') await exportData();
   else if (command === 'reader') await exportReader();
+  else if (command === 'judge') await judgeUnmatched();
   else {
     console.error(
-      'usage: run-real-sessions.js label|measure|export|reader [flags]',
+      'usage: run-real-sessions.js label|measure|export|reader|judge [flags]',
     );
     process.exit(1);
   }

@@ -1,0 +1,762 @@
+{
+  "model": "finetune/gemma-4-e2b-it-r20-gemma4-e2b-modal",
+  "judge": "openai/gpt-5.6-luna",
+  "unmatchedFacts": 513,
+  "judged": 150,
+  "supported": 136,
+  "unsupported": 14,
+  "undecided": 0,
+  "supportedShare": 0.9066666666666666,
+  "rows": [
+    {
+      "id": "ad72ce15",
+      "fact": "woke_at(user, '10 am').",
+      "verdict": true
+    },
+    {
+      "id": "83addb61_4",
+      "fact": "plans(user, friday_lunch).",
+      "verdict": true
+    },
+    {
+      "id": "57a6a404_3",
+      "fact": "plans_to_buy(user, handbag).",
+      "verdict": true
+    },
+    {
+      "id": "a0f8468c_3",
+      "fact": "plans_to_make(user, dessert).",
+      "verdict": true
+    },
+    {
+      "id": "85da7827",
+      "fact": "plans(user, fresh_flowers).",
+      "verdict": true
+    },
+    {
+      "id": "53ab4734",
+      "fact": "prefers_coach(user, multi_sport).",
+      "verdict": true
+    },
+    {
+      "id": "26eedae1_2",
+      "fact": "hobby(user, airbrushing).",
+      "verdict": true
+    },
+    {
+      "id": "307ada00",
+      "fact": "content_pillar(user, yoga_for_beginners).",
+      "verdict": true
+    },
+    {
+      "id": "ccb9811f",
+      "fact": "has_pet(user, dogs).",
+      "verdict": false
+    },
+    {
+      "id": "ultrachat_468296",
+      "fact": "listens_to(user, traditional_irish_music).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_318178",
+      "fact": "interested_in(user, guangxi).",
+      "verdict": true
+    },
+    {
+      "id": "a0c40934_1",
+      "fact": "plans_to_make(user, homemade_pesto_sauce).",
+      "verdict": true
+    },
+    {
+      "id": "43c487f2_1",
+      "fact": "interested_in(user, essentialism).",
+      "verdict": true
+    },
+    {
+      "id": "sharegpt_8lprfdF_0",
+      "fact": "uses_framework(user, react_native_elements).",
+      "verdict": true
+    },
+    {
+      "id": "a864e7aa_5",
+      "fact": "wants_to_try(user, yoga).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_380649",
+      "fact": "goal(user, reduce_water_consumption).",
+      "verdict": false
+    },
+    {
+      "id": "3a5010af_1",
+      "fact": "completed_courses(user, coursera).",
+      "verdict": true
+    },
+    {
+      "id": "88ad913f_2",
+      "fact": "practices(user, smooth_braking).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_371339",
+      "fact": "event_platform_comparison(user, google_meet).",
+      "verdict": false
+    },
+    {
+      "id": "bcf96d28_3",
+      "fact": "mortgage_pre_approval_deadline(user, march).",
+      "verdict": true
+    },
+    {
+      "id": "b3429d32_1",
+      "fact": "project_goal(user, target_audience).",
+      "verdict": true
+    },
+    {
+      "id": "sharegpt_7QD86cC_20",
+      "fact": "uses_tool(user, photographer).",
+      "verdict": false
+    },
+    {
+      "id": "ultrachat_528926",
+      "fact": "goal(user, learn_shamadan).",
+      "verdict": false
+    },
+    {
+      "id": "e18a6f0b_1",
+      "fact": "prefers_early_shops(user, '7:30_am').",
+      "verdict": true
+    },
+    {
+      "id": "d9e0c03e",
+      "fact": "woke_at(user, '8:30_am').",
+      "verdict": true
+    },
+    {
+      "id": "edf6c94c_3",
+      "fact": "plans_to_bring(user, board_games).",
+      "verdict": true
+    },
+    {
+      "id": "a1714d2c_2",
+      "fact": "struggles_with(user, idioms).",
+      "verdict": true
+    },
+    {
+      "id": "7af38385_1",
+      "fact": "plans_to_replace(user, pillows).",
+      "verdict": false
+    },
+    {
+      "id": "edf6c94c_3",
+      "fact": "plans_to_bring(user, cooler).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_573581",
+      "fact": "interested_in(user, hiking).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_318178",
+      "fact": "interested_in(user, wedding_traditions).",
+      "verdict": true
+    },
+    {
+      "id": "1692563c_1",
+      "fact": "dislikes(user, sweet_bbq_sauce).",
+      "verdict": true
+    },
+    {
+      "id": "84fb50bb_1",
+      "fact": "likes(user, commentary).",
+      "verdict": true
+    },
+    {
+      "id": "602b4074_1",
+      "fact": "plans_to_try(user, moroccanoil_leave_in).",
+      "verdict": true
+    },
+    {
+      "id": "13b79e39_2",
+      "fact": "exercise_time(user, '10:30_am_to_11:00_am').",
+      "verdict": true
+    },
+    {
+      "id": "15232887_1",
+      "fact": "attends(user, tennis_lessons).",
+      "verdict": true
+    },
+    {
+      "id": "sharegpt_naopDKi_27",
+      "fact": "uses_method(user, test_cases).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_59277",
+      "fact": "values(user, small_businesses).",
+      "verdict": true
+    },
+    {
+      "id": "4cef8a3c_3",
+      "fact": "interested_in(user, pantries).",
+      "verdict": true
+    },
+    {
+      "id": "6a471944_1",
+      "fact": "prefers(user, modern_vibe).",
+      "verdict": true
+    },
+    {
+      "id": "60d4332d",
+      "fact": "plans_to_run(user, saturday_mornings).",
+      "verdict": true
+    },
+    {
+      "id": "c38fb85b",
+      "fact": "heard_of(user, the_office).",
+      "verdict": true
+    },
+    {
+      "id": "cfd21744_2",
+      "fact": "owns(user, sam_edelman_boots).",
+      "verdict": true
+    },
+    {
+      "id": "debc34d7_1",
+      "fact": "attended_concert(user, rock_concert).",
+      "verdict": true
+    },
+    {
+      "id": "sharegpt_8lprfdF_0",
+      "fact": "uses_framework(user, google_maps).",
+      "verdict": true
+    },
+    {
+      "id": "a0f8468c_3",
+      "fact": "plans_to_make(user, italian_salad).",
+      "verdict": false
+    },
+    {
+      "id": "e18a6f0b_1",
+      "fact": "commutes_by_train(user, '7:15_am').",
+      "verdict": true
+    },
+    {
+      "id": "3a5cdafc",
+      "fact": "attended(user, cooking_class).",
+      "verdict": true
+    },
+    {
+      "id": "sharegpt_nzDNOrq_29",
+      "fact": "installation_venue(art_installation, singapore).",
+      "verdict": false
+    },
+    {
+      "id": "sharegpt_NYFuCmY_0",
+      "fact": "plans_to_create(user, ros_package).",
+      "verdict": true
+    },
+    {
+      "id": "445e6a7a_2",
+      "fact": "reading(user, the_seven_husbands_of_evelyn_hugo).",
+      "verdict": true
+    },
+    {
+      "id": "sharegpt_WetAHhj_0",
+      "fact": "interested_in(user, prompting).",
+      "verdict": true
+    },
+    {
+      "id": "60d4332d",
+      "fact": "uses_app(user, strava).",
+      "verdict": true
+    },
+    {
+      "id": "15232887_1",
+      "fact": "strength_training(user, friday_evening).",
+      "verdict": true
+    },
+    {
+      "id": "32d11490",
+      "fact": "plans_to_order(user, finer_gauge_wire).",
+      "verdict": true
+    },
+    {
+      "id": "84fb50bb_3",
+      "fact": "listens(user, film_bros).",
+      "verdict": true
+    },
+    {
+      "id": "85da7827",
+      "fact": "plans(user, social_media_discount).",
+      "verdict": true
+    },
+    {
+      "id": "9c4358a4",
+      "fact": "fishing_activity(user, camping).",
+      "verdict": true
+    },
+    {
+      "id": "075f0e65_1",
+      "fact": "gift_choice(user, loafers).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_319337",
+      "fact": "uses_spotify(user, music).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_468296",
+      "fact": "interested_in(user, harp).",
+      "verdict": true
+    },
+    {
+      "id": "332737a3_1",
+      "fact": "nephew(user, birthday).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_468296",
+      "fact": "interested_in(user, contemporary_irish_music).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_428261",
+      "fact": "avoids(user, traditional_methods).",
+      "verdict": true
+    },
+    {
+      "id": "507dbf23_3",
+      "fact": "plans_to_try(user, romer_g_switches).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_228248",
+      "fact": "plans_to_try(user, applesauce_muffins).",
+      "verdict": true
+    },
+    {
+      "id": "2ec2813b_2",
+      "fact": "moved_armchair(user, new_position).",
+      "verdict": true
+    },
+    {
+      "id": "075f0e65_1",
+      "fact": "ordered(user, sneakers).",
+      "verdict": true
+    },
+    {
+      "id": "bf3aebdb_2",
+      "fact": "earns_points_at(user, other_merchants).",
+      "verdict": true
+    },
+    {
+      "id": "80d062b2_3",
+      "fact": "likes(user, greenery).",
+      "verdict": true
+    },
+    {
+      "id": "6de8645d_1",
+      "fact": "bedtime_adjustment(user, '15 minutes earlier').",
+      "verdict": true
+    },
+    {
+      "id": "84fb50bb_3",
+      "fact": "likes(user, behind_the_scenes).",
+      "verdict": true
+    },
+    {
+      "id": "sharegpt_nzDNOrq_29",
+      "fact": "works_on(user, art_installation).",
+      "verdict": true
+    },
+    {
+      "id": "a1714d2c_2",
+      "fact": "brother_attended(user, cultural_orientation).",
+      "verdict": false
+    },
+    {
+      "id": "4152811a_1",
+      "fact": "habit_tracker(user, exercise_routine).",
+      "verdict": true
+    },
+    {
+      "id": "a0f8468c_3",
+      "fact": "makes(user, homemade_pasta_sauce).",
+      "verdict": true
+    },
+    {
+      "id": "13b79e39_2",
+      "fact": "meal_prep_time(user, '10:00_am_to_10:30_am').",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_428261",
+      "fact": "avoids(user, dishwasher).",
+      "verdict": true
+    },
+    {
+      "id": "84fb50bb_3",
+      "fact": "likes(user, redemption).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_312820",
+      "fact": "plans_workshops(user, disability).",
+      "verdict": true
+    },
+    {
+      "id": "a8028ce7_2",
+      "fact": "finished_books(user, 7).",
+      "verdict": true
+    },
+    {
+      "id": "0ad608b3",
+      "fact": "researching(user, great_great_grandfather_travels).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_73033",
+      "fact": "prefers_hydration(user, water).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_528926",
+      "fact": "goal(user, attend_middle_eastern_wedding).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_528926",
+      "fact": "goal(user, learn_khaleeji).",
+      "verdict": false
+    },
+    {
+      "id": "332737a3_1",
+      "fact": "yoga_class(user, morning).",
+      "verdict": true
+    },
+    {
+      "id": "sharegpt_8lprfdF_0",
+      "fact": "uses_framework(user, react_redux).",
+      "verdict": true
+    },
+    {
+      "id": "d9e0c03e",
+      "fact": "not_morning_person(user).",
+      "verdict": true
+    },
+    {
+      "id": "eca613fc",
+      "fact": "plans_vaccination(user, luna_and_leo).",
+      "verdict": true
+    },
+    {
+      "id": "9f8fa5e4_5",
+      "fact": "plans_recipe(user, smoky_tomato_bbq_sauce).",
+      "verdict": true
+    },
+    {
+      "id": "83addb61_4",
+      "fact": "plans(user, hard_boiled_eggs).",
+      "verdict": true
+    },
+    {
+      "id": "15232887_1",
+      "fact": "cycles_once_a_week(user, 45).",
+      "verdict": true
+    },
+    {
+      "id": "d048ae4b_2",
+      "fact": "camera_body_listing(user, separate).",
+      "verdict": true
+    },
+    {
+      "id": "1692563c_1",
+      "fact": "plans_to_smoke(user, chicken_breasts).",
+      "verdict": true
+    },
+    {
+      "id": "f8e8d445_4",
+      "fact": "attended_workshop(user, writing_memoirs).",
+      "verdict": true
+    },
+    {
+      "id": "edf6c94c_3",
+      "fact": "plans_to_bring(user, portable_speaker).",
+      "verdict": true
+    },
+    {
+      "id": "59a6150d_4",
+      "fact": "workshop_location(user, local_audubon_society).",
+      "verdict": true
+    },
+    {
+      "id": "0826def6_1",
+      "fact": "interest(user, tutankhamun_tomb).",
+      "verdict": true
+    },
+    {
+      "id": "07417b21",
+      "fact": "interested_in(user, cashback_portals).",
+      "verdict": true
+    },
+    {
+      "id": "e18a6f0b_1",
+      "fact": "considering_foldable_bikes(user, commute).",
+      "verdict": true
+    },
+    {
+      "id": "a0b8b0ad_5",
+      "fact": "likes_genre(user, jazz).",
+      "verdict": true
+    },
+    {
+      "id": "b34a52aa_3",
+      "fact": "gym_goal(user, '9:00 am').",
+      "verdict": true
+    },
+    {
+      "id": "ef8cc173_1",
+      "fact": "considering_side_hustle(user, freelance_editing).",
+      "verdict": true
+    },
+    {
+      "id": "ce919391_2",
+      "fact": "status(user, silver_elite).",
+      "verdict": true
+    },
+    {
+      "id": "sharegpt_D2TC9GP_0",
+      "fact": "trip_companions(user, granddad).",
+      "verdict": true
+    },
+    {
+      "id": "0ad608b3",
+      "fact": "researching(user, trunk_history).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_528926",
+      "fact": "interest(user, middle_eastern_dance).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_73033",
+      "fact": "does_athletic_performance(user, recovery).",
+      "verdict": false
+    },
+    {
+      "id": "76ecc9b9_1",
+      "fact": "group_platform(user, slack).",
+      "verdict": true
+    },
+    {
+      "id": "76ecc9b9_1",
+      "fact": "review_group(user, book_lovers).",
+      "verdict": true
+    },
+    {
+      "id": "2b1f4207",
+      "fact": "considering_litter(user, world_best_cat_litter).",
+      "verdict": true
+    },
+    {
+      "id": "307ada00",
+      "fact": "content_pillar(user, mindfulness_moments).",
+      "verdict": true
+    },
+    {
+      "id": "de47d59b_1",
+      "fact": "attended(user, film_criticism_panel).",
+      "verdict": true
+    },
+    {
+      "id": "66c23110_2",
+      "fact": "prefers(user, non_greasy_moisturizer).",
+      "verdict": true
+    },
+    {
+      "id": "3a5cdafc",
+      "fact": "cooking_class_day(user, weekday).",
+      "verdict": true
+    },
+    {
+      "id": "21f8f481_3",
+      "fact": "movie_night(user, friends).",
+      "verdict": true
+    },
+    {
+      "id": "6de8645d_1",
+      "fact": "morning_habit(user, news).",
+      "verdict": true
+    },
+    {
+      "id": "26eedae1_2",
+      "fact": "hobby(user, painting).",
+      "verdict": true
+    },
+    {
+      "id": "60d4332d",
+      "fact": "interested_in(user, running_groups).",
+      "verdict": true
+    },
+    {
+      "id": "sharegpt_a9hxnu5_0",
+      "fact": "search_type(customer_support, form_search).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_38171",
+      "fact": "has_budget(user, luxury).",
+      "verdict": true
+    },
+    {
+      "id": "6e2cca63_6",
+      "fact": "group_chat_topic(user, pop_culture).",
+      "verdict": true
+    },
+    {
+      "id": "sharegpt_D2TC9GP_0",
+      "fact": "trip_companions(user, user).",
+      "verdict": false
+    },
+    {
+      "id": "ultrachat_38171",
+      "fact": "prefers(user, daily_wear).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_73033",
+      "fact": "does_athletic_performance(user, sports).",
+      "verdict": true
+    },
+    {
+      "id": "4152811a_1",
+      "fact": "meal_planning_method(user, theme_nights).",
+      "verdict": true
+    },
+    {
+      "id": "14073b9c_1",
+      "fact": "prefers(user, longer_battery_life).",
+      "verdict": true
+    },
+    {
+      "id": "32d11490",
+      "fact": "owns(user, '20 gauge copper wire').",
+      "verdict": true
+    },
+    {
+      "id": "ef8cc173_1",
+      "fact": "interested_in(user, ai_in_marketing).",
+      "verdict": true
+    },
+    {
+      "id": "147ab7e9_6",
+      "fact": "attended(user, sarah_taylor_event).",
+      "verdict": true
+    },
+    {
+      "id": "b9c4fa1b",
+      "fact": "interested_in(user, gujarati_dance).",
+      "verdict": true
+    },
+    {
+      "id": "sharegpt_NzEB05Q_5",
+      "fact": "interested_in(user, taipei_food).",
+      "verdict": true
+    },
+    {
+      "id": "c15dadce_3",
+      "fact": "note_tone(user, heartfelt).",
+      "verdict": true
+    },
+    {
+      "id": "765ce8a7_2",
+      "fact": "likes_vibe(user, energetic).",
+      "verdict": true
+    },
+    {
+      "id": "e18a6f0b_1",
+      "fact": "train_route(user, station_a_to_station_b).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_380649",
+      "fact": "goal(user, reduce_textile_waste).",
+      "verdict": false
+    },
+    {
+      "id": "ultrachat_371339",
+      "fact": "event_platform_comparison(user, microsoft_teams).",
+      "verdict": true
+    },
+    {
+      "id": "0826def6_1",
+      "fact": "interest(user, pharaoh_tutankhamun).",
+      "verdict": true
+    },
+    {
+      "id": "178844cf",
+      "fact": "prefers_substrate(user, gentle).",
+      "verdict": true
+    },
+    {
+      "id": "943fdca0",
+      "fact": "trip_timing(user, late_march_early_april).",
+      "verdict": true
+    },
+    {
+      "id": "sharegpt_NYFuCmY_0",
+      "fact": "overwrites(user, invoke_callback).",
+      "verdict": true
+    },
+    {
+      "id": "b34a52aa_3",
+      "fact": "wakes_up_weekdays(user, earlier).",
+      "verdict": true
+    },
+    {
+      "id": "cfd21744_2",
+      "fact": "likes(user, blazer_and_blouse).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_228033",
+      "fact": "believes(user, feedback_is_irrelevant).",
+      "verdict": false
+    },
+    {
+      "id": "4048b32b_3",
+      "fact": "plans_hashtag(user, make_a_difference_mv).",
+      "verdict": true
+    },
+    {
+      "id": "ultrachat_371339",
+      "fact": "event_platform_comparison(user, hopin).",
+      "verdict": true
+    },
+    {
+      "id": "5d284d7d_2",
+      "fact": "inherited_from(user, aunt).",
+      "verdict": true
+    },
+    {
+      "id": "43c487f2_1",
+      "fact": "interested_in(user, self_improvement).",
+      "verdict": true
+    },
+    {
+      "id": "1692563c_1",
+      "fact": "likes(user, alex_dry_rub).",
+      "verdict": true
+    },
+    {
+      "id": "a864e7aa_5",
+      "fact": "moved_to(user, new_apartment).",
+      "verdict": true
+    }
+  ]
+}
