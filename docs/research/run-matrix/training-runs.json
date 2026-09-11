@@ -390,6 +390,21 @@
       "queryAlias": "finetune-gemma-4-e2b-it-r20-gemma4-e2b-modal",
       "extractionAlias": "finetune-gemma-4-e2b-it-r20-gemma4-e2b-modal",
       "notes": "real recall 45.7% (r19 44.4%), loose precision 57%, judged precision ≈96%; the truncation was not the bottleneck"
+    },
+    {
+      "run": "reader-v2 E4B",
+      "date": "2026-09-11",
+      "base": "Gemma 4 E4B",
+      "platform": "Modal H100",
+      "data": "8,885 generated reader examples (distinct counts, between-two-dates, 2–12 distractors, Luna-rewritten questions), 24KB prompts, max_length 8192",
+      "tasks": "reader",
+      "minutes": 210,
+      "costUsd": 14.0,
+      "costNote": "resumed after the 3h timeout",
+      "heldoutLoss": 0.0151,
+      "queryAlias": null,
+      "extractionAlias": null,
+      "notes": "LongMemEval 231/500 vs v1 235: temporal up, multi and knowledge-update down; generated questions do not transfer"
     }
   ]
 }

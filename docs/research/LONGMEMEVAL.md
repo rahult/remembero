@@ -619,11 +619,12 @@ Luna; prompts rendered by the evaluation's own context builder with date distanc
 Served on an A100 as `finetune/gemma-4-e4b-it-reader-v1-gemma4-e4b-modal`. On the 500 from the
 r16 cache with the GLM Flash range:
 
-| reader v1 run                 | total   | k-update | multi   | assistant               | preference | user  | temporal | abstention |
-| ----------------------------- | ------- | -------- | ------- | ----------------------- | ---------- | ----- | -------- | ---------: |
-| default 160 KB context budget | 208/500 | 53/78    | 49/133  | 1/56 (55 overflowed 8k) | 7/30       | 56/70 | 42/133   |       0.60 |
-| 24 KB budget, as trained      | 235/500 | 51/78    | 41/133  | 39/56                   | 6/30       | 54/70 | 44/133   |       0.70 |
-| GLM 5.3 Flash (for reference) | 432/500 | 66/78    | 113/133 | 48/56                   | 28/30      | 61/70 | 116/133  |       0.93 |
+| reader v1 run                     | total   | k-update | multi   | assistant               | preference | user  | temporal | abstention |
+| --------------------------------- | ------- | -------- | ------- | ----------------------- | ---------- | ----- | -------- | ---------: |
+| default 160 KB context budget     | 208/500 | 53/78    | 49/133  | 1/56 (55 overflowed 8k) | 7/30       | 56/70 | 42/133   |       0.60 |
+| 24 KB budget, as trained          | 235/500 | 51/78    | 41/133  | 39/56                   | 6/30       | 54/70 | 44/133   |       0.70 |
+| reader v2, 24 KB (8,885 examples) | 231/500 | 45/78    | 36/133  | 37/56                   | 0/30       | 56/70 | 57/133   |       0.63 |
+| GLM 5.3 Flash (for reference)     | 432/500 | 66/78    | 113/133 | 48/56                   | 28/30      | 61/70 | 116/133  |       0.93 |
 
 Where the training data had the type, the 4.5B reader is within ten points of GLM on a
 per-type basis (single-session-user 54 vs 61, assistant 39 vs 48, knowledge-update 51 vs 66);
@@ -631,10 +632,23 @@ where it did not (preference, which needs general knowledge), it fails; and on t
 aggregation types it reproduces the trained answer shape without the reasoning: counts that
 disagree with their own lists ("1: peace lily, basil plant"), and day counts between two dates
 that are wrong (24 days for January 8 to 15). Abstention is over-used (62 "does not say" among
-the misses). Reader v1 is a floor, not a result: the first milestone is Luna's 416. The v2
-data needs the aggregation types in volume and variety (counts verified against their lists,
-"days between" and "which came first" templates, up to fifteen sessions in context as the
-evaluation shows), and the preference type left to a general-knowledge fallback.
+the misses). Reader v1 is a floor, not a result: the first milestone is Luna's 416.
+
+**Reader v2** trained on three times the data with those fixes (distinct-value counts with
+first dates, between-two-dates questions, two to twelve distractors, 8,885 examples) and its
+held-out loss on that distribution fell from 0.040 to 0.015, but on LongMemEval it scored
+**231**: temporal 44 → 57, multi-session 41 → 36, knowledge-update 51 → 45, preference 6 → 0,
+abstention 0.70 → 0.63. The misses say why. On a multi-session count the reader finds one item
+where GLM finds three: the generator's items come from clean labelled facts, so the model never
+learned to hunt for the same thing phrased differently across fifteen raw sessions. On
+knowledge-update it returns the earlier value or a bare number. On preference it abstains.
+Learning the generator's questions better made it worse at LongMemEval's. Deterministic gold
+is not enough; the reader needs to be taught reading, which means examples whose answers were
+produced by reading raw sessions, with the deterministic facts as a check rather than the
+source. Reader v3 is the teacher-distilled variant from the design's second path: GLM 5.3
+Flash writes questions of the six types over assembled real haystacks and answers them with
+its reasoning, the labelled facts verify counts and dates where they can, and the preference
+type is included.
 
 **r19 as the extractor on the 500 (2026-09-11).** With GLM 5.3 Flash reading and ranging, the
 writer trained on capped real-session labels scores **426/500** against 425 for r16 under the

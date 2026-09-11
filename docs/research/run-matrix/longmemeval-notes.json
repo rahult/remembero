@@ -204,5 +204,9 @@
   "longmemeval-extraction-v13-composed-semantic-glmflash-glmrange-r19-all500.json": {
     "knobs": "time range (GLM Flash)",
     "note": "r19 as extractor: 426 vs 425 with r16 under the same reader/range; recall 92.5\u219293.9%; 90k facts vs 25k; served default switched to r19"
+  },
+  "longmemeval-extraction-v14-composed-semantic-readerv2-e4b-ctx24k-e2b-all500.json": {
+    "knobs": "reader = our Gemma 4 E4B reader v2 (8,885 generated examples); 24KB context; date distances; GLM range",
+    "note": "231 vs v1 235: temporal 44\u219257, multi 41\u219236, k-update 51\u219245, preference 0; the generated distribution does not transfer"
   }
 }
