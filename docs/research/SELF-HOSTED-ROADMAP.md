@@ -112,13 +112,17 @@ The literature survey in [FACTS-AND-MEMORY-RESEARCH.md](FACTS-AND-MEMORY-RESEARC
 same way as the model roadmap: every capability moved into the Datalog engine is one that
 needs no model at all, ours or anyone's. Four of its items bear directly on the legs above.
 
-- **Bi-temporal, append-only facts** (Zep/Graphiti, ROMEM). Facts carry `valid_from`,
-  `valid_to` and `recorded_at`; a rule resolves the current value as the latest valid one and
-  the old value stays with its interval. This is the deterministic answer to the
-  knowledge-update questions and to "what did I say in May", and it is what would let the
+- **Bi-temporal, append-only facts** (Zep/Graphiti, ROMEM). Most of this exists: with
+  `REMBERO_VALID_TIME_MODE=archive_until` a superseded fact is kept as an `_until` fact
+  carrying the instant it stopped being current, the journal records ingestion time, and
+  `history` reads both ([TEMPORAL-HISTORY.md](../TEMPORAL-HISTORY.md)). The gaps are that
+  archiving is opt-in (`remembero init` turns it on; the library default deletes), that
+  facts have no explicit `valid_from`, and that the LongMemEval formation renders facts
+  without their intervals. Closing them means defaulting to archive, stamping facts with the
+  source session's date, and rendering "X, from May 3 until June 9" in the fact block. That
+  is the deterministic answer to the knowledge-update questions and what would let the
   temporal route (roadmap item 4) work from stored intervals instead of a model guessing a
-  date range from the question. First item in the survey's own priority order, and the one
-  that most reduces what the reader has to infer.
+  date range from the question. First item in the survey's own priority order.
 - **Solver-feedback repair on the query leg** (Logic-LM, SymbolLKG). The product already
   retries query authoring through review and repair passes with the same small model; the
   survey's addition is to feed engine diagnostics (empty result, unknown predicate, arity

@@ -30,7 +30,7 @@
   },
   "longmemeval-extraction-v2-hybrid-r14-strat48.json": {
     "knobs": "facts shown to reader",
-    "note": "strat48 rerun of v1-hybrid-r14: retrieval matched in 25/48, 4 answers moved → slice too small"
+    "note": "strat48 rerun of v1-hybrid-r14: retrieval matched in 25/48, 4 answers moved \u2192 slice too small"
   },
   "longmemeval-extraction-v1-raw-dev261.json": {
     "note": "dev baseline"
@@ -45,21 +45,21 @@
   },
   "longmemeval-extraction-v3-hybrid-reserved-r14-dev261.json": {
     "knobs": "reserved",
-    "note": "abstention 95%→84%: appended facts invite answers that should be declined"
+    "note": "abstention 95%\u219284%: appended facts invite answers that should be declined"
   },
   "longmemeval-extraction-v2-hybrid-gemma4-e2b-dev261.json": {
     "note": "first E2B run; +20/-15 vs raw"
   },
   "longmemeval-extraction-v4-hybrid-routed-e2b-dev261.json": {
     "knobs": "routed: knowledge-update,multi-session",
-    "note": "148 raw-formation questions flipped 6 answers vs the raw run: reader noise ≈6/261"
+    "note": "148 raw-formation questions flipped 6 answers vs the raw run: reader noise \u22486/261"
   },
   "longmemeval-extraction-v4-reserved200-routed-e2b-dev261.json": {
-    "knobs": "reserved ≥200, supplementary framing, routed",
+    "knobs": "reserved \u2265200, supplementary framing, routed",
     "note": "abstention restored to 95%"
   },
   "longmemeval-extraction-v2-hybrid-gemma4-e2b-r17-dev261.json": {
-    "note": "r17 wrote 3× the facts; they crowd raw sessions out of shared slots"
+    "note": "r17 wrote 3\u00d7 the facts; they crowd raw sessions out of shared slots"
   },
   "longmemeval-extraction-v5-keyed-turn-k15-wide-e2b-dev261.json": {
     "knobs": "keyed, turn units (user only), 120KB context",
@@ -140,7 +140,7 @@
     "note": "multi-session only"
   },
   "longmemeval-ms-v1-hybrid-e2b-k15.json": {
-    "note": "multi-session only; target ≥58 met"
+    "note": "multi-session only; target \u226558 met"
   },
   "longmemeval-ms-v1-hybrid-e2b-k5-entity.json": {
     "knobs": "entity retrieval",
@@ -161,5 +161,12 @@
   "longmemeval-tr-v1-raw-range-k10.json": {
     "knobs": "time range (Luna)",
     "note": "temporal only"
+  },
+  "longmemeval-extraction-v12-composed-semantic-gemma4-31b-reader-e2b-all500.json": {
+    "note": "open-weight reader candidate; answers \"I do not know\" on 84 evidenced questions (52 temporal)"
+  },
+  "longmemeval-extraction-v12-composed-semantic-nemotron3super-reader-e2b-all500.json": {
+    "knobs": "reader budget 16k",
+    "note": "open-weight reasoning reader candidate"
   }
 }
