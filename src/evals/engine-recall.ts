@@ -178,7 +178,8 @@ export function runProgram(
     if (items.length === 0) return { rows: 0, rendered: '' };
     const rendered = renderEngineRows(items, clauses, sources).replace(
       /^Rows \((\d+)\):/,
-      (_, n: string) => `Count: ${n}. The counted items:`,
+      (_, n: string) =>
+        `The program matched ${n} remembered items in total; the question may concern only some of them, so count the ones below that fit it:`,
     );
     return { rows: items.length, rendered };
   }

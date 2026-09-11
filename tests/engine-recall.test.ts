@@ -42,7 +42,9 @@ describe('engine recall guards', () => {
       parseQueryProgram('count(*) as N where wants(user, X)'),
     );
     expect(counted.rows).toBe(40);
-    expect(counted.rendered).toMatch(/^Count: 40/);
+    expect(counted.rendered).toMatch(
+      /^The program matched 40 remembered items/,
+    );
     expect(counted.rendered).toContain('X = e0');
     const none = runProgram(
       facts,
