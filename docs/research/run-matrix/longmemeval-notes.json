@@ -192,5 +192,9 @@
   "longmemeval-tr-v4-r19range-glmflash-e2b-all133.json": {
     "knobs": "time range (Gemma 4 E2B r19, our writer)",
     "note": "temporal only; 114/133 with 27 ranges: ties Luna (116/36) and GLM Flash (113/33) in the range role"
+  },
+  "longmemeval-extraction-v14-composed-semantic-readerv1-e4b-e2b-all500.json": {
+    "knobs": "reader = our Gemma 4 E4B reader v1 (3k generated examples); date distances; GLM range",
+    "note": "first self-trained reader: 208/500; 55 assistant-memory prompts exceeded its 8k context (default 160KB budget vs 24KB in training)"
   }
 }
