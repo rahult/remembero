@@ -13,8 +13,8 @@ remembero recall-explain "Who are Rahul's colleagues?" \
 ```
 
 MCP `recall` and `recall_explain` accept `answerMode: "evidence"`. Library callers use the
-same `RecallOptions`; `evidenceRecallAnswer(...)` is also exported. Set
-`REMBERO_RECALL_ANSWER_MODE=evidence` for a process default.
+same `RecallOptions`; `evidenceRecallAnswer(...)` is also exported. Since 0.57 evidence is the
+process default; set `REMBERO_RECALL_ANSWER_MODE=natural` to restore LLM phrasing.
 
 ## Rendering contract
 

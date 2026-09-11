@@ -37,6 +37,8 @@ way the evaluation has, that reader.
 
 ### 1. Make the answer leg local by default (days, no training)
 
+**Done 2026-09-11.** `REMBERO_RECALL_ANSWER_MODE` defaults to `evidence`; `natural` is opt-in.
+
 The product already has two zero-call answer modes, deterministic and evidence, and the
 agent-boundary work showed the small-model prose leg is noise below 8B (the query was right,
 the sentence about it was wrong). Switch the default to the evidence mode, which renders the

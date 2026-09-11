@@ -18,7 +18,8 @@ Library callers use `RecallOptions.answerMode` or the `PipelineDeps.recallAnswer
 default. MCP `recall` and `recall_explain` accept `answerMode`. A per-call value overrides
 the server/environment default.
 
-`natural` remains the compatibility default.
+`evidence` is the default since 0.57; `natural` phrasing is opt-in (`REMBERO_RECALL_ANSWER_MODE=natural`
+or a per-call `answerMode`). Before 0.57 `natural` was the default.
 
 ## Rendering contract
 

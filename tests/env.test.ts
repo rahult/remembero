@@ -12,8 +12,11 @@ import {
 } from '../src/env.js';
 
 describe('recallAnswerModeFromEnv', () => {
-  it('defaults to natural phrasing and accepts deterministic rendering', () => {
-    expect(recallAnswerModeFromEnv({})).toBe('natural');
+  it('defaults to zero-call evidence rendering and accepts the other modes', () => {
+    expect(recallAnswerModeFromEnv({})).toBe('evidence');
+    expect(
+      recallAnswerModeFromEnv({ REMBERO_RECALL_ANSWER_MODE: 'natural' })
+    ).toBe('natural');
     expect(
       recallAnswerModeFromEnv({ REMBERO_RECALL_ANSWER_MODE: 'deterministic' })
     ).toBe('deterministic');

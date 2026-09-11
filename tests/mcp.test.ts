@@ -130,6 +130,7 @@ describe('MCP explanation surfaces', () => {
       { opId: 'mcp-identity-source' },
     );
     const server = createServer({
+      recallAnswerMode: 'natural', // these tests script the phrasing leg
       store,
       llm: new ScriptedLlm(['?- pet(rahul, Name).', 'Your cat is Luna.']),
       embeddings: {
@@ -1310,6 +1311,7 @@ describe('MCP explanation surfaces', () => {
       'uses_language(atlas, rust). project_owner(atlas, rahul).',
     );
     const server = createServer({
+      recallAnswerMode: 'natural', // these tests script the phrasing leg
       store,
       llm: new ScriptedLlm([
         '?- uses_language(atlas, Value).',
@@ -1499,6 +1501,7 @@ describe('MCP explanation surfaces', () => {
        zeta_relation(target, answer).`,
     );
     const server = createServer({
+      recallAnswerMode: 'natural', // these tests script the phrasing leg
       store,
       llm: new ScriptedLlm([
         '?- zeta_relation(target, Value).',

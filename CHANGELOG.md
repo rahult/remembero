@@ -3,6 +3,14 @@
 Release notes previously embedded in the README are collected here in reverse
 chronological order. Only releases that had a standalone README note are listed.
 
+## Unreleased
+
+Recall answers render locally by default: `REMBERO_RECALL_ANSWER_MODE` now defaults to
+`evidence`, so an ordinary `recall` makes one model call (question to query) and none to
+phrase the answer; recalled facts no longer leave the process unless `natural` is chosen.
+Rationale and measurements in [docs/research/SELF-HOSTED-ROADMAP.md](docs/research/SELF-HOSTED-ROADMAP.md).
+Restore the old behaviour with `REMBERO_RECALL_ANSWER_MODE=natural` or a per-call `answerMode`.
+
 ## 0.56.0
 
 The daily-driver release; see [docs/MIGRATING-0.56.md](docs/MIGRATING-0.56.md).
@@ -97,8 +105,7 @@ Temporal reasoning now also receives five sessions while ordinary questions rema
 Complete temporal runs improve the subtype from 71.4% to 79.7% and lift the composed
 post-hoc score to 79.8% at $0.000786 runtime provider cost per question, without another
 model or embedding call.
-Multi-session semantic reranking is now gated by a deterministic local top-score ceiling of
-315. Under role-aware top-five context it raises multi-session accuracy from 63.9% to 76.7%
+Multi-session semantic reranking is now gated by a deterministic local top-score ceiling of 315. Under role-aware top-five context it raises multi-session accuracy from 63.9% to 76.7%
 and the composed post-hoc score from 79.8% to 83.2%. The gate avoids 18 high-confidence
 local cases and 55 provider calls relative to global semantic routing.
 The LongMemEval answer runner can explicitly prepare semantic document vectors before the

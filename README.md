@@ -172,7 +172,7 @@ Configuration is via environment variables (a `.env` file in the working directo
 | `REMBERO_WEB_DEMO` | no | `false`; the web console shows your real memory by default — `true` (or `--demo`) opens the seeded fictional sandbox |
 | `REMBERO_VALID_TIME_MODE` | no | `delete`; set `archive_until` to preserve superseded facts (`remembero init` registrations default to `archive_until`) |
 | `REMBERO_RECALL_SCHEMA_PREDICATE_LIMIT` | no | `8` detailed predicates on the first recall pass (range: 1–256) |
-| `REMBERO_RECALL_ANSWER_MODE` | no | `natural`; use `deterministic` bindings or compact `evidence` |
+| `REMBERO_RECALL_ANSWER_MODE` | no | `evidence` (compact local rendering, no model call); `deterministic` for bare bindings; `natural` to have the LLM phrase the answer |
 | `REMBERO_SELF` | no | constant naming you in remembered text (`user` by default): "I live in Osaka" becomes `lives_in(<self>, osaka)` |
 | `REMBERO_EXTRACTION_VOCABULARY` | no | `open` (default) or `closed`: only predicates already in the schema (or aliased via `rembero_predicate_alias(from, to).`) may be added by extraction |
 | `REMBERO_INTEGRITY_MODE` | no | `no_new_violations` (default; writes that add a violation are refused); `strict` refuses any violating write and is what `remembero init` registers; `off` disables the gate |

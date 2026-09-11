@@ -91,10 +91,18 @@ export function extractionVocabularyFromEnv(
   throw new Error("REMBERO_EXTRACTION_VOCABULARY must be 'open' or 'closed'");
 }
 
+/**
+ * REMBERO_RECALL_ANSWER_MODE: 'evidence' (default) renders the query's rows and their
+ * proof locally with no model call; 'deterministic' renders bare bindings; 'natural'
+ * asks the configured LLM to phrase the answer, the only mode that sends recalled
+ * facts to a model. Evidence became the default in 0.57: the phrasing leg costs a
+ * frontier call per recall and, on the agent-boundary benchmark, only ever lost answers
+ * the query had already got right (docs/research/SELF-HOSTED-ROADMAP.md).
+ */
 export function recallAnswerModeFromEnv(
   env: NodeJS.ProcessEnv = process.env,
 ): RecallAnswerMode {
-  const configured = env.REMBERO_RECALL_ANSWER_MODE ?? 'natural';
+  const configured = env.REMBERO_RECALL_ANSWER_MODE ?? 'evidence';
   if (
     configured === 'natural' ||
     configured === 'deterministic' ||
