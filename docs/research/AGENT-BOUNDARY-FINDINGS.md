@@ -27,12 +27,12 @@ error-feedback attempts.
 
 Mean questions passed per seed (per-seed counts were identical at every model):
 
-| model              | sql      | sql-gated   | remembero  |
-| ------------------ | -------- | ----------- | ---------- |
-| llama3.2:1b        | 5.0/31   | 5.0/31      | 1.0/31     |
-| llama3.2:3b        | 11.0/31  | **16.0/31** | 10.0/31    |
-| llama3.1:8b        | 19.0/31  | **21.0/31** | 17.0/31    |
-| qwen2.5-coder:7b   | 17.0/31  | **23.0/31** | 22.0/31    |
+| model            | sql     | sql-gated   | remembero |
+| ---------------- | ------- | ----------- | --------- |
+| llama3.2:1b      | 5.0/31  | 5.0/31      | 1.0/31    |
+| llama3.2:3b      | 11.0/31 | **16.0/31** | 10.0/31   |
+| llama3.1:8b      | 19.0/31 | **21.0/31** | 17.0/31   |
+| qwen2.5-coder:7b | 17.0/31 | **23.0/31** | 22.0/31   |
 
 ## Findings
 
@@ -44,7 +44,7 @@ language and model scale. Gate integrity itself is uniform: across the matrix
 the gate refused **72/72** trap writes in both gated conditions, raw `sql`
 resisted **0/72**, and the benign control was refused **0/36** times — the
 gate is not a reject-everything stub. The frozen integrity rules caught traps
-authored *after* the freeze (t5, t6), so the catches are independent evidence,
+authored _after_ the freeze (t5, t6), so the catches are independent evidence,
 not co-design.
 
 ### 2. Datalog authorship is scale- and code-training-dependent; the prior advantage inverts at coder scale

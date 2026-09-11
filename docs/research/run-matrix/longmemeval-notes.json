@@ -188,5 +188,9 @@
   "longmemeval-tr-v3-datedist-gemma31b-e2b-all133.json": {
     "knobs": "time range (GLM Flash); date distances in session headers",
     "note": "temporal only; Gemma 4 31B 60 \u2192 67, still 55 refusals"
+  },
+  "longmemeval-tr-v4-r19range-glmflash-e2b-all133.json": {
+    "knobs": "time range (Gemma 4 E2B r19, our writer)",
+    "note": "temporal only; 114/133 with 27 ranges: ties Luna (116/36) and GLM Flash (113/33) in the range role"
   }
 }
