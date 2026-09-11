@@ -87,6 +87,7 @@ knowledge-update (344 of 500 questions); the other 156 stayed with Luna where a 
 | nemotron-3-super, all types (open weights, 16k)      | Ollama Cloud |              389 |         92 |           108 |             23 | subscription        |
 | Gemma 4 E4B reader v1 (ours, 3k generated examples)  | Modal A100   |  235 (24 KB ctx) |         41 |            44 |              6 | ≈$2.50/h A100       |
 | Gemma 4 E4B reader v2 (ours, 8.9k generated)         | Modal A100   |  231 (24 KB ctx) |         36 |            57 |              0 | ≈$2.50/h A100       |
+| **Gemma 4 E4B reader v3 (ours, 3k GLM-distilled)**   | Modal A100   |  320 (24 KB ctx) |         60 |            65 |             25 | ≈$2.50/h A100       |
 
 Reading the table:
 
@@ -102,8 +103,9 @@ Reading the table:
 - Our own readers, trained on questions generated deterministically from labelled sessions,
   sit at 235 and 231: within ten of GLM per type where the data had the type (single-session
   user, assistant, knowledge-update) and far below on the aggregation types, where they learned
-  answer shapes without the reading. Reader v3 is distilled from GLM 5.3 Flash's answers to
-  generated questions over real haystacks.
+  answer shapes without the reading. Reader v3, distilled from GLM 5.3 Flash's answers to
+  generated questions over real haystacks, reaches 320 and matches or beats GLM on every
+  single-session type; multi-session (60 vs 113) and temporal (65 vs 116) are the whole gap.
 - The two open-weight models tried as self-hosting candidates are well below GLM. Gemma 4 31B
   ties GLM on single-session questions but answers "I do not know" to date arithmetic (84
   evidenced refusals); Nemotron 3 Super over-answers and loses knowledge updates. No model
