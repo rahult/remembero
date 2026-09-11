@@ -1,0 +1,17 @@
+{
+  "labels": "data/real/labels-glmflash8.jsonl",
+  "seed": 7,
+  "trainSessions": 3000,
+  "heldoutSessions": 213,
+  "train": 2976,
+  "heldout": 144,
+  "byType": {
+    "single-session-user": 600,
+    "multi-session-count": 300,
+    "multi-session-list": 300,
+    "knowledge-update": 576,
+    "temporal-reasoning": 600,
+    "abstention": 600
+  },
+  "generatedAt": "2026-09-11T04:24:32.008Z"
+}

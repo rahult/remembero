@@ -31,6 +31,12 @@ import { rememberTranscriptText } from '../llm/pipeline.js';
 import { MemoryStore } from '../store/store.js';
 import { createRng } from './rng.js';
 import {
+  generateReaderExamples,
+  toReaderConversation,
+  type LabelledSession,
+  type ReaderExample,
+} from './reader-data.js';
+import {
   compareFactSets,
   realTranscript,
   selectTrainingSessions,
@@ -358,6 +364,63 @@ async function exportData(): Promise<void> {
   console.log(JSON.stringify(manifest, null, 2));
 }
 
+/**
+ * Reader training data: deterministic questions and gold answers over the labelled
+ * sessions, rendered the way the evaluation renders a reader prompt. Whole
+ * haystacks stay together on one side of the split: the first `--train-count`
+ * sessions of the ordered list train, the rest are held out.
+ */
+async function exportReader(): Promise<void> {
+  const labelsPath = flag('--labels', 'data/real/labels-glmflash8.jsonl')!;
+  const out = flag('--out', 'data/training-reader')!;
+  const trainCount = Number(flag('--train-count', '3000'));
+  const perType = Number(flag('--per-type', '600'));
+  const seed = Number(flag('--seed', '7'));
+  const labels = readRows(labelsPath);
+  const ordered = (await orderedSessions(seed)).filter(
+    (s) => labels.has(s.id) && !labels.get(s.id)!.error,
+  );
+  const toLabelled = (s: SelectedSession): LabelledSession => ({
+    id: s.id,
+    date: s.date.slice(0, 10).replace(/\//g, '-'),
+    facts: labels.get(s.id)!.facts,
+    transcript: realTranscript(s.session),
+  });
+  const train = ordered.slice(0, trainCount).map(toLabelled);
+  const held = ordered.slice(trainCount).map(toLabelled);
+  const trainExamples = generateReaderExamples(train, createRng(seed * 7 + 1), {
+    perType,
+  });
+  const heldExamples = generateReaderExamples(held, createRng(seed * 7 + 2), {
+    perType: Math.max(10, Math.floor(perType / 20)),
+  });
+  mkdirSync(out, { recursive: true });
+  const lines = (examples: ReaderExample[]) =>
+    examples.map((e) => JSON.stringify(toReaderConversation(e))).join('\n');
+  writeFileSync(join(out, 'conversations.jsonl'), `${lines(trainExamples)}\n`);
+  writeFileSync(join(out, 'heldout.jsonl'), `${lines(heldExamples)}\n`);
+  const byType = (examples: ReaderExample[]) =>
+    examples.reduce<Record<string, number>>((acc, e) => {
+      acc[e.type] = (acc[e.type] ?? 0) + 1;
+      return acc;
+    }, {});
+  const manifest = {
+    labels: labelsPath,
+    seed,
+    trainSessions: train.length,
+    heldoutSessions: held.length,
+    train: trainExamples.length,
+    heldout: heldExamples.length,
+    byType: byType(trainExamples),
+    generatedAt: new Date().toISOString(),
+  };
+  writeFileSync(
+    join(out, 'manifest.json'),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
+  console.log(JSON.stringify(manifest, null, 2));
+}
+
 const invokedDirectly =
   process.argv[1] !== undefined &&
   fileURLToPath(import.meta.url) === process.argv[1];
@@ -368,8 +431,11 @@ if (invokedDirectly) {
   if (command === 'label') await label();
   else if (command === 'measure') await measure();
   else if (command === 'export') await exportData();
+  else if (command === 'reader') await exportReader();
   else {
-    console.error('usage: run-real-sessions.js label|measure|export [flags]');
+    console.error(
+      'usage: run-real-sessions.js label|measure|export|reader [flags]',
+    );
     process.exit(1);
   }
 }
