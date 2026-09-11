@@ -440,6 +440,26 @@ function percent(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
 }
 
+async function warmUp(
+  client: OpenRouterClient,
+  label: string,
+  attempts = 6,
+): Promise<void> {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      await client.completeWithUsage([{ role: 'user', content: 'Say ok.' }], {
+        maxTokens: 4,
+      });
+      return;
+    } catch (error) {
+      if (attempt === attempts) throw error;
+      console.error(
+        `${label} not ready (attempt ${attempt}/${attempts}): ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+}
+
 async function main(): Promise<void> {
   loadEnv();
   const args = parseArgs(process.argv.slice(2));
@@ -525,6 +545,9 @@ async function main(): Promise<void> {
   const engineWriter = extractor as OpenRouterClient;
   const embeddings =
     args.semanticQuestionTypes.size > 0 ? embeddingClientFromEnv() : undefined;
+  // A self-hosted extraction endpoint that scaled to zero takes longer to come up
+  // than one request's timeout; wake it before the questions start.
+  if (extractor !== undefined) await warmUp(extractor, 'extraction endpoint');
   let completed = 0;
   const observations = await mapConcurrent(
     instances,

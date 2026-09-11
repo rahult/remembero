@@ -97,6 +97,18 @@ been shown to work here yet.
    with the frontier rows so the gap is visible.
 3. **Closure and aggregation coverage in the training data** in the proportions the v3
    benchmark uses.
+4. **The product recall path must speak the trained dialect.** Found 2026-09-11: the
+   product's `recallQuestion` prompts for `?- select … where …` queries, while the writer
+   was trained (and is benchmarked) on the rule-shaped card (`q(X) :- …`, `_plus`, `count(*)
+as N where …`). The fine-tune's query skill never reached the product. The LongMemEval
+   engine-recall harness now uses the trained card over a live store's predicates (with
+   sample facts standing in for argument names); the same prompt and program parsing belong
+   in `recallQuestion` as a `dialect` variant, with the store's closure and aggregate
+   validation kept.
+5. **Cross-product guard in the engine.** A model-authored program that lists relations side
+   by side with wildcards is a Cartesian product the evaluator grinds through at 100% CPU
+   despite the row and fact limits. The harness estimates the product before evaluation and
+   refuses above 200k rows; the engine should do the same for every caller.
 
 ### Retrieval (92.5% → 96%)
 
