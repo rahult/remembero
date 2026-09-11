@@ -313,6 +313,29 @@ writes a named rule plus an explicit `?- goal.` line, which the MCP query tool a
 the SQLite bridge sent to the native parser, scoring 16/31 until the bridge routed such
 programs to the portable engine (24/31 after; r14 unchanged at 27).
 
+### What the precision number means (2026-09-11)
+
+`measure` scores a model fact as precise only when it shares a non-self constant with a
+reference fact. The reference is capped at eight facts per session and written in the
+labeller's spelling, so a true fact the labeller skipped, or a paraphrase
+(`plans_to_buy(user, sustainably_sourced_products)` against
+`intends_to_buy(user, sustainable_products)`), counts as imprecise. To find out how much of the
+43% "imprecise" mass is real error, `judge` sampled 150 of r20's 513 unmatched facts and asked
+Luna whether the transcript states or clearly implies each one
+(`extraction-precision-judged-r20.json`): **136 supported, 14 not**. The unsupported ones are
+plausible inventions (`has_pet(user, dogs)`, `goal(user, learn_shamadan)`); the supported ones
+include weak implications (`interested_in(user, prompting)`). Folding that back in, r20's
+precision against the transcript is about **96%**: 672 matched plus 91% of 503 unmatched, over
+1,175 facts. The loose precision column above is a floor and a spelling-agreement measure; the
+judged number is what a user experiences. Recall, 46% of what a capped frontier labeller
+writes, remains the real gap, and the moonshot's precision target (85%) is already met on the
+judged measure.
+
+Round 20 is r19's data retrained with `--max-length 4096`, so the 39% of real-session rows the
+2,048 limit had truncated keep their labels: recall 44.4% → 45.7%, false alarms 4.7% → 2.3%,
+extraction 86, query 25. Inside the noise on every number, so the truncation was not what held
+r19 back; r19 stays served.
+
 ### Extraction recall on real sessions (2026-09-10)
 
 The synthetic benchmark says the small model is within a few cases of the frontier model. A
@@ -359,11 +382,13 @@ with facts (Luna 6.8), atoms 8.1 characters on average (Luna 11.0), 2.2% quoted 
 refused by the sensitive-transcript guard. These labels are `data/real/labels-glmflash8.jsonl`
 and the reference for the measurements below (283 scored sessions, the same slice).
 
-| extractor                        | finds any fact where GLM did | false alarms | fact recall | fact precision | facts |
-| -------------------------------- | ---------------------------: | -----------: | ----------: | -------------: | ----: |
-| Gemma 4 E2B r16                  |                        47.5% |        39.5% |       14.4% |          50.7% |   383 |
-| Gemma 4 E2B r18 (+ repair turns) |                        50.0% |        32.6% |       14.3% |          57.1% |   346 |
-| GLM 5.3 Flash capped (reference) |                            – |            – |           – |              – | 1,364 |
+| extractor                                 | finds any fact where GLM did | false alarms | fact recall | fact precision | facts |
+| ----------------------------------------- | ---------------------------: | -----------: | ----------: | -------------: | ----: |
+| Gemma 4 E2B r16                           |                        47.5% |        39.5% |       14.4% |          50.7% |   383 |
+| Gemma 4 E2B r18 (+ repair turns)          |                        50.0% |        32.6% |       14.3% |          57.1% |   346 |
+| **Gemma 4 E2B r19 (+ 3,000 capped real)** |                        73.8% |         4.7% |   **44.4%** |          57.5% | 1,090 |
+| Gemma 4 E2B r20 (= r19, max_length 4096)  |                        76.2% |         2.3% |       45.7% |          57.2% | 1,175 |
+| GLM 5.3 Flash capped (reference)          |                            – |            – |           – |              – | 1,364 |
 
 Recall against the capped labels is 14% for r16 and r18, four points above the 10% measured
 against Luna's, because the capped set drops the marginal facts the small model never wrote.
