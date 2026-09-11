@@ -591,6 +591,16 @@ question on multi-session, so a single 133-question comparison has a noise band 
 ±10, wider than the ±6 per 261 measured with Luna. Comparisons on this benchmark need repeated
 runs or a deterministic reader before a ten-answer difference means anything.
 
+**The noise band on 500 (2026-09-11).** A repeat of the recommended configuration, with GLM 5.3
+Flash also reading the time range, scored **425/500** against 432: 33 questions flipped, 11 of
+them with a different retrieved context (the two range extractors disagree on a few
+questions), 22 with a byte-identical prompt. So GLM 5.3 Flash through the cloud flips about
+one question in twenty at "temperature zero", and two full-500 runs of the same system differ
+by about seven. Every comparison in this document narrower than ten answers on 500, or three
+on a per-type count, is inside that band; the reader table's 432 to 435 spread and the GLM
+Flash versus Luna range result (113 vs 116) are ties. Per type the repeat moved multi-session
+113 → 107 and temporal 116 → 110 while knowledge-update went 66 → 69 and preference 28 → 30.
+
 The engine's own recall over remembered facts is the right shape (the counts it did produce
 listed the right items), but it needs the fact store to be dense before it can decide
 questions. That is the writer-training thread of the moonshot, not a retrieval change.

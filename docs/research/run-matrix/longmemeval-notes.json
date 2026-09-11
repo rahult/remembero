@@ -176,5 +176,9 @@
   "longmemeval-ms-v6-engine-recall-e2b-glmflash-all133.json": {
     "knobs": "engine recall (E2B r16 writes a Datalog program over the remembered facts; rows shown to the reader)",
     "note": "multi-session only; engine rows on 11/133, no outcome changed; 12 flips vs 432-run on identical prompts = reader noise"
+  },
+  "longmemeval-extraction-v12-composed-semantic-glmflash-allreader-glmrange-e2b-all500.json": {
+    "knobs": "time range (GLM 5.3 Flash)",
+    "note": "repeat of the recommended configuration with GLM Flash also as range model: 425 vs 432; 33 flips, 11 with a different context (range differences)"
   }
 }
