@@ -537,6 +537,26 @@ with multi-session at 113/133, the highest of any run, and preference at 28/30. 
 the simpler system, so the recommended configuration is GLM 5.3 Flash for everything on the
 Ollama Cloud subscription, where the reader cost for 500 questions is covered by the plan.
 
+**Open-weight readers (2026-09-11).** For the self-hosting roadmap the question is whether an
+open model that fits one GPU can read as well as GLM 5.3 Flash. Two were run on the Ollama
+Cloud subscription as proxies, same cache, same retrieval, same prompt, GPT-4o judging:
+
+| reader, every type            | total   | k-update | multi   | temporal | preference | abstention | note                                                           |
+| ----------------------------- | ------- | -------- | ------- | -------- | ---------- | ---------: | -------------------------------------------------------------- |
+| GLM 5.3 Flash                 | 432/500 | 66/78    | 113/133 | 116/133  | 28/30      |       0.93 | current preference                                             |
+| Gemma 4 31B                   | 347/500 | 63/78    | 86/133  | 60/133   | 28/30      |       0.90 | "I do not know" on 84 evidenced questions, 52 of them temporal |
+| Nemotron 3 Super (16k budget) | 389/500 | 54/78    | 92/133  | 108/133  | 23/30      |       0.77 | reasons at length, over-answers abstention questions           |
+
+Gemma 4 31B is a strong single-session reader (it ties GLM on the three single-session types)
+but refuses to do date arithmetic: asked "how many weeks ago", with the dated session in
+context, it answers "I do not know" where GLM computes the interval. Nemotron 3 Super answers
+everything, including the 30 questions it should abstain on, and loses knowledge-update
+questions to stale values. Neither is within the ten-answer noise of GLM Flash, so no
+open-weight model that fits an A100 has yet matched the subscription reader under the shared
+prompt. Gemma's failure is a prompt-following one (the abstention instruction is read too
+broadly) and might yield to a reader prompt tuned for it; that would be a per-model prompt,
+which the comparison has so far avoided.
+
 Cost of the composed run over 500 questions: 10,089 extraction calls on an L4 (the dev half
 replayed from the cache), about $1 of GPU time, plus the reader and judge; the time-range
 extractor added one Luna call for each of the 133 temporal questions.

@@ -114,6 +114,20 @@ Every fine-tuned round refused all six trap writes and made zero or one tool err
    three rounds together were a few dollars of Tinker time plus roughly 5,000 cached Luna
    paraphrase calls.
 
+7. **Solver feedback does not move the fine-tune; it is a training-data item (2026-09-11).**
+   The engine now explains an empty result to the model before its retry: how many rows each
+   goal of a join matches on its own, and which swap of a shared variable's argument position
+   would make the query return rows (`emptyResultFeedback`, exposed on the SQLite bridge as
+   `datalogFeedback` and used in the product's fallback prompt). On the two empty-result
+   misses the feedback is exact: for j2 it says `promised_update(_, Y, _)` and
+   `status(Y, blocked)` each match alone but not together and suggests
+   `promised_update(_, _, Y)`; for a6 it says every `M` in `reports_to(M, _)` works on
+   something and suggests `reports_to(_, M)`, which is the gold query. Gemma 4 E2B r16 repeated
+   its query unchanged both times (`--empty-feedback`: 27/31, baseline the same day 27/31,
+   misses j2, j5, m4, a6 in both). The adapter has never seen a repair turn, so it takes the
+   "repeat it unchanged if correct" branch of the instruction. The next query round should
+   include repair-turn examples: question, wrong query, engine feedback, corrected query.
+
 ## Round 4 (after the review)
 
 Round 4 was trained after the adversarial review with every data defect below fixed and

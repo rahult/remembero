@@ -69,6 +69,8 @@ knowledge-update (344 of 500 questions); the other 156 stayed with Luna where a 
 | deepseek-v4-flash (0731), aggregation types          | Ollama Cloud |              413 |         99 |           113 |             26 | subscription        |
 | deepseek/deepseek-v4.1-flash, aggregation, 4k budget | OpenRouter   |  423 (16 errors) |        104 |           116 |             21 | ≈$0.30              |
 | deepseek/deepseek-v4.1-flash, aggregation, 16k       | OpenRouter   |              428 |        103 |           114 |             28 | $0.57               |
+| gemma4:31b, all types (open weights)                 | Ollama Cloud |              347 |         86 |            60 |             28 | subscription        |
+| nemotron-3-super, all types (open weights, 16k)      | Ollama Cloud |              389 |         92 |           108 |             23 | subscription        |
 
 Reading the table:
 
@@ -81,6 +83,10 @@ Reading the table:
   is the simpler system and posts the best multi-session score.
 - DeepSeek v4 Flash is below Luna. DeepSeek v4.1 Flash is a reasoning model that empties a
   4k completion budget thinking; at 16k it lands between Luna and GLM.
+- The two open-weight models tried as self-hosting candidates are well below GLM. Gemma 4 31B
+  ties GLM on single-session questions but answers "I do not know" to date arithmetic (84
+  evidenced refusals); Nemotron 3 Super over-answers and loses knowledge updates. No model
+  that fits one A100 has matched the subscription reader yet.
 - Two reader-side prompt patterns from the LongMemEval paper (dated notes then answer, and a
   two-call enumerate-then-answer) did not help Luna: 416 and 401. The gain came from the model.
 

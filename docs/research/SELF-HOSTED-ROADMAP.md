@@ -61,6 +61,11 @@ removes the 429 failures the hosted embedding provider produced.
 
 ### 3. A reader we own (two to four weeks; the only hard item)
 
+**Proxy runs done 2026-09-11.** Gemma 4 31B 347/500 (over-abstains on date arithmetic),
+Nemotron 3 Super 389/500 (over-answers, loses knowledge updates), against GLM 5.3 Flash 432.
+Neither is a candidate under the shared prompt; the path is distillation or a per-model reader
+prompt for Gemma. Details in [LONGMEMEVAL.md](LONGMEMEVAL.md).
+
 Three findings frame this. The reader answers 96% of questions whose evidence is retrieved
 at k ≤ 5 and 89–92% at k = 15; a 3B model's prose leg was unreliable; and swapping Luna for
 GLM 5.3 Flash on aggregation questions was worth 17 answers on 500. So the reader matters and
@@ -123,11 +128,12 @@ needs no model at all, ours or anyone's. Four of its items bear directly on the 
   is the deterministic answer to the knowledge-update questions and what would let the
   temporal route (roadmap item 4) work from stored intervals instead of a model guessing a
   date range from the question. First item in the survey's own priority order.
-- **Solver-feedback repair on the query leg** (Logic-LM, SymbolLKG). The product already
-  retries query authoring through review and repair passes with the same small model; the
-  survey's addition is to feed engine diagnostics (empty result, unknown predicate, arity
-  mismatch) back into that loop rather than only the parse error. Zero extra models; it lifts
-  the query leg's 27–28/31 without a training round.
+- **Solver-feedback repair on the query leg** (Logic-LM, SymbolLKG). Done 2026-09-11 on the
+  engine side: `emptyResultFeedback` gives the repair turn per-goal match counts and a
+  concrete argument-swap suggestion, in the product fallback and on the SQLite bridge. The
+  fine-tune ignores it (27/31 either way) because it never saw a repair turn; the training
+  data for the next query round needs repair-turn examples before this pays off
+  ([QUERY-DIALECT-FINETUNE.md](QUERY-DIALECT-FINETUNE.md), finding 7).
 - **Salience and decay as derived scores** (MemoryBank, Generative Agents). Ranking facts for
   a session brief by recency and reinforcement, computed in the engine and never deleting,
   replaces the semantic route for the common "what matters now" case and lowers how often

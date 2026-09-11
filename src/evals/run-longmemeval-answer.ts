@@ -59,6 +59,8 @@ interface Args {
   entityRetrieval: boolean;
   extractionCacheDir: string | undefined;
   temporalRangeModel: string | undefined;
+  temporalRangeBaseUrl: string | undefined;
+  temporalRangeApiKey: string | undefined;
   readingStrategy: 'direct' | 'notes' | 'two-call';
   aggregationReaderModel: string | undefined;
   aggregationReaderBaseUrl: string | undefined;
@@ -107,6 +109,8 @@ Options:
                          answers from that list alone
   --temporal-range-model <id>  Time-aware retrieval: this model reads the date range a
                          temporal question refers to (or refuses); in-range sessions rank first
+  --temporal-range-base-url <url>  Endpoint for that model (default: the main endpoint)
+  --temporal-range-api-key <key>  Key for it (default: TEMPORAL_RANGE_API_KEY, else LLM_API_KEY)
   --extraction-cache <dir>  Replay per-session extractions from this directory when present
                          (keyed by extractor model and transcript), else call and record
   --entity-retrieval     hybrid/extracted: one hop over the extracted facts from the question
@@ -194,6 +198,8 @@ function parseArgs(argv: string[]): Args {
     entityRetrieval: false,
     extractionCacheDir: undefined,
     temporalRangeModel: undefined,
+    temporalRangeBaseUrl: undefined,
+    temporalRangeApiKey: undefined,
     readingStrategy: 'direct',
     aggregationReaderModel: undefined,
     aggregationReaderBaseUrl: undefined,
@@ -362,6 +368,13 @@ function parseArgs(argv: string[]): Args {
       args.readingStrategy = value;
     } else if (arg === '--temporal-range-model') {
       args.temporalRangeModel = requiredValue(argv, index++, arg);
+    } else if (arg === '--temporal-range-base-url') {
+      args.temporalRangeBaseUrl = requiredValue(argv, index++, arg).replace(
+        /\/$/,
+        '',
+      );
+    } else if (arg === '--temporal-range-api-key') {
+      args.temporalRangeApiKey = requiredValue(argv, index++, arg);
     } else if (arg === '--extraction-cache') {
       args.extractionCacheDir = resolve(requiredValue(argv, index++, arg));
     } else if (arg === '--entity-retrieval') {
@@ -461,8 +474,11 @@ async function main(): Promise<void> {
     args.temporalRangeModel === undefined
       ? undefined
       : new OpenRouterClient({
-          apiKey,
-          baseUrl,
+          apiKey:
+            args.temporalRangeApiKey ??
+            process.env.TEMPORAL_RANGE_API_KEY ??
+            apiKey,
+          baseUrl: args.temporalRangeBaseUrl ?? baseUrl,
           model: args.temporalRangeModel,
         });
   const judge = new OpenRouterClient({
