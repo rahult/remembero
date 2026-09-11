@@ -671,6 +671,17 @@ had cost 18 answers on the development split by crowding raw sessions out of sha
 r19's capped labels write 3.6 times r16's facts without that penalty. r19 is the served writer
 from this evening; the r19 extraction cache (`runs/modal/xcache-e2b-r19`) covers all 500.
 
+**Engine recall over the r19 store (2026-09-12).** The same experiment with the writer that
+stores 3.6 times the facts: programs ran and returned rows on **64 of 133** multi-session
+questions (11 with the r16 store), 34 were unparsable and 35 empty. Total 108 against 107
+without the block; among the 64 with rows, 3 gained and 5 lost. Density is no longer the
+limit; scope is. The writer's programs count a whole predicate (`count(*) where owns(user, Y)`
+returns eight possessions for a question about one kind of thing), and the reader either
+trusts or ignores the number. The next step on this lever is a program that scopes to the
+question's concept (a constant or a predicate chosen from the question's words, which the
+`dialect` card can carry as an example) and a rendering that lists the counted items with
+their sessions so the reader can drop the ones that do not fit.
+
 The engine's own recall over remembered facts is the right shape (the counts it did produce
 listed the right items), but it needs the fact store to be dense before it can decide
 questions. That is the writer-training thread of the moonshot, not a retrieval change.

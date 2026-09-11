@@ -212,5 +212,9 @@
   "longmemeval-extraction-v14-composed-semantic-readerv3-e4b-ctx24k-e2b-all500.json": {
     "knobs": "reader = our Gemma 4 E4B reader v3 (3,000 GLM-distilled examples); 24KB context; date distances; GLM range",
     "note": "320/500: single-session types at or above GLM (63/70, 50/56, 25/30), k-update 57/78; gap is multi 60/133 and temporal 65/133"
+  },
+  "longmemeval-ms-v7-engine-recall-r19-glmflash-all133.json": {
+    "knobs": "engine recall (r19 writes a program over the r19 store; rows to the reader)",
+    "note": "multi-session only; rows on 64/133 (r16 store: 11), 108 vs 107 without: programs too broad (count owns(user,Y) = 8 items)"
   }
 }
