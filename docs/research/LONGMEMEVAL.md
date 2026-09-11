@@ -688,6 +688,14 @@ than the question and asks the reader to count only the listed items that fit. R
 with rows, 5 gained and 3 lost, and the rest of the movement is noise. The lever is live and
 pointing the right way; a repeat run and the scoped program are what would make it a result.
 
+The repeat came an hour later as a full 500 with the scoped block on multi-session and
+knowledge-update: **424** against 426, multi-session 101 against 107, knowledge-update 71
+against 68. The 133-only run had shown multi-session +6; the full run shows −6. That is the
+reader's noise band on the type, and the two runs bracket zero: the engine block, as rendered
+today, has no measurable effect on GLM Flash. The mechanism is sound (rows on half the
+questions, the counts list real items) and the lever stays in the design for the small reader,
+which unlike GLM can be trained to use it; it is not part of the recommended configuration.
+
 The engine's own recall over remembered facts is the right shape (the counts it did produce
 listed the right items), but it needs the fact store to be dense before it can decide
 questions. That is the writer-training thread of the moonshot, not a retrieval change.

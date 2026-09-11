@@ -220,5 +220,9 @@
   "longmemeval-ms-v8-engine-recall-scoped-r19-glmflash-all133.json": {
     "knobs": "engine recall over the r19 store, block tells the reader to count only fitting items",
     "note": "multi-session only; 113 vs 107 baseline and 108 unscoped; answered 63: +5/-3; inside the band, directionally right"
+  },
+  "longmemeval-extraction-v15-composed-engine-scoped-glmflash-glmrange-r19-all500.json": {
+    "knobs": "scoped engine recall on multi-session and knowledge-update; GLM Flash range",
+    "note": "424 vs 426 without; multi 101 vs 107 (the 133-only run had +6): the block has no measurable effect, the two runs bracket zero"
   }
 }
