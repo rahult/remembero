@@ -116,3 +116,13 @@ run in progress lost its `merged`, `merged-text` and `trainer` directories; ever
 and `metrics.json` stays, so any run can be re-merged with `add_processor` /
 `export_text_only` after a fresh merge. Remove with
 `modal volume rm -r rembero-finetune runs/<run>/merged`.
+
+## Sequence length
+
+`--max-length` (default 2048) truncates rows from the right, and a prompt/completion row that
+is truncated loses its completion. Real-session extraction rows (16k-character transcripts)
+exceed 2048 tokens 39% of the time, so runs that include them (r17, r19) trained on truncated
+labels for the longest sessions; use `--max-length 4096` for those and `8192` for reader rows,
+which carry a whole rendered history. Memory: batch 4 × 4096 fits an H100 for E2B with
+gradient checkpointing; halve the batch and double `--grad-accum` at 8192.
+

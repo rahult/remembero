@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   generateReaderExamples,
+  rewriteAccepted,
+  rewriteQuestions,
   templatedQuestion,
   toReaderConversation,
   type LabelledSession,
@@ -122,5 +124,19 @@ describe('reader training data', () => {
     expect(templatedQuestion('multi-session-count', 'bought', null)).toMatch(
       /how many/i,
     );
+  });
+
+  it('accepts a natural rewrite and rejects one that leaks the answer or drifts', async () => {
+    const single = examples.find(
+      (e) => e.type === 'single-session-user' && e.predicate === 'lives_in',
+    )!;
+    expect(rewriteAccepted(single, 'Where do I live?')).toBe(true);
+    expect(rewriteAccepted(single, `Do I live in ${single.gold}?`)).toBe(false);
+    expect(rewriteAccepted(single, 'What is my favourite colour?')).toBe(false);
+    const result = await rewriteQuestions([single], {
+      rewrite: async () => 'Where do I live these days?',
+    });
+    expect(result).toEqual({ rewritten: 1, kept: 0 });
+    expect(single.question).toBe('Where do I live these days?');
   });
 });

@@ -12,6 +12,7 @@
  *
  * `label` and `measure` resume: sessions already in the output are skipped.
  */
+import { createHash } from 'node:crypto';
 import {
   appendFileSync,
   existsSync,
@@ -32,6 +33,8 @@ import { MemoryStore } from '../store/store.js';
 import { createRng } from './rng.js';
 import {
   generateReaderExamples,
+  rewritePrompt,
+  rewriteQuestions,
   toReaderConversation,
   type LabelledSession,
   type ReaderExample,
@@ -395,6 +398,41 @@ async function exportReader(): Promise<void> {
     perType: Math.max(10, Math.floor(perType / 20)),
   });
   mkdirSync(out, { recursive: true });
+  // optional natural-language rewrite of the templated questions, cached by question text
+  const rewriteModel = flag('--rewrite-model');
+  let rewrites: { rewritten: number; kept: number } | undefined;
+  if (rewriteModel !== undefined) {
+    const apiKey = flag('--api-key', process.env.LLM_API_KEY);
+    if (!apiKey) throw new Error('LLM_API_KEY is not set');
+    const client = new OpenRouterClient({
+      apiKey,
+      baseUrl: (
+        flag('--base-url', process.env.LLM_BASE_URL) ??
+        'https://openrouter.ai/api/v1'
+      ).replace(/\/$/, ''),
+      model: rewriteModel,
+    });
+    const cacheDir = join(out, 'rewrite-cache');
+    mkdirSync(cacheDir, { recursive: true });
+    const rewriter = {
+      rewrite: async (example: ReaderExample): Promise<string> => {
+        const key = createHash('sha256')
+          .update(`${rewriteModel}\n${example.question}`)
+          .digest('hex');
+        const path = join(cacheDir, `${key}.txt`);
+        if (existsSync(path)) return readFileSync(path, 'utf8');
+        const completion = await client.completeWithUsage(
+          [{ role: 'user', content: rewritePrompt(example) }],
+          { maxTokens: 120 },
+        );
+        writeFileSync(path, completion.content);
+        return completion.content;
+      },
+    };
+    const a = await rewriteQuestions(trainExamples, rewriter);
+    const b = await rewriteQuestions(heldExamples, rewriter);
+    rewrites = { rewritten: a.rewritten + b.rewritten, kept: a.kept + b.kept };
+  }
   const lines = (examples: ReaderExample[]) =>
     examples.map((e) => JSON.stringify(toReaderConversation(e))).join('\n');
   writeFileSync(join(out, 'conversations.jsonl'), `${lines(trainExamples)}\n`);
@@ -412,6 +450,7 @@ async function exportReader(): Promise<void> {
     train: trainExamples.length,
     heldout: heldExamples.length,
     byType: byType(trainExamples),
+    ...(rewrites === undefined ? {} : { rewriteModel, rewrites }),
     generatedAt: new Date().toISOString(),
   };
   writeFileSync(

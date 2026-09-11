@@ -13,5 +13,10 @@
     "temporal-reasoning": 600,
     "abstention": 600
   },
-  "generatedAt": "2026-09-11T04:24:32.008Z"
+  "rewriteModel": "openai/gpt-5.6-luna",
+  "rewrites": {
+    "rewritten": 1739,
+    "kept": 1381
+  },
+  "generatedAt": "2026-09-11T05:06:18.332Z"
 }

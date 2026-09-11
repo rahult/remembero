@@ -527,6 +527,10 @@ def main(
     lora_rank: int = 32,
     batch_size: int = 8,
     grad_accum: int = 8,
+    # Rows longer than this are truncated from the right, which for a prompt/completion row
+    # drops the completion: 39% of the real-session extraction rows exceed 2048 tokens, so
+    # runs that include them need 4096; reader rows (a whole rendered history) need 8192.
+    max_length: int = 2048,
     check_only: bool = False,
 ) -> None:
     check_data(data, heldout if Path(heldout).exists() else None)
@@ -536,7 +540,10 @@ def main(
         batch.put_file(data, f"data/{run}/conversations.jsonl")
         if Path(heldout).exists():
             batch.put_file(heldout, f"data/{run}/heldout.jsonl")
-    print(f"uploaded data for run {run}; training {BASE_MODEL} on {TRAIN_GPU} ...")
+    print(
+        f"uploaded data for run {run}; training {BASE_MODEL} on {TRAIN_GPU} "
+        f"(max_length {max_length}) ..."
+    )
     metrics = train.remote(
         run=run,
         epochs=epochs,
@@ -544,6 +551,7 @@ def main(
         lora_rank=lora_rank,
         batch_size=batch_size,
         grad_accum=grad_accum,
+        max_length=max_length,
         base_model=BASE_MODEL,
     )
     print(json.dumps(metrics, indent=2))

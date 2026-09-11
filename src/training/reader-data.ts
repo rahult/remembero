@@ -386,3 +386,71 @@ export function toReaderConversation(example: ReaderExample): Conversation {
 }
 
 export { describeDistance };
+
+/**
+ * Optional question rewrite: the templated question is grammatical only by accident
+ * ("that I plans to play"). A cheap model rewrites it as a natural question with the
+ * same meaning; the rewrite is rejected when it leaks the answer's first value or
+ * drifts from the predicate's words entirely.
+ */
+export interface QuestionRewriter {
+  rewrite(example: ReaderExample): Promise<string>;
+}
+
+export function rewriteAccepted(
+  example: ReaderExample,
+  rewritten: string,
+): boolean {
+  const q = rewritten.trim();
+  if (q.length < 8 || q.length > 240 || !q.endsWith('?')) return false;
+  const lower = q.toLowerCase();
+  const firstValue = example.gold.split(/[:(,]/)[0]?.trim().toLowerCase();
+  if (
+    example.type !== 'abstention' &&
+    example.type !== 'temporal-reasoning' &&
+    firstValue !== undefined &&
+    firstValue.length >= 3 &&
+    lower.includes(firstValue)
+  ) {
+    return false;
+  }
+  const predicateWords = words(example.predicate)
+    .split(' ')
+    .filter((w) => w.length >= 4);
+  return (
+    predicateWords.length === 0 ||
+    predicateWords.some((w) => lower.includes(w.slice(0, 4)))
+  );
+}
+
+export function rewritePrompt(example: ReaderExample): string {
+  return `Rewrite the question below as one natural question a person would type to their assistant, keeping its meaning exactly: same subject, same time reference, same request (a count stays a count, "how long ago" stays "how long ago"). Do not answer it and do not add information. Reply with the question only.
+
+Question: ${example.question}`;
+}
+
+export async function rewriteQuestions(
+  examples: ReaderExample[],
+  rewriter: QuestionRewriter,
+  concurrency = 8,
+): Promise<{ rewritten: number; kept: number }> {
+  let index = 0;
+  let rewritten = 0;
+  let kept = 0;
+  const worker = async () => {
+    while (index < examples.length) {
+      const example = examples[index++];
+      try {
+        const candidate = await rewriter.rewrite(example);
+        if (rewriteAccepted(example, candidate)) {
+          example.question = candidate.trim();
+          rewritten += 1;
+        } else kept += 1;
+      } catch {
+        kept += 1;
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: concurrency }, worker));
+  return { rewritten, kept };
+}
