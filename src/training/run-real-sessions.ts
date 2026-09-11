@@ -32,6 +32,17 @@ import { rememberTranscriptText } from '../llm/pipeline.js';
 import { MemoryStore } from '../store/store.js';
 import { createRng } from './rng.js';
 import {
+  acceptDistilled,
+  assembleHaystack,
+  parseQuestionReply,
+  pickType,
+  questionWriterPrompt,
+  readerMessages,
+  toDistilledConversation,
+  type DistilledExample,
+} from './reader-distill.js';
+import type { Rng } from './rng.js';
+import {
   generateReaderExamples,
   rewritePrompt,
   rewriteQuestions,
@@ -559,6 +570,160 @@ async function judgeUnmatched(): Promise<void> {
   console.log(JSON.stringify({ ...out, rows: undefined }));
 }
 
+/**
+ * Reader v3 data: teacher-distilled. For each example, assemble a haystack of real
+ * sessions, have the teacher write a question of a drawn type, then answer it through
+ * the evaluation's reader prompt; keep the pair when the answer is consistent with
+ * the type (an abstention question got an abstention, any other got an answer).
+ * Resumable: examples are appended to the output as they finish.
+ */
+async function distillReader(): Promise<void> {
+  const labelsPath = flag('--labels', 'data/real/labels-glmflash8.jsonl')!;
+  const out = flag('--out', 'data/training-reader-v3')!;
+  const trainCount = Number(flag('--train-count', '3000'));
+  const target = Number(flag('--examples', '4000'));
+  const heldoutTarget = Number(flag('--heldout-examples', '200'));
+  const seed = Number(flag('--seed', '7'));
+  const concurrency = Number(flag('--concurrency', '8'));
+  const model = flag('--model', 'z-ai/glm-5.3-flash')!;
+  const apiKey = flag('--api-key', process.env.LLM_API_KEY);
+  if (!apiKey) throw new Error('LLM_API_KEY is not set');
+  const client = new OpenRouterClient({
+    apiKey,
+    baseUrl: (
+      flag('--base-url', process.env.LLM_BASE_URL) ??
+      'https://openrouter.ai/api/v1'
+    ).replace(/\/$/, ''),
+    model,
+  });
+  const labels = readRows(labelsPath);
+  const ordered = (await orderedSessions(seed)).filter(
+    (s) => labels.has(s.id) && !labels.get(s.id)!.error,
+  );
+  const toLabelled = (s: SelectedSession): LabelledSession => ({
+    id: s.id,
+    date: s.date.slice(0, 10).replace(/\//g, '-'),
+    facts: labels.get(s.id)!.facts,
+    transcript: realTranscript(s.session),
+  });
+  const trainPool = ordered.slice(0, trainCount).map(toLabelled);
+  const heldPool = ordered.slice(trainCount).map(toLabelled);
+  mkdirSync(out, { recursive: true });
+  const stats = {
+    attempted: 0,
+    kept: 0,
+    noQuestion: 0,
+    rejected: 0,
+    errors: 0,
+  };
+  const byType: Record<string, number> = {};
+
+  const produce = async (
+    pool: LabelledSession[],
+    rng: Rng,
+    want: number,
+    file: string,
+  ): Promise<void> => {
+    const done = existsSync(file)
+      ? readFileSync(file, 'utf8').split('\n').filter(Boolean).length
+      : 0;
+    let kept = done;
+    const tasks = Array.from(
+      { length: Math.max(0, want - done) * 2 },
+      (_, i) => i,
+    );
+    await runPool(tasks, concurrency, async () => {
+      if (kept >= want) return;
+      stats.attempted += 1;
+      const haystack = assembleHaystack(pool, rng);
+      const type = pickType(rng);
+      try {
+        const written = await client.completeWithUsage(
+          [{ role: 'user', content: questionWriterPrompt(haystack, type) }],
+          // GLM Flash reasons before it answers; the budget must cover the thinking
+          { maxTokens: 4_000 },
+        );
+        const parsed = parseQuestionReply(written.content);
+        if (parsed === undefined) {
+          stats.noQuestion += 1;
+          return;
+        }
+        const messages = readerMessages(haystack, parsed.question, type);
+        const answered = await client.completeWithUsage(messages, {
+          maxTokens: 4_000,
+        });
+        if (!acceptDistilled(type, answered.content)) {
+          stats.rejected += 1;
+          return;
+        }
+        if (kept >= want) return;
+        kept += 1;
+        stats.kept += 1;
+        byType[type] = (byType[type] ?? 0) + 1;
+        const example: DistilledExample = {
+          type,
+          question: parsed.question,
+          questionDate: haystack.questionDate,
+          sessionIds: haystack.sessions.map((s) => s.id),
+          evidence: parsed.evidence,
+          answer: answered.content.trim(),
+          messages,
+        };
+        appendFileSync(
+          file,
+          `${JSON.stringify(toDistilledConversation(example))}\n`,
+        );
+        appendFileSync(
+          `${file}.meta.jsonl`,
+          `${JSON.stringify({ ...example, messages: undefined })}\n`,
+        );
+        if (stats.kept % 100 === 0) console.error(`[kept ${stats.kept}]`);
+      } catch (error) {
+        stats.errors += 1;
+        if (stats.errors % 20 === 1)
+          console.error(
+            `distill error: ${error instanceof Error ? error.message : String(error)}`,
+          );
+      }
+    });
+  };
+  await produce(
+    trainPool,
+    createRng(seed * 11 + 1),
+    target,
+    join(out, 'conversations.jsonl'),
+  );
+  await produce(
+    heldPool,
+    createRng(seed * 11 + 2),
+    heldoutTarget,
+    join(out, 'heldout.jsonl'),
+  );
+  const manifest = {
+    labels: labelsPath,
+    teacher: model,
+    seed,
+    trainSessions: trainPool.length,
+    heldoutSessions: heldPool.length,
+    train: readFileSync(join(out, 'conversations.jsonl'), 'utf8')
+      .split('\n')
+      .filter(Boolean).length,
+    heldout: existsSync(join(out, 'heldout.jsonl'))
+      ? readFileSync(join(out, 'heldout.jsonl'), 'utf8')
+          .split('\n')
+          .filter(Boolean).length
+      : 0,
+    byType,
+    stats,
+    generatedAt: new Date().toISOString(),
+  };
+  writeFileSync(
+    join(out, 'manifest.json'),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
+  console.log(JSON.stringify(manifest, null, 2));
+}
+
 const invokedDirectly =
   process.argv[1] !== undefined &&
   fileURLToPath(import.meta.url) === process.argv[1];
@@ -571,9 +736,10 @@ if (invokedDirectly) {
   else if (command === 'export') await exportData();
   else if (command === 'reader') await exportReader();
   else if (command === 'judge') await judgeUnmatched();
+  else if (command === 'distill') await distillReader();
   else {
     console.error(
-      'usage: run-real-sessions.js label|measure|export|reader|judge [flags]',
+      'usage: run-real-sessions.js label|measure|export|reader|judge|distill [flags]',
     );
     process.exit(1);
   }
