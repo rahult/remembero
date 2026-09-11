@@ -7,7 +7,8 @@ LongMemEval judge) or where they only produce training data offline.
 
 This document lists each remaining external dependency, what the research docs already
 measured about replacing it, the experiment that decides it, and the order to do them in.
-Companion documents: [MODEL-COMPARISON.md](MODEL-COMPARISON.md) (what each model scored),
+Companion documents: [MOONSHOT.md](MOONSHOT.md) (the targets this roadmap serves),
+[MODEL-COMPARISON.md](MODEL-COMPARISON.md) (what each model scored),
 [RUN-MATRIX.md](RUN-MATRIX.md) (every run), [LONGMEMEVAL-PATTERNS.md](LONGMEMEVAL-PATTERNS.md)
 (the literature).
 
