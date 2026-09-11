@@ -10,14 +10,14 @@ distance to each target is known today.
 
 ## The three numbers
 
-| leg    | what it measures                                                      | today (small model)                | today (frontier)        | moonshot                                            |
-| ------ | --------------------------------------------------------------------- | ---------------------------------- | ----------------------- | --------------------------------------------------- |
-| facts  | schema-conditioned extraction, 103 cases, closed vocabulary           | 85–86 (Gemma 4 E2B r16)            | 96 (Luna)               | **100**                                             |
-|        | fact recall on real transcripts vs frontier labels, at precision      | 29% at 53% (r17); 10% at 42% (r16) | –                       | **60% at 85%**                                      |
-| recall | query-correct on the agent-boundary benchmark, closure condition, /31 | 27–28                              | 30 (GLM 5.3), 29 (Luna) | **31 on three seeds**, then ≥95% on a harder v3 set |
-| read   | LongMemEval-S, 500 questions, GPT-4o judge, all retrieval ours        | **320 (reader v3, ours, 4.5B)**    | 432 (GLM 5.3 Flash)     | **450 with a reader we trained**                    |
-|        | retrieval recall at the per-type k                                    | 92.5%                              | same                    | **96%**                                             |
-|        | abstention accuracy on the 30 unanswerable questions                  | 0.93 (GLM reader)                  | –                       | **0.97**                                            |
+| leg    | what it measures                                                      | today (small model)                            | today (frontier)        | moonshot                                            | inference cost, ours vs frontier (per 500 questions)           |
+| ------ | --------------------------------------------------------------------- | ---------------------------------------------- | ----------------------- | --------------------------------------------------- | -------------------------------------------------------------- |
+| facts  | schema-conditioned extraction, 103 cases, closed vocabulary           | 85–86 (Gemma 4 E2B r16)                        | 96 (Luna)               | **100**                                             | $2 of L4 time for 11k sessions ($0 local GGUF) vs ≈$100 Luna   |
+|        | fact recall on real transcripts vs frontier labels, at precision      | **46% (r20), judged precision 96%**; 14% (r16) | –                       | **60% at 85%**                                      | same call, no extra cost                                       |
+| recall | query-correct on the agent-boundary benchmark, closure condition, /31 | 27–28                                          | 30 (GLM 5.3), 29 (Luna) | **31 on three seeds**, then ≥95% on a harder v3 set | one L4 call per recall, ≈$0.0002 ($0 local)                    |
+| read   | LongMemEval-S, 500 questions, GPT-4o judge, all retrieval ours        | **320 (reader v3, ours, 4.5B)**                | 432 (GLM 5.3 Flash)     | **450 with a reader we trained**                    | ≈$0.20 A100 time vs ≈$0.41 GLM Flash (OpenRouter), ≈$0.20 Luna |
+|        | retrieval recall at the per-type k                                    | 92.5%                                          | same                    | **96%**                                             | embeddings: $0 nomic local vs $0.04 hosted                     |
+|        | abstention accuracy on the 30 unanswerable questions                  | 0.93 (GLM reader)                              | –                       | **0.97**                                            | –                                                              |
 
 And the constraint that makes it a moonshot rather than a shopping list: no external model
 at runtime. (The writer already runs locally: r19 as a Q8_0 GGUF under llama.cpp on a laptop

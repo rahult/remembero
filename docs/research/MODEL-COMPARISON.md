@@ -62,6 +62,11 @@ Reading the table:
 - As an extractor on the LongMemEval slice, Luna was not better than the fine-tune (33 vs 37
   of 48, inside noise) and cost about a hundred times more per session.
 
+Inference cost of the writer: extracting the 500 questions' 11,375 haystack sessions (20,940
+calls, 60.6M tokens) takes about 2.5 hours on the L4 at $0.80/h, so about **$2 per 500
+questions, or $0.0002 per session**; Luna as extractor cost about $2.35 per 48 questions'
+sessions, a hundred times more. Served locally as the Q8_0 GGUF the marginal cost is zero.
+
 **Current preference: Gemma 4 E2B r19**, served on Modal since 2026-09-11 evening
 (`SERVE_RUN=r19-gemma4-e2b`): LongMemEval 426 against r16's 425 under the same reader and
 range model (a tie), retrieval recall 93.9% against 92.5%, 3.6 times the facts stored, a sixth
@@ -74,23 +79,28 @@ multi-session k 15, temporal k 10 with a Luna time range) and the same extractio
 reader is the only difference. "Aggregation types" are multi-session, temporal-reasoning and
 knowledge-update (344 of 500 questions); the other 156 stayed with Luna where a split is shown.
 
-| reader                                               | where        | LongMemEval /500 | multi /133 | temporal /133 | preference /30 | reader cost for 500 |
-| ---------------------------------------------------- | ------------ | ---------------: | ---------: | ------------: | -------------: | ------------------- |
-| openai/gpt-5.6-luna, all types                       | OpenRouter   |              416 |        103 |           110 |             23 | ≈$0.20              |
-| glm-5.3, aggregation types                           | Ollama Cloud |              433 |        109 |           116 |             26 | subscription        |
-| glm-5.3-flash, aggregation types                     | Ollama Cloud |              435 |        108 |           115 |             27 | subscription        |
-| **glm-5.3-flash, all types**                         | Ollama Cloud |          **432** |    **113** |           116 |             28 | subscription        |
-| deepseek-v4-flash (0731), aggregation types          | Ollama Cloud |              413 |         99 |           113 |             26 | subscription        |
-| deepseek/deepseek-v4.1-flash, aggregation, 4k budget | OpenRouter   |  423 (16 errors) |        104 |           116 |             21 | ≈$0.30              |
-| deepseek/deepseek-v4.1-flash, aggregation, 16k       | OpenRouter   |              428 |        103 |           114 |             28 | $0.57               |
-| gemma4:31b, all types (open weights)                 | Ollama Cloud |              347 |         86 |            60 |             28 | subscription        |
-| nemotron-3-super, all types (open weights, 16k)      | Ollama Cloud |              389 |         92 |           108 |             23 | subscription        |
-| Gemma 4 E4B reader v1 (ours, 3k generated examples)  | Modal A100   |  235 (24 KB ctx) |         41 |            44 |              6 | ≈$2.50/h A100       |
-| Gemma 4 E4B reader v2 (ours, 8.9k generated)         | Modal A100   |  231 (24 KB ctx) |         36 |            57 |              0 | ≈$2.50/h A100       |
-| **Gemma 4 E4B reader v3 (ours, 3k GLM-distilled)**   | Modal A100   |  320 (24 KB ctx) |         60 |            65 |             25 | ≈$2.50/h A100       |
+| reader                                               | where        | LongMemEval /500 | multi /133 | temporal /133 | preference /30 | inference cost per 500 questions                |
+| ---------------------------------------------------- | ------------ | ---------------: | ---------: | ------------: | -------------: | ----------------------------------------------- |
+| openai/gpt-5.6-luna, all types                       | OpenRouter   |              416 |        103 |           110 |             23 | ≈$0.20                                          |
+| glm-5.3, aggregation types                           | Ollama Cloud |              433 |        109 |           116 |             26 | subscription (≈$3 on OpenRouter)                |
+| glm-5.3-flash, aggregation types                     | Ollama Cloud |              435 |        108 |           115 |             27 | subscription (≈$0.30 on OpenRouter)             |
+| **glm-5.3-flash, all types**                         | Ollama Cloud |          **432** |    **113** |           116 |             28 | subscription; 2.4M tokens ≈ $0.41 on OpenRouter |
+| deepseek-v4-flash (0731), aggregation types          | Ollama Cloud |              413 |         99 |           113 |             26 | subscription                                    |
+| deepseek/deepseek-v4.1-flash, aggregation, 4k budget | OpenRouter   |  423 (16 errors) |        104 |           116 |             21 | ≈$0.30                                          |
+| deepseek/deepseek-v4.1-flash, aggregation, 16k       | OpenRouter   |              428 |        103 |           114 |             28 | $0.57                                           |
+| gemma4:31b, all types (open weights)                 | Ollama Cloud |              347 |         86 |            60 |             28 | subscription; ≈$1.20 self-hosted on an A100     |
+| nemotron-3-super, all types (open weights, 16k)      | Ollama Cloud |              389 |         92 |           108 |             23 | subscription                                    |
+| Gemma 4 E4B reader v1 (ours, 3k generated examples)  | Modal A100   |  235 (24 KB ctx) |         41 |            44 |              6 | ≈$0.20 (4 min of A100 at $2.50/h)               |
+| Gemma 4 E4B reader v2 (ours, 8.9k generated)         | Modal A100   |  231 (24 KB ctx) |         36 |            57 |              0 | ≈$0.20                                          |
+| **Gemma 4 E4B reader v3 (ours, 3k GLM-distilled)**   | Modal A100   |  320 (24 KB ctx) |         60 |            65 |             25 | ≈$0.20; 1.9M prompt tokens                      |
 
 Reading the table:
 
+- Inference cost per 500 questions is the reader's tokens at the provider's price, or GPU time
+  at Modal's hourly rate for a self-hosted model (an A100-40GB at about $2.50/h, four minutes
+  of reader compute at concurrency 4 for our E4B readers). The subscription rows cost nothing
+  marginal on the plan; the OpenRouter equivalent is given for comparison. The GPT-4o judge
+  adds about $0.16 per 500 to every row and is not counted.
 - The reader, not retrieval, was the limit once recall reached 92%: with Luna, 43 questions
   with every evidence session in context were still wrong, 21 of them multi-session counts.
   GLM 5.3 fixes most of those; its accuracy on fully-evidenced questions is 92.5% against
