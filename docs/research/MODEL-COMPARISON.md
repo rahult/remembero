@@ -30,6 +30,7 @@ with a time range (the composed policy); it is only available for the models tha
 | **Gemma 4 E2B, r16 (served)**      | yes    | 2.3B             |           85–86 |     27–28 |                                          **416** | Modal L4 ≈$0.80/h                         |
 | Gemma 4 E2B, r17 (+ real sessions) | yes    | 2.3B             |              81 |        23 |                      201 (dev-261 scale, shared) | Modal L4                                  |
 | Gemma 4 E2B, r18 (+ repair turns)  | yes    | 2.3B             |              82 |     26–27 |                                                – | Modal L4                                  |
+| Gemma 4 E2B, r19 (+ capped real)   | yes    | 2.3B             |              86 |        26 |                                                – | Modal L4                                  |
 | openai/gpt-5.6-luna (frontier)     | no     | –                |              96 |        29 |                  33/48 on the slice as extractor | OpenRouter, ≈$2.35 per 48 q of extraction |
 | z-ai/glm-5.3 (frontier)            | no     | –                |               – |        30 |                                                – | Ollama Cloud                              |
 
@@ -51,6 +52,10 @@ Reading the table:
 - r18 adds repair-turn conversations to r14's data; it scores inside the band on both
   benchmarks and, unlike r16, takes the engine's argument-swap suggestion on an empty result
   (27/31 with feedback, 26 without). Not served: it does not beat r16 on either number.
+- r19 adds 3,000 real sessions labelled by GLM 5.3 Flash capped at eight atomic facts. Real
+  fact recall triples (14% → 44%) with false alarms at 5%, and the synthetic benchmarks hold
+  (86, 26), which r17's verbose Luna labels did not manage. Candidate to replace r16 as the
+  served writer once its LongMemEval run is in.
 - As an extractor on the LongMemEval slice, Luna was not better than the fine-tune (33 vs 37
   of 48, inside noise) and cost about a hundred times more per session.
 

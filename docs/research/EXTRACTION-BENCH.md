@@ -365,10 +365,17 @@ and the reference for the measurements below (283 scored sessions, the same slic
 | Gemma 4 E2B r18 (+ repair turns) |                        50.0% |        32.6% |       14.3% |          57.1% |   346 |
 | GLM 5.3 Flash capped (reference) |                            – |            – |           – |              – | 1,364 |
 
-Recall against the capped labels is 14%, four points above the 10% measured against Luna's,
-because the capped set drops the marginal facts the small model never wrote. This is the
-starting line for the moonshot's facts leg (60% at 85% precision). Round 19 trains on r18's
-data plus the first 3,000 of these sessions (2,478 with facts) plus the time-range task.
+Recall against the capped labels is 14% for r16 and r18, four points above the 10% measured
+against Luna's, because the capped set drops the marginal facts the small model never wrote.
+Round 19 trains on r18's data plus the first 3,000 of these sessions (2,478 with facts) plus
+the time-range task, and triples recall to **44%** at the same precision, with false alarms
+down from a third to one session in twenty and three sessions in four detected. Unlike r17,
+whose Luna-labelled rows cost 4 to 5 points on the synthetic benchmarks, r19 holds them:
+86/103 extraction (r16's best) and 26/31 query. The capped, atomic labels are the difference.
+Two caveats: the trainer's 2,048-token limit truncated 39% of the real rows (the longest
+sessions lost part of their labels), so a rerun with `--max-length 4096` (r20) should gain
+further; and the moonshot target is 60% at 85% precision, so precision (58%) is now the
+larger gap.
 
 The remaining nine r13 misses are one-offs: a dropped word (`dark` for `dark_mode`), a
 hallucinated fact from CI noise, a manager/report direction, two generic-subject choices
