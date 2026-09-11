@@ -601,6 +601,17 @@ on a per-type count, is inside that band; the reader table's 432 to 435 spread a
 Flash versus Luna range result (113 vs 116) are ties. Per type the repeat moved multi-session
 113 → 107 and temporal 116 → 110 while knowledge-update went 66 → 69 and preference 28 → 30.
 
+**Date distances (2026-09-11).** The first structured-evidence element from the small-reader
+design: each session header states its distance to the question date ("63 days, about 9
+weeks or 2 months, before the question date 2024-03-01"), so the reader copies an interval
+instead of computing one (`--date-distances`). On the 133 temporal questions with the GLM
+Flash range: GLM 5.3 Flash reading 108 against 113 and 110 without, a tie inside the band;
+Gemma 4 31B reading 60 → 67 (gained 11, lost 4), with its "I do not know" count only down from
+60 to 55. The arithmetic was a small part of Gemma's problem; the abstention instruction read
+too broadly is the large part, and the small reader in training will be taught the difference
+directly (abstention examples where the history is genuinely silent, answered examples where
+it is not).
+
 The engine's own recall over remembered facts is the right shape (the counts it did produce
 listed the right items), but it needs the fact store to be dense before it can decide
 questions. That is the writer-training thread of the moonshot, not a retrieval change.

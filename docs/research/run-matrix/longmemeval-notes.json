@@ -180,5 +180,13 @@
   "longmemeval-extraction-v12-composed-semantic-glmflash-allreader-glmrange-e2b-all500.json": {
     "knobs": "time range (GLM 5.3 Flash)",
     "note": "repeat of the recommended configuration with GLM Flash also as range model: 425 vs 432; 33 flips, 11 with a different context (range differences)"
+  },
+  "longmemeval-tr-v3-datedist-glmflash-e2b-all133.json": {
+    "knobs": "time range (GLM Flash); date distances in session headers",
+    "note": "temporal only; 108 vs 113/110 without: tie"
+  },
+  "longmemeval-tr-v3-datedist-gemma31b-e2b-all133.json": {
+    "knobs": "time range (GLM Flash); date distances in session headers",
+    "note": "temporal only; Gemma 4 31B 60 \u2192 67, still 55 refusals"
   }
 }
