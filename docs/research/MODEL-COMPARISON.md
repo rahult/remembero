@@ -2,7 +2,9 @@
 
 One page on which models were tried in each role of the memory system, how they compare on
 the same benchmarks, and which one is preferred today. Numbers come from the result files in
-`results/`; the full per-run table is [RUN-MATRIX.md](RUN-MATRIX.md). Last updated 2026-09-11.
+`results/`; the full per-run table is [RUN-MATRIX.md](RUN-MATRIX.md), and the plan for moving
+every remaining role onto our own models is [SELF-HOSTED-ROADMAP.md](SELF-HOSTED-ROADMAP.md).
+Last updated 2026-09-11.
 
 The system has four model roles. A **writer** turns text into Datalog facts and turns
 questions into Datalog queries (one fine-tuned adapter does both). A **reader** answers a
