@@ -20,7 +20,8 @@ distance to each target is known today.
 |        | abstention accuracy on the 30 unanswerable questions                  | 0.93 (GLM reader)                  | –                       | **0.97**                                            |
 
 And the constraint that makes it a moonshot rather than a shopping list: no external model
-at runtime. Extraction, query authoring, reading, phrasing, embeddings and time ranges all run
+at runtime. (The writer already runs locally: r19 as a Q8_0 GGUF under llama.cpp on a laptop
+scores 87/103 and 27/31, the same as the bf16 model on Modal.) Extraction, query authoring, reading, phrasing, embeddings and time ranges all run
 on our own weights, at under one dollar of GPU time per 500 LongMemEval questions.
 
 Milestones on the read leg, in order: our reader beats Luna (416); ties GLM Flash (432 within

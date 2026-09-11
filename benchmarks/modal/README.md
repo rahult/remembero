@@ -117,6 +117,22 @@ and `metrics.json` stays, so any run can be re-merged with `add_processor` /
 `export_text_only` after a fresh merge. Remove with
 `modal volume rm -r rembero-finetune runs/<run>/merged`.
 
+## GGUF export for local serving
+
+```sh
+.venv/bin/modal run benchmarks/modal/train_lora.py::export_gguf --run r19-gemma4-e2b --quant Q8_0
+.venv/bin/modal volume get rembero-finetune runs/r19-gemma4-e2b/gguf/r19-gemma4-e2b-Q8_0.gguf /Volumes/Atlas/models/rembero/
+brew install llama.cpp
+llama-server -m /Volumes/Atlas/models/rembero/r19-gemma4-e2b-Q8_0.gguf --port 8081 -c 8192 -ngl 99 --alias rembero-writer
+```
+
+`export_gguf` converts the run's `merged-text` checkpoint with llama.cpp's converter (the
+image pins transformers 5, which wrote the tokenizer config) and quantizes it. r19 at Q8_0 is
+4.6 GiB and scores 87/103 extraction and 27/31 query served locally on an M-series Mac,
+against 86 and 26 for the bf16 model on Modal: the local writer holds its numbers. Point the
+product at it with `LLM_BASE_URL=http://127.0.0.1:8081/v1 LLM_MODEL=rembero-writer`, or
+`ollama create` from a Modelfile whose `FROM` is the GGUF when the Ollama store has room.
+
 ## Function timeout
 
 `train` has a six-hour Modal timeout (three until 2026-09-11, when the reader run at 8k
