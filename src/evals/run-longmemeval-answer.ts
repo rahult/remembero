@@ -458,7 +458,14 @@ async function warmUp(
       });
       return;
     } catch (error) {
-      if (attempt === attempts) throw error;
+      // not fatal: a fully cached extraction never calls the endpoint, and a real
+      // outage shows up per question
+      if (attempt === attempts) {
+        console.error(
+          `${label} not ready after ${attempts} attempts; continuing`,
+        );
+        return;
+      }
       console.error(
         `${label} not ready (attempt ${attempt}/${attempts}): ${error instanceof Error ? error.message : String(error)}`,
       );
