@@ -58,6 +58,7 @@ interface Args {
   reservedMinimumScore: number | undefined;
   entityRetrieval: boolean;
   engineRecall: boolean;
+  dateDistances: boolean;
   engineRecallQuestionTypes: Set<string> | undefined;
   extractionCacheDir: string | undefined;
   temporalRangeModel: string | undefined;
@@ -122,6 +123,8 @@ Options:
                          query over the remembered facts (the extraction model writes it),
                          executes it, and the reader sees the query and rows ahead of the chats
   --engine-recall-question-types <csv>  Restrict engine recall to these question types
+  --date-distances       Each session header states its distance to the question date (days,
+                         weeks, months), so the reader copies the interval
   --no-facts-in-context  Do not list a retrieved session's matched extracted facts to the reader
   --extraction-max-tokens <n>  Completion budget per extraction call (default 512; reasoning
                          models such as Luna spend it on thinking and need 4096 or more)
@@ -203,6 +206,7 @@ function parseArgs(argv: string[]): Args {
     reservedMinimumScore: undefined,
     entityRetrieval: false,
     engineRecall: false,
+    dateDistances: false,
     engineRecallQuestionTypes: undefined,
     extractionCacheDir: undefined,
     temporalRangeModel: undefined,
@@ -389,6 +393,8 @@ function parseArgs(argv: string[]): Args {
       args.entityRetrieval = true;
     } else if (arg === '--engine-recall') {
       args.engineRecall = true;
+    } else if (arg === '--date-distances') {
+      args.dateDistances = true;
     } else if (arg === '--engine-recall-question-types') {
       args.engineRecallQuestionTypes = new Set(
         requiredValue(argv, index++, arg)
@@ -593,6 +599,7 @@ async function main(): Promise<void> {
             ? {}
             : { temporalRangeExtractor }),
           entityRetrieval: args.entityRetrieval,
+          dateDistances: args.dateDistances,
           ...(args.engineRecall
             ? {
                 engineRecall: {
@@ -645,6 +652,7 @@ async function main(): Promise<void> {
       retrievalUnit: args.retrievalUnit,
       entityRetrieval: args.entityRetrieval,
       engineRecall: args.engineRecall,
+      dateDistances: args.dateDistances,
       engineRecallQuestionTypes:
         args.engineRecallQuestionTypes === undefined
           ? null

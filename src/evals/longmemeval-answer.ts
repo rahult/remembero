@@ -241,6 +241,7 @@ export interface LongMemEvalAnswerRun {
     entityRetrieval: boolean;
     engineRecall?: boolean;
     engineRecallQuestionTypes?: string[] | null;
+    dateDistances?: boolean;
     hybridQuestionTypes: string[] | null;
     factsInContext: boolean;
     readerMaxTokens: number;
@@ -467,6 +468,50 @@ interface AnswerContext {
 
 const MAX_ENGINE_RENDER_CHARACTERS = 4_000;
 
+/** Question dates come as "2024/03/01 (Fri) 09:00"; sessions as ISO instants. */
+function questionDay(questionDate: string): string {
+  const match = /(\d{4})[/-](\d{2})[/-](\d{2})/.exec(questionDate);
+  return match === null
+    ? questionDate.slice(0, 10)
+    : `${match[1]}-${match[2]}-${match[3]}`;
+}
+
+/**
+ * "63 days, about 9 weeks or 2 months, before the question date 2024-03-01": the
+ * arithmetic a reader would otherwise do itself, done once and exactly.
+ */
+export function describeDistance(
+  sessionTs: string,
+  questionDate: string,
+): string {
+  const day = questionDay(questionDate);
+  const from = Date.UTC(
+    Number(sessionTs.slice(0, 4)),
+    Number(sessionTs.slice(5, 7)) - 1,
+    Number(sessionTs.slice(8, 10)),
+  );
+  const to = Date.UTC(
+    Number(day.slice(0, 4)),
+    Number(day.slice(5, 7)) - 1,
+    Number(day.slice(8, 10)),
+  );
+  const days = Math.round((to - from) / 86_400_000);
+  if (!Number.isFinite(days)) return `question date ${questionDate}`;
+  const relation = days >= 0 ? 'before' : 'after';
+  const abs = Math.abs(days);
+  const parts = [`${abs} day${abs === 1 ? '' : 's'}`];
+  if (abs >= 14) {
+    const weeks = Math.round(abs / 7);
+    const months = Math.round(abs / 30.44);
+    parts.push(
+      abs >= 60
+        ? `about ${weeks} weeks or ${months} month${months === 1 ? '' : 's'}`
+        : `about ${weeks} weeks`,
+    );
+  }
+  return `${parts.join(', ')}${parts.length > 1 ? ',' : ''} ${relation} the question date ${day}`;
+}
+
 export function buildLongMemEvalAnswerContext(
   instance: LongMemEvalInstance,
   rankedSources: Array<{
@@ -482,6 +527,7 @@ export function buildLongMemEvalAnswerContext(
   extraFacts: Array<{ clause: string; ts: string }> = [],
   reading: 'direct' | 'notes' | 'enumerate' = 'direct',
   engine?: { query: string; rendered: string },
+  dateDistances = false,
 ): AnswerContext {
   validateOptions(Math.max(1, rankedSources.length), contextBytes);
   const usable = rankedSources.filter(
@@ -496,7 +542,10 @@ export function buildLongMemEvalAnswerContext(
       source.facts !== undefined && source.facts.length > 0
         ? `Remembered facts (stated in this session): ${source.facts.join(' ')}\n`
         : '';
-    const header = `### Retrieved session ${rank + 1}\nSession date: ${source.ts}\n${facts}`;
+    const dateLine = dateDistances
+      ? `Session date: ${source.ts.slice(0, 10)} (${describeDistance(source.ts, instance.question_date)})`
+      : `Session date: ${source.ts}`;
+    const header = `### Retrieved session ${rank + 1}\n${dateLine}\n${facts}`;
     const body = sourceWindow(
       source.text!,
       instance.question,
@@ -638,6 +687,11 @@ export async function evaluateLongMemEvalAnswerInstance(
      * chats. This is the moonshot composition: counting, latest-value and chaining come
      * from the engine, the reader reads.
      */
+    /**
+     * Each retrieved session's header states its distance to the question date in days,
+     * weeks and months, so the reader copies an interval instead of computing one.
+     */
+    dateDistances?: boolean;
     engineRecall?: {
       /** The writer: authors the Datalog query (usage is accounted with extraction). */
       llm: LongMemEvalCompletionClient;
@@ -1312,6 +1366,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       extraFacts,
       twoCall ? 'enumerate' : notes ? 'notes' : 'direct',
       engine,
+      options.dateDistances === true,
     );
     contextSessionIds = [
       ...answerContext.contextSessionIds,

@@ -118,6 +118,48 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     );
   });
 
+  it('date distances: each session header states how long before the question date it happened', () => {
+    const test = instance({ question_date: '2024/03/01 (Fri) 09:00' });
+    const context = buildLongMemEvalAnswerContext(
+      test,
+      [
+        {
+          opId: 'a',
+          ts: '2023-12-29T09:00:00.000Z',
+          text: 'user: I bought a kit.',
+        },
+        {
+          opId: 'b',
+          ts: '2024-02-29T09:00:00.000Z',
+          text: 'user: I bought another.',
+        },
+      ],
+      4_096,
+      [],
+      'direct',
+      undefined,
+      true,
+    );
+    const prompt = context.messages[1]?.content ?? '';
+    expect(prompt).toContain(
+      'Session date: 2023-12-29 (63 days, about 9 weeks or 2 months, before the question date 2024-03-01)',
+    );
+    expect(prompt).toContain(
+      'Session date: 2024-02-29 (1 day before the question date 2024-03-01)',
+    );
+    // off by default
+    const plain = buildLongMemEvalAnswerContext(test, [
+      {
+        opId: 'a',
+        ts: '2023-12-29T09:00:00.000Z',
+        text: 'user: I bought a kit.',
+      },
+    ]);
+    expect(plain.messages[1]?.content).not.toContain(
+      'before the question date',
+    );
+  });
+
   it('runs durable formation, real local retrieval, answer generation, and judging', async () => {
     const reader = new ScriptedCompletionClient('reader', [
       'Business Administration',
