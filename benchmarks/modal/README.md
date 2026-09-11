@@ -117,6 +117,13 @@ and `metrics.json` stays, so any run can be re-merged with `add_processor` /
 `export_text_only` after a fresh merge. Remove with
 `modal volume rm -r rembero-finetune runs/<run>/merged`.
 
+## Function timeout
+
+`train` has a six-hour Modal timeout (three until 2026-09-11, when the reader run at 8k
+tokens overran it 15 minutes short of the epoch). Adapter checkpoints are committed to the
+Volume every 25 steps and a rerun of the same `--run` resumes from the last one, so a timeout
+costs the steps since that checkpoint, not the run.
+
 ## Sequence length
 
 `--max-length` (default 2048) truncates rows from the right, and a prompt/completion row that

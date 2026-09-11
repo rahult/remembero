@@ -299,7 +299,9 @@ def reasoning_flags(base_model: str) -> list[str]:
 @app.function(
     image=train_image,
     gpu=TRAIN_GPU,
-    timeout=3 * 60 * 60,
+    # reader rows at 8k tokens take ~80 s a step on an H100; 139 steps overran three hours
+    # and Modal killed the function 15 minutes short (it resumed from checkpoint-100)
+    timeout=6 * 60 * 60,
     volumes={VOL: volume},
 )
 def train(
