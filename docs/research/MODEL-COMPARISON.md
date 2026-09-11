@@ -27,10 +27,10 @@ with a time range (the composed policy); it is only available for the models tha
 | Llama 3.2 3B, r4–r6 fine-tunes     | yes    | 3B               |           61–73 |     26–27 |                                                – | Tinker sampler                            |
 | Qwen3.5-4B, r7–r15 fine-tunes      | yes    | 4B               |     85–94 (r13) |     26–29 | 416 (r16 policy, r14 extractor 414 lexical-only) | Modal L4 ≈$0.80/h                         |
 | Gemma 4 E4B, r16                   | yes    | 4.5B             |              84 |        24 |                                                – | needs A100/L40S                           |
-| **Gemma 4 E2B, r16 (served)**      | yes    | 2.3B             |           85–86 |     27–28 |                                          **416** | Modal L4 ≈$0.80/h                         |
+| Gemma 4 E2B, r16                   | yes    | 2.3B             |           85–86 |     27–28 |                                              416 | Modal L4 ≈$0.80/h                         |
 | Gemma 4 E2B, r17 (+ real sessions) | yes    | 2.3B             |              81 |        23 |                      201 (dev-261 scale, shared) | Modal L4                                  |
 | Gemma 4 E2B, r18 (+ repair turns)  | yes    | 2.3B             |              82 |     26–27 |                                                – | Modal L4                                  |
-| Gemma 4 E2B, r19 (+ capped real)   | yes    | 2.3B             |              86 |        26 |                                                – | Modal L4                                  |
+| **Gemma 4 E2B, r19 (served)**      | yes    | 2.3B             |              86 |        26 |                                          **426** | Modal L4                                  |
 | openai/gpt-5.6-luna (frontier)     | no     | –                |              96 |        29 |                  33/48 on the slice as extractor | OpenRouter, ≈$2.35 per 48 q of extraction |
 | z-ai/glm-5.3 (frontier)            | no     | –                |               – |        30 |                                                – | Ollama Cloud                              |
 
@@ -59,8 +59,10 @@ Reading the table:
 - As an extractor on the LongMemEval slice, Luna was not better than the fine-tune (33 vs 37
   of 48, inside noise) and cost about a hundred times more per session.
 
-**Current preference: Gemma 4 E2B r16**, served on Modal (`SERVE_RUN=r16-gemma4-e2b`), with
-Qwen3.5-4B r14 kept as the fallback checkpoint.
+**Current preference: Gemma 4 E2B r19**, served on Modal since 2026-09-11 evening
+(`SERVE_RUN=r19-gemma4-e2b`): LongMemEval 426 against r16's 425 under the same reader and
+range model (a tie), retrieval recall 93.9% against 92.5%, 3.6 times the facts stored, a sixth
+of the extraction errors, and real-session fact recall 44% against 14%. r16 is the fallback.
 
 ## Reader
 

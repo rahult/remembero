@@ -91,7 +91,7 @@ keeps answering, stop it with `modal container list` and `modal container stop -
 
 ## Other base models (Gemma 4)
 
-Since 2026-09-10 the main endpoint serves `r16-gemma4-e2b` (Gemma 4 E2B on the r14 data): it
+Since 2026-09-10 the main endpoint serves `r19-gemma4-e2b (r16 before 2026-09-11 evening)` (Gemma 4 E2B on the r14 data): it
 ties Qwen3.5-4B on both benchmarks and leads on LongMemEval (219/261 hybrid vs raw 214). Deploy
 with `SERVE_RUN=r16-gemma4-e2b`; `SERVE_RUN=r14` restores the Qwen checkpoint.
 

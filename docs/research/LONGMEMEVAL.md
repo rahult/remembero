@@ -636,6 +636,14 @@ data needs the aggregation types in volume and variety (counts verified against 
 "days between" and "which came first" templates, up to fifteen sessions in context as the
 evaluation shows), and the preference type left to a general-knowledge fallback.
 
+**r19 as the extractor on the 500 (2026-09-11).** With GLM 5.3 Flash reading and ranging, the
+writer trained on capped real-session labels scores **426/500** against 425 for r16 under the
+identical configuration: a tie on the total, with retrieval recall 92.5% → 93.9%, 89,941 facts
+stored against 25,180, and 293 extraction errors against 1,692. Round 17's real-session data
+had cost 18 answers on the development split by crowding raw sessions out of shared retrieval;
+r19's capped labels write 3.6 times r16's facts without that penalty. r19 is the served writer
+from this evening; the r19 extraction cache (`runs/modal/xcache-e2b-r19`) covers all 500.
+
 The engine's own recall over remembered facts is the right shape (the counts it did produce
 listed the right items), but it needs the fact store to be dense before it can decide
 questions. That is the writer-training thread of the moonshot, not a retrieval change.
