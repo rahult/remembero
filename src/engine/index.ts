@@ -48,6 +48,7 @@ export {
   type MaterializedFact,
   type ProofStep,
   type QueryProof,
+  DEFAULT_MAX_CANDIDATE_VISITS,
   DEFAULT_MAX_PROOF_ENUMERATION_STEPS,
   DEFAULT_MAX_PROOFS_PER_ROW,
   EngineLimitError,

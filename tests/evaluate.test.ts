@@ -32,7 +32,7 @@ function rows(bindings: Bindings[]): string[] {
       Object.entries(b)
         .map(([name, term]) => `${name}=${serializeTerm(term)}`)
         .sort()
-        .join(' ')
+        .join(' '),
     )
     .sort();
 }
@@ -41,20 +41,28 @@ function run(program: string, query: string, options?: EvaluateOptions) {
   return evaluate(parseProgram(program), parseQuery(query), options);
 }
 
-function explain(
-  program: string,
-  query: string,
-  options?: EvaluateOptions
-) {
+function explain(program: string, query: string, options?: EvaluateOptions) {
   return evaluateWithProof(parseProgram(program), parseQuery(query), options);
 }
 
 function runSpec(program: string, query: string, options?: EvaluateOptions) {
-  return evaluateQuerySpec(parseProgram(program), parseQuerySpec(query), options);
+  return evaluateQuerySpec(
+    parseProgram(program),
+    parseQuerySpec(query),
+    options,
+  );
 }
 
-function explainSpec(program: string, query: string, options?: EvaluateOptions) {
-  return evaluateQuerySpecWithProof(parseProgram(program), parseQuerySpec(query), options);
+function explainSpec(
+  program: string,
+  query: string,
+  options?: EvaluateOptions,
+) {
+  return evaluateQuerySpecWithProof(
+    parseProgram(program),
+    parseQuerySpec(query),
+    options,
+  );
 }
 
 describe('evaluate: facts and joins', () => {
@@ -79,12 +87,18 @@ describe('evaluate: facts and joins', () => {
   });
 
   it('joins conjunctive goals on shared variables', () => {
-    expect(rows(run(db, 'works_at(X, acme), lives_in(X, sydney)'))).toEqual(['X=rahul']);
+    expect(rows(run(db, 'works_at(X, acme), lives_in(X, sydney)'))).toEqual([
+      'X=rahul',
+    ]);
   });
 
   it('supports wildcards without binding them', () => {
     expect(run(db, 'works_at(rahul, _)')).toEqual([{}]);
-    expect(rows(run(db, 'works_at(X, _)'))).toEqual(['X=chen', 'X=maya', 'X=rahul']);
+    expect(rows(run(db, 'works_at(X, _)'))).toEqual([
+      'X=chen',
+      'X=maya',
+      'X=rahul',
+    ]);
   });
 
   it('handles zero-arity predicates', () => {
@@ -103,13 +117,13 @@ describe('evaluate: facts and joins', () => {
 
     const clauses = parseProgram(program);
     expect(clauses.some(isIntegrityConstraint)).toBe(true);
-    expect(rows(evaluate(clauses, parseQuery('employee(X)')))).toEqual(['X=alice', 'X=bob']);
-    expect(materializeWithProof(clauses).map((fact) => fact.predicate)).toEqual([
-      'employee',
-      'employee',
-      'age',
-      'age',
+    expect(rows(evaluate(clauses, parseQuery('employee(X)')))).toEqual([
+      'X=alice',
+      'X=bob',
     ]);
+    expect(materializeWithProof(clauses).map((fact) => fact.predicate)).toEqual(
+      ['employee', 'employee', 'age', 'age'],
+    );
   });
 });
 
@@ -123,19 +137,13 @@ describe('evaluate: explicit relational projection', () => {
   `;
 
   it('returns only selected variables in selected order and deduplicates projected rows', () => {
-    const result = runSpec(
-      db,
-      'select End where edge(a, Mid), edge(Mid, End)'
-    );
+    const result = runSpec(db, 'select End where edge(a, Mid), edge(Mid, End)');
     expect(result).toEqual([
       { End: { type: 'atom', value: 'z' } },
       { End: { type: 'atom', value: 'y' } },
     ]);
     expect(
-      runSpec(
-        db,
-        'select End, Mid where edge(a, Mid), edge(Mid, End)'
-      )[0]
+      runSpec(db, 'select End, Mid where edge(a, Mid), edge(Mid, End)')[0],
     ).toEqual({
       End: { type: 'atom', value: 'z' },
       Mid: { type: 'atom', value: 'x1' },
@@ -144,11 +152,9 @@ describe('evaluate: explicit relational projection', () => {
 
   it('applies row limits after projection rather than helper-variable expansion', () => {
     expect(
-      runSpec(
-        db,
-        'select End where edge(a, Mid), edge(Mid, End)',
-        { maxRows: 1 }
-      )
+      runSpec(db, 'select End where edge(a, Mid), edge(Mid, End)', {
+        maxRows: 1,
+      }),
     ).toEqual([{ End: { type: 'atom', value: 'z' } }]);
   });
 
@@ -156,7 +162,7 @@ describe('evaluate: explicit relational projection', () => {
     const result = explainSpec(
       db,
       'select End where edge(a, Mid), edge(Mid, End)',
-      { maxProofsPerRow: 2 }
+      { maxProofsPerRow: 2 },
     );
     expect(result[0].bindings).toEqual({ End: { type: 'atom', value: 'z' } });
     expect(result[0].proofs).toHaveLength(2);
@@ -184,8 +190,16 @@ describe('evaluate: rules', () => {
       ancestor(X, Y) :- parent(X, Y).
       ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y).
     `;
-    expect(rows(run(db, 'ancestor(alice, X)'))).toEqual(['X=bob', 'X=carol', 'X=dan']);
-    expect(rows(run(db, 'ancestor(X, dan)'))).toEqual(['X=alice', 'X=bob', 'X=carol']);
+    expect(rows(run(db, 'ancestor(alice, X)'))).toEqual([
+      'X=bob',
+      'X=carol',
+      'X=dan',
+    ]);
+    expect(rows(run(db, 'ancestor(X, dan)'))).toEqual([
+      'X=alice',
+      'X=bob',
+      'X=carol',
+    ]);
   });
 
   it('computes same-generation', () => {
@@ -218,7 +232,7 @@ describe('evaluate: deterministic relation indexing', () => {
     selected(person_99).
     ${Array.from(
       { length: 100 },
-      (_, index) => `related(person_${index}, topic_${index % 7}).`
+      (_, index) => `related(person_${index}, topic_${index % 7}).`,
     ).join('\n')}
     blocked(person_98).
     relevant(X, Y) :- selected(X), related(X, Y), \\+ blocked(X).
@@ -253,24 +267,28 @@ describe('evaluate: deterministic relation indexing', () => {
         evaluateWithProof(recursive, relational, {
           relationIndex: 'auto',
           maxProofsPerRow: 4,
-        })
-      )
+        }),
+      ),
     ).toBe(
       JSON.stringify(
         evaluateWithProof(recursive, relational, {
           relationIndex: 'off',
           maxProofsPerRow: 4,
-        })
-      )
+        }),
+      ),
     );
     expect(
       JSON.stringify(
-        evaluateQuerySpecWithProof(recursive, aggregate, { relationIndex: 'auto' })
-      )
+        evaluateQuerySpecWithProof(recursive, aggregate, {
+          relationIndex: 'auto',
+        }),
+      ),
     ).toBe(
       JSON.stringify(
-        evaluateQuerySpecWithProof(recursive, aggregate, { relationIndex: 'off' })
-      )
+        evaluateQuerySpecWithProof(recursive, aggregate, {
+          relationIndex: 'off',
+        }),
+      ),
     );
   });
 
@@ -297,14 +315,14 @@ describe('evaluate: deterministic relation indexing', () => {
     expect(indexed).toEqual(scanned);
     expect(indexedMetrics.indexedRelationLookups).toBeGreaterThan(0);
     expect(indexedMetrics.candidateFactsVisited * 10).toBeLessThan(
-      scannedMetrics.candidateFactsVisited
+      scannedMetrics.candidateFactsVisited,
     );
   });
 
   it('does not build an index for an unbound full-relation scan', () => {
     const facts = Array.from(
       { length: 100 },
-      (_, index) => `related(person_${index}, topic_${index % 7}).`
+      (_, index) => `related(person_${index}, topic_${index % 7}).`,
     ).join('\n');
     const metrics = {
       relationLookups: 0,
@@ -338,7 +356,7 @@ describe('evaluate: deterministic relation indexing', () => {
       runSpec('fact(a).', 'count(*) as Count where fact(X)', {
         maxRows: 0,
         metrics,
-      })
+      }),
     ).toEqual([]);
     expect(metrics).toEqual({
       relationLookups: 0,
@@ -356,9 +374,11 @@ describe('evaluate: deterministic relation indexing', () => {
       candidateFactsVisited: 0,
     };
 
-    expect(rows(run("value(1, numeric). value('1', atom).", 'value(1, X)', { metrics }))).toEqual([
-      'X=numeric',
-    ]);
+    expect(
+      rows(
+        run("value(1, numeric). value('1', atom).", 'value(1, X)', { metrics }),
+      ),
+    ).toEqual(['X=numeric']);
     expect(metrics.indexFactsProcessed).toBe(2);
     expect(metrics.candidateFactsVisited).toBe(1);
   });
@@ -367,7 +387,7 @@ describe('evaluate: deterministic relation indexing', () => {
     expect(() =>
       run('fact(a).', 'fact(X)', {
         relationIndex: 'sometimes',
-      } as unknown as EvaluateOptions)
+      } as unknown as EvaluateOptions),
     ).toThrow(EngineSafetyError);
   });
 });
@@ -380,7 +400,10 @@ describe('evaluate: comparison builtins', () => {
   `;
 
   it('filters with numeric comparisons', () => {
-    expect(rows(run(db, 'age(X, A), A >= 29'))).toEqual(['A=29 X=maya', 'A=38 X=rahul']);
+    expect(rows(run(db, 'age(X, A), A >= 29'))).toEqual([
+      'A=29 X=maya',
+      'A=38 X=rahul',
+    ]);
     expect(rows(run(db, 'age(X, A), A < 18'))).toEqual(['A=11 X=kid']);
   });
 
@@ -429,21 +452,21 @@ describe('evaluate: comparison builtins', () => {
       ahead(X) :- score(X, S), baseline(team, B), S > B + 5.
     `;
     expect(rows(run(program, 'ahead(X)'))).toEqual(['X=alice']);
-    expect(rows(run(program, 'score(X, S), baseline(team, B), S - B >= 10'))).toEqual([
-      'B=10 S=20 X=alice',
-    ]);
+    expect(
+      rows(run(program, 'score(X, S), baseline(team, B), S - B >= 10')),
+    ).toEqual(['B=10 S=20 X=alice']);
   });
 
   it('fails closed on non-numeric, zero-divisor, and non-finite arithmetic', () => {
     expect(() => run('value(x, banana).', 'value(x, V), V + 1 > 0')).toThrow(
-      EngineSafetyError
+      EngineSafetyError,
     );
     expect(() => run('value(x, 1).', 'value(x, V), V / 0 > 0')).toThrow(
-      /division by zero/i
+      /division by zero/i,
     );
     const huge = '9'.repeat(200);
     expect(() => run(`value(x, ${huge}).`, 'value(x, V), V * V > 0')).toThrow(
-      /non-finite/i
+      /non-finite/i,
     );
   });
 
@@ -467,18 +490,24 @@ describe('evaluate: comparison builtins', () => {
       deep = { kind: 'unary', op: '-', operand: deep };
     }
     expect(() =>
-      evaluate([], [{ op: '=', left: deep, right: { type: 'num', value: -1 } }])
+      evaluate(
+        [],
+        [{ op: '=', left: deep, right: { type: 'num', value: -1 } }],
+      ),
     ).toThrow(EngineLimitError);
 
     for (const value of [Number.NaN, Number.POSITIVE_INFINITY]) {
       expect(() =>
-        evaluate([], [
-          {
-            op: '>',
-            left: { type: 'num', value },
-            right: { type: 'num', value: 0 },
-          },
-        ])
+        evaluate(
+          [],
+          [
+            {
+              op: '>',
+              left: { type: 'num', value },
+              right: { type: 'num', value: 0 },
+            },
+          ],
+        ),
       ).toThrow(/finite/i);
     }
 
@@ -486,15 +515,17 @@ describe('evaluate: comparison builtins', () => {
       head: { predicate: 'value', args: [{ type: 'num', value: Number.NaN }] },
       body: [],
     };
-    expect(() => evaluate([invalidFact], parseQuery('value(_)'))).toThrow(/finite/i);
-    expect(() => serializeTerm({ type: 'num', value: Number.POSITIVE_INFINITY })).toThrow(
-      /finite/i
+    expect(() => evaluate([invalidFact], parseQuery('value(_)'))).toThrow(
+      /finite/i,
     );
+    expect(() =>
+      serializeTerm({ type: 'num', value: Number.POSITIVE_INFINITY }),
+    ).toThrow(/finite/i);
     expect(() =>
       literalMatches(
         { predicate: 'value', args: [{ type: 'wildcard' }] },
-        { predicate: 'value', args: [{ type: 'num', value: Number.NaN }] }
-      )
+        { predicate: 'value', args: [{ type: 'num', value: Number.NaN }] },
+      ),
     ).toThrow(/finite/i);
   });
 
@@ -598,7 +629,9 @@ describe('evaluate: stratified negation', () => {
         ],
       },
     ]);
-    expect(explain(employment, 'employee_without_desk(bob)')[0].proofs[0]).toMatchObject({
+    expect(
+      explain(employment, 'employee_without_desk(bob)')[0].proofs[0],
+    ).toMatchObject({
       predicate: 'employee_without_desk',
       because: [
         { predicate: 'employee', values: ['bob'] },
@@ -627,9 +660,9 @@ describe('evaluate: stratified negation', () => {
   });
 
   it('counts absence nodes against the global proof budget', () => {
-    expect(() => explain(employment, 'eligible(bob)', { maxProofNodes: 2 })).toThrow(
-      EngineLimitError
-    );
+    expect(() =>
+      explain(employment, 'eligible(bob)', { maxProofNodes: 2 }),
+    ).toThrow(EngineLimitError);
   });
 });
 
@@ -646,7 +679,9 @@ describe('evaluate: limits', () => {
       n(1). n(2). n(3). n(4). n(5).
       pair(X, Y) :- n(X), n(Y).
     `;
-    expect(() => run(db, 'pair(X, Y)', { maxFacts: 10 })).toThrow(EngineLimitError);
+    expect(() => run(db, 'pair(X, Y)', { maxFacts: 10 })).toThrow(
+      EngineLimitError,
+    );
   });
 });
 
@@ -671,12 +706,18 @@ describe('evaluate: reusable aggregate rules', () => {
       'Team=blue Total=7',
       'Team=red Total=25',
     ]);
-    expect(rows(run(grouped, 'team_min(red, Minimum)'))).toEqual(['Minimum=10']);
-    expect(rows(run(grouped, 'team_max(red, Maximum)'))).toEqual(['Maximum=15']);
+    expect(rows(run(grouped, 'team_min(red, Minimum)'))).toEqual([
+      'Minimum=10',
+    ]);
+    expect(rows(run(grouped, 'team_max(red, Maximum)'))).toEqual([
+      'Maximum=15',
+    ]);
     expect(rows(run(grouped, 'large_team(Team)'))).toEqual(['Team=red']);
-    expect(rows(run(grouped, 'largest_team_size(Maximum)'))).toEqual(['Maximum=2']);
+    expect(rows(run(grouped, 'largest_team_size(Maximum)'))).toEqual([
+      'Maximum=2',
+    ]);
     expect(run(grouped, 'team_size(Team, Count)')).toEqual(
-      run(grouped, 'team_size(Team, Count)')
+      run(grouped, 'team_size(Team, Count)'),
     );
   });
 
@@ -705,16 +746,16 @@ describe('evaluate: reusable aggregate rules', () => {
 
   it('preserves aggregate-rule rows and nested proofs with indexing disabled', () => {
     expect(
-      explain(grouped, 'largest_team_size(Maximum)', { relationIndex: 'auto' })
+      explain(grouped, 'largest_team_size(Maximum)', { relationIndex: 'auto' }),
     ).toEqual(
-      explain(grouped, 'largest_team_size(Maximum)', { relationIndex: 'off' })
+      explain(grouped, 'largest_team_size(Maximum)', { relationIndex: 'off' }),
     );
   });
 
   it('lets terminal aggregates reduce aggregate-derived relations with nested evidence', () => {
     const result = explainSpec(
       grouped,
-      'count(*) as TeamCount where team_size(Team, Size)'
+      'count(*) as TeamCount where team_size(Team, Size)',
     );
     expect(result).toMatchObject([
       {
@@ -803,8 +844,8 @@ describe('evaluate: reusable aggregate rules', () => {
     ]);
     expect(
       materializeWithProof(parseProgram(grouped)).find(
-        (fact) => fact.predicate === 'team_size' && fact.values[0] === 'red'
-      )?.proof.aggregate
+        (fact) => fact.predicate === 'team_size' && fact.values[0] === 'red',
+      )?.proof.aggregate,
     ).toMatchObject({ aggregated: true, value: 2 });
   });
 
@@ -813,14 +854,14 @@ describe('evaluate: reusable aggregate rules', () => {
       item(a). item(b). item(c).
       item_count(Count) :- count(*) as Count where item(Item).
     `;
-    expect(() => run(program, 'item_count(Count)', { maxAggregateRows: 2 })).toThrow(
-      /aggregate input exceeded 2/i
-    );
     expect(() =>
-      explain(program, 'item_count(Count)', { maxAggregateProofRows: 2 })
+      run(program, 'item_count(Count)', { maxAggregateRows: 2 }),
+    ).toThrow(/aggregate input exceeded 2/i);
+    expect(() =>
+      explain(program, 'item_count(Count)', { maxAggregateProofRows: 2 }),
     ).toThrow(/aggregate proof exceeded 2 contributor rows/i);
     expect(() =>
-      explain(program, 'item_count(Count)', { maxProofsPerRow: 2 })
+      explain(program, 'item_count(Count)', { maxProofsPerRow: 2 }),
     ).toThrow(/alternative proofs through aggregate-derived rules/i);
   });
 
@@ -829,8 +870,8 @@ describe('evaluate: reusable aggregate rules', () => {
       run(
         `value(team, one).
          total(Group, Sum) :- sum(Value) as Sum where value(Group, Value).`,
-        'total(Group, Sum)'
-      )
+        'total(Group, Sum)',
+      ),
     ).toThrow(/numeric input/i);
   });
 
@@ -849,21 +890,19 @@ describe('evaluate: reusable aggregate rules', () => {
       aggregate: { op: 'count', input: '*', as: 'Count' },
     };
     expect(() =>
-      evaluate([negationOnly], parseQuery('bad_count(Count)'))
+      evaluate([negationOnly], parseQuery('bad_count(Count)')),
     ).toThrow(/positive relation/i);
 
     const outputReused: Clause = {
       head: { predicate: 'bad_count', args: [output] },
-      body: [
-        { predicate: 'item', args: [{ type: 'var', name: 'Count' }] },
-      ],
+      body: [{ predicate: 'item', args: [{ type: 'var', name: 'Count' }] }],
       aggregate: { op: 'count', input: '*', as: 'Count' },
     };
     expect(() =>
       evaluate(
         [parseProgram('item(a).')[0], outputReused],
-        parseQuery('bad_count(Count)')
-      )
+        parseQuery('bad_count(Count)'),
+      ),
     ).toThrow(/fresh variable/i);
 
     const unboundGroup: Clause = {
@@ -871,16 +910,14 @@ describe('evaluate: reusable aggregate rules', () => {
         predicate: 'bad_group',
         args: [{ type: 'var', name: 'Group' }, output],
       },
-      body: [
-        { predicate: 'item', args: [{ type: 'var', name: 'Person' }] },
-      ],
+      body: [{ predicate: 'item', args: [{ type: 'var', name: 'Person' }] }],
       aggregate: { op: 'count', input: '*', as: 'Count' },
     };
     expect(() =>
       evaluate(
         [parseProgram('item(a).')[0], unboundGroup],
-        parseQuery('bad_group(Group, Count)')
-      )
+        parseQuery('bad_group(Group, Count)'),
+      ),
     ).toThrow(/Group.*positive aggregate relation/i);
   });
 });
@@ -895,19 +932,19 @@ describe('evaluate: scalar query aggregation', () => {
 
   it('counts complete deduplicated result rows, including zero', () => {
     expect(
-      runSpec(employment, 'count(*) as Count where works_at(Person, acme)')
+      runSpec(employment, 'count(*) as Count where works_at(Person, acme)'),
     ).toEqual([{ Count: { type: 'num', value: 2 } }]);
     expect(
-      runSpec(employment, 'count(*) as Count where works_at(alice, acme)')
+      runSpec(employment, 'count(*) as Count where works_at(alice, acme)'),
     ).toEqual([{ Count: { type: 'num', value: 1 } }]);
+    expect(
+      runSpec(employment, 'count(*) as Count where works_at(Person, nowhere)'),
+    ).toEqual([{ Count: { type: 'num', value: 0 } }]);
     expect(
       runSpec(
         employment,
-        'count(*) as Count where works_at(Person, nowhere)'
-      )
-    ).toEqual([{ Count: { type: 'num', value: 0 } }]);
-    expect(
-      runSpec(employment, 'count(*) as Count where works_at(Person, _), \\+ suspended(Person)')
+        'count(*) as Count where works_at(Person, _), \\+ suspended(Person)',
+      ),
     ).toEqual([{ Count: { type: 'num', value: 2 } }]);
   });
 
@@ -917,17 +954,17 @@ describe('evaluate: scalar query aggregation', () => {
       path(X, Y) :- edge(X, Y).
       path(X, Y) :- edge(X, Z), path(Z, Y).
     `;
-    expect(runSpec(graph, 'count(*) as Count where path(a, Descendant)')).toEqual([
-      { Count: { type: 'num', value: 3 } },
-    ]);
+    expect(
+      runSpec(graph, 'count(*) as Count where path(a, Descendant)'),
+    ).toEqual([{ Count: { type: 'num', value: 3 } }]);
     expect(
       runSpec(
         'person(alice). tag(alice, one). tag(alice, two).',
-        'count(*) as Count where person(Person), tag(Person, _)'
-      )
+        'count(*) as Count where person(Person), tag(Person, _)',
+      ),
     ).toEqual([{ Count: { type: 'num', value: 2 } }]);
     expect(
-      runSpec(employment, 'count(*) as Count where works_at(_, acme)')
+      runSpec(employment, 'count(*) as Count where works_at(_, acme)'),
     ).toEqual([{ Count: { type: 'num', value: 2 } }]);
   });
 
@@ -936,34 +973,38 @@ describe('evaluate: scalar query aggregation', () => {
     expect(
       runSpec(
         scores,
-        'count(*) as Count where score(Person, Points), baseline(team, Base), Points > Base + 5'
-      )
+        'count(*) as Count where score(Person, Points), baseline(team, Base), Points > Base + 5',
+      ),
     ).toEqual([{ Count: { type: 'num', value: 1 } }]);
   });
 
   it('computes sum over numeric rows and returns no row for empty input', () => {
     const scores = 'score(alice, 1.5). score(bob, -2). score(carol, 4).';
-    expect(runSpec(scores, 'sum(Points) as Total where score(Player, Points)')).toEqual([
-      { Total: { type: 'num', value: 3.5 } },
-    ]);
     expect(
-      runSpec(scores, 'sum(Points) as Total where score(nobody, Points)')
+      runSpec(scores, 'sum(Points) as Total where score(Player, Points)'),
+    ).toEqual([{ Total: { type: 'num', value: 3.5 } }]);
+    expect(
+      runSpec(scores, 'sum(Points) as Total where score(nobody, Points)'),
     ).toEqual([]);
   });
 
   it('computes numeric and atom extrema with deterministic tie positions', () => {
-    const values = 'score(a, 2). score(b, 1). score(c, 1). name(zoe). name(amy).';
-    expect(runSpec(values, 'min(Value) as Minimum where score(_, Value)')).toEqual([
-      { Minimum: { type: 'num', value: 1 } },
-    ]);
-    expect(runSpec(values, 'max(Value) as Maximum where score(_, Value)')).toEqual([
-      { Maximum: { type: 'num', value: 2 } },
-    ]);
+    const values =
+      'score(a, 2). score(b, 1). score(c, 1). name(zoe). name(amy).';
+    expect(
+      runSpec(values, 'min(Value) as Minimum where score(_, Value)'),
+    ).toEqual([{ Minimum: { type: 'num', value: 1 } }]);
+    expect(
+      runSpec(values, 'max(Value) as Maximum where score(_, Value)'),
+    ).toEqual([{ Maximum: { type: 'num', value: 2 } }]);
     expect(runSpec(values, 'min(Name) as First where name(Name)')).toEqual([
       { First: { type: 'atom', value: 'amy' } },
     ]);
 
-    const proof = explainSpec(values, 'min(Value) as Minimum where score(Person, Value)');
+    const proof = explainSpec(
+      values,
+      'min(Value) as Minimum where score(Person, Value)',
+    );
     expect(proof[0].proofs[0]).toMatchObject({
       aggregated: true,
       op: 'min',
@@ -976,40 +1017,50 @@ describe('evaluate: scalar query aggregation', () => {
 
   it('fails closed for invalid scalar domains and non-finite sums', () => {
     expect(() =>
-      runSpec('value(1). value(one).', 'min(Value) as Minimum where value(Value)')
+      runSpec(
+        'value(1). value(one).',
+        'min(Value) as Minimum where value(Value)',
+      ),
     ).toThrow(EngineSafetyError);
     expect(() =>
-      runSpec('value(one).', 'sum(Value) as Total where value(Value)')
+      runSpec('value(one).', 'sum(Value) as Total where value(Value)'),
     ).toThrow(EngineSafetyError);
     const huge = '9'.repeat(307);
     const overflowing = Array.from(
       { length: 20 },
-      (_, index) => `value(${index}, ${huge}).`
+      (_, index) => `value(${index}, ${huge}).`,
     ).join(' ');
     expect(() =>
-      runSpec(overflowing, 'sum(Value) as Total where value(Id, Value)')
+      runSpec(overflowing, 'sum(Value) as Total where value(Id, Value)'),
     ).toThrow(EngineSafetyError);
   });
 
   it('does not silently reuse maxRows as the aggregate input cap', () => {
-    const facts = Array.from({ length: 1005 }, (_, index) => `item(${index}).`).join(' ');
+    const facts = Array.from(
+      { length: 1005 },
+      (_, index) => `item(${index}).`,
+    ).join(' ');
     expect(
-      runSpec(facts, 'count(*) as Count where item(Item)', { maxRows: 1 })
+      runSpec(facts, 'count(*) as Count where item(Item)', { maxRows: 1 }),
     ).toEqual([{ Count: { type: 'num', value: 1005 } }]);
   });
 
   it('fails closed when aggregate input exceeds its dedicated cap', () => {
     expect(() =>
-      runSpec('item(1). item(2). item(3).', 'count(*) as Count where item(Item)', {
-        maxAggregateRows: 2,
-      })
+      runSpec(
+        'item(1). item(2). item(3).',
+        'count(*) as Count where item(Item)',
+        {
+          maxAggregateRows: 2,
+        },
+      ),
     ).toThrow(/aggregate input exceeded 2/i);
   });
 
   it('emits one bounded aggregate proof with ordered contributor evidence', () => {
     const result = explainSpec(
       employment,
-      'count(*) as Count where works_at(Person, acme)'
+      'count(*) as Count where works_at(Person, acme)',
     );
     expect(result).toEqual([
       {
@@ -1036,31 +1087,40 @@ describe('evaluate: scalar query aggregation', () => {
       },
     ]);
     expect(() =>
-      explainSpec(employment, 'count(*) as Count where works_at(Person, acme)', {
-        maxProofNodes: 2,
-      })
+      explainSpec(
+        employment,
+        'count(*) as Count where works_at(Person, acme)',
+        {
+          maxProofNodes: 2,
+        },
+      ),
     ).toThrow(EngineLimitError);
   });
 
   it('separates exact aggregate evaluation from the smaller explanation cap', () => {
-    const facts = Array.from({ length: 257 }, (_, index) => `item(${index}).`).join(' ');
+    const facts = Array.from(
+      { length: 257 },
+      (_, index) => `item(${index}).`,
+    ).join(' ');
     const query = 'count(*) as Count where item(Item)';
-    expect(runSpec(facts, query)).toEqual([{ Count: { type: 'num', value: 257 } }]);
+    expect(runSpec(facts, query)).toEqual([
+      { Count: { type: 'num', value: 257 } },
+    ]);
     expect(() => explainSpec(facts, query)).toThrow(
-      /aggregate proof exceeded 256 contributor rows/i
+      /aggregate proof exceeded 256 contributor rows/i,
     );
     expect(
-      explainSpec(facts, query, { maxAggregateProofRows: 257 })[0].proofs[0]
+      explainSpec(facts, query, { maxAggregateProofRows: 257 })[0].proofs[0],
     ).toMatchObject({ aggregated: true, value: 257 });
   });
 
   it('rejects aggregate alternative-proof enumeration explicitly', () => {
     const query = 'count(*) as Count where item(Item)';
-    expect(runSpec('item(1). item(2).', query, { maxProofsPerRow: 2 })).toEqual([
-      { Count: { type: 'num', value: 2 } },
-    ]);
+    expect(runSpec('item(1). item(2).', query, { maxProofsPerRow: 2 })).toEqual(
+      [{ Count: { type: 'num', value: 2 } }],
+    );
     expect(() =>
-      explainSpec('item(1). item(2).', query, { maxProofsPerRow: 2 })
+      explainSpec('item(1). item(2).', query, { maxProofsPerRow: 2 }),
     ).toThrow(/alternative proofs are relational-only/i);
   });
 });
@@ -1077,7 +1137,9 @@ describe('evaluateWithProof', () => {
       path(X, Y) :- edge(X, Y).
     `;
 
-    expect(explain(withConstraint, 'path(a, b)')).toEqual(explain(withoutConstraint, 'path(a, b)'));
+    expect(explain(withConstraint, 'path(a, b)')).toEqual(
+      explain(withoutConstraint, 'path(a, b)'),
+    );
   });
 
   it('keeps default proof behavior unchanged when alternative enumeration is off', () => {
@@ -1322,7 +1384,11 @@ describe('evaluateWithProof', () => {
       tag(alice, one).
       tag(alice, two).
     `;
-    expect(explain(wildcard, 'person(Person), tag(Person, _)', { maxProofsPerRow: 2 })).toEqual([
+    expect(
+      explain(wildcard, 'person(Person), tag(Person, _)', {
+        maxProofsPerRow: 2,
+      }),
+    ).toEqual([
       {
         bindings: { Person: { type: 'atom', value: 'alice' } },
         proofs: [
@@ -1343,7 +1409,9 @@ describe('evaluateWithProof', () => {
       pick(X) :- base(X).
       pick(X) :- base(X).
     `;
-    const duplicate = explain(duplicateRules, 'pick(a)', { maxProofsPerRow: 2 });
+    const duplicate = explain(duplicateRules, 'pick(a)', {
+      maxProofsPerRow: 2,
+    });
     expect(duplicate).toEqual([
       {
         bindings: {},
@@ -1409,26 +1477,28 @@ describe('evaluateWithProof', () => {
     `;
 
     expect(() => explain(db, 'path(a, d)', { maxProofsPerRow: 2 })).toThrow(
-      /proof alternatives exceeded maxProofsPerRow 2/i
+      /proof alternatives exceeded maxProofsPerRow 2/i,
     );
   });
 
   it('validates alternative-proof options and the exported hard caps', () => {
     expect(MAX_PROOFS_PER_ROW).toBe(16);
     expect(MAX_PROOF_ENUMERATION_STEPS).toBe(1_000_000);
-    expect(() => explain('fact(a).', 'fact(a)', { maxProofsPerRow: 0 })).toThrow(
-      /maxProofsPerRow/i
-    );
     expect(() =>
-      explain('fact(a).', 'fact(a)', { maxProofsPerRow: MAX_PROOFS_PER_ROW + 1 })
+      explain('fact(a).', 'fact(a)', { maxProofsPerRow: 0 }),
     ).toThrow(/maxProofsPerRow/i);
     expect(() =>
-      explain('fact(a).', 'fact(a)', { maxProofEnumerationSteps: 0 })
+      explain('fact(a).', 'fact(a)', {
+        maxProofsPerRow: MAX_PROOFS_PER_ROW + 1,
+      }),
+    ).toThrow(/maxProofsPerRow/i);
+    expect(() =>
+      explain('fact(a).', 'fact(a)', { maxProofEnumerationSteps: 0 }),
     ).toThrow(/maxProofEnumerationSteps/i);
     expect(() =>
       explain('fact(a).', 'fact(a)', {
         maxProofEnumerationSteps: MAX_PROOF_ENUMERATION_STEPS + 1,
-      })
+      }),
     ).toThrow(/maxProofEnumerationSteps/i);
   });
 
@@ -1443,7 +1513,7 @@ describe('evaluateWithProof', () => {
       explain(db, 'person(Person), tag(Person, _)', {
         maxProofsPerRow: 2,
         maxProofEnumerationSteps: 1,
-      })
+      }),
     ).toThrow(/proof enumeration exceeded 1 steps/i);
   });
 
@@ -1456,7 +1526,9 @@ describe('evaluateWithProof', () => {
       path(X, Y) :- edge(X, Z), path(Z, Y).
     `;
 
-    expect(() => explain(db, 'path(a, d)', { maxProofDepth: 2 })).toThrow(EngineLimitError);
+    expect(() => explain(db, 'path(a, d)', { maxProofDepth: 2 })).toThrow(
+      EngineLimitError,
+    );
   });
 
   it('shares proof depth and node budgets across primary and alternative witnesses', () => {
@@ -1469,7 +1541,7 @@ describe('evaluateWithProof', () => {
       explain(wildcard, 'person(Person), tag(Person, _)', {
         maxProofsPerRow: 2,
         maxProofNodes: 3,
-      })
+      }),
     ).toThrow(EngineLimitError);
 
     const recursive = `
@@ -1484,7 +1556,7 @@ describe('evaluateWithProof', () => {
       explain(recursive, 'path(a, d)', {
         maxProofsPerRow: 2,
         maxProofDepth: 2,
-      })
+      }),
     ).toThrow(EngineLimitError);
   });
 
@@ -1495,9 +1567,9 @@ describe('evaluateWithProof', () => {
       colleague(X, Y) :- works_at(X, C), works_at(Y, C), X != Y.
     `;
 
-    expect(() => explain(db, 'colleague(rahul, maya)', { maxProofNodes: 2 })).toThrow(
-      EngineLimitError
-    );
+    expect(() =>
+      explain(db, 'colleague(rahul, maya)', { maxProofNodes: 2 }),
+    ).toThrow(EngineLimitError);
   });
 
   it('enforces the proof node cap across emitted rows', () => {
@@ -1506,21 +1578,23 @@ describe('evaluateWithProof', () => {
       works_at(maya, acme).
     `;
 
-    expect(() => explain(db, 'works_at(X, acme)', { maxProofNodes: 1 })).toThrow(
-      EngineLimitError
-    );
+    expect(() =>
+      explain(db, 'works_at(X, acme)', { maxProofNodes: 1 }),
+    ).toThrow(EngineLimitError);
   });
 });
 
 describe('materializeWithProof', () => {
   it('can materialize the same bounded fixpoint without serializing proofs', () => {
     const program = parseProgram(
-      'edge(a, b). edge(b, c). path(X, Y) :- edge(X, Y).'
+      'edge(a, b). edge(b, c). path(X, Y) :- edge(X, Y).',
     );
     expect(materialize(program)).toEqual(
-      materializeWithProof(program).map(({ proof: _proof, ...fact }) => fact)
+      materializeWithProof(program).map(({ proof: _proof, ...fact }) => fact),
     );
-    expect(() => materialize(program, { maxFacts: 2 })).toThrow(EngineLimitError);
+    expect(() => materialize(program, { maxFacts: 2 })).toThrow(
+      EngineLimitError,
+    );
   });
 
   it('returns base and derived facts with proofs', () => {
@@ -1533,7 +1607,10 @@ describe('materializeWithProof', () => {
 
     const facts = materializeWithProof(parseProgram(db));
     const byKey = new Map(
-      facts.map((fact) => [`${fact.predicate}(${fact.values.join(',')})`, fact] as const)
+      facts.map(
+        (fact) =>
+          [`${fact.predicate}(${fact.values.join(',')})`, fact] as const,
+      ),
     );
 
     expect(byKey.get('edge(a,b)')).toEqual({
@@ -1569,8 +1646,38 @@ describe('materializeWithProof', () => {
       edge(b, c).
     `;
 
-    expect(() => materializeWithProof(parseProgram(db), { maxProofNodes: 1 })).toThrow(
-      EngineLimitError
-    );
+    expect(() =>
+      materializeWithProof(parseProgram(db), { maxProofNodes: 1 }),
+    ).toThrow(EngineLimitError);
+  });
+});
+
+describe('candidate visit budget', () => {
+  // a rule whose body cross-joins wildcard goals derives few facts but visits
+  // a Cartesian product of candidates; the budget stops it before it grinds
+  const facts = ['learned', 'attended', 'wants', 'prefers']
+    .flatMap((p) =>
+      Array.from({ length: 60 }, (_, i) => `${p}(user, a${i}, b${i}, c${i}).`),
+    )
+    .join('\n');
+  const program = `${facts}
+    q(X) :- learned(user, X, _, _), attended(user, _, _, _), wants(user, _, _, _), prefers(user, _, _, _), learned(user, _, _, _), attended(user, _, _, _).`;
+
+  it('throws EngineLimitError quickly when a rule body visits more candidates than allowed', () => {
+    const started = Date.now();
+    expect(() =>
+      evaluateQuerySpec(parseProgram(program), parseQuerySpec('?- q(X).'), {
+        maxCandidateVisits: 100_000,
+      }),
+    ).toThrow(EngineLimitError);
+    expect(Date.now() - started).toBeLessThan(2_000);
+  });
+
+  it('has a finite default so no caller can hang the evaluator', () => {
+    const started = Date.now();
+    expect(() =>
+      evaluateQuerySpec(parseProgram(program), parseQuerySpec('?- q(X).')),
+    ).toThrow(EngineLimitError);
+    expect(Date.now() - started).toBeLessThan(30_000);
   });
 });
