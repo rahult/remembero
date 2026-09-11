@@ -20,13 +20,16 @@ import {
   type Goal,
   type Literal,
   type QuerySpec,
+  type ScalarExpression,
   type Term,
   isComparison,
   isIntegrityConstraint,
   isNegation,
   predKey,
+  serializeGoal,
 } from './ast.js';
 import { CLOSURE_SUFFIX } from './closure.js';
+import { evaluateQuerySpec } from './evaluate.js';
 
 export interface QueryDiagnostic {
   severity: 'error' | 'warning';
@@ -334,4 +337,123 @@ export function diagnoseQuery(
     }
   }
   return out;
+}
+
+export interface EmptyResultFeedbackOptions {
+  /** Model-authored rules; their bodies are the goals that get counted. */
+  authored?: Clause[];
+  /** Extra predicate/arity keys the caller knows exist. */
+  knownPredicates?: Iterable<string>;
+}
+
+/**
+ * Everything the engine can say about a query that returned no rows, as one
+ * paragraph for the model's repair turn: the warning-level diagnostics
+ * (unknown predicate, reversed direction), then, for a join of two or more
+ * positive goals, how many rows each goal matches on its own. A goal that
+ * matches alone while the join is empty points at the shared variable's
+ * argument position. Returns '' when there is nothing beyond the closed-world
+ * "no" to report.
+ */
+export function emptyResultFeedback(
+  clauses: Clause[],
+  query: QuerySpec,
+  options: EmptyResultFeedbackOptions = {},
+): string {
+  const parts: string[] = diagnoseQuery(clauses, query, {
+    emptyResult: true,
+    ...(options.authored === undefined ? {} : { authored: options.authored }),
+    ...(options.knownPredicates === undefined
+      ? {}
+      : { knownPredicates: options.knownPredicates }),
+  })
+    .filter((d) => d.severity === 'warning')
+    .map((d) => d.message);
+
+  // the goals to count: the query's own, or the body of the authored rule the
+  // query asks about (q(P) :- ... ?- q(P).)
+  let goals: Goal[] = query.goals;
+  const positive = (list: readonly Goal[]): Literal[] =>
+    list.filter((g): g is Literal => !isComparison(g) && !isNegation(g));
+  if (positive(goals).length === 1 && options.authored !== undefined) {
+    const [only] = positive(goals);
+    const rules = options.authored.filter(
+      (c) => !isIntegrityConstraint(c) && predKey(c.head) === predKey(only),
+    );
+    if (rules.length === 1 && rules[0].body.length > 1) {
+      goals = rules[0].body;
+    }
+  }
+  const literals = positive(goals);
+  const negated = goals.filter((g) => isNegation(g));
+  const count = (list: Goal[]): number => {
+    try {
+      return evaluateQuerySpec(clauses, { kind: 'relational', goals: list })
+        .length;
+    } catch {
+      return 0;
+    }
+  };
+  if (literals.length >= 2 || (literals.length >= 1 && negated.length >= 1)) {
+    const counts = literals.map((literal) => {
+      const rows = count([literal]);
+      return `${serializeGoal(literal)} alone matches ${rows} row${rows === 1 ? '' : 's'}`;
+    });
+    const tail =
+      literals.length >= 2
+        ? 'together they match none'
+        : `with ${negated.map(serializeGoal).join(' and ')} none remain`;
+    parts.push(
+      `${counts.join('; ')}; ${tail}. Check the argument positions of the variables the goals share.`,
+    );
+
+    // Mutation probe: move a shared variable to another argument position of
+    // its literal and report the swaps that make the whole query return rows.
+    const expressionVars = (e: ScalarExpression, into: Set<string>): void => {
+      if ('kind' in e) {
+        if (e.kind === 'unary') expressionVars(e.operand, into);
+        else {
+          expressionVars(e.left, into);
+          expressionVars(e.right, into);
+        }
+      } else if (e.type === 'var') into.add(e.name);
+    };
+    const goalVars = (g: Goal): Set<string> => {
+      const names = new Set<string>();
+      if (isComparison(g)) {
+        expressionVars(g.left, names);
+        expressionVars(g.right, names);
+      } else {
+        for (const t of (isNegation(g) ? g.not : g).args) {
+          if (t.type === 'var') names.add(t.name);
+        }
+      }
+      return names;
+    };
+    const shared = (name: string, owner: Literal): boolean =>
+      goals.some((g) => g !== owner && goalVars(g).has(name));
+    const suggestions: string[] = [];
+    for (const literal of literals) {
+      if (suggestions.length >= 3) break;
+      literal.args.forEach((term, i) => {
+        if (term.type !== 'var' || !shared(term.name, literal)) return;
+        literal.args.forEach((other, j) => {
+          if (j === i || suggestions.length >= 3) return;
+          const args = literal.args.slice();
+          args[i] = other;
+          args[j] = term;
+          const swapped: Literal = { predicate: literal.predicate, args };
+          const mutated = goals.map((g) => (g === literal ? swapped : g));
+          const rows = count(mutated);
+          if (rows > 0) {
+            suggestions.push(
+              `Did you mean ${serializeGoal(swapped)}? That returns ${rows} row${rows === 1 ? '' : 's'}.`,
+            );
+          }
+        });
+      });
+    }
+    parts.push(...suggestions);
+  }
+  return parts.join(' ');
 }

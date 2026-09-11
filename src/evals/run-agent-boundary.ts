@@ -4,6 +4,7 @@
  *   node dist/evals/run-agent-boundary.js --model llama3.2:3b [--seeds 7,42,123]
  *       [--conditions remembero-closure] [--chat-api openai]  (OLLAMA_URL = base URL)
  *       [--answer-model llama3.2:3b --answer-chat-api ollama]  (ANSWER_URL = its base URL)
+ *       [--empty-feedback]  (one extra attempt with the engine's account of an empty result)
  *
  * Same seeded SQLite database, same model; the model authors every query
  * itself. The sql condition executes model-written read-only SQL with no
@@ -61,6 +62,12 @@ const CHAT_URL =
     : 'http://127.0.0.1:11434');
 const MAX_RESULT_ROWS = 30;
 const MAX_ATTEMPTS = 2;
+// --empty-feedback: when a Datalog query runs but returns no rows, hand the
+// model the engine's account of why (unknown predicate, reversed direction,
+// how each goal of a join fares alone) and let it try once more. Off by
+// default so the published numbers stay comparable; a run with it on writes
+// to its own results file.
+const EMPTY_FEEDBACK = process.argv.includes('--empty-feedback');
 
 async function chat(
   model: string,
@@ -185,15 +192,34 @@ async function runQuestion(
     let rows: Array<Record<string, unknown>> | undefined;
     let query = '';
     let toolErrors = 0;
+    let feedbackGiven = false;
     for (
       let attempt = 0;
-      attempt < MAX_ATTEMPTS && rows === undefined;
+      attempt < MAX_ATTEMPTS + (EMPTY_FEEDBACK ? 1 : 0) && rows === undefined;
       attempt += 1
     ) {
       const rawQuery = await chat(model, messages, seed);
       query = stripFences(rawQuery);
       try {
         rows = executeQuery(db, condition, rawQuery);
+        if (
+          EMPTY_FEEDBACK &&
+          rows.length === 0 &&
+          condition !== 'sql' &&
+          condition !== 'sql-gated' &&
+          !feedbackGiven
+        ) {
+          const feedback = db.datalogFeedback(stripFences(rawQuery));
+          if (feedback.length > 0) {
+            feedbackGiven = true;
+            rows = undefined;
+            messages.push({ role: 'assistant', content: rawQuery });
+            messages.push({
+              role: 'user',
+              content: `That query ran but returned no rows. ${feedback} If the query correctly expresses the question, repeat it unchanged; otherwise reply with ONLY a corrected query.`,
+            });
+          }
+        }
       } catch (error) {
         toolErrors += 1;
         messages.push({ role: 'assistant', content: rawQuery });
@@ -494,7 +520,7 @@ async function main(): Promise<void> {
       ANSWER_LEG.model !== model
         ? `-answer-${ANSWER_LEG.model.replaceAll(/[^a-z0-9.]+/gi, '-')}`
         : ''
-    }-summary.json`,
+    }${EMPTY_FEEDBACK ? '-feedback' : ''}-summary.json`,
   );
   mkdirSync(dirname(resultPath), { recursive: true });
   writeFileSync(
@@ -508,6 +534,7 @@ async function main(): Promise<void> {
           temperature: 0,
           seeds,
           attempts: MAX_ATTEMPTS,
+          emptyFeedback: EMPTY_FEEDBACK,
           conditions,
           chatBackend: CHAT_BACKEND,
           answerModel: ANSWER_LEG.model,

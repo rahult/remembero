@@ -1,4 +1,5 @@
 import {
+  emptyResultFeedback,
   type Bindings,
   type AggregateOperator,
   type Clause,
@@ -1607,12 +1608,22 @@ export async function retrieveQuestion(
       return { ...result, queryReview };
     }
 
+    // Solver feedback for the repair turn: what the engine can say about why
+    // the query came back empty (unknown predicate, reversed direction, and for
+    // a join how each goal fares alone). Stored constants may appear in it, so
+    // it passes the same safety gate as the schema summary.
+    const feedback = emptyResultFeedback(clauses, query);
+    if (feedback.length > 0) {
+      assertSafeForExternalLlm(feedback, 'empty-result feedback');
+    }
     const fallbackMessages: ChatMessage[] = [
       ...messages,
       { role: 'assistant', content: `?- ${queryText}.` },
       {
         role: 'user',
-        content: `The query ${queryText} returned no results. If it correctly expresses the question, repeat it unchanged: an empty result is valid evidence that no stored fact matches. Try ONE alternative only if the first query mistranslated the question. Output exactly ?- ${UNANSWERABLE}. only when the schema cannot express the question at all, never merely because the result was empty.`,
+        content: `The query ${queryText} returned no results.${
+          feedback.length > 0 ? ` ${feedback}` : ''
+        } If it correctly expresses the question, repeat it unchanged: an empty result is valid evidence that no stored fact matches. Try ONE alternative only if the first query mistranslated the question. Output exactly ?- ${UNANSWERABLE}. only when the schema cannot express the question at all, never merely because the result was empty.`,
       },
     ];
     query = await completeWithRetry(

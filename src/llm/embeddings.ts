@@ -54,6 +54,19 @@ function providerErrorDetail(body: string): string | undefined {
   }
 }
 
+/**
+ * A local Ollama server reports its llama runner subprocess dropping a request
+ * as HTTP 400 ("Post .../tokenize: EOF", "connection reset by peer"). The
+ * runner restarts on its own, so the request deserves the same retry as a 5xx.
+ */
+function isTransientRunnerFailure(detail: string | undefined): boolean {
+  if (detail === undefined) return false;
+  return (
+    /\/tokenize"|\/embedding"/.test(detail) &&
+    /EOF|connection reset|connection refused|broken pipe/i.test(detail)
+  );
+}
+
 export class OpenRouterEmbeddingClient implements EmbeddingClient {
   readonly model: string;
 
@@ -102,7 +115,12 @@ export class OpenRouterEmbeddingClient implements EmbeddingClient {
             `embedding request failed with status ${response.status}` +
               (detail === undefined ? '' : `: ${detail}`),
           );
-          if (response.status === 429 || response.status >= 500) continue;
+          if (
+            response.status === 429 ||
+            response.status >= 500 ||
+            (response.status === 400 && isTransientRunnerFailure(detail))
+          )
+            continue;
           throw lastError;
         }
         const body = await response.text();

@@ -152,6 +152,29 @@ describe.skipIf(nodeMajor < 22)('Remembero SQLite integration', () => {
     }
   });
 
+  it('explains an empty join goal by goal through datalogFeedback', async () => {
+    const database = await openRememberoDatabase(':memory:');
+    try {
+      database.exec(`
+        CREATE TABLE blocker(project TEXT, blocker TEXT);
+        INSERT INTO blocker VALUES ('beacon','legal_signoff'),('atlas','budget');
+        CREATE TABLE works_on(person TEXT, project TEXT);
+        INSERT INTO works_on VALUES ('maya','beacon');
+      `);
+      // the model put the project in the person slot: each goal matches alone, the join does not
+      const feedback = database.datalogFeedback(
+        'q(P) :- blocker(P, legal_signoff), works_on(P, _).\n?- q(P).',
+      );
+      expect(feedback).toContain('blocker(P, legal_signoff) alone matches 1 row');
+      expect(feedback).toContain('works_on(P, _) alone matches 1 row');
+      expect(feedback).toContain('together they match none');
+      // a plain closed-world miss has nothing to add
+      expect(database.datalogFeedback('?- blocker(zephyr, B).')).toBe('');
+    } finally {
+      database.close();
+    }
+  });
+
   it('keeps variable-position fact queries working', async () => {
     const database = await openRememberoDatabase(':memory:');
     try {

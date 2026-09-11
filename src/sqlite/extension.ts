@@ -12,6 +12,7 @@ import {
   type ScalarExpression,
   type Term,
   diagnoseQuery,
+  emptyResultFeedback,
   evaluateQuerySpec,
   evaluateQuerySpecWithProof,
   expandClosurePredicates,
@@ -35,6 +36,12 @@ import {
 interface DatalogDatabaseMethods {
   datalogSql(rule: string): string;
   datalogQuery(rule: string): DatalogRow[];
+  /**
+   * What the engine can say about a query that returned no rows: unknown
+   * predicates, reversed argument directions, and for a join how each goal
+   * fares alone. Empty when there is nothing beyond the closed-world "no".
+   */
+  datalogFeedback(rule: string): string;
   datalogExplain(program: string): DatalogExplanation[];
   datalogPlan(input: string): SqliteDatalogPlan;
 }
@@ -910,6 +917,20 @@ export class DatalogDatabase {
     });
   }
 
+  datalogFeedback(rule: string): string {
+    assertQueryableInput(rule);
+    return this.withPortableSnapshot(() => {
+      const request = preparePortableRequest(rule);
+      const clauses = this.portableClauses(request);
+      return emptyResultFeedback(clauses, request.query, {
+        authored: request.program,
+        knownPredicates: request.basePredicates.map(
+          ({ predicate, arity }) => `${predicate}/${arity}`,
+        ),
+      });
+    });
+  }
+
   private portableExplain(input: string): DatalogExplanation[] {
     return this.withPortableSnapshot(() => {
       const request = preparePortableRequest(input);
@@ -952,6 +973,7 @@ function attachDatalogDatabaseMethods(
   if (
     typeof existing.datalogSql === 'function' &&
     typeof existing.datalogQuery === 'function' &&
+    typeof existing.datalogFeedback === 'function' &&
     typeof existing.datalogExplain === 'function' &&
     typeof existing.datalogPlan === 'function'
   ) {
@@ -972,6 +994,11 @@ function attachDatalogDatabaseMethods(
     },
     datalogExplain: {
       value: adapter.datalogExplain.bind(adapter),
+      configurable: true,
+      writable: false,
+    },
+    datalogFeedback: {
+      value: adapter.datalogFeedback.bind(adapter),
       configurable: true,
       writable: false,
     },

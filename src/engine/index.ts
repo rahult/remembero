@@ -75,6 +75,8 @@ export { parseQueryProgram, type QueryProgram } from './query-program.js';
 export {
   diagnoseQuery,
   type DiagnoseOptions,
+  emptyResultFeedback,
+  type EmptyResultFeedbackOptions,
   type QueryDiagnostic,
 } from './diagnostics.js';
 export {

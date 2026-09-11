@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   diagnoseQuery,
+  emptyResultFeedback,
   parseProgram,
   parseQueryProgram,
 } from '../src/engine/index.js';
@@ -11,6 +12,8 @@ const FACTS = parseProgram(`
   reports_to(maya, liam).
   reports_to(liam, ava).
   waits_on(atlas, vendor).
+  works_on(maya, atlas).
+  works_on(liam, beacon).
   prefers_meeting(maya, morning).
   employed(rahul) :- works_at(rahul, _).
 `);
@@ -122,5 +125,50 @@ describe('diagnoseQuery: the model gets told what went wrong', () => {
     expect(
       diagnose('prefers_meeting(maya, W), status(beacon, blocked)'),
     ).toEqual([]);
+  });
+});
+
+describe('emptyResultFeedback: why a join came back empty', () => {
+  const feedback = (query: string) => {
+    const program = parseQueryProgram(query);
+    return emptyResultFeedback([...FACTS, ...program.clauses], program.query, {
+      authored: program.clauses,
+    });
+  };
+
+  it('reports how many rows each body goal matches on its own when the join is empty', () => {
+    // reversed argument order in one goal: each goal matches alone, the join does not
+    const text = feedback('status(P, blocked), reports_to(P, maya)');
+    expect(text).toMatch(/status\(P, blocked\) alone matches 1 row/);
+    expect(text).toMatch(/reports_to\(P, maya\) alone matches 0 rows/);
+    expect(text).toMatch(/argument positions/);
+  });
+
+  it('folds the warning diagnostics in ahead of the per-goal counts', () => {
+    const text = feedback('statuses(P, S)');
+    expect(text).toMatch(/unknown predicate statuses\/2/);
+  });
+
+  it('is empty for a single goal that simply has no matching fact', () => {
+    // nothing to say beyond the closed-world "no"
+    expect(feedback('status(zephyr, S)')).toBe('');
+  });
+
+  it('suggests swapping a shared variable to the argument position that yields rows', () => {
+    // M sits in the report slot; every report works on something, so the
+    // negation empties the result. In the manager slot, ava survives.
+    const text = feedback('reports_to(M, _), \\+ works_on(M, _)');
+    expect(text).toMatch(/reports_to\(M, _\) alone matches 2 rows/);
+    expect(text).toMatch(
+      /Did you mean reports_to\(_, M\)\? That returns 1 row/,
+    );
+  });
+
+  it('counts goals through model-authored rules', () => {
+    const text = feedback(
+      'q(P) :- status(P, blocked), reports_to(P, maya).\n?- q(P).',
+    );
+    expect(text).toMatch(/status\(P, blocked\) alone matches 1 row/);
+    expect(text).toMatch(/reports_to\(P, maya\) alone matches 0 rows/);
   });
 });

@@ -2064,6 +2064,24 @@ describe('recallQuestion', () => {
     );
   });
 
+  it('tells the model how each goal of an empty join fared on its own', async () => {
+    const llm = new ScriptedLlm([
+      '?- works_at(maya, X), works_at(X, acme).', // wrong join: X is a company, not a person
+      '?- works_at(maya, X).',
+      'Maya works at Acme.',
+    ]);
+    const result = await recallQuestion(
+      { store, llm },
+      'Where does Maya work?',
+    );
+    expect(result.bindings).toEqual([{ X: 'acme' }]);
+    const fallback = llm.calls[1];
+    const prompt = fallback[fallback.length - 1].content;
+    expect(prompt).toContain('works_at(maya, X) alone matches 1 row');
+    expect(prompt).toContain('works_at(X, acme) alone matches 2 rows');
+    expect(prompt).toContain('together they match none');
+  });
+
   it('phrases an honest answer when the fallback also returns no rows', async () => {
     const llm = new ScriptedLlm([
       '?- works_at(zoe, X).',
