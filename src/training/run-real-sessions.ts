@@ -3,6 +3,7 @@
  * training data. See real-sessions.ts for what is selected and why it cannot leak.
  *
  *   node dist/training/run-real-sessions.js label   --count 3400 --out data/real/labels.jsonl
+ *        [--model glm-5.3-flash:cloud --base-url http://127.0.0.1:11434/v1 --max-facts 8]
  *   node dist/training/run-real-sessions.js measure --labels data/real/labels.jsonl \
  *        --model finetune/... --base-url https://.../v1 --offset 3100 --count 300 \
  *        --out docs/research/results/extraction-recall-v1-<model>.json
@@ -74,19 +75,41 @@ async function orderedSessions(seed: number): Promise<SelectedSession[]> {
 }
 
 /** Run the product's transcript extraction on one session with a fresh, empty store. */
+/**
+ * Capped, atomic labels: the labeller is asked for at most `maxFacts` durable
+ * facts with short canonical atoms, and the result is cut to that many. Luna's
+ * uncapped labels (6.8 per session, verbose atoms) taught r17 to over-write.
+ */
+function cappedMessages(
+  messages: ChatMessage[],
+  maxFacts: number,
+): ChatMessage[] {
+  const last = messages.at(-1);
+  if (last === undefined || last.role !== 'user') return messages;
+  return [
+    ...messages.slice(0, -1),
+    {
+      role: 'user',
+      content: `${last.content}\n\nReturn at most ${maxFacts} facts: the most durable ones about the user, one relation each, with short lowercase atoms (a name or a one-or-two-word noun), never a sentence as an argument. Skip transient details of the task at hand.`,
+    },
+  ];
+}
+
 async function extractOne(
   client: OpenRouterClient,
   session: SelectedSession,
   maxTokens: number,
   root: string,
+  maxFacts?: number,
 ): Promise<LabelRow> {
   let promptTokens: number | null = 0;
   let completionTokens: number | null = 0;
   const llm = {
     complete: async (messages: ChatMessage[]): Promise<string> => {
-      const completion = await client.completeWithUsage(messages, {
-        maxTokens,
-      });
+      const completion = await client.completeWithUsage(
+        maxFacts === undefined ? messages : cappedMessages(messages, maxFacts),
+        { maxTokens },
+      );
       promptTokens =
         promptTokens === null || completion.usage.promptTokens === null
           ? null
@@ -110,7 +133,8 @@ async function extractOne(
       id: session.id,
       date: session.date,
       model: client.model,
-      facts: result.added,
+      facts:
+        maxFacts === undefined ? result.added : result.added.slice(0, maxFacts),
       promptTokens,
       completionTokens,
     };
@@ -151,6 +175,9 @@ async function label(): Promise<void> {
   const seed = Number(flag('--seed', '7'));
   const concurrency = Number(flag('--concurrency', '8'));
   const maxTokens = Number(flag('--max-tokens', '4096'));
+  const maxFactsFlag = flag('--max-facts');
+  const maxFacts =
+    maxFactsFlag === undefined ? undefined : Number(maxFactsFlag);
   const apiKey = flag('--api-key', process.env.LLM_API_KEY);
   if (!apiKey) throw new Error('LLM_API_KEY is not set');
   const client = new OpenRouterClient({
@@ -171,7 +198,7 @@ async function label(): Promise<void> {
   const root = mkdtempSync(join(tmpdir(), 'rembero-real-'));
   let finished = 0;
   await runPool(todo, concurrency, async (session) => {
-    const row = await extractOne(client, session, maxTokens, root);
+    const row = await extractOne(client, session, maxTokens, root, maxFacts);
     appendFileSync(out, `${JSON.stringify(row)}\n`);
     finished += 1;
     if (finished % 50 === 0) console.error(`[${finished}/${todo.length}]`);

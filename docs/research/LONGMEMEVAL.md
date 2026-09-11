@@ -564,6 +564,37 @@ against 116, with 33 ranges returned against 36 and 22 against 25 of those corre
 same rate, which is the property the paper says matters, so the recommended configuration now
 runs every model but the judge through the Ollama subscription.
 
+**Engine recall: the writer queries its own facts (2026-09-11).** The moonshot composition,
+measured in isolation: after formation, Gemma 4 E2B r16 is shown the card it was trained on
+with the haystack's remembered predicates (placeholders plus sample facts, since a live store
+has no argument names), writes a Datalog program, the engine runs it under the bridge's
+bounds, and the reader sees the program and its rows (a count with the items it counted)
+ahead of the chats (`--engine-recall`). On the 133 multi-session questions with GLM 5.3 Flash
+reading (`longmemeval-ms-v6-engine-recall-e2b-glmflash-all133.json`):
+
+| engine outcome                            | questions | correct | changed vs the 432 run |
+| ----------------------------------------- | --------: | ------: | ---------------------- |
+| rows returned (block shown to the reader) |        11 |       7 | none                   |
+| program ran, no rows (block not shown)    |        85 |      69 | 1 gained, 7 lost       |
+| program unparsable after one repair turn  |        37 |      29 | 1 gained, 3 lost       |
+
+Three findings. First, the writer authors a parseable program for 72% of haystacks in its own
+dialect; the failures are `;` disjunctions and arithmetic the card does not offer, and
+one program that cross-joined seven relations with wildcards, which the harness now refuses
+before evaluation (the evaluator otherwise grinds at full CPU despite its row limits). Second,
+rows come back for only 11 questions because the store is sparse: about two facts per session,
+and the writer's constants (`this_year`, `last_month`) are often not in it. The block never
+changed an outcome. Third, and the most useful number of the day: retrieval was identical for
+all 133 questions and the 122 prompts without a block were byte-identical to the 432 run, yet
+12 of them flipped. GLM 5.3 Flash through the cloud at temperature zero is about 9% noisy per
+question on multi-session, so a single 133-question comparison has a noise band of roughly
+±10, wider than the ±6 per 261 measured with Luna. Comparisons on this benchmark need repeated
+runs or a deterministic reader before a ten-answer difference means anything.
+
+The engine's own recall over remembered facts is the right shape (the counts it did produce
+listed the right items), but it needs the fact store to be dense before it can decide
+questions. That is the writer-training thread of the moonshot, not a retrieval change.
+
 Cost of the composed run over 500 questions: 10,089 extraction calls on an L4 (the dev half
 replayed from the cache), about $1 of GPU time, plus the reader and judge; the time-range
 extractor added one Luna call for each of the 133 temporal questions.

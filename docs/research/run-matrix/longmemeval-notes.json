@@ -172,5 +172,9 @@
   "longmemeval-tr-v2-glmflash-range-glmflash-reader-e2b-all133.json": {
     "knobs": "time range (GLM 5.3 Flash)",
     "note": "temporal only; range extractor on the subscription ties Luna (116)"
+  },
+  "longmemeval-ms-v6-engine-recall-e2b-glmflash-all133.json": {
+    "knobs": "engine recall (E2B r16 writes a Datalog program over the remembered facts; rows shown to the reader)",
+    "note": "multi-session only; engine rows on 11/133, no outcome changed; 12 flips vs 432-run on identical prompts = reader noise"
   }
 }

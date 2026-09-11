@@ -10,7 +10,7 @@ Rank-32 LoRA, one epoch, learning rate 2e-4 throughout. Query is the agent-bound
 (query-correct out of 31, closure condition, seed 7); extraction is the schema-conditioned
 extraction benchmark (closed vocabulary, 103 cases; v1.1 fixed four gold inputs on 2026-09-09,
 so rounds before r12 were scored on v1). Costs: Tinker at its per-token rate, Modal at
-H100 $0.001097/s over the run's wall time. Total training spend so far: **$64.06**
+H100 $0.001097/s over the run's wall time. Total training spend so far: **$67.68**
 (approximate for the Tinker rounds).
 
 | run | date | base | platform | tasks | data | min | cost | held-out loss | query /31 | extraction | notes |
@@ -37,6 +37,7 @@ H100 $0.001097/s over the run's wall time. Total training spend so far: **$64.06
 | r16 E2B | 2026-09-10 | Gemma 4 E2B | Modal H100 | query, extraction | = r14 data | 42.7 | $2.81 | 0.0037 | 28/31 | 85/103 (82.5%) | SERVED DEFAULT since 2026-09-10; best LongMemEval extractor |
 | r16b E2B | 2026-09-10 | Gemma 4 E2B | Modal H100 | query, extraction | = r14 data | 38.2 | $2.52 | 0.0031 | 27/31 | 85/103 (82.5%) | variance sample; matches r16 |
 | r17 E2B | 2026-09-10 | Gemma 4 E2B | Modal H100 | query, extraction | r14 data + 3,000 Luna-labelled real sessions | 60.5 | $3.98 + ≈$6 Luna labelling | 0.0194 | 23/31 | 81/103 (78.6%) | real-session fact recall 10%→29%; LongMemEval hybrid 201 (too prolific for shared retrieval) |
+| r18 E2B | 2026-09-11 | Gemma 4 E2B | Modal H100 | query, extraction | r14 data + 1,383 repair-turn conversations (--repair-share 0.25, from the paraphrase cache) | 55 | $3.62 | 0.0032 | 26/31 | 82/103 (79.6%) | first adapter trained on repair turns (engine feedback → corrected query); scored with and without --empty-feedback |
 
 ## LongMemEval-S answer runs
 
@@ -92,6 +93,7 @@ counted as wrong.
 | 2026-09-10 | ms-v1-hybrid-e2b-k15 | dev (69) | openai/gpt-5.6-luna | raw-session-facts-plus-extracted; extractor gemma-4-e2b-it-r16-gemma4-e2b-modal; lexical only; k 4/15/5 | 61/69 (88.4%) | 93.6% | 61/69 | – | – | $0.12 + L4 ≈$0.55 | 0 | multi-session only; target ≥58 met |
 | 2026-09-10 | ms-v1-hybrid-e2b-k5-entity | dev (69) | openai/gpt-5.6-luna | raw-session-facts-plus-extracted; extractor gemma-4-e2b-it-r16-gemma4-e2b-modal; lexical only; k 4/5/5; entity retrieval | 48/69 (69.6%) | 85.9% | 48/69 | – | – | $0.06 + L4 ≈$0.56 | 0 | multi-session only; entity hop displaces lexical sessions |
 | 2026-09-10 | ms-v1-raw-k15 | dev (69) | openai/gpt-5.6-luna | durable-raw-session-facts; lexical only; k 4/15/5 | 57/69 (82.6%) | 94.4% | 57/69 | – | – | $0.11 | 0 | multi-session only |
+| 2026-09-11 | ms-v6-engine-recall-e2b-glmflash-all133 | all (133) | glm-5.3-flash:cloud | raw-session-facts-plus-extracted; extractor gemma-4-e2b-it-r16-gemma4-e2b-modal; semantic route; k 4/15/10; engine recall (E2B r16 writes a Datalog program over the remembered facts; rows shown to the reader) | 105/133 (78.9%) | 96.5% | 105/133 | – | – | $0.08 | 0 | multi-session only; engine rows on 11/133, no outcome changed; 12 flips vs 432-run on identical prompts = reader noise |
 | 2026-09-10 | tr-v1-raw-range-k10 | dev (66) | openai/gpt-5.6-luna | durable-raw-session-facts; lexical only; k 4/5/10; time range (Luna) | 56/66 (84.8%) | 87.5% | – | 56/66 | – | $0.09 | 0 | temporal only |
 | 2026-09-10 | tr-v1-raw-range | dev (66) | openai/gpt-5.6-luna | durable-raw-session-facts; lexical only; k 4/5/5; time range (Luna) | 55/66 (83.3%) | 78.2% | – | 55/66 | – | $0.04 | 0 | temporal only; range found for 20/66 |
 | 2026-09-11 | tr-v2-glmflash-range-glmflash-reader-e2b-all133 | all (133) | glm-5.3-flash:cloud | raw-session-facts-plus-extracted; extractor gemma-4-e2b-it-r16-gemma4-e2b-modal; time range; semantic route; k 4/15/10; time range (GLM 5.3 Flash) | 113/133 (85.0%) | 90.3% | – | 113/133 | – | $0.05 | 0 | temporal only; range extractor on the subscription ties Luna (116) |
