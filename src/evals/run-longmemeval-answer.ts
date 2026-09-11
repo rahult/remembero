@@ -554,6 +554,8 @@ async function main(): Promise<void> {
   // A self-hosted extraction endpoint that scaled to zero takes longer to come up
   // than one request's timeout; wake it before the questions start.
   if (extractor !== undefined) await warmUp(extractor, 'extraction endpoint');
+  // a self-hosted reader scales to zero as well
+  if (args.readerBaseUrl !== undefined) await warmUp(reader, 'reader endpoint');
   let completed = 0;
   const observations = await mapConcurrent(
     instances,
