@@ -67,6 +67,19 @@ Held-out: whole haystacks, as the query generator holds out worlds. Abstention s
   Milestones: > 416 (Luna), ≥ 425 (inside GLM Flash's band), then 450.
 - Noise: two runs per configuration until a deterministic local reader makes one enough.
 
+## Results so far (2026-09-12)
+
+- v1 (2,976 deterministic examples): 235/500 at the training context budget; single-session
+  types within ten of GLM, aggregation types reproduce answer shapes without the reading.
+- v2 (8,885 deterministic examples with distinct counts, between-dates, 2–12 distractors):
+  231/500; held-out loss on its own distribution 0.015 but temporal was the only type to rise.
+  Learning the generator better did not transfer. Deterministic gold teaches the form of an
+  answer, not how to find it across fifteen raw sessions.
+- v3 (in progress): the design's second path. GLM 5.3 Flash writes a question of a drawn type
+  over 5–15 assembled real sessions and answers it through the evaluation's exact reader
+  prompt; the pair is kept when the answer matches the type (abstention questions must get
+  abstentions, others must not). 3,000 + 200 examples, seven types including preference.
+
 ## Risks
 
 - The fact slice can mislead when the writer misreads (precision 53%); the "supplementary"
