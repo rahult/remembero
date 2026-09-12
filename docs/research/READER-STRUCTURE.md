@@ -129,6 +129,17 @@ cheaper judge, DeepSeek (`deepseek-chat`, direct API), and local embeddings (Oll
 pair stays fair. GLM 5.3 Flash through Ollama was tried as judge and rejected: a reasoning
 model does not reliably answer the judge prompt with the single word it requires.
 
+**Under the cheaper judge.** The same 266, reader v4, lexical retrieval only (no embedding
+model), DeepSeek `deepseek-chat` as judge instead of gpt-4o:
+
+| arm | multi-session | temporal | total |
+| --- | --- | --- | --- |
+| v4 baseline | 87/133 | 80/133 | 167/266 |
+| v4 computed notes | 86/133 | 97/133 | 183/266 |
+
+DeepSeek is the more lenient judge (167 against gpt-4o's 139 on the same baseline), and the
+block's gain holds under it. This is the pair reader v5 is measured against.
+
 ## Where this goes
 
 1. GLM gains a little from the block (+5, all multi-session) and loses nothing, so the block
