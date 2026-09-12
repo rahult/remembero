@@ -75,7 +75,8 @@ multi-session and temporal questions, gpt-4o judge.
 | v4 | baseline | 73/133 | 66/133 | 139/266 | |
 | v4 | computed notes, first version | 77/133 | 76/133 | 153/266 | 45 / 31 |
 | v4 | **computed notes, second version** | **82/133** | **85/133** | **167/266** | 50 / 22 |
-| GLM 5.3 Flash | baseline | pending | | | |
+| v4 | computed notes, third version (noun-modifier dates skipped, coverage line) | 82/133 | 84/133 | 166/266 | 48 / 21 |
+| GLM 5.3 Flash | baseline | pending | | 202/266 | |
 | GLM 5.3 Flash | computed notes | pending | | | |
 
 On the dev half alone the first version went 73 → 80 (temporal 34 → 41, multi 39 → 39).
@@ -87,7 +88,11 @@ the question named; an assistant turn's later paragraphs had lost their role pre
 figures were summed as the user's; "2/15" without a year was not a date, so the reader invented
 60 days for a 14-day gap; a sum was offered for every question and the reader copied it even
 when a figure did not belong; the order line tempted the reader to answer when one named event
-was absent from the history. The second version fixes each.
+was absent from the history. The second version fixes each. The third version, which skips
+dates that name a thing ("the March 15th issue") and adds a coverage line for order questions
+whose one side the history never dates, is level with the second (166 against 167, one fewer
+break): the rules have found what they can, and the reader's own noise (about ±4 on 266 with
+identical prompts) dominates what remains.
 
 ## Where this goes
 
