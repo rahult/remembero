@@ -366,3 +366,29 @@ class TestCategoryFieldIsResolved:
         cands = json.loads((ROOT / "fixtures/runs/r21-writer-hv.claims.json").read_text())["claims"]
         report, _ = run(GOLD2, cands, "r21-hv")
         assert report.unjustified_allow == 0, [d for d in report.decisions if not d["ok"]]
+
+
+class TestCategoryGrounding:
+    def test_invented_category_on_a_revocation_is_dropped_so_it_applies_to_all(self):
+        # r22 wrote category operational_expenditure on a revocation whose text names no
+        # category; the revocation then missed the grant it was meant to end (unjustified ALLOW)
+        rev = json.loads(json.dumps(next(x for x in GOLD2["claims"] if x["id"] == "c_revocation_nadia")))
+        rev["constraints"]["category"] = "operational_expenditure"
+        s, r = state2([x for x in GOLD2["claims"] if x["id"] != "c_revocation_nadia"] + [rev])
+        assert s.claim("c_revocation_nadia").constraints.category is None
+        s8 = next(x for x in GOLD2["scenarios"] if x["id"] == "scenario_08")
+        assert decide(Request.model_validate(s8["request"]), s, r).decision.value == "DENY"
+
+    def test_invented_category_on_a_permission_rejects_it(self):
+        # the same invention on a grant would widen permission, so the grant is dropped instead
+        from remembro.claims.grounding import ground
+        g = json.loads(json.dumps(next(x for x in GOLD2["claims"] if x["id"] == "c_coo_opex")))
+        g["constraints"]["category"] = "grant_expenditure"
+        g["object"] = "grant expenditure"  # object and category agree, but the text says operational
+        _, dropped = ground([g])
+        assert dropped and "category" in dropped[0][1]
+
+    def test_r22_snapshot_on_fixture_2_has_no_unjustified_allow(self):
+        cands = json.loads((ROOT / "fixtures/runs/r22-writer-hv.claims.json").read_text())["claims"]
+        report, _ = run(GOLD2, cands, "r22-hv")
+        assert report.unjustified_allow == 0, [d for d in report.decisions if not d["ok"]]

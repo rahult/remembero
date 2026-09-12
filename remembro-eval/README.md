@@ -41,7 +41,7 @@ appendix).
 ```sh
 cd remembro-eval
 python3 -m venv .venv && .venv/bin/pip install pydantic pytest
-.venv/bin/python -m pytest -q                                   # 74 tests
+.venv/bin/python -m pytest -q                                   # 77 tests
 PYTHONPATH=src .venv/bin/python -m remembro.cli evaluate        # the gold claims as a perfect extractor
 PYTHONPATH=src .venv/bin/python -m remembro.cli ingest fixtures/delegation_policy_v1.md --extractor rules
 PYTHONPATH=src .venv/bin/python -m remembro.cli --run-name rules evaluate
@@ -76,6 +76,7 @@ Every extractor is replayed through the same deterministic downstream. Snapshots
 | GLM 5.3 Flash, 6,000-token cap, 2 unread spans recorded  | 12 / 17   | 37 / 80     | 89%      | 100%     | 1 / 2          | 0                 | 8       |
 | GLM 5.3 Flash, one retry on truncation, 0 unread spans   | 17 / 17   | 36 / 80     | 89%      | 94%      | 1 / 2          | 0                 | 3       |
 | **r21 writer** (r19 data + 2,221 claim spans, one LoRA round) | **17 / 17** | 67 / 90 | 100%    | 100%     | 2 / 2          | 0                 | 3       |
+| r22 writer (r19 data + 2,937 claim spans, wider templates) | 17 / 17 | 61 / 95 | 100%    | 100%     | 2 / 2          | 0                 | 3       |
 
 Provenance coverage is 100% on every row: an accepted claim always carries a located quote.
 
@@ -159,6 +160,20 @@ limit with it; and it read "lifted with effect from 1 September" as a suspension
 1 September. Neither pattern is in the generator. The regression benches held: extraction
 85/103 (r19 86), query 25/31 (r19 26, r20 25).
 
+**r22** added the missing span kinds (lifted suspensions, role endings and replacements,
+amended limits) and fifteen more multi-word roles. Fixture 1 improved (recall 95%); fixture 2
+got worse, 15/20, for two reasons that are both lessons about training data rather than the
+engine. It still wrote "Grants Manager" as "Manager": a closed list of roles, however long,
+teaches the set and not the act of copying, so roles have to be generated compositionally. And
+it wrote the lifted suspension's end as 30 August against a text that says "lifted with effect
+from 1 September": the templates taught it to subtract a day, and it subtracted two. Grounding
+rejected the date, and rejected suspension speech is doubt, so four decisions about Owen became
+UNKNOWN. The negative-suspension encoding ("not suspended from 1 September") needs no
+arithmetic, and is the one r23 trains. r22 also invented a category on a revocation whose text
+names none, which let a revoked grant survive: one unjustified ALLOW, closed by grounding the
+category field (a restriction with an invented category widens to every category; a permission
+with one is dropped).
+
 ## The second document
 
 `fixtures/harbourview_delegations_v2.md` is a different organisation in a different register:
@@ -189,6 +204,7 @@ grant to `J. Ford` makes decisions about *both* Fords UNKNOWN.
 | r19 writer (zero-shot)                      | 9 / 20    | 21 / 36     | 0 / 2          | 0                 | 13      |
 | GLM 5.3 Flash                               | 20 / 20   | 35 / 61     | 1 / 2          | 0                 | 4       |
 | **r21 writer**                              | **18 / 20** | 53 / 57   | 1 / 2          | 0                 | 4       |
+| r22 writer                                  | 15 / 20   | 59 / 61     | 1 / 2          | 0                 | 7       |
 
 The regex arm extracts nothing here: it matched fixture 1's phrasing, not English. That is the
 result the second document was written to produce, and it is why the neural arm exists. Every

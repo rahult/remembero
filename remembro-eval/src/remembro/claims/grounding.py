@@ -34,6 +34,24 @@ def _date_in(text: str, value: str, exclusive_end: bool = False) -> bool:
     return exclusive_end and (wanted + timedelta(days=1)) in found
 
 
+CATEGORY_WORDS = {
+    "operational_expenditure": ("operational", "opex", "operating", "invoices", "utilities", "maintenance"),
+    "capital_expenditure": ("capital", "capex"),
+    "grant_expenditure": ("grant",),
+    "expenditure": ("expenditure", "expense", "payment", "spend"),
+}
+
+RESTRICTIVE = {"revokes_delegation", "suspended"}
+
+
+def _category_grounded(text: str, category: str, obj: str | None) -> bool:
+    low = text.lower()
+    words = CATEGORY_WORDS.get(category, tuple(w for w in category.replace("_", " ").split() if len(w) > 3))
+    if any(w in low for w in words):
+        return True
+    return bool(obj) and obj.lower() in low and category.split("_")[0] in obj.lower()
+
+
 def ground(candidates: list[dict]) -> tuple[list[dict], list[tuple[dict, str]]]:
     kept: list[dict] = []
     dropped: list[tuple[dict, str]] = []
@@ -42,6 +60,17 @@ def ground(candidates: list[dict]) -> tuple[list[dict], list[tuple[dict, str]]]:
         text = " ".join(e.get("quoted_text", "") for e in evidence if isinstance(e, dict))
         constraints = c.get("constraints") or {}
         reason: str | None = None
+        category = constraints.get("category")
+        # a table row's category lives in the column header, which the row does not quote
+        if category and " | " not in text and not _category_grounded(text, category, c.get("object")):
+            restrictive = c.get("predicate") in RESTRICTIVE or c.get("polarity") == "negative" or c.get("modality") == "prohibition"
+            if restrictive:
+                # a restriction with an invented category becomes a restriction on every category:
+                # broader, and therefore safe
+                constraints = {**constraints, "category": None}
+                c = {**c, "constraints": constraints}
+            else:
+                reason = f"ungrounded category: '{category}' is not named in the evidence"
         amount = constraints.get("maximum_amount")
         if amount is not None and not _amount_in(text, amount):
             reason = f"ungrounded amount: {amount} does not appear in the evidence"

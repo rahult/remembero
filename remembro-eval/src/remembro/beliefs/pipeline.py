@@ -375,6 +375,14 @@ def build_state(raw_candidates: list[dict], entities: list[Entity], resolver: En
         state.log("CANDIDATE_REJECTED", str(item.get("id", "?")), f"schema: {reason}")
     grounded, ungrounded = ground([c.model_dump(mode="json") for c in claims])
     grounded_ids = {c["id"] for c in grounded}
+    by_id = {c.id: c for c in claims}
+    for g in grounded:
+        # grounding may widen a restriction by dropping an invented category; write that back
+        claim = by_id[g["id"]]
+        new_cat = (g.get("constraints") or {}).get("category")
+        if claim.constraints.category != new_cat:
+            state.log("CLAIM_NORMALISED", claim.id, f"category '{claim.constraints.category}' is not named in the evidence; the restriction applies to every category")
+            claim.constraints.category = new_cat
     for item, reason in ungrounded:
         state.log("CANDIDATE_REJECTED", str(item.get("id", "?")), f"grounding: {reason}")
         rejected.append((item, reason))
