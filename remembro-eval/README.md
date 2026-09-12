@@ -41,7 +41,7 @@ appendix).
 ```sh
 cd remembro-eval
 python3 -m venv .venv && .venv/bin/pip install pydantic pytest
-.venv/bin/python -m pytest -q                                   # 70 tests
+.venv/bin/python -m pytest -q                                   # 72 tests
 PYTHONPATH=src .venv/bin/python -m remembro.cli evaluate        # the gold claims as a perfect extractor
 PYTHONPATH=src .venv/bin/python -m remembro.cli ingest fixtures/delegation_policy_v1.md --extractor rules
 PYTHONPATH=src .venv/bin/python -m remembro.cli --run-name rules evaluate
@@ -71,7 +71,7 @@ Every extractor is replayed through the same deterministic downstream. Snapshots
 | -------------------------------------------------------- | --------- | ----------- | -------- | -------- | -------------- | ----------------- | ------- |
 | gold claims (perfect)                                    | 17 / 17   | 100 / 100   | 100%     | 100%     | 2 / 2          | 0                 | 3       |
 | rules (regex, 0 model calls)                             | 17 / 17   | 90 / 90     | 78%      | 100%     | 2 / 2          | 0                 | 3       |
-| r19 writer (our Gemma 4 E2B LoRA, zero-shot on this schema) | 15 / 17 | 21 / 60   | 78%      | 86%      | 0 / 2          | 0                 | 2       |
+| r19 writer (our Gemma 4 E2B LoRA, zero-shot on this schema) | 11 / 17 | 21 / 60   | 78%      | 86%      | 0 / 2          | 0                 | 8       |
 | GLM 5.3 Flash, 1,500-token cap, drops hidden (first run) | 15 / 17   | 44 / 70     | 89%      | 100%     | 0 / 2          | **1**             | 2       |
 | GLM 5.3 Flash, 6,000-token cap, 2 unread spans recorded  | 12 / 17   | 37 / 80     | 89%      | 100%     | 1 / 2          | 0                 | 8       |
 | GLM 5.3 Flash, one retry on truncation, 0 unread spans   | 17 / 17   | 36 / 80     | 89%      | 94%      | 1 / 2          | 0                 | 3       |
@@ -82,11 +82,13 @@ Provenance coverage is 100% on every row: an accepted claim always carries a loc
 and it behaves like it: of 59 candidates, 45 never crossed the boundary. 28 used a predicate
 outside the six (`has_budget`, `requires_approval`, `retains_right`, `notifies`…), 12 gave a
 subject kind the schema does not accept, 4 an object kind, 1 dropped a required field. The 10
-claims that survived are all correct, so every decision made from them is justified; the two
-misses are a DENY where the gold says UNKNOWN (the §7 clause was not extracted, so no
-contradiction) and a DENY where the gold says ALLOW (Carol's extension was not extracted).
-Both fall on the safe side. Teaching the writer this vocabulary is a training-data job, not an
-engine change.
+claims that survived are all correct, so every decision made from them is justified. Before
+the doubt rules below, the writer scored 15/17 with both misses on the safe side; once
+rejected speech about a person counts as doubt (rule 5), six of its decisions become UNKNOWN,
+because it said things like `retains_right(Alice…)` that the engine could not read. That is
+the honest price of an extractor that does not speak the vocabulary, and it is the number the
+retrained writer (r21, below) has to beat. Teaching the writer this vocabulary is a
+training-data job, not an engine change.
 
 **The frontier arm, and what it taught the boundary.** GLM 5.3 Flash produced schema-valid,
 provenance-bearing claims that were wrong in ways Pydantic cannot see, and the first run
@@ -117,6 +119,14 @@ rule, with a test:
    trade-off the spec asks for, made visible. The remedy is on the extractor side (a retry at
    double the budget), never a relaxation of the rule; with the retry every span is read and
    the same model decides all 17 correctly with the three intended UNKNOWNs.
+
+5. *Unreadable speech about a person.* On the second document the writer described "Julian
+   Ford ceased to hold the role" with an invented predicate `ceased_to_hold`; the schema dropped
+   it, the role end vanished, and Julian was allowed after he left. A candidate the boundary
+   rejected is now doubt about anyone named in its evidence, when what was rejected could have
+   been a restriction: an unknown predicate, a negative polarity, a prohibition, a suspension
+   or a revocation. A rejected *positive permission* is not doubt, because dropping a
+   permission cannot create an ALLOW.
 
 The residual failure class the boundary cannot see is an omission that leaves no trace: an
 extractor that reads a passage and returns an empty array. Two arms that disagree about a span
@@ -155,6 +165,7 @@ grant to `J. Ford` makes decisions about *both* Fords UNKNOWN.
 | ------------------------------------------- | --------- | ----------- | -------------- | ----------------- | ------- |
 | gold claims (perfect)                       | 20 / 20   | 100 / 100   | 2 / 2          | 0                 | 4       |
 | rules (regex written for fixture 1)         | 9 / 20    | 0 / 0       | 0 / 2          | 0                 | 1       |
+| r19 writer (zero-shot)                      | 9 / 20    | 21 / 36     | 0 / 2          | 0                 | 13      |
 | GLM 5.3 Flash                               | 20 / 20   | 35 / 61     | 1 / 2          | 0                 | 4       |
 
 The regex arm extracts nothing here: it matched fixture 1's phrasing, not English. That is the

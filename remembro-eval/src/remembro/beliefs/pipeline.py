@@ -45,6 +45,7 @@ class WorldState:
     beliefs: list[Belief] = field(default_factory=list)
     transitions: list[StateTransition] = field(default_factory=list)
     unread_spans: list[dict] = field(default_factory=list)  # spans the extractor failed on
+    unreadable_claims: list[dict] = field(default_factory=list)  # candidates the schema or grounding rejected
 
     def log(self, event: str, subject_id: str, reason: str, related_id: str | None = None) -> None:
         self.transitions.append(
@@ -369,6 +370,7 @@ def build_state(raw_candidates: list[dict], entities: list[Entity], resolver: En
         state.log("CANDIDATE_REJECTED", str(item.get("id", "?")), f"grounding: {reason}")
         rejected.append((item, reason))
     state.claims = [c for c in claims if c.id in grounded_ids]
+    state.unreadable_claims = [item for item, _ in rejected]
     resolve_claims(state, resolver)
     dates = {k: (date.fromisoformat(v) if isinstance(v, str) else v) for k, v in (document_dates or {}).items()}
     apply_amendments(state, dates)

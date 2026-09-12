@@ -327,3 +327,22 @@ class TestLiftedSuspension:
         assert decide(Request.model_validate(s17["request"]), s, r).decision.value == "ALLOW"
         s5 = next(x for x in GOLD2["scenarios"] if x["id"] == "scenario_05")
         assert decide(Request.model_validate(s5["request"]), s, r).decision.value == "DENY"
+
+
+class TestUnreadableClaims:
+    def test_schema_rejected_claim_naming_the_actor_is_doubt(self):
+        # r19 wrote predicate "ceased_to_hold" for Julian Ford; the schema dropped it, the role
+        # end vanished, and Julian was allowed after he left. Unreadable speech about a person
+        # is doubt about that person, not silence.
+        base = [x for x in GOLD2["claims"] if x["id"] != "c_am_julian_ends"]
+        bad = {**json.loads(json.dumps(next(x for x in GOLD2["claims"] if x["id"] == "c_am_julian_ends"))), "predicate": "ceased_to_hold"}
+        s, r = state2([*base, bad])
+        s14 = next(x for x in GOLD2["scenarios"] if x["id"] == "scenario_14")
+        assert decide(Request.model_validate(s14["request"]), s, r).decision.value == "UNKNOWN"
+        s15 = next(x for x in GOLD2["scenarios"] if x["id"] == "scenario_15")  # Marcus is not named in that claim
+        assert decide(Request.model_validate(s15["request"]), s, r).decision.value == "ALLOW"
+
+    def test_r19_snapshot_on_fixture_2_has_no_unjustified_allow(self):
+        cands = json.loads((ROOT / "fixtures/runs/r19-writer-hv.claims.json").read_text())["claims"]
+        report, _ = run(GOLD2, cands, "r19-hv")
+        assert report.unjustified_allow == 0, [d for d in report.decisions if not d["ok"]]

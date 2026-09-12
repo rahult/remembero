@@ -84,6 +84,27 @@ def evaluate(request: Request, state: WorldState, resolver: EntityResolver) -> D
     if unread:
         return unknown(f"the document was not fully read: span {unread[0].get('id')} names {person} but the extractor failed on it ({unread[0].get('error', '')[:80]})")
 
+    # 3a'. a candidate the boundary rejected (unknown predicate, malformed, ungrounded) whose
+    # evidence names this person: the extractor read something about them that the engine
+    # could not; that is doubt, not silence
+    def quotes(item: dict) -> str:
+        return " ".join(e.get("quoted_text", "") for e in item.get("evidence") or [] if isinstance(e, dict))
+    KNOWN = {p.value for p in Predicate}
+
+    def might_restrict(item: dict) -> bool:
+        # dropping a positive permission cannot create an ALLOW; dropping anything else might
+        return (
+            item.get("predicate") not in KNOWN
+            or item.get("polarity") == "negative"
+            or item.get("modality") == "prohibition"
+            or item.get("predicate") in (Predicate.SUSPENDED.value, Predicate.REVOKES_DELEGATION.value)
+        )
+
+    unreadable = [u for u in state.unreadable_claims if might_restrict(u) and any(n and n.lower() in quotes(u).lower() for n in names)]
+    if unreadable:
+        u = unreadable[0]
+        return unknown(f"a claim about {person} was rejected at the boundary ({u.get('id')}: predicate {u.get('predicate')!r}); the engine will not decide past speech about a person it could not read")
+
     # 3b. a restriction on this person that could not be fully resolved is doubt, not absence:
     # nobody may be allowed past a prohibition the engine could not read
     unresolved_restrictions = [
