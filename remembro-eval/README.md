@@ -107,6 +107,7 @@ Every extractor is replayed through the same deterministic downstream. Snapshots
 | GLM 5.3 Flash, one retry on truncation, 0 unread spans   | 17 / 17   | 36 / 80     | 89%      | 94%      | 1 / 2          | 0                 | 3       |
 | **r21 writer** (r19 data + 2,221 claim spans, one LoRA round) | **17 / 17** | 67 / 90 | 100%    | 100%     | 2 / 2          | 0                 | 3       |
 | r22 writer (r19 data + 2,937 claim spans, wider templates) | 17 / 17 | 61 / 95 | 100%    | 100%     | 2 / 2          | 0                 | 3       |
+| **r23 writer** (composed roles, lifts as negative suspensions) | **17 / 17** | 65 / 100 | 100% | 100%  | 2 / 2          | 0                 | 3       |
 
 Provenance coverage is 100% on every row: an accepted claim always carries a located quote.
 
@@ -220,6 +221,18 @@ everyone. And a free-text object ("invoices") that resolves to nothing yields to
 field that does. Ingest of a five-page policy took 509 seconds with one request at a time; spans
 now go to the model in parallel.
 
+**r23** closes both gaps. Roles are generated compositionally (a modifier and a head, "Fleet
+Coordinator", "Compliance Adviser", with the fixtures' own roles excluded), so the writer copies
+a role string instead of recalling one from a list; lifts are labelled as a negative
+`suspended` from the lift date, so there is no date arithmetic to get wrong. Fixture 1: 17/17
+with 100% claim recall. Fixture 2, still unseen: **20/20**, both contradictions found, zero
+unjustified ALLOW, the same four UNKNOWNs the gold asks for. The regression benches held
+(extraction 85/103, query 26/31). Three rounds of training data, each written from what the
+previous round got wrong on a document it had not seen, took a 2B-parameter model from 11/17
+and 9/20 to 17/17 and 20/20, level with GLM 5.3 Flash on this task. The MCP server keeps GLM
+Flash as its default because a local Ollama has no cold start; `REMEMBRO_MODEL=finetune/gemma-4-e2b-it-r23-gemma4-e2b-modal`
+with the Modal endpoint runs our own writer instead.
+
 ## The second document
 
 `fixtures/harbourview_delegations_v2.md` is a different organisation in a different register:
@@ -251,6 +264,7 @@ grant to `J. Ford` makes decisions about *both* Fords UNKNOWN.
 | GLM 5.3 Flash                               | 20 / 20   | 35 / 61     | 1 / 2          | 0                 | 4       |
 | **r21 writer**                              | **16 / 20** | 53 / 57   | 1 / 2          | 0                 | 6       |
 | r22 writer                                  | 15 / 20   | 59 / 61     | 1 / 2          | 0                 | 7       |
+| **r23 writer**                              | **20 / 20** | 63 / 71   | 2 / 2          | 0                 | 4       |
 
 The regex arm extracts nothing here: it matched fixture 1's phrasing, not English. That is the
 result the second document was written to produce, and it is why the neural arm exists. Every
