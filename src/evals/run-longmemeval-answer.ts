@@ -60,6 +60,7 @@ interface Args {
   engineRecall: boolean;
   dateDistances: boolean;
   computedNotes: boolean;
+  focusedBudget: boolean;
   engineRecallQuestionTypes: Set<string> | undefined;
   extractionCacheDir: string | undefined;
   temporalRangeModel: string | undefined;
@@ -129,6 +130,8 @@ Options:
   --computed-notes       After the chats, a deterministic block: temporal expressions in the user's
                          turns resolved against their session date, gaps between dated events, and
                          quantities with units totalled, each with its source sentence
+  --focused-budget       Weight each retrieved session's share of the context by the question's
+                         content words it contains, instead of an even split
   --no-facts-in-context  Do not list a retrieved session's matched extracted facts to the reader
   --extraction-max-tokens <n>  Completion budget per extraction call (default 512; reasoning
                          models such as Luna spend it on thinking and need 4096 or more)
@@ -212,6 +215,7 @@ function parseArgs(argv: string[]): Args {
     engineRecall: false,
     dateDistances: false,
     computedNotes: false,
+    focusedBudget: false,
     engineRecallQuestionTypes: undefined,
     extractionCacheDir: undefined,
     temporalRangeModel: undefined,
@@ -402,6 +406,8 @@ function parseArgs(argv: string[]): Args {
       args.dateDistances = true;
     } else if (arg === '--computed-notes') {
       args.computedNotes = true;
+    } else if (arg === '--focused-budget') {
+      args.focusedBudget = true;
     } else if (arg === '--engine-recall-question-types') {
       args.engineRecallQuestionTypes = new Set(
         requiredValue(argv, index++, arg)
@@ -617,6 +623,7 @@ async function main(): Promise<void> {
           entityRetrieval: args.entityRetrieval,
           dateDistances: args.dateDistances,
           computedNotes: args.computedNotes,
+          focusedBudget: args.focusedBudget,
           ...(args.engineRecall
             ? {
                 engineRecall: {
@@ -671,6 +678,7 @@ async function main(): Promise<void> {
       engineRecall: args.engineRecall,
       dateDistances: args.dateDistances,
       computedNotes: args.computedNotes,
+      focusedBudget: args.focusedBudget,
       engineRecallQuestionTypes:
         args.engineRecallQuestionTypes === undefined
           ? null

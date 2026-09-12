@@ -1192,3 +1192,35 @@ describe('computed notes in the answer context', () => {
     expect(without.messages.at(-1)?.content).not.toContain('Computed from the history');
   });
 });
+
+describe('focused budget', () => {
+  it('gives sessions that mention the question more of the context than sessions that do not', () => {
+    const instance = {
+      question_id: 'q2',
+      question_type: 'multi-session',
+      question: 'How many movie festivals have I attended?',
+      question_date: '2023/05/30 (Tue) 20:53',
+      answer: '4',
+      haystack_session_ids: ['a', 'b'],
+      haystack_dates: [],
+      haystack_sessions: [],
+      answer_session_ids: ['a'],
+    } as unknown as LongMemEvalInstance;
+    const filler = 'USER: I reorganised my pantry and labelled every jar today. '.repeat(200);
+    const relevant = `USER: I went to the Austin Film Festival and the AFI film festival this spring. ${'The festival screenings were long. '.repeat(200)}`;
+    const sources = [
+      { opId: 'a', ts: '2023-05-20T10:00:00Z', text: relevant },
+      { opId: 'b', ts: '2023-05-21T10:00:00Z', text: filler },
+    ];
+    const even = buildLongMemEvalAnswerContext(instance, sources, 6144, [], 'direct', undefined, false, false, false);
+    const focused = buildLongMemEvalAnswerContext(instance, sources, 6144, [], 'direct', undefined, false, false, true);
+    const section = (ctx: { messages: Array<{ content: string }> }, id: string) => {
+      const text = ctx.messages.at(-1)!.content;
+      const start = text.indexOf(id === 'a' ? 'Retrieved session 1' : 'Retrieved session 2');
+      const end = text.indexOf('### Retrieved session', start + 5);
+      return text.slice(start, end === -1 ? undefined : end);
+    };
+    expect(section(focused, 'a').length).toBeGreaterThan(section(even, 'a').length);
+    expect(section(focused, 'b').length).toBeLessThan(section(even, 'b').length);
+  });
+});

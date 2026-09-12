@@ -244,6 +244,7 @@ export interface LongMemEvalAnswerRun {
     engineRecallQuestionTypes?: string[] | null;
     dateDistances?: boolean;
     computedNotes?: boolean;
+    focusedBudget?: boolean;
     hybridQuestionTypes: string[] | null;
     factsInContext: boolean;
     readerMaxTokens: number;
@@ -531,15 +532,32 @@ export function buildLongMemEvalAnswerContext(
   engine?: { query: string; rendered: string },
   dateDistances = false,
   computedNotes = false,
+  focusedBudget = false,
 ): AnswerContext {
   validateOptions(Math.max(1, rankedSources.length), contextBytes);
   const usable = rankedSources.filter(
     (source) => source.redacted !== true && source.text !== undefined,
   );
-  const perSessionBytes = Math.max(
+  const evenBytes = Math.max(
     256,
     Math.floor(contextBytes / Math.max(1, usable.length)),
   );
+  // focused budget: a session's share of the context grows with the number of the question's
+  // content words it contains, so fifteen retrieved sessions do not each get a 1.6 KB sliver
+  // that cuts the one sentence the question needs
+  const focusWords = focusedBudget
+    ? [...new Set(recallWords(instance.question).filter((word) => word.length >= 4))]
+    : [];
+  const weights = usable.map((source) => {
+    if (!focusedBudget) return 1;
+    const low = source.text!.toLowerCase();
+    return 1 + focusWords.reduce((n, w) => n + (low.includes(w) ? 1 : 0), 0) * 2;
+  });
+  const weightSum = weights.reduce((a, b) => a + b, 0);
+  const budgetFor = (index: number) =>
+    focusedBudget
+      ? Math.max(256, Math.floor((contextBytes * weights[index]!) / weightSum))
+      : evenBytes;
   const selected = usable.map((source, rank) => {
     const facts =
       source.facts !== undefined && source.facts.length > 0
@@ -552,7 +570,7 @@ export function buildLongMemEvalAnswerContext(
     const body = sourceWindow(
       source.text!,
       instance.question,
-      Math.max(1, perSessionBytes - Buffer.byteLength(header, 'utf8') - 2),
+      Math.max(1, budgetFor(rank) - Buffer.byteLength(header, 'utf8') - 2),
       source.focusCharacterOffset,
     );
     return { ...source, rank, section: `${header}${body}\n` };
@@ -711,6 +729,8 @@ export async function evaluateLongMemEvalAnswerInstance(
      * dated events, and quantities with units totalled, each with the sentence it came from.
      */
     computedNotes?: boolean;
+    /** Context budget per session weighted by the question's content words it contains. */
+    focusedBudget?: boolean;
     engineRecall?: {
       /** The writer: authors the Datalog query (usage is accounted with extraction). */
       llm: LongMemEvalCompletionClient;
@@ -1387,6 +1407,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       engine,
       options.dateDistances === true,
       options.computedNotes === true,
+      options.focusedBudget === true,
     );
     contextSessionIds = [
       ...answerContext.contextSessionIds,
