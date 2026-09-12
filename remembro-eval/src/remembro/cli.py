@@ -86,7 +86,8 @@ def inspect(args: argparse.Namespace) -> None:
     candidates = gold["claims"] if args.run_name == "gold" else json.loads(Path(f"fixtures/runs/{args.run_name}.claims.json").read_text())["claims"]
     entities = [Entity.model_validate(e) for e in gold["entities"]]
     resolver = EntityResolver(entities, match_threshold=args.match_threshold)
-    state, _ = build_state(candidates, entities, resolver)
+    dates = {d["id"]: d["effective_date"] for d in gold.get("documents", [])}
+    state, _ = build_state(candidates, entities, resolver, document_dates=dates or None)
     if args.what == "claim":
         print(state.claim(args.id).model_dump_json(indent=2))
     elif args.what == "belief":

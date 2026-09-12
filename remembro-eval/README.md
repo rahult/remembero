@@ -41,7 +41,7 @@ appendix).
 ```sh
 cd remembro-eval
 python3 -m venv .venv && .venv/bin/pip install pydantic pytest
-.venv/bin/python -m pytest -q                                   # 72 tests
+.venv/bin/python -m pytest -q                                   # 74 tests
 PYTHONPATH=src .venv/bin/python -m remembro.cli evaluate        # the gold claims as a perfect extractor
 PYTHONPATH=src .venv/bin/python -m remembro.cli ingest fixtures/delegation_policy_v1.md --extractor rules
 PYTHONPATH=src .venv/bin/python -m remembro.cli --run-name rules evaluate
@@ -75,6 +75,7 @@ Every extractor is replayed through the same deterministic downstream. Snapshots
 | GLM 5.3 Flash, 1,500-token cap, drops hidden (first run) | 15 / 17   | 44 / 70     | 89%      | 100%     | 0 / 2          | **1**             | 2       |
 | GLM 5.3 Flash, 6,000-token cap, 2 unread spans recorded  | 12 / 17   | 37 / 80     | 89%      | 100%     | 1 / 2          | 0                 | 8       |
 | GLM 5.3 Flash, one retry on truncation, 0 unread spans   | 17 / 17   | 36 / 80     | 89%      | 94%      | 1 / 2          | 0                 | 3       |
+| **r21 writer** (r19 data + 2,221 claim spans, one LoRA round) | **17 / 17** | 67 / 90 | 100%    | 100%     | 2 / 2          | 0                 | 3       |
 
 Provenance coverage is 100% on every row: an accepted claim always carries a located quote.
 
@@ -138,6 +139,26 @@ currency mismatch (scenario 14). The threshold sensitivity test shows the proper
 predicts: at a match threshold of 0.6 the initial merges with David Smith and scenario 7
 becomes an ALLOW, which the test suite asserts as the unsafe case.
 
+## Teaching the writer the vocabulary (r21)
+
+The r19 writer lost 45 of 59 candidates at the schema gate because it had never seen the six
+predicates. r21 is the same Gemma 4 E2B LoRA recipe with 2,221 claim-extraction rows added to
+r19's 27,853: 1,754 spans generated from templates that know the claim they encode (thirteen
+span kinds, 150 boilerplate negatives, names disjoint from both fixtures) and 467 GLM 5.3 Flash
+paraphrases of those spans, kept only when the labels still parse and ground in the rewritten
+text (`src/remembro/training/`). One epoch, 75 minutes on an H100, held-out loss 0.022.
+
+On fixture 1 the writer goes from 11/17 to 17/17: claim recall 60% → 90%, precision 21% → 67%,
+temporal and modality 100%, both contradictions found, zero unjustified ALLOW. On fixture 2,
+which it never saw a word of, 18/20 with zero unjustified ALLOW after one more boundary rule
+(the `constraints.category` field is resolved against the register like any other mention, so
+the string "none" the writer wrote on a revocation becomes null and the revocation applies to
+every category). The two misses are safe-side and are training gaps, not engine gaps: it wrote
+the unseen two-word role "Grants Manager" as "Manager", so the role was dropped and a standing
+limit with it; and it read "lifted with effect from 1 September" as a suspension starting on
+1 September. Neither pattern is in the generator. The regression benches held: extraction
+85/103 (r19 86), query 25/31 (r19 26, r20 25).
+
 ## The second document
 
 `fixtures/harbourview_delegations_v2.md` is a different organisation in a different register:
@@ -167,6 +188,7 @@ grant to `J. Ford` makes decisions about *both* Fords UNKNOWN.
 | rules (regex written for fixture 1)         | 9 / 20    | 0 / 0       | 0 / 2          | 0                 | 1       |
 | r19 writer (zero-shot)                      | 9 / 20    | 21 / 36     | 0 / 2          | 0                 | 13      |
 | GLM 5.3 Flash                               | 20 / 20   | 35 / 61     | 1 / 2          | 0                 | 4       |
+| **r21 writer**                              | **18 / 20** | 53 / 57   | 1 / 2          | 0                 | 4       |
 
 The regex arm extracts nothing here: it matched fixture 1's phrasing, not English. That is the
 result the second document was written to produce, and it is why the neural arm exists. Every

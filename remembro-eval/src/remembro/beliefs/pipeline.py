@@ -89,6 +89,15 @@ def resolve_claims(state: WorldState, resolver: EntityResolver) -> None:
             continue
         subject = resolver.resolve(claim.subject, _kind(claim.subject_kind))
         state.resolutions.append(subject)
+        if claim.constraints.category is not None:
+            # the category field is a mention like any other: resolve it against the register,
+            # and a value that resolves to nothing ("none", "n/a", an invented label) is no category
+            cat = resolver.resolve(claim.constraints.category, EntityKind.CATEGORY)
+            if cat.verdict is not MatchVerdict.MATCH:
+                state.log("CLAIM_NORMALISED", claim.id, f"category '{claim.constraints.category}' is not in the register; dropped")
+                claim.constraints.category = None
+            elif cat.entity_id != claim.constraints.category:
+                claim.constraints.category = cat.entity_id
         obj: Resolution | None = None
         if claim.predicate in OBJECTLESS:
             # the predicate defines its arity: "X's approval authority is suspended" is about

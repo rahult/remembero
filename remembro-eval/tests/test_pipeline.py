@@ -346,3 +346,21 @@ class TestUnreadableClaims:
         cands = json.loads((ROOT / "fixtures/runs/r19-writer-hv.claims.json").read_text())["claims"]
         report, _ = run(GOLD2, cands, "r19-hv")
         assert report.unjustified_allow == 0, [d for d in report.decisions if not d["ok"]]
+
+
+class TestCategoryFieldIsResolved:
+    def test_unknown_category_string_becomes_null_and_the_revocation_still_applies(self):
+        # r21 wrote constraints.category "none" (a string) on the revocation; a category that
+        # is not in the register is no category, and a revocation with no category applies to all
+        rev = json.loads(json.dumps(next(x for x in GOLD2["claims"] if x["id"] == "c_revocation_nadia")))
+        rev["constraints"]["category"] = "none"
+        s, r = state2([x for x in GOLD2["claims"] if x["id"] != "c_revocation_nadia"] + [rev])
+        assert s.claim("c_revocation_nadia").constraints.category is None
+        assert str(s.claim("c_nadia_round").valid_until) == "2026-07-31"
+        s8 = next(x for x in GOLD2["scenarios"] if x["id"] == "scenario_08")
+        assert decide(Request.model_validate(s8["request"]), s, r).decision.value == "DENY"
+
+    def test_r21_snapshot_on_fixture_2_has_no_unjustified_allow(self):
+        cands = json.loads((ROOT / "fixtures/runs/r21-writer-hv.claims.json").read_text())["claims"]
+        report, _ = run(GOLD2, cands, "r21-hv")
+        assert report.unjustified_allow == 0, [d for d in report.decisions if not d["ok"]]
