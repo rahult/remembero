@@ -76,6 +76,7 @@ multi-session and temporal questions, gpt-4o judge.
 | v4 | computed notes, first version | 77/133 | 76/133 | 153/266 | 45 / 31 |
 | v4 | **computed notes, second version** | **82/133** | **85/133** | **167/266** | 50 / 22 |
 | v4 | computed notes, third version (noun-modifier dates skipped, coverage line) | 82/133 | 84/133 | 166/266 | 48 / 21 |
+| v4 | third version plus a dated roster of subject sentences for counting questions | 77/133 | 80/133 | 157/266 | 40 / 22 |
 | GLM 5.3 Flash | baseline | 93/133 | 109/133 | 202/266 | |
 | GLM 5.3 Flash | computed notes, third version | 98/133 | 109/133 | 207/266 | 18 / 13 |
 
@@ -104,6 +105,8 @@ identical prompts) dominates what remains.
    half of the V0 recipe.
 2. The block is English-shaped and grows the same way the writer's boundary did: every break
    that is not noise becomes a rule with a test (`tests/computed-notes.test.ts`).
-3. Counting across sessions is the remaining class the block does not touch: "how many
-   festivals" needs the items enumerated, which is the engine-recall block's job over the fact
-   store, not a regex over text.
+3. Counting across sessions is the remaining class the block does not touch. A dated roster of
+   every user sentence naming the question's subject was tried and reverted: 157 against 166,
+   worse on both types. A long list displaces the dated events and gives a small reader more
+   to misread, not less. Enumeration needs the items themselves, which is the engine-recall
+   block's job over the fact store, not a regex over text.
