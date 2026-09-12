@@ -22,6 +22,7 @@ class Span(BaseModel):
     start_offset: int
     end_offset: int
     authority: str  # body | appendix | table
+    header: str | None = None  # for a table row: the column names, "Role | Operational | Capital"
 
 
 class ParsedDocument(BaseModel):
@@ -76,22 +77,31 @@ class MarkdownParser:
                 stripped = rest
             authority = "appendix" if in_appendix else "body"
             if stripped.startswith("|"):
-                for line in stripped.splitlines():
+                lines = stripped.splitlines()
+                # the row before a |---| separator is the header; it names the columns of every row
+                header: str | None = None
+                for i, line in enumerate(lines):
+                    if re.match(r"^\|\s*-", line) and i > 0:
+                        header = " | ".join(c.strip() for c in lines[i - 1].strip().strip("|").split("|"))
+                        break
+                for line in lines:
                     if re.match(r"^\|\s*-", line) or not line.strip():
                         continue
                     paragraph += 1
                     cells = [c.strip() for c in line.strip().strip("|").split("|")]
                     row = " | ".join(cells)
+                    is_header = header is not None and row == header
                     spans.append(
                         Span(
                             page=page,
                             paragraph=paragraph,
                             section=section,
-                            kind="table_row",
+                            kind="table_header" if is_header else "table_row",
                             text=row,
                             start_offset=start,
                             end_offset=end,
                             authority="appendix" if in_appendix else "table",
+                            header=None if is_header else header,
                         )
                     )
                 continue

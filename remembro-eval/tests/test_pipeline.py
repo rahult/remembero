@@ -438,3 +438,25 @@ class TestDailyUseLessons:
         rev = next(x for x in GOLD["claims"] if x["id"] == "claim_revocation")
         kept, dropped = ground([rev])
         assert kept and not dropped
+
+
+class TestTableHeadersAndRestatedCeilings:
+    def test_table_rows_carry_their_header(self):
+        rows = [s for s in DOC.spans if s.kind == "table_row"]
+        assert rows and all(s.header for s in rows)
+        appx = next(s for s in rows if s.text.startswith("Procurement Manager | AUD 25,000"))
+        assert appx.header and "Operational" in appx.header and "Capital" in appx.header
+
+    def test_llm_passage_includes_columns_but_evidence_quotes_the_row(self):
+        from remembro.extraction.extractors import LlmExtractor
+        appx = next(s for s in DOC.spans if s.text.startswith("Procurement Manager | AUD 25,000"))
+        passage = LlmExtractor.passage_for(appx)
+        assert passage.startswith("Table columns:") and appx.text in passage
+
+    def test_a_ceiling_restated_as_a_prohibition_is_not_a_contradiction(self):
+        pos = json.loads(json.dumps(next(x for x in GOLD["claims"] if x["id"] == "claim_carol_extension")))
+        neg = {**json.loads(json.dumps(pos)), "id": "ceiling", "modality": "prohibition", "polarity": "negative"}
+        s, _ = state_from([*GOLD["claims"], neg])
+        assert not any("ceiling" in c.claims for c in s.contradictions)
+        s9 = next(x for x in GOLD["scenarios"] if x["id"] == "scenario_09")
+        assert decide(Request.model_validate(s9["request"]), s, resolver()).decision.value == "ALLOW"

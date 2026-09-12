@@ -172,6 +172,12 @@ def detect_conflicts(state: WorldState) -> None:
                 continue
             seen.add(pair)
             if a.polarity != b.polarity:
+                if a.constraints.maximum_amount is not None and a.constraints.maximum_amount == b.constraints.maximum_amount:
+                    # "up to 30,000" and "not above 30,000" are one ceiling said twice
+                    neg = a if a.polarity is Polarity.NEGATIVE else b
+                    neg.status = ClaimStatus.SUPERSEDED
+                    state.log("CLAIM_RESTATED", neg.id, f"restates the ceiling of {(b if neg is a else a).id}; not a contradiction", related_id=(b if neg is a else a).id)
+                    continue
                 ctype = ContradictionType.POLARITY_MISMATCH
             elif (a.constraints.maximum_amount or 0) != (b.constraints.maximum_amount or 0):
                 ctype = ContradictionType.LIMIT_MISMATCH

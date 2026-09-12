@@ -148,7 +148,7 @@ class RuleExtractor:
 
 EXTRACTION_PROMPT = """You extract structured claims from one passage of a corporate delegation-of-authority policy. Return a JSON array (possibly empty). Each element:
 {"subject": string, "subject_kind": "person"|"role", "predicate": "holds_role"|"may_approve"|"delegates"|"suspended"|"revokes_delegation", "object": string|null, "object_kind": "person"|"role"|"category"|"none", "modality": "permission"|"obligation"|"prohibition"|"assertion", "polarity": "positive"|"negative", "constraints": {"maximum_amount": number|null, "currency": string|null, "category": "operational_expenditure"|"capital_expenditure"|"expenditure"|null, "condition": string|null}, "valid_from": "YYYY-MM-DD"|null, "valid_until": "YYYY-MM-DD"|null, "confidence": number 0..1}
-Rules: quote nothing you cannot see in the passage; leave, absence or unavailability is not a suspension (only an explicit suspension of approval authority is); a person acting "on behalf of" or "while X is away" is a delegation from X or a may_approve for the person, with the dates given; "may not" and "must not" are prohibition with polarity negative; a delegation's object is the delegate and its constraints carry the delegated category and limit; a revocation's valid_from is the date it takes effect; a suspension's valid_from is the effective date; dates as ISO. Table rows arrive as "cell | cell | cell". Return only the JSON array."""
+Rules: quote nothing you cannot see in the passage; leave, absence or unavailability is not a suspension (only an explicit suspension of approval authority is); a person acting "on behalf of" or "while X is away" is a delegation from X or a may_approve for the person, with the dates given; "may not" and "must not" are prohibition with polarity negative; a delegation's object is the delegate and its constraints carry the delegated category and limit; a revocation's valid_from is the date it takes effect; a suspension's valid_from is the effective date; dates as ISO. Table rows arrive as "Table columns: … / Row: cell | cell | cell"; read each cell under its column (a limit under an "Operational" column is operational expenditure). Return only the JSON array."""
 
 
 class LlmExtractor:
@@ -160,6 +160,13 @@ class LlmExtractor:
         self.timeout = timeout
         self.max_tokens = max_tokens
         self.workers = workers
+
+    @staticmethod
+    def passage_for(span: Span) -> str:
+        """A table row is unreadable without its columns; the evidence still quotes the row."""
+        if span.kind == "table_row" and span.header:
+            return f"Table columns: {span.header}\nRow: {span.text}"
+        return span.text
 
     def _complete(self, passage: str) -> str:
         # one retry at double the budget: a reasoning model that loops on a short table row
@@ -187,11 +194,11 @@ class LlmExtractor:
     def extract(self, document: ParsedDocument) -> list[dict]:
         from concurrent.futures import ThreadPoolExecutor
 
-        spans = [s for s in document.spans if not (s.kind == "table_row" and "|" not in s.text)]
+        spans = [s for s in document.spans if s.kind != "table_header" and not (s.kind == "table_row" and "|" not in s.text)]
 
         def complete(span):
             try:
-                return span, self._complete(span.text), None
+                return span, self._complete(self.passage_for(span)), None
             except Exception as error:  # noqa: BLE001 - the boundary must not crash the pipeline
                 return span, None, str(error)[:200]
 
