@@ -4,3 +4,5 @@ __pycache__/
 .pytest_cache/
 *.sqlite
 !fixtures/runs/
+data/claims/conversations.jsonl
+data/claims/heldout.jsonl

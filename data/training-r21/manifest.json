@@ -1,0 +1,13 @@
+{
+  "base": "../data/training-r19",
+  "baseNotes": "r18 data (r14 recipe + repair turns) + 3,000 real sessions labelled by z-ai/glm-5.3-flash capped at 8 atomic facts (2,478 with facts) + 1,500 time-range extractor examples",
+  "base_train": 27853,
+  "claims_train": 1754,
+  "paraphrased": 467,
+  "claims_heldout": 111,
+  "duplicates_dropped": 1,
+  "train": 30074,
+  "heldout": 2356,
+  "generatedAt": "2026-09-12T04:55:57.377532+00:00",
+  "notes": "r19 data + claims-extraction task: 1,754 templated policy spans (150 empty-label negatives) + 468 GLM 5.3 Flash paraphrases kept by the grounding filter; six-predicate vocabulary; names disjoint from the evaluation fixture"
+}

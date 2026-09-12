@@ -216,3 +216,16 @@ class TestUnreadSpans:
         assert decide(Request.model_validate(s5["request"]), s, resolver()).decision.value == "UNKNOWN"
         s8 = next(x for x in GOLD["scenarios"] if x["id"] == "scenario_08")  # Carol is not named there
         assert decide(Request.model_validate(s8["request"]), s, resolver()).decision.value == "DENY"
+
+
+class TestSyntheticTrainingData:
+    def test_every_label_parses_and_grounds_and_no_fixture_names(self):
+        from remembro.training.synth import generate
+        spans = generate(docs=20, per_doc=16, seed=3)
+        assert len(spans) > 200
+        assert sum(1 for _, l in spans if not l) > 10  # negatives are part of the lesson
+        joined = " ".join(t for t, _ in spans)
+        for name in ("Alice Morgan", "Bob Chen", "Carol Evans", "David Smith"):
+            assert name not in joined
+        predicates = {l["predicate"] for _, ls in spans for l in ls}
+        assert predicates == {"holds_role", "may_approve", "delegates", "suspended", "revokes_delegation"}
