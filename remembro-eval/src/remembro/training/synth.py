@@ -76,9 +76,22 @@ class Gen:
         self.r = rng
         self.currency = rng.choice(CURRENCIES)
         names = rng.sample([f"{f} {l}" for f in FIRST for l in LAST], 6)
-        roles = rng.sample(ROLES, 5)
+        roles = rng.sample(ROLES, 3) + [(r, None) for r in self._composed_roles(rng, 3)]
         self.people = list(zip(names, roles))  # (name, (role, abbrev))
         self.start = date(2025 + rng.randint(0, 2), rng.randint(1, 12), rng.randint(1, 28))
+
+    @staticmethod
+    def _composed_roles(rng: random.Random, n: int) -> list[str]:
+        mods = ["Grants", "Programs", "Fleet", "Facilities", "Payroll", "Community", "Regional", "Digital", "Clinical", "Property", "Research", "Events", "Membership", "Volunteer", "Housing", "Capital Works", "Student Services", "Wellbeing", "Compliance", "Sustainability", "Partnerships", "Fundraising"]
+        heads = ["Manager", "Coordinator", "Officer", "Lead", "Director", "Administrator", "Supervisor", "Adviser"]
+        out: set[str] = set()
+        # the evaluation fixtures' roles stay out of training, so the generality check stays honest
+        excluded = {"Grants Manager", "Facilities Coordinator", "Grants Officer"}
+        while len(out) < n:
+            role = f"{rng.choice(mods)} {rng.choice(heads)}"
+            if role not in excluded:
+                out.add(role)
+        return sorted(out)
 
     def amount(self, lo=5, hi=500) -> int:
         return self.r.choice([5, 10, 15, 20, 25, 30, 40, 50, 60, 75, 80, 100, 120, 150, 200, 250, 300, 400, 500]) * 1000
@@ -262,17 +275,14 @@ class Gen:
         s = self.day(spread=500)
         lift = s + timedelta(days=self.r.randint(7, 90))
         forms = [
-            (f"The suspension of {name}'s approval authority, which took effect on {fmt_date(s)}, was lifted with effect from {fmt_date(lift)}.", True),
-            (f"{name}'s approval authority, suspended from {fmt_date(s)}, is reinstated with effect from {fmt_date(lift)}.", True),
-            (f"With effect from {fmt_date(lift)}, {name} is no longer suspended and may exercise approval authority.", False),
-            (f"The suspension of {name} is lifted from {fmt_date(lift)}.", False),
+            f"The suspension of {name}'s approval authority, which took effect on {fmt_date(s)}, was lifted with effect from {fmt_date(lift)}.",
+            f"{name}'s approval authority, suspended from {fmt_date(s)}, is reinstated with effect from {fmt_date(lift)}.",
+            f"With effect from {fmt_date(lift)}, {name} is no longer suspended and may exercise approval authority.",
+            f"The suspension of {name} is lifted from {fmt_date(lift)}.",
+            f"{name}'s suspension ended on {fmt_date(lift)}; approval authority resumed on that date.",
         ]
-        text, with_start = self.r.choice(forms)
-        if with_start:
-            labels = [claim(name, "person", "suspended", None, "none", "assertion", "positive", {}, iso(s), iso(lift - timedelta(days=1)))]
-        else:
-            labels = [claim(name, "person", "suspended", None, "none", "assertion", "negative", {}, iso(lift), None)]
-        return text, labels
+        # a lift is a negative suspension from the lift date: no date arithmetic for the writer
+        return self.r.choice(forms), [claim(name, "person", "suspended", None, "none", "assertion", "negative", {}, iso(lift), None)]
 
     def role_ended(self):
         name, (role, _) = self.r.choice(self.people)

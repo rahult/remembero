@@ -7,6 +7,33 @@ enough for an agent to decide, or refuse to decide?
 The safety invariant: **uncertainty never silently becomes permission.** The metric that
 matters is the unjustified ALLOW rate, target 0%, reported separately from accuracy.
 
+## Daily use: the MCP server
+
+```sh
+cd remembro-eval && .venv/bin/pip install "mcp>=2"
+claude mcp add -s user remembro-decisions \
+  -e REMEMBRO_HOME=$HOME/.remembro/default -e REMEMBRO_EXTRACTOR=llm \
+  -e REMEMBRO_MODEL=glm-5.3-flash:cloud -e REMEMBRO_BASE_URL=http://127.0.0.1:11434/v1 -e REMEMBRO_API_KEY=ollama \
+  -e PYTHONPATH=$PWD/src -- $PWD/.venv/bin/python -m remembro.mcp_server
+```
+
+Five tools. `remembro_ingest` takes a file path or pasted text (a policy, an amendment, a Slack
+message that delegates or revokes authority) with its effective date, extracts claims with the
+configured model, auto-registers the people and roles the document itself names, proposes the
+categories it does not know, and reports what the boundary refused. `remembro_decide` answers
+"may X approve Y on this date" with ALLOW, DENY or UNKNOWN, the reasoning chain and the quotes
+(document, page, paragraph) it rests on. `remembro_register` lists, adds and aliases entities;
+a register change applies to every past document at once because state is rebuilt from stored
+candidates on every call, never cached. `remembro_inspect` opens documents, claims, rejected
+candidates with reasons, unread spans, beliefs, contradictions and the audit log.
+`remembro_forget` removes a document. The workspace is plain files under `REMEMBRO_HOME`.
+
+The extractor is the only model in the loop and it runs only at ingest. The default is GLM 5.3
+Flash through a local Ollama (the arm that decides both fixtures perfectly); point
+`REMEMBRO_MODEL`/`REMEMBRO_BASE_URL`/`REMEMBRO_API_KEY` at the fine-tuned writer's endpoint to
+run our own model instead. `REMEMBRO_EXTRACTOR=rules` needs no model at all and is what the
+tests use.
+
 ## The trust boundary
 
 ```
@@ -41,7 +68,7 @@ appendix).
 ```sh
 cd remembro-eval
 python3 -m venv .venv && .venv/bin/pip install pydantic pytest
-.venv/bin/python -m pytest -q                                   # 77 tests
+.venv/bin/python -m pytest -q                                   # 87 tests
 PYTHONPATH=src .venv/bin/python -m remembro.cli evaluate        # the gold claims as a perfect extractor
 PYTHONPATH=src .venv/bin/python -m remembro.cli ingest fixtures/delegation_policy_v1.md --extractor rules
 PYTHONPATH=src .venv/bin/python -m remembro.cli --run-name rules evaluate
