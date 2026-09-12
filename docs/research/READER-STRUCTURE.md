@@ -140,6 +140,30 @@ model), DeepSeek `deepseek-chat` as judge instead of gpt-4o:
 DeepSeek is the more lenient judge (167 against gpt-4o's 139 on the same baseline), and the
 block's gain holds under it. This is the pair reader v5 is measured against.
 
+## Running the reader locally
+
+When Modal credit ran out on 2026-09-13 (training halted at step 54 of 74, checkpoint-50
+kept on the volume), the reader endpoint went down with it. The volume still serves storage,
+so reader v4's merged text-only checkpoint (14 GB) was pulled and converted on the Mac:
+
+```sh
+modal volume get rembero-finetune runs/reader-v4-gemma4-e4b/merged-text/ /Volumes/Atlas/models/rembero/reader-v4-merged-text/
+git clone --depth 1 https://github.com/ggml-org/llama.cpp /Volumes/Atlas/models/llama.cpp
+cd /Volumes/Atlas/models/llama.cpp && python3 -m venv .venv && .venv/bin/pip install -r requirements/requirements-convert_hf_to_gguf.txt "transformers>=5"
+.venv/bin/python convert_hf_to_gguf.py /Volumes/Atlas/models/rembero/reader-v4-merged-text/merged-text --outtype f16 --outfile /Volumes/Atlas/models/rembero/reader-v4-gemma4-e4b-f16.gguf
+llama-quantize /Volumes/Atlas/models/rembero/reader-v4-gemma4-e4b-f16.gguf /Volumes/Atlas/models/rembero/reader-v4-gemma4-e4b-Q8_0.gguf Q8_0
+llama-server -m /Volumes/Atlas/models/rembero/reader-v4-gemma4-e4b-Q8_0.gguf --port 8082 -c 12288 -np 1 -ngl 99 --alias rembero-reader \
+  --reasoning-budget 0 --chat-template-kwargs '{"enable_thinking":false}'
+```
+
+Two things bit. The converter's pinned transformers 4 cannot read the tokenizer config that
+transformers 5 wrote (upgrade it, as the Modal exporter does). And converting straight to
+`--outtype q8_0` produced a model that emitted noise from the first token; converting to f16
+and quantizing with `llama-quantize`, the exporter's path, gives a working 7.5 GiB Q8_0 that
+answers "21 days ago" to the smoke question. On a 16 GB M-series Mac it reads a 24 KB prompt in
+about 12 seconds and answers in about 30, one question at a time. The harness points at it with
+`--reader-model rembero-reader --reader-base-url http://127.0.0.1:8082/v1`.
+
 ## Where this goes
 
 1. GLM gains a little from the block (+5, all multi-session) and loses nothing, so the block
