@@ -1,0 +1,101 @@
+import { describe, expect, it } from 'vitest';
+import {
+  buildComputedNotes,
+  extractQuantities,
+  resolveTemporalExpressions,
+} from '../src/evals/computed-notes.js';
+
+const session = '2023-02-22T10:00:00Z';
+
+describe('resolveTemporalExpressions', () => {
+  it('anchors relative expressions to the session date', () => {
+    const events = resolveTemporalExpressions(
+      'USER: I did the Walk for Hunger 5K yesterday. Two weeks ago I started training. Today I rested.',
+      session,
+    );
+    const byExpr = Object.fromEntries(events.map((e) => [e.expression.toLowerCase(), e.iso]));
+    expect(byExpr['yesterday']).toBe('2023-02-21');
+    expect(byExpr['two weeks ago']).toBe('2023-02-08');
+    expect(byExpr['today']).toBe('2023-02-22');
+  });
+
+  it('reads absolute dates and assumes the session year when none is given', () => {
+    const events = resolveTemporalExpressions(
+      'USER: The Coastal Cleanup is on March 7th and I replaced my spark plugs on Feb 14, 2023. Trip on 2022-01-15.',
+      session,
+    );
+    const isos = events.map((e) => e.iso);
+    expect(isos).toContain('2023-03-07');
+    expect(isos).toContain('2023-02-14');
+    expect(isos).toContain('2022-01-15');
+    expect(events.find((e) => e.iso === '2023-03-07')?.assumedYear).toBe(true);
+  });
+
+  it('resolves weekdays to the previous occurrence', () => {
+    // 2023-02-22 is a Wednesday
+    const events = resolveTemporalExpressions('USER: I went hiking last Saturday and to the dentist on Monday.', session);
+    const byExpr = Object.fromEntries(events.map((e) => [e.expression.toLowerCase(), e.iso]));
+    expect(byExpr['last saturday']).toBe('2023-02-18');
+    expect(byExpr['on monday']).toBe('2023-02-20');
+  });
+
+  it('ignores assistant turns', () => {
+    const events = resolveTemporalExpressions('ASSISTANT: Yesterday would be a fine day.\n\nUSER: I agree.', session);
+    expect(events).toEqual([]);
+  });
+});
+
+describe('extractQuantities', () => {
+  it('reads numbers with units and durations', () => {
+    const q = extractQuantities('USER: Outer Banks is about 4 hours away. My best time was 4 hours 22 minutes; my target was 4 hours 10 minutes. I packed 5 pairs of shoes and wore two pairs.');
+    const units = q.map((x) => `${x.value} ${x.unit}`);
+    expect(units).toContain('4 hour');
+    expect(units).toContain('262 minute');
+    expect(units).toContain('250 minute');
+    expect(units).toContain('5 pair');
+    expect(units).toContain('2 pair');
+  });
+});
+
+describe('buildComputedNotes', () => {
+  it('computes the gap between two dated events named in the question', () => {
+    const notes = buildComputedNotes(
+      "How many days had passed between the 'Walk for Hunger' event and the 'Coastal Cleanup' event?",
+      '2023/03/14 (Tue) 21:24',
+      [
+        { ts: '2023-02-22T10:00:00Z', text: 'USER: I did the Walk for Hunger 5K yesterday, it was great.' },
+        { ts: '2023-03-08T09:00:00Z', text: 'USER: The Coastal Cleanup yesterday was muddy but fun.' },
+      ],
+    );
+    expect(notes).toContain('2023-02-21');
+    expect(notes).toContain('2023-03-07');
+    expect(notes).toMatch(/14 days/);
+    expect(notes).toMatch(/21 days.*before the question|21 days ago/);
+  });
+
+  it('totals quantities that share a unit and differences durations', () => {
+    const notes = buildComputedNotes(
+      'How many hours in total did I spend driving to my three road trip destinations combined?',
+      '2023/05/30 (Tue) 19:37',
+      [
+        { ts: '2023-05-10T10:00:00Z', text: 'USER: Outer Banks is about 4 hours of driving from my place.' },
+        { ts: '2023-05-12T10:00:00Z', text: 'USER: Tybee Island is 5 hours of driving.' },
+        { ts: '2023-05-20T10:00:00Z', text: 'USER: Asheville was a 6 hours drive for the road trip.' },
+      ],
+    );
+    expect(notes).toMatch(/total.*15 hours/);
+    const marathon = buildComputedNotes(
+      'How many minutes did I exceed my target time by in the marathon?',
+      '2023/05/30 (Tue) 22:30',
+      [
+        { ts: '2023-05-25T10:00:00Z', text: 'USER: My marathon time was 4 hours 22 minutes.' },
+        { ts: '2023-05-20T10:00:00Z', text: 'USER: My marathon target time is 4 hours 10 minutes.' },
+      ],
+    );
+    expect(marathon).toMatch(/difference.*12 minutes/);
+  });
+
+  it('is empty when the history has nothing datable or countable near the question', () => {
+    expect(buildComputedNotes('What is my favourite colour?', '2023/05/30 (Tue) 19:37', [{ ts: '2023-05-10T10:00:00Z', text: 'USER: I like blue best.' }])).toBe('');
+  });
+});

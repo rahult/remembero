@@ -1167,3 +1167,28 @@ describe('LongMemEval end-to-end answer evaluation', () => {
     });
   });
 });
+
+describe('computed notes in the answer context', () => {
+  it('appends the deterministic block when enabled and nothing otherwise', () => {
+    const instance = {
+      question_id: 'q1',
+      question_type: 'temporal-reasoning',
+      question: "How many days passed between the 'Walk for Hunger' event and the 'Coastal Cleanup' event?",
+      question_date: '2023/03/14 (Tue) 21:24',
+      answer: '14',
+      haystack_session_ids: ['s1', 's2'],
+      haystack_dates: [],
+      haystack_sessions: [],
+      answer_session_ids: ['s1', 's2'],
+    } as unknown as LongMemEvalInstance;
+    const sources = [
+      { opId: 's1', ts: '2023-02-22T10:00:00Z', text: 'USER: I did the Walk for Hunger 5K yesterday.' },
+      { opId: 's2', ts: '2023-03-08T09:00:00Z', text: 'USER: The Coastal Cleanup yesterday was muddy.' },
+    ];
+    const withNotes = buildLongMemEvalAnswerContext(instance, sources, 8192, [], 'direct', undefined, true, true);
+    expect(withNotes.messages.at(-1)?.content).toContain('Computed from the history');
+    expect(withNotes.messages.at(-1)?.content).toMatch(/14 days/);
+    const without = buildLongMemEvalAnswerContext(instance, sources, 8192, [], 'direct', undefined, true, false);
+    expect(without.messages.at(-1)?.content).not.toContain('Computed from the history');
+  });
+});

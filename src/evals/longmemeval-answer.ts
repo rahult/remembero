@@ -1,3 +1,4 @@
+import { buildComputedNotes } from './computed-notes.js';
 import {
   existsSync,
   mkdirSync,
@@ -242,6 +243,7 @@ export interface LongMemEvalAnswerRun {
     engineRecall?: boolean;
     engineRecallQuestionTypes?: string[] | null;
     dateDistances?: boolean;
+    computedNotes?: boolean;
     hybridQuestionTypes: string[] | null;
     factsInContext: boolean;
     readerMaxTokens: number;
@@ -528,6 +530,7 @@ export function buildLongMemEvalAnswerContext(
   reading: 'direct' | 'notes' | 'enumerate' = 'direct',
   engine?: { query: string; rendered: string },
   dateDistances = false,
+  computedNotes = false,
 ): AnswerContext {
   validateOptions(Math.max(1, rankedSources.length), contextBytes);
   const usable = rankedSources.filter(
@@ -571,7 +574,17 @@ export function buildLongMemEvalAnswerContext(
     engine === undefined
       ? ''
       : `\n### Memory engine result\nThe memory system wrote this Datalog program over the facts it remembered from the whole history (every session, not only the chats above) and executed it. The rows are exact for the remembered facts, but the program may be broader than the question and facts can be missing or misread, so keep only the rows that fit the question, cross-check with the chats, and prefer the chats where they disagree.\nProgram: ${engine.query.replace(/\s*\n\s*/g, ' ')}\n${engine.rendered.slice(0, MAX_ENGINE_RENDER_CHARACTERS)}\n`;
-  const user = `History chats:\n\n${history || '[no safe relevant history retrieved]'}\n${remembered}${engineBlock}Current date: ${instance.question_date}\nQuestion: ${instance.question}\nAnswer:`;
+  const computedBlock = computedNotes
+    ? (() => {
+        const block = buildComputedNotes(
+          instance.question,
+          instance.question_date,
+          selected.map(({ ts, text }) => ({ ts, text: text! })),
+        );
+        return block === '' ? '' : `\n${block}`;
+      })()
+    : '';
+  const user = `History chats:\n\n${history || '[no safe relevant history retrieved]'}\n${remembered}${engineBlock}${computedBlock}Current date: ${instance.question_date}\nQuestion: ${instance.question}\nAnswer:`;
   assertSafeForExternalLlm(user, 'LongMemEval answer prompt');
   const system =
     instance.question_type === 'single-session-preference'
@@ -692,6 +705,12 @@ export async function evaluateLongMemEvalAnswerInstance(
      * weeks and months, so the reader copies an interval instead of computing one.
      */
     dateDistances?: boolean;
+    /**
+     * A deterministic block after the chats: every temporal expression in the user's turns
+     * resolved against its session date with its distance to the question date, gaps between
+     * dated events, and quantities with units totalled, each with the sentence it came from.
+     */
+    computedNotes?: boolean;
     engineRecall?: {
       /** The writer: authors the Datalog query (usage is accounted with extraction). */
       llm: LongMemEvalCompletionClient;
@@ -1367,6 +1386,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       twoCall ? 'enumerate' : notes ? 'notes' : 'direct',
       engine,
       options.dateDistances === true,
+      options.computedNotes === true,
     );
     contextSessionIds = [
       ...answerContext.contextSessionIds,
