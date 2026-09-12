@@ -138,6 +138,12 @@ class Workspace:
     def _extractor(self):
         if self.extractor_kind == "rules":
             return RuleExtractor()
+        gguf = os.environ.get("REMEMBRO_LOCAL_GGUF")
+        if gguf and "127.0.0.1" in self.base_url or gguf and "localhost" in self.base_url:
+            from remembro.localserve import ensure
+
+            if not ensure(self.base_url, gguf):
+                raise RuntimeError(f"no model server at {self.base_url} and llama-server could not be started from {gguf}")
         return LlmExtractor(self.base_url, self.model, self.api_key, name=_slug(self.model))
 
     def ingest(self, *, path: Path | str | None = None, text: str | None = None, document_id: str | None = None, effective_date: str | None = None, kind: str = "policy", candidates: list[dict] | None = None) -> dict:

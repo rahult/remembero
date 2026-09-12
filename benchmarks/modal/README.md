@@ -123,7 +123,8 @@ and `metrics.json` stays, so any run can be re-merged with `add_processor` /
 .venv/bin/modal run benchmarks/modal/train_lora.py::export_gguf --run r19-gemma4-e2b --quant Q8_0
 .venv/bin/modal volume get rembero-finetune runs/r19-gemma4-e2b/gguf/r19-gemma4-e2b-Q8_0.gguf /Volumes/Atlas/models/rembero/
 brew install llama.cpp
-llama-server -m /Volumes/Atlas/models/rembero/r19-gemma4-e2b-Q8_0.gguf --port 8081 -c 8192 -ngl 99 --alias rembero-writer
+llama-server -m /Volumes/Atlas/models/rembero/r19-gemma4-e2b-Q8_0.gguf --port 8081 -c 16384 -np 2 -ngl 99 --alias rembero-writer \
+  --reasoning-budget 0 --chat-template-kwargs '{"enable_thinking":false}'   # Gemma 4's template turns thinking on; the writer was trained without it
 ```
 
 `export_gguf` converts the run's `merged-text` checkpoint with llama.cpp's converter (the

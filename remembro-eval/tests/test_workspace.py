@@ -134,3 +134,16 @@ class TestSettlingDoubt:
         assert d["decision"] == "UNKNOWN" and any("alias" in s for s in d["next_steps"])
         ws.add_entity("person", "David Smith", aliases=["D. Smith"])
         assert ws.decide(actor="D. Smith", resource="utilities", amount=3000, currency="AUD", on="2026-09-10")["decision"] == "ALLOW"
+
+
+class TestLocalServe:
+    def test_command_disables_thinking_and_gives_each_slot_full_context(self):
+        from remembro.localserve import command
+        cmd = command("/models/w.gguf", 8081)
+        assert "--reasoning-budget" in cmd and cmd[cmd.index("--reasoning-budget") + 1] == "0"
+        assert '{"enable_thinking":false}' in cmd
+        assert cmd[cmd.index("-c") + 1] == "16384" and cmd[cmd.index("-np") + 1] == "2"
+
+    def test_ensure_is_false_without_a_server_or_a_gguf(self):
+        from remembro.localserve import ensure
+        assert ensure("http://127.0.0.1:1/v1", None, timeout=0) is False

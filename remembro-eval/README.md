@@ -11,11 +11,24 @@ matters is the unjustified ALLOW rate, target 0%, reported separately from accur
 
 ```sh
 cd remembro-eval && .venv/bin/pip install "mcp>=2"
+brew install llama.cpp                                    # the local writer runs on llama-server
 claude mcp add -s user remembro-decisions \
   -e REMEMBRO_HOME=$HOME/.remembro/default -e REMEMBRO_EXTRACTOR=llm \
-  -e REMEMBRO_MODEL=glm-5.3-flash:cloud -e REMEMBRO_BASE_URL=http://127.0.0.1:11434/v1 -e REMEMBRO_API_KEY=ollama \
+  -e REMEMBRO_MODEL=rembero-writer -e REMEMBRO_BASE_URL=http://127.0.0.1:8081/v1 -e REMEMBRO_API_KEY=x \
+  -e REMEMBRO_LOCAL_GGUF=/Volumes/Atlas/models/rembero/r23-gemma4-e2b-Q8_0.gguf \
   -e PYTHONPATH=$PWD/src -- $PWD/.venv/bin/python -m remembro.mcp_server
 ```
+
+The default extractor is our own writer, r23 at Q8_0 (4.6 GiB), which the server starts on
+demand with llama-server when nothing answers on the port, so nothing has to be running first.
+It decides both fixtures exactly as the bf16 copy on Modal does (17/17, 20/20) and ingests a
+five-page policy in about 65 seconds on an M-series Mac, a Slack message in 4. Two flags
+matter and `remembro.localserve` sets them: Gemma 4's chat template turns thinking on by
+default and the writer, trained without it, thinks its way to an empty array, so
+`--reasoning-budget 0 --chat-template-kwargs '{"enable_thinking":false}'`; and parallel slots
+split the context, so `-c 16384 -np 2` gives each slot a full 8k. To use GLM 5.3 Flash through
+Ollama instead: `REMEMBRO_MODEL=glm-5.3-flash:cloud REMEMBRO_BASE_URL=http://127.0.0.1:11434/v1
+REMEMBRO_API_KEY=ollama` and drop `REMEMBRO_LOCAL_GGUF`.
 
 Seven tools. `remembro_status` is the one-call overview to start a session with. `remembro_ingest` takes a file path or pasted text (a policy, an amendment, a Slack
 message that delegates or revokes authority) with its effective date, extracts claims with the
@@ -31,11 +44,8 @@ a reason, so it stops casting doubt; it is never a way around a real restriction
 comes with `next_steps`: the alias, category, dismissal or re-ingest that would settle it.
 `remembro_forget` removes a document. The workspace is plain files under `REMEMBRO_HOME`.
 
-The extractor is the only model in the loop and it runs only at ingest. The default is GLM 5.3
-Flash through a local Ollama (the arm that decides both fixtures perfectly); point
-`REMEMBRO_MODEL`/`REMEMBRO_BASE_URL`/`REMEMBRO_API_KEY` at the fine-tuned writer's endpoint to
-run our own model instead. `REMEMBRO_EXTRACTOR=rules` needs no model at all and is what the
-tests use.
+The extractor is the only model in the loop and it runs only at ingest.
+`REMEMBRO_EXTRACTOR=rules` needs no model at all and is what the tests use.
 
 ## The trust boundary
 
@@ -71,7 +81,7 @@ appendix).
 ```sh
 cd remembro-eval
 python3 -m venv .venv && .venv/bin/pip install pydantic pytest
-.venv/bin/python -m pytest -q                                   # 99 tests
+.venv/bin/python -m pytest -q                                   # 101 tests
 PYTHONPATH=src .venv/bin/python -m remembro.cli evaluate        # the gold claims as a perfect extractor
 PYTHONPATH=src .venv/bin/python -m remembro.cli ingest fixtures/delegation_policy_v1.md --extractor rules
 PYTHONPATH=src .venv/bin/python -m remembro.cli --run-name rules evaluate
@@ -229,9 +239,8 @@ with 100% claim recall. Fixture 2, still unseen: **20/20**, both contradictions 
 unjustified ALLOW, the same four UNKNOWNs the gold asks for. The regression benches held
 (extraction 85/103, query 26/31). Three rounds of training data, each written from what the
 previous round got wrong on a document it had not seen, took a 2B-parameter model from 11/17
-and 9/20 to 17/17 and 20/20, level with GLM 5.3 Flash on this task. The MCP server keeps GLM
-Flash as its default because a local Ollama has no cold start; `REMEMBRO_MODEL=finetune/gemma-4-e2b-it-r23-gemma4-e2b-modal`
-with the Modal endpoint runs our own writer instead.
+and 9/20 to 17/17 and 20/20, level with GLM 5.3 Flash on this task. Exported to GGUF at Q8_0 it
+reproduces both scores on a Mac, and it is the MCP server's default extractor.
 
 ## The second document
 

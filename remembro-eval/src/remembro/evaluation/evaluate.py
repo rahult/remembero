@@ -24,7 +24,7 @@ def claim_key(claim: dict) -> tuple:
         subject = "procurement manager"
     if subject == "cfo":
         subject = "chief financial officer"
-    constraints = claim.get("constraints") or {}
+    constraints = claim.get("constraints") if isinstance(claim.get("constraints"), dict) else {}  # a malformed candidate scores as wrong, never crashes
     obj = str(claim.get("object") or "").lower().strip()
     return (
         subject,
