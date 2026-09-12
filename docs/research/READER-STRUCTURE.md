@@ -74,7 +74,7 @@ multi-session and temporal questions, gpt-4o judge.
 | --- | --- | --- | --- | --- | --- |
 | v4 | baseline | 73/133 | 66/133 | 139/266 | |
 | v4 | computed notes, first version | 77/133 | 76/133 | 153/266 | 45 / 31 |
-| v4 | computed notes, second version | pending | | | |
+| v4 | **computed notes, second version** | **82/133** | **85/133** | **167/266** | 50 / 22 |
 | GLM 5.3 Flash | baseline | pending | | | |
 | GLM 5.3 Flash | computed notes | pending | | | |
 

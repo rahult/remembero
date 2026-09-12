@@ -150,3 +150,22 @@ describe('lessons from the full paired run', () => {
     expect(notes).toMatch(/about 4 months \(18 weeks, 123 days\) before the question date/);
   });
 });
+
+describe('lessons from the second paired run', () => {
+  it('does not treat a date that names a thing as an event date', () => {
+    const events = resolveTemporalExpressions('USER: I finally read the March 15th issue of The New Yorker today.', '2023-03-20T10:00:00Z');
+    expect(events.map((e) => e.iso)).toEqual(['2023-03-20']);
+  });
+
+  it('says which side of an order question the history never dates', () => {
+    const notes = buildComputedNotes(
+      'Which task did I complete first, fixing the fence or purchasing three cows from Peter?',
+      '2023/05/30 (Tue) 19:37',
+      [
+        { ts: '2023-05-21T10:00:00Z', text: 'USER: I fixed the broken fence on the east side three weeks ago.' },
+        { ts: '2023-05-22T10:00:00Z', text: 'USER: The fence held up well yesterday in the storm.' },
+      ],
+    );
+    expect(notes).toMatch(/Coverage: .*none match "purchasing cow peter"/);
+  });
+});

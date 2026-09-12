@@ -123,6 +123,8 @@ export function resolveTemporalExpressions(text: string, sessionTs: string): Dat
     while ((m = monthDay.exec(s)) !== null) {
       const mo = MONTHS[m[1].toLowerCase()];
       if (!mo) continue;
+      // "the March 15th issue", "the June 3 edition": a date naming a thing, not when it happened
+      if (/^\s+(issue|edition|newsletter|magazine|episode|release|deadline|version)\b/i.test(s.slice(m.index + m[0].length))) continue;
       const y = m[3] ? Number(m[3]) : year;
       push({ iso: toIso(utc(y, mo, Number(m[2]))), expression: m[0], sentence, sessionDay, kind: 'absolute', assumedYear: !m[3] });
     }
@@ -288,6 +290,22 @@ export function buildComputedNotes(
       lines.push(`- ${e.iso}: "${snippet(e.sentence)}" [said ${e.sessionDay}, "${e.expression}"${flags ? `; ${flags}` : ''}] — ${distance(e.iso, questionDay)}`);
     }
     const distinct = [...new Map(dated.map((e) => [e.iso, e])).values()].sort((l, r) => l.iso.localeCompare(r.iso));
+    if (asksOrder) {
+      // "X or Y": which alternatives the dated events actually cover
+      const alternatives = question
+        .split(/\s+or\s+|,\s*(?:and\s+)?|\s+and then\s+/i)
+        .filter((part) => !/\b(which|what|how|when|did|do|does|who|where)\b/i.test(part))
+        // number words and ordinals match everywhere ("three weeks ago"); they do not identify an alternative
+        .map((part) => questionKeywords(part).filter((k) => SMALL_NUMBERS[k] === undefined && !/^(first|last|second|third|next|previous|earlier|later)$/.test(k)))
+        .filter((ks) => ks.length > 0);
+      if (alternatives.length >= 2) {
+        const coverage = alternatives.map((ks) => ({ ks, dated: distinct.some((e) => ks.some((k) => e.sentence.toLowerCase().includes(k))) }));
+        const undated = coverage.filter((c) => !c.dated);
+        if (undated.length > 0 && coverage.some((c) => c.dated)) {
+          lines.push(`Coverage: the dated events above match ${coverage.filter((c) => c.dated).map((c) => `"${c.ks.slice(0, 4).join(' ')}"`).join(', ')} but none match ${undated.map((c) => `"${c.ks.slice(0, 4).join(' ')}"`).join(', ')}; if the history never dates one side of the question, the honest answer is that it does not say.`);
+        }
+      }
+    }
     if (asksOrder && distinct.length >= 2) {
       lines.push(`Order of the dated events the history dates, earliest first (if the question names an event that is not here, the history may not date it, and the honest answer may be that it does not say): ${distinct.map((e) => `${e.iso} ("${snippet(e.sentence, 36)}")${e.approximate ? ' [approximate]' : ''}`).join(' → ')}`);
     }
