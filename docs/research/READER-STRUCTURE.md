@@ -82,6 +82,23 @@ multi-session and temporal questions, gpt-4o judge.
 
 On the dev half alone the first version went 73 → 80 (temporal 34 → 41, multi 39 → 39).
 
+**All 500, raw formation, reader v4** (paired, retrieval identical, third version of the block):
+
+| type | baseline | computed notes |
+| --- | --- | --- |
+| single-session-user | 60/70 | 59/70 |
+| single-session-assistant | 48/56 | 52/56 |
+| single-session-preference | 17/30 | 18/30 |
+| knowledge-update | 60/78 | 62/78 |
+| multi-session | 66/133 | 81/133 |
+| temporal-reasoning | 67/133 | 87/133 |
+| **total** | **318/500** | **359/500** |
+
+Forty-one questions, no type hurt, no model call added, the block identical on every run. For
+scale: the recorded reader v4 number in the richer hybrid formation was 328/500, so the block
+in raw formation already beats the previous best configuration by 31, and GLM 5.3 Flash in
+hybrid formation is 426.
+
 **What the breaks taught, first version.** About six of the 31 were judge noise (answers such
 as "your parents" and "Emma" judged wrong). The rest were the block misleading a reader that
 copies: gaps were listed in date order and the reader took the first gap rather than the pair

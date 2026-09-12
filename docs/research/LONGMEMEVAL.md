@@ -626,6 +626,7 @@ r16 cache with the GLM Flash range:
 | reader v2, 24 KB (8,885 examples)  | 231/500 | 45/78    | 36/133  | 37/56                   | 0/30       | 56/70 | 57/133   |       0.63 |
 | reader v3, 24 KB (3,000 distilled) | 320/500 | 57/78    | 60/133  | 50/56                   | 25/30      | 63/70 | 65/133   |       0.67 |
 | reader v4, 24 KB (6,000 distilled) | 328/500 | 60/78    | 68/133  | 50/56                   | 22/30      | 60/70 | 68/133   |       0.93 |
+| reader v4, raw formation, computed notes | 359/500 | 62/78 | 81/133 | 52/56 | 18/30 | 59/70 | 87/133 | – |
 | GLM 5.3 Flash (for reference)      | 432/500 | 66/78    | 113/133 | 48/56                   | 28/30      | 61/70 | 116/133  |       0.93 |
 
 Where the training data had the type, the 4.5B reader is within ten points of GLM on a
