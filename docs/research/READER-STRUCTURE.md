@@ -112,6 +112,19 @@ whose one side the history never dates, is level with the second (166 against 16
 break): the rules have found what they can, and the reader's own noise (about ±4 on 266 with
 identical prompts) dominates what remains.
 
+## Reader v5: distilled with the block present
+
+`run-real-sessions distill --computed-notes` ran overnight on 2026-09-12/13 with the v4
+recipe (GLM 5.3 Flash teacher over seeded real haystacks, weights multi-session 40 /
+temporal 35 / knowledge-update 15 / abstention 10, seed 7, target 6,000). It kept **4,713**
+examples (temporal 1,965, multi-session 1,991, abstention 524, knowledge-update 233) from
+12,400 attempts: 526 rejected by the checks, the rest errors, most of them the teacher's
+reply truncated at its token budget, and the last several hundred `402 Insufficient credits`
+when the OpenRouter account ran dry at about 4,700 kept. So v5 trains on 4,713 examples
+against v4's 6,000, all of them with the block in the prompt. Training started 06:37 on Modal
+(Gemma 4 E4B, max length 8192). The chain's evaluation step needs the gpt-4o judge and the
+embedding route through OpenRouter, so it waits for credits.
+
 ## Where this goes
 
 1. GLM gains a little from the block (+5, all multi-session) and loses nothing, so the block
