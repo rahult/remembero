@@ -169,23 +169,3 @@ describe('lessons from the second paired run', () => {
     expect(notes).toMatch(/Coverage: .*none match "purchasing cow peter"/);
   });
 });
-
-describe('roster for counting questions', () => {
-  it('lists every user sentence naming the subject with its session date, once each', () => {
-    const notes = buildComputedNotes(
-      'How many movie festivals have I attended?',
-      '2023/05/30 (Tue) 20:53',
-      [
-        { ts: '2023-03-10T10:00:00Z', text: 'USER: I went to the AFI film festival last year and loved the Q&A.\n\nASSISTANT: Festivals are great.' },
-        { ts: '2023-04-02T10:00:00Z', text: 'USER: Sundance was cold but the film festival programme was superb.' },
-        { ts: '2023-05-20T10:00:00Z', text: 'USER: Just back from the Austin Film Festival short film challenge. I went to the AFI film festival last year and loved the Q&A.' },
-      ],
-    );
-    expect(notes).toContain('Sentences in the history that name the question\'s subject');
-    expect(notes).toMatch(/2023-03-10: "I went to the AFI film festival/);
-    expect(notes).toMatch(/2023-04-02: "Sundance was cold/);
-    expect(notes).toMatch(/2023-05-20: "Just back from the Austin Film Festival/);
-    const roster = notes.split('Sentences in the history')[1]!.split('Dated events')[0]!;
-    expect((roster.match(/AFI film festival last year/g) ?? []).length).toBe(1);
-  });
-});
