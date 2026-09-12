@@ -76,8 +76,8 @@ multi-session and temporal questions, gpt-4o judge.
 | v4 | computed notes, first version | 77/133 | 76/133 | 153/266 | 45 / 31 |
 | v4 | **computed notes, second version** | **82/133** | **85/133** | **167/266** | 50 / 22 |
 | v4 | computed notes, third version (noun-modifier dates skipped, coverage line) | 82/133 | 84/133 | 166/266 | 48 / 21 |
-| GLM 5.3 Flash | baseline | pending | | 202/266 | |
-| GLM 5.3 Flash | computed notes | pending | | | |
+| GLM 5.3 Flash | baseline | 93/133 | 109/133 | 202/266 | |
+| GLM 5.3 Flash | computed notes, third version | 98/133 | 109/133 | 207/266 | 18 / 13 |
 
 On the dev half alone the first version went 73 → 80 (temporal 34 → 41, multi 39 → 39).
 
@@ -96,7 +96,8 @@ identical prompts) dominates what remains.
 
 ## Where this goes
 
-1. If GLM gains from the block too, the block belongs in the distillation teacher's context:
+1. GLM gains a little from the block (+5, all multi-session) and loses nothing, so the block
+   belongs in the distillation teacher's context:
    `run-real-sessions distill --computed-notes` regenerates the reader's training questions
    with the block present, and a reader v5 learns to read it (and to ignore its stray lines)
    instead of meeting it cold. That is the "train the model on what the structure gives it"
