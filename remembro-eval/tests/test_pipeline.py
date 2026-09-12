@@ -229,3 +229,101 @@ class TestSyntheticTrainingData:
             assert name not in joined
         predicates = {l["predicate"] for _, ls in spans for l in ls}
         assert predicates == {"holds_role", "may_approve", "delegates", "suspended", "revokes_delegation"}
+
+
+class TestRegisterDrivenVocabulary:
+    def test_roles_and_categories_resolve_from_the_register_not_the_code(self):
+        reg = [
+            Entity(id="role_coo", kind=EntityKind.ROLE, canonical_name="Chief Operating Officer", aliases=["COO"]),
+            Entity(id="role_gm", kind=EntityKind.ROLE, canonical_name="Grants Manager", aliases=[]),
+            Entity(id="grant_expenditure", kind=EntityKind.CATEGORY, canonical_name="grant expenditure", aliases=["grants", "grant payments"]),
+        ]
+        r = EntityResolver(reg)
+        assert r.resolve("the COO", EntityKind.ROLE).entity_id == "role_coo"
+        assert r.resolve("Chief Operating Officer", EntityKind.ROLE).entity_id == "role_coo"
+        assert r.resolve("Grants Managers", EntityKind.ROLE).entity_id == "role_gm"
+        assert r.resolve("Finance Director", EntityKind.ROLE).verdict is MatchVerdict.NO_MATCH
+        assert r.resolve("grant payments", EntityKind.CATEGORY).entity_id == "grant_expenditure"
+        assert r.resolve("grant expenditure", EntityKind.CATEGORY).entity_id == "grant_expenditure"
+
+
+GOLD2 = json.loads((ROOT / "fixtures/harbourview_delegations_v2.gold.json").read_text())
+
+
+def state2(candidates, threshold: float = 0.9):
+    entities = [Entity.model_validate(e) for e in GOLD2["entities"]]
+    r = EntityResolver(entities, match_threshold=threshold)
+    dates = {d["id"]: d["effective_date"] for d in GOLD2["documents"]}
+    s, rejected = build_state(candidates, entities, r, document_dates=dates)
+    return s, r
+
+
+class TestSecondDocument:
+    """A different organisation, a shared surname, a third category, and an amendment dated
+    later than the schedule it changes. The rules learned on fixture 1 must hold here unchanged."""
+
+    def test_quotes_are_located_in_their_documents(self):
+        from remembro.document.parser import MarkdownParser
+        docs = {d["id"]: MarkdownParser().parse(d["id"], (ROOT / d["path"]).read_bytes()) for d in GOLD2["documents"]}
+        for c in GOLD2["claims"]:
+            for e in c["evidence"]:
+                assert any(e["quoted_text"] in s.text for s in docs[e["document_id"]].spans), c["id"]
+
+    def test_shared_surname_initial_is_possible_for_both(self):
+        _, r = state2(GOLD2["claims"])
+        res = r.resolve("J. Ford", EntityKind.PERSON)
+        assert res.verdict is MatchVerdict.POSSIBLE_MATCH
+        assert set(res.candidates) == {"person_julian", "person_julia"}
+
+    def test_amendment_supersedes_the_schedule_from_its_effective_date(self):
+        s, _ = state2(GOLD2["claims"])
+        old = s.claim("c_coo_opex")
+        new = s.claim("c_am_coo_opex")
+        assert str(old.valid_until) == "2026-10-31" and old.superseded_by == "c_am_coo_opex"
+        assert str(new.valid_from) == "2026-11-01"
+        assert not any(set(c.claims) == {"c_coo_opex", "c_am_coo_opex"} for c in s.contradictions)
+
+    def test_later_document_ends_a_role_and_a_suspension(self):
+        s, _ = state2(GOLD2["claims"])
+        assert str(s.claim("c_role_julian").valid_until) == "2026-10-31"
+        assert str(s.claim("c_owen_suspended").valid_until) == "2026-08-31"
+
+    def test_revocation_ends_a_personal_authorisation(self):
+        s, _ = state2(GOLD2["claims"])
+        assert str(s.claim("c_nadia_round").valid_until) == "2026-07-31"
+
+    @pytest.mark.parametrize("scenario", GOLD2["scenarios"], ids=lambda s: s["id"])
+    def test_scenarios(self, scenario):
+        s, r = state2(GOLD2["claims"])
+        d = decide(Request.model_validate(scenario["request"]), s, r)
+        assert d.decision.value == scenario["expected"]["decision"], d.reasons
+
+    def test_zero_unjustified_allow(self):
+        report, _ = run(GOLD2, GOLD2["claims"], "gold2")
+        assert report.unjustified_allow == 0 and report.decision_accuracy == 1.0
+
+
+class TestObjectCategoryIsAuthoritative:
+    def test_resolved_object_overrides_the_category_enum(self):
+        # GLM wrote object "grant expenditure" but constraints.category "expenditure" because the
+        # prompt's enum had no grant category; the quoted object is the grounded value
+        c = json.loads(json.dumps(next(x for x in GOLD2["claims"] if x["id"] == "c_gm_grant")))
+        c["constraints"]["category"] = "expenditure"
+        s, _ = state2([x for x in GOLD2["claims"] if x["id"] != "c_gm_grant"] + [c])
+        assert s.claim("c_gm_grant").constraints.category == "grant_expenditure"
+        s9 = next(x for x in GOLD2["scenarios"] if x["id"] == "scenario_09")
+        _, r = state2([])
+        assert decide(Request.model_validate(s9["request"]), s, r).decision.value == "ALLOW"
+
+
+class TestLiftedSuspension:
+    def test_negative_suspension_is_a_lift_not_a_suspension(self):
+        lifted = {**json.loads(json.dumps(next(x for x in GOLD2["claims"] if x["id"] == "c_owen_suspended"))), "id": "lift", "polarity": "negative", "valid_from": "2026-09-01", "valid_until": None}
+        lifted["evidence"] = [dict(next(x for x in GOLD2["claims"] if x["id"] == "c_am_owen_lifted")["evidence"][0])]
+        base = [x for x in GOLD2["claims"] if x["id"] != "c_am_owen_lifted"]
+        s, r = state2([*base, lifted])
+        assert str(s.claim("c_owen_suspended").valid_until) == "2026-08-31"
+        s17 = next(x for x in GOLD2["scenarios"] if x["id"] == "scenario_17")
+        assert decide(Request.model_validate(s17["request"]), s, r).decision.value == "ALLOW"
+        s5 = next(x for x in GOLD2["scenarios"] if x["id"] == "scenario_05")
+        assert decide(Request.model_validate(s5["request"]), s, r).decision.value == "DENY"

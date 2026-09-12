@@ -71,7 +71,7 @@ def evaluate(request: Request, state: WorldState, resolver: EntityResolver) -> D
         return deny("an approver must not approve their own expense claims")
 
     # 3. suspension
-    suspensions = [b for b in state.beliefs if b.proposition.predicate is Predicate.SUSPENDED and b.proposition.subject == person and _current(b, request.on) and b.status is BeliefStatus.SUPPORTED]
+    suspensions = [b for b in state.beliefs if b.proposition.predicate is Predicate.SUSPENDED and b.proposition.polarity is Polarity.POSITIVE and b.proposition.subject == person and _current(b, request.on) and b.status is BeliefStatus.SUPPORTED]
     if suspensions:
         used(*suspensions)
         return deny(f"{person}'s approval authority is suspended on {request.on}; a suspended person may not exercise authority held directly or by delegation")
@@ -130,7 +130,7 @@ def evaluate(request: Request, state: WorldState, resolver: EntityResolver) -> D
                 for l in state.beliefs
                 if l.proposition.predicate is Predicate.MAY_APPROVE and l.proposition.subject == r.proposition.object and (l.proposition.constraints.category or l.proposition.object) == cat and _current(l, request.on) and l.status is BeliefStatus.SUPPORTED
             ]
-            delegator_suspended = any(s.proposition.predicate is Predicate.SUSPENDED and s.proposition.subject == delegator and _current(s, request.on) for s in state.beliefs)
+            delegator_suspended = any(s.proposition.predicate is Predicate.SUSPENDED and s.proposition.polarity is Polarity.POSITIVE and s.proposition.subject == delegator and _current(s, request.on) for s in state.beliefs)
             if delegator_suspended:
                 used(b)
                 reasons.append(f"delegation from {delegator} is void on {request.on}: the delegator is suspended")
@@ -143,7 +143,7 @@ def evaluate(request: Request, state: WorldState, resolver: EntityResolver) -> D
 
     # a grant to someone who might be this person is not authority, and not its absence:
     # it makes the decision UNKNOWN before any role-level rule can deny or allow it
-    possible = [c for c in state.claims if c.status.value == "REJECTED" and c.rejection_reason and "POSSIBLE_MATCH" in c.rejection_reason and c.predicate in (Predicate.MAY_APPROVE, Predicate.DELEGATES) and c.polarity is Polarity.POSITIVE and (c.subject_entity == person or c.object_entity == person) and (c.constraints.category or cat) == cat and in_interval(request.on, c.valid_from, c.valid_until)]
+    possible = [c for c in state.claims if c.status.value == "REJECTED" and c.rejection_reason and "POSSIBLE_MATCH" in c.rejection_reason and c.predicate in (Predicate.MAY_APPROVE, Predicate.DELEGATES) and c.polarity is Polarity.POSITIVE and (person in c.possible_subjects or person in c.possible_objects) and (c.constraints.category or cat) == cat and in_interval(request.on, c.valid_from, c.valid_until)]
     if possible and not any(m is None or request.amount <= m for _, m, _ in limits):
         reasons.append(f"a grant exists for '{possible[0].subject}' which may or may not be {person}: {possible[0].rejection_reason}")
         return unknown(f"authority for {person} over {cat} depends on whether '{possible[0].subject}' is the same person; identity not established")

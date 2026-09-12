@@ -44,6 +44,16 @@ def normalise(text: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9. ]", " ", text.lower())).strip()
 
 
+def _role_key(text: str) -> str:
+    """'the Procurement Managers' -> 'procurement manager'."""
+    t = normalise(text)
+    t = re.sub(r"^(the|a|an)\s+", "", t)
+    words = t.split()
+    if words and words[-1].endswith("s") and not words[-1].endswith("ss"):
+        words[-1] = words[-1][:-1]
+    return " ".join(words)
+
+
 def _name_parts(name: str) -> tuple[list[str], str | None]:
     tokens = [t for t in normalise(name).replace(".", " ").split() if t]
     if not tokens:
@@ -105,18 +115,32 @@ class EntityResolver:
 
     def resolve(self, mention: str, kind: EntityKind) -> Resolution:
         if kind is EntityKind.ROLE:
-            key = ROLE_NORMALISATION.get(normalise(mention).rstrip("s") if normalise(mention).endswith("managers") else normalise(mention))
-            key = key or ROLE_NORMALISATION.get(normalise(mention))
+            key = _role_key(mention)
+            # the register first: canonical names and aliases of the roles this document defines
             for entity in self.register:
-                if entity.kind is EntityKind.ROLE and normalise(entity.canonical_name) == key:
+                if entity.kind is EntityKind.ROLE and key in {_role_key(n) for n in (entity.canonical_name, *entity.aliases)}:
+                    return Resolution(mention=mention, verdict=MatchVerdict.MATCH, entity_id=entity.id, score=1.0, reason=f"role register '{entity.canonical_name}'")
+            # then the shared vocabulary (abbreviations, plurals)
+            norm_key = ROLE_NORMALISATION.get(key)
+            for entity in self.register:
+                if norm_key and entity.kind is EntityKind.ROLE and _role_key(entity.canonical_name) == norm_key:
                     return Resolution(mention=mention, verdict=MatchVerdict.MATCH, entity_id=entity.id, score=1.0, reason="role vocabulary")
             return Resolution(mention=mention, verdict=MatchVerdict.NO_MATCH, entity_id=None, score=0.0, reason="unknown role")
         if kind is EntityKind.CATEGORY:
-            key = CATEGORY_NORMALISATION.get(normalise(mention))
+            m = normalise(mention)
+            for entity in self.register:
+                if entity.kind is EntityKind.CATEGORY and m in {normalise(n) for n in (entity.canonical_name, *entity.aliases)}:
+                    return Resolution(mention=mention, verdict=MatchVerdict.MATCH, entity_id=entity.id, score=1.0, reason=f"category register '{entity.canonical_name}'")
+            key = CATEGORY_NORMALISATION.get(m)
             if key is None:
                 for phrase, cat in CATEGORY_NORMALISATION.items():
-                    if phrase in normalise(mention):
+                    if phrase in m:
                         key = cat
+                        break
+            if key is None:
+                for entity in self.register:
+                    if entity.kind is EntityKind.CATEGORY and any(normalise(n) in m for n in (entity.canonical_name, *entity.aliases)):
+                        key = entity.id
                         break
             if key:
                 return Resolution(mention=mention, verdict=MatchVerdict.MATCH, entity_id=key, score=1.0, reason="category vocabulary")
@@ -133,8 +157,11 @@ class EntityResolver:
             return Resolution(mention=mention, verdict=MatchVerdict.NO_MATCH, entity_id=None, score=0.0, reason="empty register")
         score, reason, entity = scored[0]
         runner_up = scored[1][0] if len(scored) > 1 else 0.0
+        candidates = [e.id for sc, _, e in scored if sc >= self.possible_threshold]
         if score >= self.match_threshold and score - runner_up >= 0.2:
-            return Resolution(mention=mention, verdict=MatchVerdict.MATCH, entity_id=entity.id, score=score, reason=reason)
+            return Resolution(mention=mention, verdict=MatchVerdict.MATCH, entity_id=entity.id, score=score, reason=reason, candidates=[entity.id])
         if score >= self.possible_threshold:
-            return Resolution(mention=mention, verdict=MatchVerdict.POSSIBLE_MATCH, entity_id=entity.id, score=score, reason=reason)
+            if len(candidates) > 1 and score - runner_up < 0.2:
+                reason = f"{reason}; also compatible with {', '.join(c for c in candidates if c != entity.id)}"
+            return Resolution(mention=mention, verdict=MatchVerdict.POSSIBLE_MATCH, entity_id=entity.id, score=score, reason=reason, candidates=candidates)
         return Resolution(mention=mention, verdict=MatchVerdict.NO_MATCH, entity_id=None, score=score, reason=reason)

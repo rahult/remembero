@@ -19,14 +19,24 @@ from remembro.storage.sqlite import save_state
 
 
 def ingest(args: argparse.Namespace) -> None:
-    doc = MarkdownParser().parse(Path(args.document).stem, Path(args.document).read_bytes())
+    paths = [Path(p) for p in args.documents] or [Path(d["path"]) for d in load_gold(Path(args.gold)).get("documents", [])]
+    if not paths:
+        raise SystemExit("no documents given and the gold file lists none")
     extractor = extractor_from_args(args.extractor, args.run_name, args.model, args.base_url)
-    candidates = extractor.extract(doc)
+    candidates: list[dict] = []
+    spans = 0
+    for path in paths:
+        doc = MarkdownParser().parse(path.stem, path.read_bytes())
+        spans += len(doc.spans)
+        for c in extractor.extract(doc):
+            # ids must stay unique across documents
+            c["id"] = f"{path.stem}:{c['id']}" if len(paths) > 1 else c["id"]
+            candidates.append(c)
     out = Path(args.out or f"fixtures/runs/{extractor.name}.claims.json")
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps({"extractor": extractor.name, "document": doc.id, "claims": candidates}, indent=2, default=str))
+    out.write_text(json.dumps({"extractor": extractor.name, "documents": [p.stem for p in paths], "claims": candidates}, indent=2, default=str))
     errors = [c for c in candidates if "error" in c]
-    print(f"{extractor.name}: {len(candidates) - len(errors)} candidate claims from {len(doc.spans)} spans ({len(errors)} span errors) -> {out}")
+    print(f"{extractor.name}: {len(candidates) - len(errors)} candidate claims from {spans} spans in {len(paths)} document(s) ({len(errors)} span errors) -> {out}")
 
 
 def evaluate_cmd(args: argparse.Namespace) -> None:
@@ -53,7 +63,8 @@ def explain(args: argparse.Namespace) -> None:
     candidates = gold["claims"] if args.run_name == "gold" else json.loads(Path(f"fixtures/runs/{args.run_name}.claims.json").read_text())["claims"]
     entities = [Entity.model_validate(e) for e in gold["entities"]]
     resolver = EntityResolver(entities, match_threshold=args.match_threshold)
-    state, _ = build_state(candidates, entities, resolver)
+    dates = {d["id"]: d["effective_date"] for d in gold.get("documents", [])}
+    state, _ = build_state(candidates, entities, resolver, document_dates=dates or None)
     decision = decide(Request.model_validate(scenario["request"]), state, resolver)
     print(f"DECISION: {decision.decision.value}")
     print(f"Question: {scenario['question']}")
@@ -95,7 +106,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--match-threshold", type=float, default=0.9)
     sub = parser.add_subparsers(dest="command", required=True)
     p = sub.add_parser("ingest")
-    p.add_argument("document")
+    p.add_argument("documents", nargs="*", help="documents to ingest; defaults to the gold file's documents")
     p.add_argument("--extractor", choices=["rules", "llm", "snapshot"], default="rules")
     p.add_argument("--model")
     p.add_argument("--base-url")

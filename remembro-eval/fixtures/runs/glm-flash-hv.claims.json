@@ -1,0 +1,1586 @@
+{
+  "extractor": "glm-flash-hv",
+  "documents": [
+    "harbourview_delegations_v2",
+    "harbourview_delegations_v2_amendment1"
+  ],
+  "claims": [
+    {
+      "subject": "Helen Marsh",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Chief Executive Officer",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2024-02-01",
+      "valid_until": null,
+      "confidence": 0.9,
+      "id": "harbourview_delegations_v2:glm-flash-hv_1",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_1",
+          "document_id": "harbourview_delegations_v2",
+          "page": 1,
+          "paragraph": 5,
+          "section": "2. Office holders",
+          "start_offset": 756,
+          "end_offset": 1218,
+          "quoted_text": "Chief Executive Officer | Helen Marsh | 1 February 2024",
+          "authority": "table"
+        }
+      ]
+    },
+    {
+      "subject": "Owen Pritchard",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Chief Operating Officer",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2025-09-12",
+      "valid_until": null,
+      "confidence": 0.85,
+      "id": "harbourview_delegations_v2:glm-flash-hv_2",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_2",
+          "document_id": "harbourview_delegations_v2",
+          "page": 1,
+          "paragraph": 6,
+          "section": "2. Office holders",
+          "start_offset": 756,
+          "end_offset": 1218,
+          "quoted_text": "Chief Operating Officer | Owen Pritchard | 12 September 2025",
+          "authority": "table"
+        }
+      ]
+    },
+    {
+      "subject": "Nadia Kessler",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Grants Manager",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2025-03-03",
+      "valid_until": null,
+      "confidence": 0.8,
+      "id": "harbourview_delegations_v2:glm-flash-hv_3",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_3",
+          "document_id": "harbourview_delegations_v2",
+          "page": 1,
+          "paragraph": 7,
+          "section": "2. Office holders",
+          "start_offset": 756,
+          "end_offset": 1218,
+          "quoted_text": "Grants Manager | Nadia Kessler | 3 March 2025",
+          "authority": "table"
+        }
+      ]
+    },
+    {
+      "subject": "Julian Ford",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Facilities Coordinator",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2026-01-20",
+      "valid_until": null,
+      "confidence": 0.9,
+      "id": "harbourview_delegations_v2:glm-flash-hv_4",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_4",
+          "document_id": "harbourview_delegations_v2",
+          "page": 1,
+          "paragraph": 8,
+          "section": "2. Office holders",
+          "start_offset": 756,
+          "end_offset": 1218,
+          "quoted_text": "Facilities Coordinator | Julian Ford | 20 January 2026",
+          "authority": "table"
+        }
+      ]
+    },
+    {
+      "subject": "Julia Ford",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Grants Officer",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2025-05-05",
+      "valid_until": null,
+      "confidence": 0.9,
+      "id": "harbourview_delegations_v2:glm-flash-hv_5",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_5",
+          "document_id": "harbourview_delegations_v2",
+          "page": 1,
+          "paragraph": 9,
+          "section": "2. Office holders",
+          "start_offset": 756,
+          "end_offset": 1218,
+          "quoted_text": "Grants Officer | Julia Ford | 5 May 2025",
+          "authority": "table"
+        }
+      ]
+    },
+    {
+      "subject": "Grants Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "condition": "under this Schedule"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.9,
+      "id": "harbourview_delegations_v2:glm-flash-hv_6",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_6",
+          "document_id": "harbourview_delegations_v2",
+          "page": 1,
+          "paragraph": 10,
+          "section": "2. Office holders",
+          "start_offset": 1220,
+          "end_offset": 1380,
+          "quoted_text": "The Grants Officer maintains the grants register and has no approval authority under this Schedule. Nothing in this Schedule creates an entitlement to any role.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Executive Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 150000,
+        "currency": "NZD",
+        "category": "operational_expenditure",
+        "condition": "per transaction"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2:glm-flash-hv_7",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_7",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 11,
+          "section": "3.1 Chief Executive Officer",
+          "start_offset": 1461,
+          "end_offset": 1780,
+          "quoted_text": "The Chief Executive Officer is authorised to approve operational expenditure up to NZD 150,000 per transaction. The Chief Executive Officer is authorised to approve capital expenditure up to NZD 300,000 per transaction. The Chief Executive Officer is authorised to approve grant expenditure up to NZD 200,000 per grant.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Executive Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 300000,
+        "currency": "NZD",
+        "category": "capital_expenditure",
+        "condition": "per transaction"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2:glm-flash-hv_8",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_8",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 11,
+          "section": "3.1 Chief Executive Officer",
+          "start_offset": 1461,
+          "end_offset": 1780,
+          "quoted_text": "The Chief Executive Officer is authorised to approve operational expenditure up to NZD 150,000 per transaction. The Chief Executive Officer is authorised to approve capital expenditure up to NZD 300,000 per transaction. The Chief Executive Officer is authorised to approve grant expenditure up to NZD 200,000 per grant.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Executive Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "grant expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 200000,
+        "currency": "NZD",
+        "condition": "per grant"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2:glm-flash-hv_9",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_9",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 11,
+          "section": "3.1 Chief Executive Officer",
+          "start_offset": 1461,
+          "end_offset": 1780,
+          "quoted_text": "The Chief Executive Officer is authorised to approve operational expenditure up to NZD 150,000 per transaction. The Chief Executive Officer is authorised to approve capital expenditure up to NZD 300,000 per transaction. The Chief Executive Officer is authorised to approve grant expenditure up to NZD 200,000 per grant.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Operating Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 60000,
+        "currency": "NZD",
+        "category": "operational_expenditure",
+        "condition": "per transaction"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.98,
+      "id": "harbourview_delegations_v2:glm-flash-hv_10",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_10",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 12,
+          "section": "3.2 Chief Operating Officer",
+          "start_offset": 1816,
+          "end_offset": 2098,
+          "quoted_text": "The Chief Operating Officer is authorised to approve operational expenditure up to NZD 60,000 per transaction. The Chief Operating Officer is authorised to approve capital expenditure up to NZD 40,000 per transaction. The Chief Operating Officer shall not approve grant expenditure.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Operating Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 40000,
+        "currency": "NZD",
+        "category": "capital_expenditure",
+        "condition": "per transaction"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.98,
+      "id": "harbourview_delegations_v2:glm-flash-hv_11",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_11",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 12,
+          "section": "3.2 Chief Operating Officer",
+          "start_offset": 1816,
+          "end_offset": 2098,
+          "quoted_text": "The Chief Operating Officer is authorised to approve operational expenditure up to NZD 60,000 per transaction. The Chief Operating Officer is authorised to approve capital expenditure up to NZD 40,000 per transaction. The Chief Operating Officer shall not approve grant expenditure.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Operating Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "grant expenditure",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {},
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.98,
+      "id": "harbourview_delegations_v2:glm-flash-hv_12",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_12",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 12,
+          "section": "3.2 Chief Operating Officer",
+          "start_offset": 1816,
+          "end_offset": 2098,
+          "quoted_text": "The Chief Operating Officer is authorised to approve operational expenditure up to NZD 60,000 per transaction. The Chief Operating Officer is authorised to approve capital expenditure up to NZD 40,000 per transaction. The Chief Operating Officer shall not approve grant expenditure.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Grants Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "grant expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 25000,
+        "currency": "NZD",
+        "category": "expenditure",
+        "condition": "the grant falls within a program approved by the Board"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.98,
+      "id": "harbourview_delegations_v2:glm-flash-hv_13",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_13",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 13,
+          "section": "3.3 Grants Manager",
+          "start_offset": 2125,
+          "end_offset": 2438,
+          "quoted_text": "The Grants Manager is authorised to approve grant expenditure up to NZD 25,000 per grant provided the grant falls within a program approved by the Board. The Grants Manager is authorised to approve operational expenditure up to NZD 10,000 per transaction. The Grants Manager shall not approve capital expenditure.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Grants Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 10000,
+        "currency": "NZD",
+        "category": "operational_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.98,
+      "id": "harbourview_delegations_v2:glm-flash-hv_14",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_14",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 13,
+          "section": "3.3 Grants Manager",
+          "start_offset": 2125,
+          "end_offset": 2438,
+          "quoted_text": "The Grants Manager is authorised to approve grant expenditure up to NZD 25,000 per grant provided the grant falls within a program approved by the Board. The Grants Manager is authorised to approve operational expenditure up to NZD 10,000 per transaction. The Grants Manager shall not approve capital expenditure.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Grants Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "category": "capital_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.98,
+      "id": "harbourview_delegations_v2:glm-flash-hv_15",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_15",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 13,
+          "section": "3.3 Grants Manager",
+          "start_offset": 2125,
+          "end_offset": 2438,
+          "quoted_text": "The Grants Manager is authorised to approve grant expenditure up to NZD 25,000 per grant provided the grant falls within a program approved by the Board. The Grants Manager is authorised to approve operational expenditure up to NZD 10,000 per transaction. The Grants Manager shall not approve capital expenditure.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Facilities Coordinator",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "facilities maintenance",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 5000,
+        "currency": "NZD",
+        "category": "operational_expenditure",
+        "condition": "per transaction"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.97,
+      "id": "harbourview_delegations_v2:glm-flash-hv_16",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_16",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 14,
+          "section": "3.4 Facilities Coordinator",
+          "start_offset": 2473,
+          "end_offset": 2618,
+          "quoted_text": "The Facilities Coordinator is authorised to approve facilities maintenance classified as operational expenditure up to NZD 5,000 per transaction.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Board of Trustees",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "expenditure above the limits in this section",
+      "object_kind": "category",
+      "modality": "obligation",
+      "polarity": "positive",
+      "constraints": {
+        "category": "expenditure",
+        "condition": "expenditure above the limits in this section"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.9,
+      "id": "harbourview_delegations_v2:glm-flash-hv_17",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_17",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 15,
+          "section": "3.5 Above the limits",
+          "start_offset": 2647,
+          "end_offset": 2739,
+          "quoted_text": "Expenditure above the limits in this section requires the approval of the Board of Trustees.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "delegate",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "payment to themselves, to a relative, or to an entity in which they hold an interest",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "condition": "no delegate shall approve a payment to themselves, to a relative, or to an entity in which they hold an interest"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2:glm-flash-hv_18",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_18",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 16,
+          "section": "4. Conditions applying to every delegation",
+          "start_offset": 2789,
+          "end_offset": 3076,
+          "quoted_text": "No delegate shall approve a payment to themselves, to a relative, or to an entity in which they hold an interest. A transaction shall not be split to bring it within a limit. Grant expenditure above NZD 100,000 requires two signatures. An approval given outside these conditions is void.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "delegate",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "transaction split to bring it within a limit",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "condition": "a transaction shall not be split to bring it within a limit"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.6,
+      "id": "harbourview_delegations_v2:glm-flash-hv_19",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_19",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 16,
+          "section": "4. Conditions applying to every delegation",
+          "start_offset": 2789,
+          "end_offset": 3076,
+          "quoted_text": "No delegate shall approve a payment to themselves, to a relative, or to an entity in which they hold an interest. A transaction shall not be split to bring it within a limit. Grant expenditure above NZD 100,000 requires two signatures. An approval given outside these conditions is void.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "delegate",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "grant expenditure",
+      "object_kind": "category",
+      "modality": "obligation",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 100000,
+        "currency": "NZD",
+        "category": "expenditure",
+        "condition": "grant expenditure above NZD 100,000 requires two signatures"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.7,
+      "id": "harbourview_delegations_v2:glm-flash-hv_20",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_20",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 16,
+          "section": "4. Conditions applying to every delegation",
+          "start_offset": 2789,
+          "end_offset": 3076,
+          "quoted_text": "No delegate shall approve a payment to themselves, to a relative, or to an entity in which they hold an interest. A transaction shall not be split to bring it within a limit. Grant expenditure above NZD 100,000 requires two signatures. An approval given outside these conditions is void.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "delegate",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "assertion",
+      "polarity": "negative",
+      "constraints": {
+        "condition": "an approval given outside these conditions is void"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.6,
+      "id": "harbourview_delegations_v2:glm-flash-hv_21",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_21",
+          "document_id": "harbourview_delegations_v2",
+          "page": 2,
+          "paragraph": 16,
+          "section": "4. Conditions applying to every delegation",
+          "start_offset": 2789,
+          "end_offset": 3076,
+          "quoted_text": "No delegate shall approve a payment to themselves, to a relative, or to an entity in which they hold an interest. A transaction shall not be split to bring it within a limit. Grant expenditure above NZD 100,000 requires two signatures. An approval given outside these conditions is void.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Owen Pritchard",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 150000,
+        "currency": "NZD",
+        "category": "operational_expenditure",
+        "condition": "while Helen Marsh is on sabbatical; limit applies per transaction"
+      },
+      "valid_from": "2026-07-01",
+      "valid_until": "2026-08-31",
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2:glm-flash-hv_22",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_22",
+          "document_id": "harbourview_delegations_v2",
+          "page": 3,
+          "paragraph": 17,
+          "section": "5.1 Sabbatical cover",
+          "start_offset": 3152,
+          "end_offset": 3444,
+          "quoted_text": "For the period 1 July 2026 to 31 August 2026, while Helen Marsh is on sabbatical, Owen Pritchard is delegated the Chief Executive Officer's authority for operational expenditure up to NZD 150,000 per transaction. This delegation does not extend to grant expenditure or to capital expenditure.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Executive Officer",
+      "subject_kind": "role",
+      "predicate": "delegates",
+      "object": "Owen Pritchard",
+      "object_kind": "person",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 150000,
+        "currency": "NZD",
+        "category": "operational_expenditure",
+        "condition": "while Helen Marsh is on sabbatical; limit applies per transaction"
+      },
+      "valid_from": "2026-07-01",
+      "valid_until": "2026-08-31",
+      "confidence": 0.85,
+      "id": "harbourview_delegations_v2:glm-flash-hv_23",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_23",
+          "document_id": "harbourview_delegations_v2",
+          "page": 3,
+          "paragraph": 17,
+          "section": "5.1 Sabbatical cover",
+          "start_offset": 3152,
+          "end_offset": 3444,
+          "quoted_text": "For the period 1 July 2026 to 31 August 2026, while Helen Marsh is on sabbatical, Owen Pritchard is delegated the Chief Executive Officer's authority for operational expenditure up to NZD 150,000 per transaction. This delegation does not extend to grant expenditure or to capital expenditure.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Owen Pritchard",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": "grant expenditure",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "condition": "delegation does not extend to grant expenditure"
+      },
+      "valid_from": "2026-07-01",
+      "valid_until": "2026-08-31",
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2:glm-flash-hv_24",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_24",
+          "document_id": "harbourview_delegations_v2",
+          "page": 3,
+          "paragraph": 17,
+          "section": "5.1 Sabbatical cover",
+          "start_offset": 3152,
+          "end_offset": 3444,
+          "quoted_text": "For the period 1 July 2026 to 31 August 2026, while Helen Marsh is on sabbatical, Owen Pritchard is delegated the Chief Executive Officer's authority for operational expenditure up to NZD 150,000 per transaction. This delegation does not extend to grant expenditure or to capital expenditure.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Owen Pritchard",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "category": "capital_expenditure",
+        "condition": "delegation does not extend to capital expenditure"
+      },
+      "valid_from": "2026-07-01",
+      "valid_until": "2026-08-31",
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2:glm-flash-hv_25",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_25",
+          "document_id": "harbourview_delegations_v2",
+          "page": 3,
+          "paragraph": 17,
+          "section": "5.1 Sabbatical cover",
+          "start_offset": 3152,
+          "end_offset": 3444,
+          "quoted_text": "For the period 1 July 2026 to 31 August 2026, while Helen Marsh is on sabbatical, Owen Pritchard is delegated the Chief Executive Officer's authority for operational expenditure up to NZD 150,000 per transaction. This delegation does not extend to grant expenditure or to capital expenditure.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Helen Marsh",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Chief Executive Officer",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "on sabbatical from 1 July 2026 to 31 August 2026 (implied by delegation of the Chief Executive Officer's authority)"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.7,
+      "id": "harbourview_delegations_v2:glm-flash-hv_26",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_26",
+          "document_id": "harbourview_delegations_v2",
+          "page": 3,
+          "paragraph": 17,
+          "section": "5.1 Sabbatical cover",
+          "start_offset": 3152,
+          "end_offset": 3444,
+          "quoted_text": "For the period 1 July 2026 to 31 August 2026, while Helen Marsh is on sabbatical, Owen Pritchard is delegated the Chief Executive Officer's authority for operational expenditure up to NZD 150,000 per transaction. This delegation does not extend to grant expenditure or to capital expenditure.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Nadia Kessler",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": "grant expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 40000,
+        "currency": "NZD",
+        "category": "expenditure",
+        "condition": "per grant in connection with the winter grant round"
+      },
+      "valid_from": "2026-07-15",
+      "valid_until": "2026-08-15",
+      "confidence": 0.98,
+      "id": "harbourview_delegations_v2:glm-flash-hv_27",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_27",
+          "document_id": "harbourview_delegations_v2",
+          "page": 3,
+          "paragraph": 18,
+          "section": "5.2 Grant round authorisation",
+          "start_offset": 3482,
+          "end_offset": 3646,
+          "quoted_text": "Nadia Kessler is authorised, from 15 July 2026 to 15 August 2026, to approve grant expenditure up to NZD 40,000 per grant in connection with the winter grant round.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "J. Ford",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": "facilities maintenance invoices",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 8000,
+        "currency": "NZD",
+        "category": "operational_expenditure",
+        "condition": "per transaction; in connection with the hall refurbishment"
+      },
+      "valid_from": "2026-07-01",
+      "valid_until": "2026-07-31",
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2:glm-flash-hv_28",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_28",
+          "document_id": "harbourview_delegations_v2",
+          "page": 3,
+          "paragraph": 19,
+          "section": "5.3 Facilities works",
+          "start_offset": 3675,
+          "end_offset": 3838,
+          "quoted_text": "J. Ford may approve facilities maintenance invoices up to NZD 8,000 per transaction between 1 July 2026 and 31 July 2026 in connection with the hall refurbishment.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Owen Pritchard",
+      "subject_kind": "person",
+      "predicate": "suspended",
+      "object": "approval authority",
+      "object_kind": "category",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "pending the outcome of an internal review, until lifted in writing by the Board of Trustees"
+      },
+      "valid_from": "2026-08-10",
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2:glm-flash-hv_29",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_29",
+          "document_id": "harbourview_delegations_v2",
+          "page": 3,
+          "paragraph": 20,
+          "section": "6.1 Suspension",
+          "start_offset": 3895,
+          "end_offset": 4207,
+          "quoted_text": "The approval authority of Owen Pritchard is suspended with effect from 10 August 2026 pending the outcome of an internal review, until lifted in writing by the Board of Trustees. A person whose authority is suspended shall not exercise authority held directly or by delegation for the duration of the suspension.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "a person whose authority is suspended",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "authority held directly or by delegation",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "condition": "for the duration of the suspension"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.9,
+      "id": "harbourview_delegations_v2:glm-flash-hv_30",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_30",
+          "document_id": "harbourview_delegations_v2",
+          "page": 3,
+          "paragraph": 20,
+          "section": "6.1 Suspension",
+          "start_offset": 3895,
+          "end_offset": 4207,
+          "quoted_text": "The approval authority of Owen Pritchard is suspended with effect from 10 August 2026 pending the outcome of an internal review, until lifted in writing by the Board of Trustees. A person whose authority is suspended shall not exercise authority held directly or by delegation for the duration of the suspension.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "a person who has delegated or authorised authority under this Schedule",
+      "subject_kind": "person",
+      "predicate": "revokes_delegation",
+      "object": null,
+      "object_kind": "none",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "at any time, by written notice to the Chief Operating Officer; revocation takes effect from the date stated in the notice"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2:glm-flash-hv_31",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_31",
+          "document_id": "harbourview_delegations_v2",
+          "page": 3,
+          "paragraph": 21,
+          "section": "6.2 Revocation generally",
+          "start_offset": 4240,
+          "end_offset": 4446,
+          "quoted_text": "A person who has delegated or authorised authority under this Schedule may revoke it at any time by written notice to the Chief Operating Officer. Revocation takes effect from the date stated in the notice.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Helen Marsh",
+      "subject_kind": "person",
+      "predicate": "revokes_delegation",
+      "object": "Nadia Kessler",
+      "object_kind": "person",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "revocation of the authorisation granted to Nadia Kessler under clause 5.2, by notice dated 20 July 2026"
+      },
+      "valid_from": "2026-08-01",
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2:glm-flash-hv_32",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_32",
+          "document_id": "harbourview_delegations_v2",
+          "page": 3,
+          "paragraph": 22,
+          "section": "6.3 Revocation of the grant round authorisation",
+          "start_offset": 4502,
+          "end_offset": 4717,
+          "quoted_text": "By notice dated 20 July 2026, Helen Marsh revoked the authorisation granted to Nadia Kessler under clause 5.2 with effect from 1 August 2026. From that date the Grants Manager's standing limit in clause 3.3 applies.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Grants Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "standing limit in clause 3.3 applies following the revocation of the clause 5.2 authorisation"
+      },
+      "valid_from": "2026-08-01",
+      "valid_until": null,
+      "confidence": 0.85,
+      "id": "harbourview_delegations_v2:glm-flash-hv_33",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_33",
+          "document_id": "harbourview_delegations_v2",
+          "page": 3,
+          "paragraph": 22,
+          "section": "6.3 Revocation of the grant round authorisation",
+          "start_offset": 4502,
+          "end_offset": 4717,
+          "quoted_text": "By notice dated 20 July 2026, Helen Marsh revoked the authorisation granted to Nadia Kessler under clause 5.2 with effect from 1 August 2026. From that date the Grants Manager's standing limit in clause 3.3 applies.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Operating Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 50000,
+        "currency": "NZD",
+        "category": "capital_expenditure",
+        "condition": "per transaction"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.85,
+      "id": "harbourview_delegations_v2:glm-flash-hv_34",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_34",
+          "document_id": "harbourview_delegations_v2",
+          "page": 4,
+          "paragraph": 23,
+          "section": "7. Records and interpretation",
+          "start_offset": 4770,
+          "end_offset": 5146,
+          "quoted_text": "All approvals are recorded in the finance system within five business days. The Chief Operating Officer reports exceptions to the Board of Trustees each quarter. For the avoidance of doubt, the Chief Operating Officer's limit for capital expenditure is NZD 50,000 per transaction. Where a summary table in an appendix differs from the body of this Schedule, the body prevails.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Executive Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 150000,
+        "currency": "NZD",
+        "condition": "second column of table row; column headers not present in passage, so expenditure category cannot be determined"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.4,
+      "id": "harbourview_delegations_v2:glm-flash-hv_35",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_35",
+          "document_id": "harbourview_delegations_v2",
+          "page": 4,
+          "paragraph": 25,
+          "section": "Appendix A. Summary of limits",
+          "start_offset": 5183,
+          "end_offset": 5644,
+          "quoted_text": "Chief Executive Officer | NZD 150,000 | NZD 300,000 | NZD 200,000",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Executive Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 300000,
+        "currency": "NZD",
+        "condition": "third column of table row; column headers not present in passage, so expenditure category cannot be determined"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.4,
+      "id": "harbourview_delegations_v2:glm-flash-hv_36",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_36",
+          "document_id": "harbourview_delegations_v2",
+          "page": 4,
+          "paragraph": 25,
+          "section": "Appendix A. Summary of limits",
+          "start_offset": 5183,
+          "end_offset": 5644,
+          "quoted_text": "Chief Executive Officer | NZD 150,000 | NZD 300,000 | NZD 200,000",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Executive Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 200000,
+        "currency": "NZD",
+        "condition": "fourth column of table row; column headers not present in passage, so expenditure category cannot be determined"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.4,
+      "id": "harbourview_delegations_v2:glm-flash-hv_37",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_37",
+          "document_id": "harbourview_delegations_v2",
+          "page": 4,
+          "paragraph": 25,
+          "section": "Appendix A. Summary of limits",
+          "start_offset": 5183,
+          "end_offset": 5644,
+          "quoted_text": "Chief Executive Officer | NZD 150,000 | NZD 300,000 | NZD 200,000",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Operating Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 60000,
+        "currency": "NZD",
+        "category": "operational_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.9,
+      "id": "harbourview_delegations_v2:glm-flash-hv_38",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_38",
+          "document_id": "harbourview_delegations_v2",
+          "page": 4,
+          "paragraph": 26,
+          "section": "Appendix A. Summary of limits",
+          "start_offset": 5183,
+          "end_offset": 5644,
+          "quoted_text": "Chief Operating Officer | NZD 60,000 | NZD 40,000 | Not permitted",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Operating Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 40000,
+        "currency": "NZD",
+        "category": "capital_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.9,
+      "id": "harbourview_delegations_v2:glm-flash-hv_39",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_39",
+          "document_id": "harbourview_delegations_v2",
+          "page": 4,
+          "paragraph": 26,
+          "section": "Appendix A. Summary of limits",
+          "start_offset": 5183,
+          "end_offset": 5644,
+          "quoted_text": "Chief Operating Officer | NZD 60,000 | NZD 40,000 | Not permitted",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Operating Officer",
+      "subject_kind": "role",
+      "predicate": "delegates",
+      "object": null,
+      "object_kind": "none",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {},
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.5,
+      "id": "harbourview_delegations_v2:glm-flash-hv_40",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_40",
+          "document_id": "harbourview_delegations_v2",
+          "page": 4,
+          "paragraph": 26,
+          "section": "Appendix A. Summary of limits",
+          "start_offset": 5183,
+          "end_offset": 5644,
+          "quoted_text": "Chief Operating Officer | NZD 60,000 | NZD 40,000 | Not permitted",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Grants Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 15000,
+        "currency": "NZD",
+        "category": "expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.6,
+      "id": "harbourview_delegations_v2:glm-flash-hv_41",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_41",
+          "document_id": "harbourview_delegations_v2",
+          "page": 4,
+          "paragraph": 27,
+          "section": "Appendix A. Summary of limits",
+          "start_offset": 5183,
+          "end_offset": 5644,
+          "quoted_text": "Grants Manager | NZD 15,000 | Not permitted | NZD 25,000",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Grants Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {},
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.5,
+      "id": "harbourview_delegations_v2:glm-flash-hv_42",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_42",
+          "document_id": "harbourview_delegations_v2",
+          "page": 4,
+          "paragraph": 27,
+          "section": "Appendix A. Summary of limits",
+          "start_offset": 5183,
+          "end_offset": 5644,
+          "quoted_text": "Grants Manager | NZD 15,000 | Not permitted | NZD 25,000",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Grants Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 25000,
+        "currency": "NZD",
+        "category": "expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.4,
+      "id": "harbourview_delegations_v2:glm-flash-hv_43",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_43",
+          "document_id": "harbourview_delegations_v2",
+          "page": 4,
+          "paragraph": 27,
+          "section": "Appendix A. Summary of limits",
+          "start_offset": 5183,
+          "end_offset": 5644,
+          "quoted_text": "Grants Manager | NZD 15,000 | Not permitted | NZD 25,000",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Facilities Coordinator",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 5000,
+        "currency": "NZD",
+        "category": "expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.5,
+      "id": "harbourview_delegations_v2:glm-flash-hv_44",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_44",
+          "document_id": "harbourview_delegations_v2",
+          "page": 4,
+          "paragraph": 28,
+          "section": "Appendix A. Summary of limits",
+          "start_offset": 5183,
+          "end_offset": 5644,
+          "quoted_text": "Facilities Coordinator | NZD 5,000 | Not permitted | Not permitted",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Facilities Coordinator",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {},
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.35,
+      "id": "harbourview_delegations_v2:glm-flash-hv_45",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_45",
+          "document_id": "harbourview_delegations_v2",
+          "page": 4,
+          "paragraph": 28,
+          "section": "Appendix A. Summary of limits",
+          "start_offset": 5183,
+          "end_offset": 5644,
+          "quoted_text": "Facilities Coordinator | NZD 5,000 | Not permitted | Not permitted",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Facilities Coordinator",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {},
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.35,
+      "id": "harbourview_delegations_v2:glm-flash-hv_46",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_46",
+          "document_id": "harbourview_delegations_v2",
+          "page": 4,
+          "paragraph": 28,
+          "section": "Appendix A. Summary of limits",
+          "start_offset": 5183,
+          "end_offset": 5644,
+          "quoted_text": "Facilities Coordinator | NZD 5,000 | Not permitted | Not permitted",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Board of Trustees",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "resolution 2026/19"
+      },
+      "valid_from": "2026-11-01",
+      "valid_until": null,
+      "confidence": 0.6,
+      "id": "harbourview_delegations_v2_amendment1:glm-flash-hv_1",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_1",
+          "document_id": "harbourview_delegations_v2_amendment1",
+          "page": 1,
+          "paragraph": 1,
+          "section": "Amendment No. 1 to the Financial Delegations Schedule (HCF-FIN-02, version 2.0)",
+          "start_offset": 136,
+          "end_offset": 226,
+          "quoted_text": "**Effective date:** 1 November 2026 **Approved by:** Board of Trustees, resolution 2026/19",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Operating Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 80000,
+        "currency": "NZD",
+        "category": "operational_expenditure",
+        "condition": "per transaction"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2_amendment1:glm-flash-hv_2",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_2",
+          "document_id": "harbourview_delegations_v2_amendment1",
+          "page": 1,
+          "paragraph": 2,
+          "section": "1. Amendments",
+          "start_offset": 247,
+          "end_offset": 419,
+          "quoted_text": "The Chief Operating Officer is authorised to approve operational expenditure up to NZD 80,000 per transaction. This replaces the limit stated in clause 3.2 of the Schedule.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Grants Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "grant expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 20000,
+        "currency": "NZD",
+        "category": "expenditure",
+        "condition": "per grant"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2_amendment1:glm-flash-hv_3",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_3",
+          "document_id": "harbourview_delegations_v2_amendment1",
+          "page": 1,
+          "paragraph": 3,
+          "section": "1. Amendments",
+          "start_offset": 421,
+          "end_offset": 572,
+          "quoted_text": "The Grants Manager is authorised to approve grant expenditure up to NZD 20,000 per grant. This replaces the limit stated in clause 3.3 of the Schedule.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Julian Ford",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Facilities Coordinator",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "negative",
+      "constraints": {},
+      "valid_from": null,
+      "valid_until": "2026-10-31",
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2_amendment1:glm-flash-hv_4",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_4",
+          "document_id": "harbourview_delegations_v2_amendment1",
+          "page": 1,
+          "paragraph": 4,
+          "section": "2. Office holders",
+          "start_offset": 597,
+          "end_offset": 761,
+          "quoted_text": "Julian Ford ceased to hold the role of Facilities Coordinator on 31 October 2026. Marcus Bell was appointed Facilities Coordinator with effect from 1 November 2026.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Marcus Bell",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Facilities Coordinator",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2026-11-01",
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2_amendment1:glm-flash-hv_5",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_5",
+          "document_id": "harbourview_delegations_v2_amendment1",
+          "page": 1,
+          "paragraph": 4,
+          "section": "2. Office holders",
+          "start_offset": 597,
+          "end_offset": 761,
+          "quoted_text": "Julian Ford ceased to hold the role of Facilities Coordinator on 31 October 2026. Marcus Bell was appointed Facilities Coordinator with effect from 1 November 2026.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Owen Pritchard",
+      "subject_kind": "person",
+      "predicate": "suspended",
+      "object": null,
+      "object_kind": "none",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "suspension of approval authority under clause 6.1 of the Schedule"
+      },
+      "valid_from": "2026-08-10",
+      "valid_until": "2026-09-01",
+      "confidence": 0.95,
+      "id": "harbourview_delegations_v2_amendment1:glm-flash-hv_6",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_6",
+          "document_id": "harbourview_delegations_v2_amendment1",
+          "page": 1,
+          "paragraph": 5,
+          "section": "3. Suspension lifted",
+          "start_offset": 789,
+          "end_offset": 959,
+          "quoted_text": "The suspension of Owen Pritchard's approval authority under clause 6.1 of the Schedule, which took effect on 10 August 2026, was lifted with effect from 1 September 2026.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Owen Pritchard",
+      "subject_kind": "person",
+      "predicate": "suspended",
+      "object": null,
+      "object_kind": "none",
+      "modality": "assertion",
+      "polarity": "negative",
+      "constraints": {
+        "condition": "suspension under clause 6.1 of the Schedule lifted"
+      },
+      "valid_from": "2026-09-01",
+      "valid_until": null,
+      "confidence": 0.9,
+      "id": "harbourview_delegations_v2_amendment1:glm-flash-hv_7",
+      "evidence": [
+        {
+          "id": "ev_glm-flash-hv_7",
+          "document_id": "harbourview_delegations_v2_amendment1",
+          "page": 1,
+          "paragraph": 5,
+          "section": "3. Suspension lifted",
+          "start_offset": 789,
+          "end_offset": 959,
+          "quoted_text": "The suspension of Owen Pritchard's approval authority under clause 6.1 of the Schedule, which took effect on 10 August 2026, was lifted with effect from 1 September 2026.",
+          "authority": "body"
+        }
+      ]
+    }
+  ]
+}

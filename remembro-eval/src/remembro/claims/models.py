@@ -94,6 +94,8 @@ class Claim(CandidateClaim):
     status: ClaimStatus = ClaimStatus.EXTRACTED
     subject_entity: str | None = None  # entity id once resolved
     object_entity: str | None = None
+    possible_subjects: list[str] = Field(default_factory=list)  # POSSIBLE_MATCH candidates, never merged
+    possible_objects: list[str] = Field(default_factory=list)
     rejection_reason: str | None = None
     superseded_by: str | None = None
 
@@ -125,6 +127,7 @@ class Resolution(BaseModel):
     entity_id: str | None = None
     score: float
     reason: str
+    candidates: list[str] = Field(default_factory=list)  # every entity within the possible threshold
 
 
 class ContradictionType(str, Enum):

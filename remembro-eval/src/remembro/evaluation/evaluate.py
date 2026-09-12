@@ -63,7 +63,8 @@ class Report:
 def run(gold: dict, candidates: list[dict], extractor_name: str, match_threshold: float = 0.9) -> tuple[Report, WorldState]:
     entities = [Entity.model_validate(e) for e in gold["entities"]]
     resolver = EntityResolver(entities, match_threshold=match_threshold)
-    state, rejected = build_state(candidates, entities, resolver)
+    dates = {d["id"]: d["effective_date"] for d in gold.get("documents", [])}
+    state, rejected = build_state(candidates, entities, resolver, document_dates=dates or None)
 
     # extraction precision / recall against gold claims
     gold_keys = {claim_key(c) for c in gold["claims"]}

@@ -17,7 +17,8 @@ document → DocumentParser → ParsedDocument
         → schema validation (Pydantic; a claim that does not parse never enters the state)
         → grounding                  amounts, dates and "no ceiling" must appear in the claim's own quote
         → EntityResolver             MATCH | POSSIBLE_MATCH | NO_MATCH, thresholds are the knob
-        → revocations supersede delegation end dates
+        → amendments                 a later document supersedes an earlier one from its effective date
+        → revocations supersede delegation end dates (or a personal authorisation, if no delegation is named)
         → ConflictDetector           same subject and category, different limit or polarity
         → claim acceptance           ACCEPTED | CONFLICTED | REJECTED, every transition logged
         → BeliefUpdater              SUPPORTED | DISPUTED | SUPERSEDED
@@ -40,7 +41,7 @@ appendix).
 ```sh
 cd remembro-eval
 python3 -m venv .venv && .venv/bin/pip install pydantic pytest
-.venv/bin/python -m pytest -q                                   # 40 tests
+.venv/bin/python -m pytest -q                                   # 70 tests
 PYTHONPATH=src .venv/bin/python -m remembro.cli evaluate        # the gold claims as a perfect extractor
 PYTHONPATH=src .venv/bin/python -m remembro.cli ingest fixtures/delegation_policy_v1.md --extractor rules
 PYTHONPATH=src .venv/bin/python -m remembro.cli --run-name rules evaluate
@@ -127,13 +128,58 @@ currency mismatch (scenario 14). The threshold sensitivity test shows the proper
 predicts: at a match threshold of 0.6 the initial merges with David Smith and scenario 7
 becomes an ALLOW, which the test suite asserts as the unsafe case.
 
+## The second document
+
+`fixtures/harbourview_delegations_v2.md` is a different organisation in a different register:
+"is authorised to", "shall not", a not-for-profit with a Board of Trustees, three expenditure
+categories (grants added) in NZD, five people including Julian Ford and Julia Ford so that
+`J. Ford` is compatible with two register entries, a delegation that excludes two categories,
+a temporary authorisation that is revoked, an open-ended suspension, a body-versus-body
+conflict and an appendix that contradicts the body. `…_amendment1.md` is a second document
+dated eight months later: it raises one limit, lowers another, ends one appointment and makes
+another, and lifts the suspension. Twenty scenarios, six of them on either side of the
+amendment's effective date.
+
+The gold file lists its documents with effective dates; `ingest` with no document argument
+reads them all. Three rules were added for it, each with a test: a claim from a later document
+supersedes the same claim from an earlier one from the later document's effective date (a
+supersession, logged, never a contradiction); a later restatement that only adds an end date
+closes the earlier open claim (a role that ceased, a suspension lifted); a revocation that
+names no delegation ends the personal authorisation of the person it names. Grounding accepts
+an end date that is the day before a quoted date, because "lifted with effect from 1 September"
+ends on 31 August. Roles and categories now resolve from the gold register rather than a
+vocabulary in code. Resolution carries every candidate within the possible threshold, so a
+grant to `J. Ford` makes decisions about *both* Fords UNKNOWN.
+
+| extractor                                   | decisions | claim P / R | contradictions | unjustified ALLOW | UNKNOWN |
+| ------------------------------------------- | --------- | ----------- | -------------- | ----------------- | ------- |
+| gold claims (perfect)                       | 20 / 20   | 100 / 100   | 2 / 2          | 0                 | 4       |
+| rules (regex written for fixture 1)         | 9 / 20    | 0 / 0       | 0 / 2          | 0                 | 1       |
+| GLM 5.3 Flash                               | 20 / 20   | 35 / 61     | 1 / 2          | 0                 | 4       |
+
+The regex arm extracts nothing here: it matched fixture 1's phrasing, not English. That is the
+result the second document was written to produce, and it is why the neural arm exists. Every
+rule learned on fixture 1 held unchanged on fixture 2, and GLM Flash's first replay scored
+17/20 with all three misses on the safe side. Two more deterministic rules took it to 20/20
+without touching the snapshot: the resolved object ("grant expenditure", quoted) is
+authoritative over the extractor's `category` field (the prompt's enum had no grant category,
+so GLM wrote "expenditure"); and a `suspended` claim with negative polarity is a lift, which
+ends the open suspension the day before, and is never itself a suspension.
+
+```sh
+G=fixtures/harbourview_delegations_v2.gold.json
+PYTHONPATH=src .venv/bin/python -m remembro.cli --gold $G evaluate
+PYTHONPATH=src .venv/bin/python -m remembro.cli --gold $G --run-name glm-flash-hv ingest --extractor llm \
+  --model glm-5.3-flash:cloud --base-url http://127.0.0.1:11434/v1 --out fixtures/runs/glm-flash-hv.claims.json
+PYTHONPATH=src .venv/bin/python -m remembro.cli --gold $G --run-name glm-flash-hv evaluate
+```
+
 ## What is deliberately not here
 
-Docling, a graph database, a rule engine, a UI, multiple documents, other languages. The
+Docling, a graph database, a rule engine, a UI, other languages. The
 Markdown parser sits behind the `DocumentParser` protocol; the claim vocabulary is six
-predicates; storage is SQLite (`evaluate --db state.sqlite`). V1 adds an amendment document,
-V2 an email, and the claim model already carries `valid_from`/`valid_until` so a transaction
-time column can be added without redesign.
+predicates; storage is SQLite (`evaluate --db state.sqlite`). The amendment document (V1) is in; V2 is an email, and a queue of documents arriving out of
+order is the next transaction-time case.
 
 ## Files
 
