@@ -420,6 +420,21 @@
       "queryAlias": null,
       "extractionAlias": null,
       "notes": "LongMemEval 320/500 (v2 231): single-session types match GLM; multi 60 and temporal 65 are the gap"
+    },
+    {
+      "run": "reader-v4 E4B",
+      "date": "2026-09-12",
+      "base": "Gemma 4 E4B",
+      "platform": "Modal H100",
+      "data": "v3 + 3,000 GLM-distilled examples weighted multi-session 40 / temporal 35 / k-update 15 / abstention 10 with seeded haystacks (6,000 total), 24KB prompts, max_length 8192",
+      "tasks": "reader",
+      "minutes": 155,
+      "costUsd": 10.3,
+      "costNote": "+ ≈$15 teacher calls; container stalled ~1h mid-run",
+      "heldoutLoss": 0.6257,
+      "queryAlias": null,
+      "extractionAlias": null,
+      "notes": "LongMemEval 328/500 (v3 320): abstention 0.93 = GLM; multi 68, temporal 68 still ~45 behind GLM each; needed an A100-80GB to serve"
     }
   ]
 }

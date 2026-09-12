@@ -224,5 +224,9 @@
   "longmemeval-extraction-v15-composed-engine-scoped-glmflash-glmrange-r19-all500.json": {
     "knobs": "scoped engine recall on multi-session and knowledge-update; GLM Flash range",
     "note": "424 vs 426 without; multi 101 vs 107 (the 133-only run had +6): the block has no measurable effect, the two runs bracket zero"
+  },
+  "longmemeval-extraction-v14-composed-semantic-readerv4-e4b-ctx24k-e2b-all500.json": {
+    "knobs": "reader = our Gemma 4 E4B reader v4 (v3 + 3,000 distilled examples weighted to multi/temporal); 24KB context; date distances; GLM range",
+    "note": "328/500 (v3 320): abstention 0.67\u21920.93, multi 60\u219268, temporal 65\u219268, k-update 57\u219260; 5 endpoint errors"
   }
 }

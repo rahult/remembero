@@ -625,6 +625,7 @@ r16 cache with the GLM Flash range:
 | 24 KB budget, as trained           | 235/500 | 51/78    | 41/133  | 39/56                   | 6/30       | 54/70 | 44/133   |       0.70 |
 | reader v2, 24 KB (8,885 examples)  | 231/500 | 45/78    | 36/133  | 37/56                   | 0/30       | 56/70 | 57/133   |       0.63 |
 | reader v3, 24 KB (3,000 distilled) | 320/500 | 57/78    | 60/133  | 50/56                   | 25/30      | 63/70 | 65/133   |       0.67 |
+| reader v4, 24 KB (6,000 distilled) | 328/500 | 60/78    | 68/133  | 50/56                   | 22/30      | 60/70 | 68/133   |       0.93 |
 | GLM 5.3 Flash (for reference)      | 432/500 | 66/78    | 113/133 | 48/56                   | 28/30      | 61/70 | 116/133  |       0.93 |
 
 Where the training data had the type, the 4.5B reader is within ten points of GLM on a
@@ -662,6 +663,20 @@ now equals the frontier reader on everything except counting across sessions and
 arithmetic, which is exactly where the engine is meant to help (structured evidence, engine
 recall over the denser r19 store) and where the next distillation round concentrates its
 examples.
+
+**Reader v4** added 3,000 distilled examples drawn 40% multi-session, 35% temporal, 15%
+knowledge-update and 10% abstention, with haystacks seeded so the material exists (three to
+five sessions sharing a predicate for counts, a changed value for updates), and trained on the
+6,000 together: **328/500**. Abstention accuracy 0.67 → 0.93, equal to GLM; multi-session
+60 → 68, temporal 65 → 68, knowledge-update 57 → 60; single-session-user 63 → 60 and preference
+25 → 22 inside the noise. Five questions errored at the endpoint. Doubling the data on the two
+weak types bought a few answers on each, not the forty-five each still needs, so more of the
+same distillation is not the path to 416. What the misses share is that the teacher's answer
+enumerates items or dates the student cannot find in fifteen sessions of raw text; the
+student needs the items found for it. That is the structured-evidence part of the design
+(the fact slice and the engine's counted items ahead of the chats), which GLM ignored but a
+student trained on it will use. The runs stop here at the user's request; reader v4 is the
+current best at 328, the recommended reader remains GLM 5.3 Flash at 432.
 
 **r19 as the extractor on the 500 (2026-09-11).** With GLM 5.3 Flash reading and ranging, the
 writer trained on capped real-session labels scores **426/500** against 425 for r16 under the
