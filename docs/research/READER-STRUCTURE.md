@@ -123,7 +123,11 @@ reply truncated at its token budget, and the last several hundred `402 Insuffici
 when the OpenRouter account ran dry at about 4,700 kept. So v5 trains on 4,713 examples
 against v4's 6,000, all of them with the block in the prompt. Training started 06:37 on Modal
 (Gemma 4 E4B, max length 8192). The chain's evaluation step needs the gpt-4o judge and the
-embedding route through OpenRouter, so it waits for credits.
+embedding route through OpenRouter, so it will fail; the v5 comparison runs instead with a
+cheaper judge, DeepSeek (`deepseek-chat`, direct API), and local embeddings (Ollama
+`nomic-embed-text`), and reader v4 is re-measured under the same judge and embeddings so the
+pair stays fair. GLM 5.3 Flash through Ollama was tried as judge and rejected: a reasoning
+model does not reliably answer the judge prompt with the single word it requires.
 
 ## Where this goes
 
