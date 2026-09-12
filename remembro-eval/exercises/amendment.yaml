@@ -1,0 +1,20 @@
+name: amendment
+description: >
+  A delegations schedule, then eight months later an amendment that raises one limit, lowers
+  another, ends one appointment and lifts a suspension. The same questions on either side of
+  the amendment's effective date must change answer.
+steps:
+  - ingest: {path: fixtures/harbourview_delegations_v2.md, effective_date: "2026-03-01", kind: policy}
+  # ingest proposes "grant expenditure" as a category it does not know; a human registers it
+  - register: {action: add, kind: category, name: grant expenditure, aliases: [grants, grant payments, grant]}
+  - decide: {actor: Owen Pritchard, resource: operational expenditure, amount: 70000, currency: NZD, on: "2026-10-15", expect: DENY, because: "COO limit 60,000"}
+  - decide: {actor: Owen Pritchard, resource: operational expenditure, amount: 70000, currency: NZD, on: "2026-11-15", expect: DENY, because: "before the amendment is ingested, still 60,000 (and the suspension is open-ended)"}
+  - decide: {actor: Nadia Kessler, resource: grants, amount: 22000, currency: NZD, on: "2026-12-01", expect: ALLOW, because: "25,000 until the amendment arrives"}
+  - ingest: {path: fixtures/harbourview_delegations_v2_amendment1.md, effective_date: "2026-11-01", kind: amendment}
+  - decide: {actor: Owen Pritchard, resource: operational expenditure, amount: 70000, currency: NZD, on: "2026-10-15", expect: DENY, because: "the amendment applies from 1 November"}
+  - decide: {actor: Owen Pritchard, resource: operational expenditure, amount: 70000, currency: NZD, on: "2026-11-15", expect: ALLOW, because: "80,000 from 1 November, suspension lifted 1 September"}
+  - decide: {actor: Nadia Kessler, resource: grants, amount: 22000, currency: NZD, on: "2026-12-01", expect: DENY, because: "lowered to 20,000"}
+  - decide: {actor: Julian Ford, resource: facilities maintenance, amount: 4000, currency: NZD, on: "2026-11-15", expect: DENY, because: "ceased to hold the role on 31 October"}
+  - decide: {actor: Marcus Bell, resource: facilities maintenance, amount: 4000, currency: NZD, on: "2026-11-15", expect: ALLOW, because: "appointed 1 November"}
+  - decide: {actor: J. Ford, resource: facilities maintenance, amount: 6000, currency: NZD, on: "2026-07-10", expect: UNKNOWN, because: "two Fords in the register"}
+  - decide: {actor: Owen Pritchard, resource: capital expenditure, amount: 45000, currency: NZD, on: "2026-05-01", expect: UNKNOWN, because: "40,000 in 3.2 versus 50,000 in 7"}

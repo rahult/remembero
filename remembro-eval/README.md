@@ -30,7 +30,7 @@ split the context, so `-c 16384 -np 2` gives each slot a full 8k. To use GLM 5.3
 Ollama instead: `REMEMBRO_MODEL=glm-5.3-flash:cloud REMEMBRO_BASE_URL=http://127.0.0.1:11434/v1
 REMEMBRO_API_KEY=ollama` and drop `REMEMBRO_LOCAL_GGUF`.
 
-Seven tools. `remembro_status` is the one-call overview to start a session with. `remembro_ingest` takes a file path or pasted text (a policy, an amendment, a Slack
+Eight tools. `remembro_status` is the one-call overview to start a session with. `remembro_ingest` takes a file path or pasted text (a policy, an amendment, a Slack
 message that delegates or revokes authority) with its effective date, extracts claims with the
 configured model, auto-registers the people and roles the document itself names, proposes the
 categories it does not know, and reports what the boundary refused. `remembro_decide` answers
@@ -46,6 +46,27 @@ comes with `next_steps`: the alias, category, dismissal or re-ingest that would 
 
 The extractor is the only model in the loop and it runs only at ingest.
 `REMEMBRO_EXTRACTOR=rules` needs no model at all and is what the tests use.
+
+### Exercises: scenario-based end-to-end tests
+
+An exercise is a script of what happens over time and what the answer must be at each point:
+
+```yaml
+steps:
+  - ingest: {path: fixtures/delegation_policy_v1.md, effective_date: "2026-01-01"}
+  - decide: {actor: Bob Chen, resource: operational expenditure, amount: 70000, currency: AUD, on: "2026-09-15", expect: DENY, because: "revoked from 12 September"}
+  - ingest: {text: "Heads up team — I'm on leave 21 to 25 September 2026 …", document_id: slack-alice, effective_date: "2026-09-12", kind: message}
+  - register: {action: alias, name: David Smith, aliases: ["D. Smith"]}
+  - decide: {actor: D. Smith, resource: utilities, amount: 3000, currency: AUD, on: "2026-09-10", expect: ALLOW, because: "alias recorded by a human"}
+```
+
+`PYTHONPATH=src .venv/bin/python -m remembro.exercise exercises/leave-week.yaml` plays it in a
+fresh workspace against the real extractor and reports PASS/FAIL per step with reasons and
+quotes, plus the unjustified-ALLOW count. `exercises/leave-week.yaml` (a policy, a Slack
+delegation, a suspension, an alias) and `exercises/amendment.yaml` (a schedule, then an
+amendment eight months later) both pass 10/10 through the local writer. Put your own policies
+and Slack threads under `exercises/private/`, which is never committed, and write the
+expectations down before you run them; `remembro_exercise` runs a script from Claude.
 
 ## The trust boundary
 
@@ -81,7 +102,7 @@ appendix).
 ```sh
 cd remembro-eval
 python3 -m venv .venv && .venv/bin/pip install pydantic pytest
-.venv/bin/python -m pytest -q                                   # 101 tests
+.venv/bin/python -m pytest -q                                   # 103 tests
 PYTHONPATH=src .venv/bin/python -m remembro.cli evaluate        # the gold claims as a perfect extractor
 PYTHONPATH=src .venv/bin/python -m remembro.cli ingest fixtures/delegation_policy_v1.md --extractor rules
 PYTHONPATH=src .venv/bin/python -m remembro.cli --run-name rules evaluate

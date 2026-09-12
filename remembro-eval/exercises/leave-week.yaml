@@ -1,0 +1,26 @@
+name: leave-week
+description: >
+  A policy is ingested in January. In September the CFO posts a Slack message delegating
+  approvals during her leave; the policy already suspends the delegate from 8 September. An
+  ambiguous initial is settled by an alias. Every answer must come with its quotes.
+steps:
+  - ingest: {path: fixtures/delegation_policy_v1.md, effective_date: "2026-01-01", kind: policy}
+  - decide: {actor: Alice Morgan, resource: operational expenditure, amount: 80000, currency: AUD, on: "2026-06-01", expect: ALLOW, because: "CFO limit 100,000"}
+  - decide: {actor: Bob Chen, resource: operational expenditure, amount: 70000, currency: AUD, on: "2026-09-05", expect: ALLOW, because: "delegation from Alice up to 100,000"}
+  - decide: {actor: Bob Chen, resource: operational expenditure, amount: 70000, currency: AUD, on: "2026-09-15", expect: DENY, because: "delegation revoked from 12 September"}
+  - ingest:
+      document_id: slack-alice-2026-09-12
+      effective_date: "2026-09-12"
+      kind: message
+      text: >
+        Heads up team — I'm on leave 21 to 25 September 2026. While I'm out, Carol Evans can
+        approve operational expenditure invoices up to AUD 30,000 per transaction on my behalf.
+        Anything bigger waits for me. — Alice Morgan (CFO)
+  - decide: {actor: Carol Evans, resource: operational expenditure, amount: 25000, currency: AUD, on: "2026-09-23", expect: DENY, because: "suspended from 8 September; the Slack delegation does not lift a suspension"}
+  - decide: {actor: Carol Evans, resource: operational expenditure, amount: 25000, currency: AUD, on: "2026-09-05", expect: ALLOW, because: "the policy's own extension to 30,000 until 15 September"}
+  - decide: {actor: Alice Morgan, resource: capital expenditure, amount: 200000, currency: AUD, on: "2026-09-23", expect: ALLOW, because: "being on leave is not a suspension"}
+  - decide: {actor: D. Smith, resource: utilities, amount: 3000, currency: AUD, on: "2026-09-10", expect: UNKNOWN, because: "an initial is not an identity"}
+  - register: {action: alias, name: David Smith, aliases: ["D. Smith"]}
+  - decide: {actor: D. Smith, resource: utilities, amount: 3000, currency: AUD, on: "2026-09-10", expect: ALLOW, because: "alias recorded by a human; utilities grant 5,000"}
+  - decide: {actor: Erin Fox, resource: operational expenditure, amount: 100, currency: AUD, on: "2026-09-10", expect: DENY, because: "unknown person"}
+  - decide: {actor: Alice Morgan, resource: operational expenditure, amount: 50000, currency: AUD, on: "2026-06-01", self_benefit: true, expect: DENY, because: "self-benefit"}

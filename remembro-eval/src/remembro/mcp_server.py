@@ -121,6 +121,27 @@ def remembro_dismiss(candidate_id: str, reason: str = "", undo: bool = False) ->
     return {"dismissed": ws.dismiss(candidate_id, reason)}
 
 
+@server.tool(name="remembro_exercise", description="Play a scenario script (YAML or JSON: a sequence of ingest / decide / register / dismiss steps over time, each decide stating what it expects) against a fresh temporary workspace and the configured extractor. Returns pass counts, the unjustified-ALLOW count, and every step's reasons and quotes. Use it to test a policy end to end, or to check a new document against expectations you write down first.")
+@_safe
+def remembro_exercise(path: str, keep_workspace: bool = False) -> dict[str, Any]:
+    import shutil
+    import tempfile
+    from pathlib import Path as _P
+
+    from remembro.exercise import format_report, load, run
+
+    script = load(_P(path).expanduser())
+    home = _P(tempfile.mkdtemp(prefix="remembro-exercise-"))
+    ws = Workspace(home, extractor=os.environ.get("REMEMBRO_EXTRACTOR", "llm"), model=os.environ.get("REMEMBRO_MODEL"), base_url=os.environ.get("REMEMBRO_BASE_URL"), api_key=os.environ.get("REMEMBRO_API_KEY"))
+    report = run(script, ws, base=_P(path).expanduser().parent.parent if _P(path).expanduser().parent.name == "exercises" else _P.cwd())
+    text = format_report(report)
+    if keep_workspace:
+        text += f"\nworkspace kept at {home}"
+    else:
+        shutil.rmtree(home, ignore_errors=True)
+    return {"passed": report["passed"], "decisions": report["decisions"], "unjustified_allow": report["unjustified_allow"], "errors": len(report["errors"]), "report": text}
+
+
 @server.tool(name="remembro_forget", description="Remove an ingested document and its claims from the workspace. The register is untouched.")
 @_safe
 def remembro_forget(document_id: str) -> dict[str, Any]:

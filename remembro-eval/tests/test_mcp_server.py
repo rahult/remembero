@@ -20,7 +20,7 @@ async def _roundtrip(tmp_path):
         async with ClientSession(read, write) as session:
             await session.initialize()
             tools = {t.name for t in (await session.list_tools()).tools}
-            assert {"remembro_ingest", "remembro_decide", "remembro_register", "remembro_inspect", "remembro_forget", "remembro_status", "remembro_dismiss"} <= tools
+            assert {"remembro_ingest", "remembro_decide", "remembro_register", "remembro_inspect", "remembro_forget", "remembro_status", "remembro_dismiss", "remembro_exercise"} <= tools
             r = await session.call_tool("remembro_ingest", {"path": str(ROOT / "fixtures/delegation_policy_v1.md"), "effective_date": "2026-01-01"})
             ingest = json.loads(r.content[0].text)
             assert ingest["document_id"] == "delegation_policy_v1"
