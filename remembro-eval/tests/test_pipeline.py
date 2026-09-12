@@ -229,6 +229,8 @@ class TestSyntheticTrainingData:
             assert name not in joined
         predicates = {l["predicate"] for _, ls in spans for l in ls}
         assert predicates == {"holds_role", "may_approve", "delegates", "suspended", "revokes_delegation"}
+        assert any(l["predicate"] == "suspended" and l["polarity"] == "negative" for _, ls in spans for l in ls)
+        assert any(l["predicate"] == "holds_role" and l["valid_until"] and not l["valid_from"] for _, ls in spans for l in ls)
 
 
 class TestRegisterDrivenVocabulary:

@@ -34,6 +34,21 @@ ROLES = [
     ("Head of Operations", None),
     ("Treasurer", None),
     ("General Counsel", None),
+    # multi-word roles the writer must copy whole, not truncate to their last word
+    ("Programs Manager", None),
+    ("Regional Sales Director", None),
+    ("Payroll Team Lead", None),
+    ("Head of People and Culture", None),
+    ("Research Funding Officer", None),
+    ("Deputy Chief Executive", None),
+    ("Property Portfolio Manager", None),
+    ("Community Programs Lead", None),
+    ("Information Technology Manager", None),
+    ("Supply Chain Director", None),
+    ("Clinical Services Manager", None),
+    ("Marketing and Communications Manager", None),
+    ("Fleet Coordinator", None),
+    ("Learning and Development Lead", None),
 ]
 CATEGORIES = [("operational expenditure", "operational_expenditure"), ("capital expenditure", "capital_expenditure"), ("expenditure", "expenditure")]
 CURRENCIES = ["AUD", "USD", "GBP", "EUR", "NZD", "SGD"]
@@ -61,7 +76,7 @@ class Gen:
         self.r = rng
         self.currency = rng.choice(CURRENCIES)
         names = rng.sample([f"{f} {l}" for f in FIRST for l in LAST], 6)
-        roles = rng.sample(ROLES, 4)
+        roles = rng.sample(ROLES, 5)
         self.people = list(zip(names, roles))  # (name, (role, abbrev))
         self.start = date(2025 + rng.randint(0, 2), rng.randint(1, 12), rng.randint(1, 28))
 
@@ -101,6 +116,8 @@ class Gen:
             f"Approval authority for {cat_text} is delegated to the {role} to a limit of {cur} {fmt_amount(amt)}.",
             f"The {role}'s approval limit for {cat_text} is {cur} {fmt_amount(amt)} per transaction.",
             f"A {role} may commit the company to {cat_text} of no more than {cur} {fmt_amount(amt)} in a single transaction.",
+            f"The {role} is authorised to approve {cat_text} up to {cur} {fmt_amount(amt)} per transaction.",
+            f"The {role} is authorised to approve {cat_text} up to {cur} {fmt_amount(amt)} per grant.",
         ]
         return self.r.choice(forms), [claim(role, "role", "may_approve", cat_text, "category", "permission", "positive", {"maximum_amount": amt, "currency": cur, "category": cat})]
 
@@ -126,6 +143,7 @@ class Gen:
             f"No {cat_text} may be approved by the {role}.",
             f"The {role} has no authority to approve {cat_text}; such requests must be referred upward.",
             f"{cat_text.capitalize()} is outside the authority of the {role} and may not be approved by that role.",
+            f"The {role} shall not approve {cat_text}.",
         ]
         return self.r.choice(forms), [claim(role, "role", "may_approve", cat_text, "category", "prohibition", "negative", {"category": cat})]
 
@@ -239,10 +257,62 @@ class Gen:
         ]
         return self.r.choice(forms), []
 
+    def suspension_lifted(self):
+        name, _ = self.r.choice(self.people)
+        s = self.day(spread=500)
+        lift = s + timedelta(days=self.r.randint(7, 90))
+        forms = [
+            (f"The suspension of {name}'s approval authority, which took effect on {fmt_date(s)}, was lifted with effect from {fmt_date(lift)}.", True),
+            (f"{name}'s approval authority, suspended from {fmt_date(s)}, is reinstated with effect from {fmt_date(lift)}.", True),
+            (f"With effect from {fmt_date(lift)}, {name} is no longer suspended and may exercise approval authority.", False),
+            (f"The suspension of {name} is lifted from {fmt_date(lift)}.", False),
+        ]
+        text, with_start = self.r.choice(forms)
+        if with_start:
+            labels = [claim(name, "person", "suspended", None, "none", "assertion", "positive", {}, iso(s), iso(lift - timedelta(days=1)))]
+        else:
+            labels = [claim(name, "person", "suspended", None, "none", "assertion", "negative", {}, iso(lift), None)]
+        return text, labels
+
+    def role_ended(self):
+        name, (role, _) = self.r.choice(self.people)
+        e = self.day(spread=600)
+        forms = [
+            f"{name} ceased to hold the role of {role} on {fmt_date(e)}.",
+            f"{name} stepped down as {role} with effect from the close of business on {fmt_date(e)}.",
+            f"The appointment of {name} as {role} ended on {fmt_date(e)}.",
+        ]
+        return self.r.choice(forms), [claim(name, "person", "holds_role", role, "role", vu=iso(e))]
+
+    def role_replaced(self):
+        (a, (role, _)), (b, _) = self.r.sample(self.people, 2)
+        e = self.day(spread=600)
+        start = e + timedelta(days=1)
+        forms = [
+            f"{a} ceased to hold the role of {role} on {fmt_date(e)}. {b} was appointed {role} with effect from {fmt_date(start)}.",
+            f"With effect from {fmt_date(start)}, {b} replaces {a} as {role}; {a}'s appointment ended on {fmt_date(e)}.",
+        ]
+        return self.r.choice(forms), [
+            claim(a, "person", "holds_role", role, "role", vu=iso(e)),
+            claim(b, "person", "holds_role", role, "role", vf=iso(start)),
+        ]
+
+    def amended_limit(self):
+        _, (role, _) = self.r.choice(self.people)
+        cat_text, cat = self.r.choice(CATEGORIES[:2])
+        amt = self.amount()
+        cur = self.currency
+        forms = [
+            f"The {role} is authorised to approve {cat_text} up to {cur} {fmt_amount(amt)} per transaction. This replaces the limit previously stated.",
+            f"Clause 3 is amended so that the {role} may approve {cat_text} up to {cur} {fmt_amount(amt)} per transaction.",
+            f"The {role}'s limit for {cat_text} is varied to {cur} {fmt_amount(amt)} per transaction.",
+        ]
+        return self.r.choice(forms), [claim(role, "role", "may_approve", cat_text, "category", "permission", "positive", {"maximum_amount": amt, "currency": cur, "category": cat})]
+
     def span(self):
         kind = self.r.choices(
-            [self.role_row, self.role_sentence, self.limit, self.limit_table_row, self.prohibition, self.conditional_limit, self.delegation, self.personal_grant, self.suspension, self.suspension_with_end, self.revocation, self.self_benefit, self.boilerplate],
-            weights=[6, 6, 14, 6, 8, 6, 12, 8, 6, 3, 9, 3, 18],
+            [self.role_row, self.role_sentence, self.limit, self.limit_table_row, self.prohibition, self.conditional_limit, self.delegation, self.personal_grant, self.suspension, self.suspension_with_end, self.revocation, self.self_benefit, self.boilerplate, self.suspension_lifted, self.role_ended, self.role_replaced, self.amended_limit],
+            weights=[6, 6, 14, 6, 8, 6, 12, 8, 6, 3, 9, 3, 18, 6, 4, 4, 5],
         )[0]
         return kind()
 
