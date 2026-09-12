@@ -126,6 +126,27 @@ describe('lessons from the first paired run', () => {
         { ts: '2023-03-20T10:00:00Z', text: 'USER: The charity bake sale was yesterday.' },
       ],
     );
-    expect(notes).toMatch(/Order of the dated events, earliest first: 2023-03-19.*→ 2023-03-28/);
+    expect(notes).toMatch(/Order of the dated events.*2023-03-19.*→ 2023-03-28/);
+  });
+});
+
+describe('lessons from the full paired run', () => {
+  it('lists the gap between the events the question names first', () => {
+    const notes = buildComputedNotes(
+      "How many days before the team meeting I was preparing for did I attend the workshop on 'Effective Communication'?",
+      '2023/01/20 (Fri) 10:00',
+      [
+        { ts: '2023-01-05T10:00:00Z', text: 'USER: I renewed my gym membership yesterday.' },
+        { ts: '2023-01-11T10:00:00Z', text: "USER: I attended the workshop on Effective Communication yesterday." },
+        { ts: '2023-01-17T10:00:00Z', text: 'USER: The team meeting I was preparing for is today.' },
+      ],
+    );
+    const firstGap = notes.split('Gaps between dated events')[1]!.split('\n')[1]!;
+    expect(firstGap).toMatch(/2023-01-10.*2023-01-17.*7 days/);
+  });
+
+  it('leads with months for long distances', () => {
+    const notes = buildComputedNotes('How many months ago did I attend the film festival?', '2021/10/02 (Sat) 10:00', [{ ts: '2021-06-01T10:00:00Z', text: 'USER: I saw Coda at the film festival today.' }]);
+    expect(notes).toMatch(/about 4 months \(18 weeks, 123 days\) before the question date/);
   });
 });

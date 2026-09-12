@@ -226,8 +226,10 @@ function relevant(sentence: string, keywords: string[]): boolean {
 function distance(iso: string, questionDay: string): string {
   const days = Math.round((msOf(questionDay) - msOf(iso)) / DAY_MS);
   const abs = Math.abs(days);
-  const extra = abs >= 14 ? ` (about ${Math.round(abs / 7)} weeks${abs >= 60 ? ` or ${Math.round(abs / 30.44)} months` : ''})` : '';
-  return days >= 0 ? `${abs} days${extra} before the question date` : `${abs} days${extra} after the question date`;
+  const relation = days >= 0 ? 'before the question date' : 'after the question date';
+  if (abs >= 60) return `about ${Math.round(abs / 30.44)} months (${Math.round(abs / 7)} weeks, ${abs} days) ${relation}`;
+  if (abs >= 14) return `about ${Math.round(abs / 7)} weeks (${abs} days) ${relation}`;
+  return `${abs} days ${relation}`;
 }
 
 function gap(a: string, b: string): string {
@@ -287,17 +289,23 @@ export function buildComputedNotes(
     }
     const distinct = [...new Map(dated.map((e) => [e.iso, e])).values()].sort((l, r) => l.iso.localeCompare(r.iso));
     if (asksOrder && distinct.length >= 2) {
-      lines.push(`Order of the dated events, earliest first: ${distinct.map((e) => `${e.iso} ("${snippet(e.sentence, 36)}")${e.approximate ? ' [approximate]' : ''}`).join(' → ')}`);
+      lines.push(`Order of the dated events the history dates, earliest first (if the question names an event that is not here, the history may not date it, and the honest answer may be that it does not say): ${distinct.map((e) => `${e.iso} ("${snippet(e.sentence, 36)}")${e.approximate ? ' [approximate]' : ''}`).join(' → ')}`);
     }
     if (distinct.length >= 2) {
-      lines.push('Gaps between dated events:');
       const pairs: Array<[DatedEvent, DatedEvent]> = [];
-      if (distinct.length <= 5) {
+      if (distinct.length <= 6) {
         for (let i = 0; i < distinct.length; i++) for (let j = i + 1; j < distinct.length; j++) pairs.push([distinct[i]!, distinct[j]!]);
       } else {
         for (let i = 0; i + 1 < distinct.length; i++) pairs.push([distinct[i]!, distinct[i + 1]!]);
       }
-      for (const [a, b] of pairs) lines.push(`- ${a.iso} ("${snippet(a.sentence, 40)}") to ${b.iso} ("${snippet(b.sentence, 40)}"): ${gap(a.iso, b.iso)}${a.approximate || b.approximate ? ' [approximate: one end is a rough expression like "a month ago"]' : ''}`);
+      // the pair whose two sentences together cover the most question words comes first: a
+      // small reader copies the first gap it sees
+      const covered = (a: DatedEvent, b: DatedEvent) => new Set(keywords.filter((k) => a.sentence.toLowerCase().includes(k) || b.sentence.toLowerCase().includes(k))).size;
+      const distinctCover = (a: DatedEvent, b: DatedEvent) => Math.min(keywordHits(a.sentence), keywordHits(b.sentence));
+      pairs.sort((l, r) => covered(r[0], r[1]) - covered(l[0], l[1]) || distinctCover(r[0], r[1]) - distinctCover(l[0], l[1]));
+      const shown = pairs.slice(0, 4);
+      lines.push(`Gaps between dated events (the pair whose sentences best match the question is listed first${pairs.length > shown.length ? `; ${pairs.length - shown.length} other pairs omitted` : ''}):`);
+      for (const [a, b] of shown) lines.push(`- ${a.iso} ("${snippet(a.sentence, 40)}") to ${b.iso} ("${snippet(b.sentence, 40)}"): ${gap(a.iso, b.iso)}${a.approximate || b.approximate ? ' [approximate: one end is a rough expression like "a month ago"]' : ''}`);
     }
   }
   const counted = quantities.slice(0, maxQuantities);
@@ -307,9 +315,12 @@ export function buildComputedNotes(
     for (const q of counted) byUnit.set(q.unit, [...(byUnit.get(q.unit) ?? []), q]);
     for (const [unit, items] of byUnit) {
       for (const q of items) lines.push(`- ${q.value} ${unit}${q.value === 1 ? '' : 's'}: "${snippet(q.sentence)}"`);
-      if (items.length >= 2 && asksTotal) {
-        const total = items.reduce((sum, q) => sum + q.value, 0);
-        lines.push(`  sum of the ${items.length} ${unit} figures above: ${Number(total.toFixed(2))} ${unit}s (only if every figure above belongs to the question; drop any that do not and re-add)`);
+      // a figure is tightly the question's when its sentence shares two content words with it,
+      // a unit the question names counting as one
+      const tight = items.filter((q) => keywordHits(q.sentence) + (unitsInQuestion.has(unit) ? 1 : 0) >= 2);
+      if (asksTotal && tight.length >= 2 && tight.length === items.length) {
+        const total = tight.reduce((sum, q) => sum + q.value, 0);
+        lines.push(`  sum of the ${tight.length} ${unit} figures above: ${Number(total.toFixed(2))} ${unit}s (check that every figure belongs to the question before using it)`);
       }
       if (items.length >= 2) {
         if (items.length === 2) {
