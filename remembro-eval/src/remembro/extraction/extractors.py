@@ -148,17 +148,18 @@ class RuleExtractor:
 
 EXTRACTION_PROMPT = """You extract structured claims from one passage of a corporate delegation-of-authority policy. Return a JSON array (possibly empty). Each element:
 {"subject": string, "subject_kind": "person"|"role", "predicate": "holds_role"|"may_approve"|"delegates"|"suspended"|"revokes_delegation", "object": string|null, "object_kind": "person"|"role"|"category"|"none", "modality": "permission"|"obligation"|"prohibition"|"assertion", "polarity": "positive"|"negative", "constraints": {"maximum_amount": number|null, "currency": string|null, "category": "operational_expenditure"|"capital_expenditure"|"expenditure"|null, "condition": string|null}, "valid_from": "YYYY-MM-DD"|null, "valid_until": "YYYY-MM-DD"|null, "confidence": number 0..1}
-Rules: quote nothing you cannot see in the passage; "may not" and "must not" are prohibition with polarity negative; a delegation's object is the delegate and its constraints carry the delegated category and limit; a revocation's valid_from is the date it takes effect; a suspension's valid_from is the effective date; dates as ISO. Table rows arrive as "cell | cell | cell". Return only the JSON array."""
+Rules: quote nothing you cannot see in the passage; leave, absence or unavailability is not a suspension (only an explicit suspension of approval authority is); a person acting "on behalf of" or "while X is away" is a delegation from X or a may_approve for the person, with the dates given; "may not" and "must not" are prohibition with polarity negative; a delegation's object is the delegate and its constraints carry the delegated category and limit; a revocation's valid_from is the date it takes effect; a suspension's valid_from is the effective date; dates as ISO. Table rows arrive as "cell | cell | cell". Return only the JSON array."""
 
 
 class LlmExtractor:
-    def __init__(self, base_url: str, model: str, api_key: str, name: str | None = None, timeout: int = 180, max_tokens: int = 6000) -> None:
+    def __init__(self, base_url: str, model: str, api_key: str, name: str | None = None, timeout: int = 180, max_tokens: int = 6000, workers: int = 6) -> None:
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.api_key = api_key
         self.name = name or model.replace("/", "-")
         self.timeout = timeout
         self.max_tokens = max_tokens
+        self.workers = workers
 
     def _complete(self, passage: str) -> str:
         # one retry at double the budget: a reasoning model that loops on a short table row
@@ -184,15 +185,24 @@ class LlmExtractor:
         return choice["message"]["content"] or ""
 
     def extract(self, document: ParsedDocument) -> list[dict]:
+        from concurrent.futures import ThreadPoolExecutor
+
+        spans = [s for s in document.spans if not (s.kind == "table_row" and "|" not in s.text)]
+
+        def complete(span):
+            try:
+                return span, self._complete(span.text), None
+            except Exception as error:  # noqa: BLE001 - the boundary must not crash the pipeline
+                return span, None, str(error)[:200]
+
+        # spans are independent, so they go to the model in parallel; results keep document order
+        with ThreadPoolExecutor(max_workers=self.workers) as pool:
+            replies = list(pool.map(complete, spans))
         out: list[dict] = []
         n = 0
-        for span in document.spans:
-            if span.kind == "table_row" and "|" not in span.text:
-                continue
-            try:
-                reply = self._complete(span.text)
-            except Exception as error:  # noqa: BLE001 - the boundary must not crash the pipeline
-                out.append({"id": f"{self.name}_error_{span.paragraph}", "error": str(error)[:200], "span_text": span.text})
+        for span, reply, error in replies:
+            if error is not None:
+                out.append({"id": f"{self.name}_error_{span.paragraph}", "error": error, "span_text": span.text})
                 continue
             match = re.search(r"\[[\s\S]*\]", reply)
             if not match:

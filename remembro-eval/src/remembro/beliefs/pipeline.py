@@ -99,6 +99,13 @@ def resolve_claims(state: WorldState, resolver: EntityResolver) -> None:
             elif cat.entity_id != claim.constraints.category:
                 claim.constraints.category = cat.entity_id
         obj: Resolution | None = None
+        if claim.object_kind == "category" and claim.object is not None and claim.constraints.category:
+            # a free-text object ("invoices") that resolves to nothing yields to a category field
+            # that does; when both resolve, the quoted object wins (below)
+            probe = resolver.resolve(claim.object, EntityKind.CATEGORY)
+            if probe.verdict is not MatchVerdict.MATCH:
+                state.log("CLAIM_NORMALISED", claim.id, f"object '{claim.object}' is not a known category; using category field '{claim.constraints.category}'")
+                claim.object = claim.constraints.category.replace("_", " ")
         if claim.predicate in OBJECTLESS:
             # the predicate defines its arity: "X's approval authority is suspended" is about
             # X alone, whatever the extractor put in the object slot

@@ -100,7 +100,17 @@ def evaluate(request: Request, state: WorldState, resolver: EntityResolver) -> D
             or item.get("predicate") in (Predicate.SUSPENDED.value, Predicate.REVOKES_DELEGATION.value)
         )
 
-    unreadable = [u for u in state.unreadable_claims if might_restrict(u) and any(n and n.lower() in quotes(u).lower() for n in names)]
+    def about_person(item: dict) -> bool:
+        # the claim is about its subject and object, not about everyone its paragraph mentions
+        for field in ("subject", "object"):
+            mention, kind = item.get(field), item.get(f"{field}_kind")
+            if mention and kind == "person":
+                res = resolver.resolve(str(mention), EntityKind.PERSON)
+                if res.entity_id == person and res.verdict in (MatchVerdict.MATCH, MatchVerdict.POSSIBLE_MATCH):
+                    return True
+        return False
+
+    unreadable = [u for u in state.unreadable_claims if might_restrict(u) and about_person(u)]
     if unreadable:
         u = unreadable[0]
         return unknown(f"a claim about {person} was rejected at the boundary ({u.get('id')}: predicate {u.get('predicate')!r}); the engine will not decide past speech about a person it could not read")

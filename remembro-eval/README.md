@@ -68,7 +68,7 @@ appendix).
 ```sh
 cd remembro-eval
 python3 -m venv .venv && .venv/bin/pip install pydantic pytest
-.venv/bin/python -m pytest -q                                   # 87 tests
+.venv/bin/python -m pytest -q                                   # 91 tests
 PYTHONPATH=src .venv/bin/python -m remembro.cli evaluate        # the gold claims as a perfect extractor
 PYTHONPATH=src .venv/bin/python -m remembro.cli ingest fixtures/delegation_policy_v1.md --extractor rules
 PYTHONPATH=src .venv/bin/python -m remembro.cli --run-name rules evaluate
@@ -201,6 +201,22 @@ names none, which let a revoked grant survive: one unjustified ALLOW, closed by 
 category field (a restriction with an invented category widens to every category; a permission
 with one is dropped).
 
+**What the first live Slack message taught.** Through the MCP server, GLM Flash ingested
+fixture 1 and then an informal message: "I'm on leave 21 to 25 September 2026. While I'm out,
+Carol Evans can approve operational expenditure invoices up to AUD 30,000 per transaction on my
+behalf. Anything bigger waits for me. — Alice Morgan (CFO)". Four of its five claims were lost
+to one gap: "21 to 25 September" is a range sharing its month, and the date parser saw only the
+second date, so grounding rejected the delegation. Ranges ground both ends now. The fifth claim
+read "on leave" as a suspension of Alice; a `suspended` or `revokes_delegation` claim must now
+be grounded in its own word (suspend, revoke, withdraw, rescind…), so that claim is rejected and
+Alice's week becomes UNKNOWN rather than a false DENY. The same rule caught r21 writing
+"suspended" for "ceased to hold the role" on fixture 2 (18/20 became 16/20, two false DENYs
+turned into honest UNKNOWNs). Doubt from a rejected claim now attaches to the claim's own
+subject and object, not to everyone its paragraph names, because a Slack paragraph names
+everyone. And a free-text object ("invoices") that resolves to nothing yields to a category
+field that does. Ingest of a five-page policy took 509 seconds with one request at a time; spans
+now go to the model in parallel.
+
 ## The second document
 
 `fixtures/harbourview_delegations_v2.md` is a different organisation in a different register:
@@ -230,7 +246,7 @@ grant to `J. Ford` makes decisions about *both* Fords UNKNOWN.
 | rules (regex written for fixture 1)         | 9 / 20    | 0 / 0       | 0 / 2          | 0                 | 1       |
 | r19 writer (zero-shot)                      | 9 / 20    | 21 / 36     | 0 / 2          | 0                 | 13      |
 | GLM 5.3 Flash                               | 20 / 20   | 35 / 61     | 1 / 2          | 0                 | 4       |
-| **r21 writer**                              | **18 / 20** | 53 / 57   | 1 / 2          | 0                 | 4       |
+| **r21 writer**                              | **16 / 20** | 53 / 57   | 1 / 2          | 0                 | 6       |
 | r22 writer                                  | 15 / 20   | 59 / 61     | 1 / 2          | 0                 | 7       |
 
 The regex arm extracts nothing here: it matched fixture 1's phrasing, not English. That is the

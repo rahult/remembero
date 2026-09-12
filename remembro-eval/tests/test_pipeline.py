@@ -394,3 +394,47 @@ class TestCategoryGrounding:
         cands = json.loads((ROOT / "fixtures/runs/r22-writer-hv.claims.json").read_text())["claims"]
         report, _ = run(GOLD2, cands, "r22-hv")
         assert report.unjustified_allow == 0, [d for d in report.decisions if not d["ok"]]
+
+
+class TestDailyUseLessons:
+    """What the first live Slack message taught the boundary."""
+
+    def test_date_ranges_sharing_a_month_ground_both_ends(self):
+        from remembro.temporal.normalize import dates_in
+        got = {d.isoformat() for d in dates_in("I'm on leave 21 to 25 September 2026, back 26 September 2026")}
+        assert {"2026-09-21", "2026-09-25", "2026-09-26"} <= got
+        got = {d.isoformat() for d in dates_in("between 1 and 15 September 2026; 3–7 October 2026; from 8 until 12 Nov 2026")}
+        assert {"2026-09-01", "2026-09-15", "2026-10-03", "2026-10-07", "2026-11-08", "2026-11-12"} <= got
+
+    def test_doubt_attaches_to_the_rejected_claims_subject_not_everyone_in_the_quote(self):
+        # a Slack paragraph names Alice and Carol; a rejected restriction about Carol must not
+        # make Alice's unrelated capex request UNKNOWN
+        quote = "Heads up team, I'm on leave. Carol Evans can approve invoices up to AUD 30,000. Anything bigger waits for me. Alice Morgan"
+        ev = {"id": "e1", "document_id": "slack", "page": 1, "paragraph": 1, "section": None, "start_offset": 0, "end_offset": len(quote), "quoted_text": quote, "authority": "body"}
+        bad = {"id": "bad", "subject": "Carol Evans", "subject_kind": "person", "predicate": "may_not", "object": None, "object_kind": "none", "modality": "prohibition", "polarity": "negative", "constraints": {}, "valid_from": None, "valid_until": None, "confidence": 1.0, "evidence": [ev]}
+        s, _ = state_from([*GOLD["claims"], bad])
+        s1 = next(x for x in GOLD["scenarios"] if x["id"] == "scenario_01")  # Alice
+        assert decide(Request.model_validate(s1["request"]), s, resolver()).decision.value == "ALLOW"
+        carol = Request.model_validate({**next(x for x in GOLD["scenarios"] if x["id"] == "scenario_08")["request"], "on": "2026-09-05"})
+        assert decide(carol, s, resolver()).decision.value == "UNKNOWN"
+
+    def test_object_that_does_not_resolve_yields_to_a_category_that_does(self):
+        c = json.loads(json.dumps(next(x for x in GOLD["claims"] if x["id"] == "claim_fd_opex")))
+        c["object"] = "invoices"  # free text; the category field says operational_expenditure
+        s, _ = state_from([x for x in GOLD["claims"] if x["id"] != "claim_fd_opex"] + [c])
+        assert s.claim("claim_fd_opex").status.value == "ACCEPTED"
+        assert s.claim("claim_fd_opex").object_entity == "operational_expenditure"
+
+    def test_a_suspension_must_be_grounded_in_a_suspension_word(self):
+        from remembro.claims.grounding import ground
+        quote = "Heads up team, I'm on leave 21 to 25 September 2026. Anything bigger waits for me. Alice Morgan"
+        ev = {"id": "e1", "document_id": "slack", "page": 1, "paragraph": 1, "section": None, "start_offset": 0, "end_offset": len(quote), "quoted_text": quote, "authority": "body"}
+        susp = {"id": "s", "subject": "Alice Morgan", "subject_kind": "person", "predicate": "suspended", "object": None, "object_kind": "none", "modality": "assertion", "polarity": "positive", "constraints": {}, "valid_from": "2026-09-21", "valid_until": "2026-09-25", "confidence": 1.0, "evidence": [ev]}
+        _, dropped = ground([susp])
+        assert dropped and "suspend" in dropped[0][1]
+        real = next(x for x in GOLD["claims"] if x["id"] == "claim_carol_suspended")
+        kept, dropped = ground([real])
+        assert kept and not dropped
+        rev = next(x for x in GOLD["claims"] if x["id"] == "claim_revocation")
+        kept, dropped = ground([rev])
+        assert kept and not dropped

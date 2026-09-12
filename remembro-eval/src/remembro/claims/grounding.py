@@ -43,6 +43,12 @@ CATEGORY_WORDS = {
 
 RESTRICTIVE = {"revokes_delegation", "suspended"}
 
+# a predicate that changes someone's standing must be said, not inferred: leave is not suspension
+PREDICATE_WORDS = {
+    "suspended": ("suspend", "suspension"),
+    "revokes_delegation": ("revok", "revocation", "withdraw", "rescind", "cancel", "terminat"),
+}
+
 
 def _category_grounded(text: str, category: str, obj: str | None) -> bool:
     low = text.lower()
@@ -60,9 +66,12 @@ def ground(candidates: list[dict]) -> tuple[list[dict], list[tuple[dict, str]]]:
         text = " ".join(e.get("quoted_text", "") for e in evidence if isinstance(e, dict))
         constraints = c.get("constraints") or {}
         reason: str | None = None
+        stems = PREDICATE_WORDS.get(c.get("predicate") or "")
+        if stems and not any(w in text.lower() for w in stems):
+            reason = f"ungrounded predicate: '{c.get('predicate')}' but the evidence never says {', '.join(stems[:2])}"
         category = constraints.get("category")
         # a table row's category lives in the column header, which the row does not quote
-        if category and " | " not in text and not _category_grounded(text, category, c.get("object")):
+        if reason is None and category and " | " not in text and not _category_grounded(text, category, c.get("object")):
             restrictive = c.get("predicate") in RESTRICTIVE or c.get("polarity") == "negative" or c.get("modality") == "prohibition"
             if restrictive:
                 # a restriction with an invented category becomes a restriction on every category:

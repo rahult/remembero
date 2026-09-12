@@ -9,18 +9,15 @@ from __future__ import annotations
 import re
 from datetime import date
 
-MONTHS = {
-    m: i
-    for i, m in enumerate(
-        [
-            "january", "february", "march", "april", "may", "june", "july",
-            "august", "september", "october", "november", "december",
-        ],
-        start=1,
-    )
-}
+_MONTH_NAMES = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
+MONTHS = {m: i for i, m in enumerate(_MONTH_NAMES, start=1)}
+MONTHS.update({m[:3]: i for i, m in enumerate(_MONTH_NAMES, start=1)})
+MONTHS["sept"] = 9
 
 DATE_RE = re.compile(r"\b(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\b")
+# "21 to 25 September 2026", "1 and 15 September 2026", "3–7 October 2026", "8 until 12 Nov 2026":
+# the first day borrows the month and year of the second
+RANGE_RE = re.compile(r"\b(\d{1,2})\s*(?:to|and|until|through|till|-|–|—)\s*(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\b")
 ISO_RE = re.compile(r"\b(\d{4})-(\d{2})-(\d{2})\b")
 
 
@@ -46,6 +43,13 @@ def dates_in(text: str) -> list[date]:
             out.append(date(int(m.group(3)), month, int(m.group(1))))
     for m in ISO_RE.finditer(text):
         out.append(date(int(m.group(1)), int(m.group(2)), int(m.group(3))))
+    for m in RANGE_RE.finditer(text):
+        month = MONTHS.get(m.group(3).lower())
+        if month:
+            try:
+                out.append(date(int(m.group(4)), month, int(m.group(1))))
+            except ValueError:
+                pass
     return out
 
 

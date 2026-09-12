@@ -30,6 +30,7 @@ DEFAULT_CATEGORIES = [
     {"id": "operational_expenditure", "kind": "category", "canonical_name": "operational expenditure", "aliases": ["operational", "opex", "operating expenditure", "invoices for operational expenditure", "utilities", "utilities invoices", "facilities maintenance", "maintenance"]},
     {"id": "capital_expenditure", "kind": "category", "canonical_name": "capital expenditure", "aliases": ["capital", "capex"]},
     {"id": "expenditure", "kind": "category", "canonical_name": "expenditure", "aliases": ["expense", "expenses", "spend", "payments"]},
+    {"id": "role_board", "kind": "role", "canonical_name": "Board", "aliases": ["the Board", "Board of Directors", "Board of Trustees", "the Board of Trustees"]},
 ]
 
 FULL_NAME = re.compile(r"^[A-Z][a-z]+(?:[-' ][A-Z][a-z]+)+$")
@@ -109,6 +110,12 @@ class Workspace:
         resolver = self.resolver()
         seen: dict[str, str] = {}
         for c in candidates:
+            # only things someone may approve with a stated limit are worth a category
+            constraints = c.get("constraints") or {}
+            if c.get("predicate") != "may_approve" or c.get("polarity") == "negative" or constraints.get("maximum_amount") is None:
+                continue
+            if constraints.get("category") and resolver.resolve(str(constraints["category"]), EntityKind.CATEGORY).verdict is MatchVerdict.MATCH:
+                continue  # the category field already places it
             if c.get("object_kind") == "category" and c.get("object"):
                 mention = c["object"]
                 if mention.lower() not in seen and resolver.resolve(mention, EntityKind.CATEGORY).verdict is not MatchVerdict.MATCH:
