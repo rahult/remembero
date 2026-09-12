@@ -200,10 +200,29 @@ class Workspace:
                 found = True
         return found
 
+    # ---- dismissals: a human overrides extractor noise, with a reason, on the record ---------
+    def dismissals(self) -> list[dict]:
+        p = self.root / "dismissals.json"
+        return json.loads(p.read_text()) if p.exists() else []
+
+    def dismiss(self, candidate_id: str, reason: str) -> dict:
+        items = [d for d in self.dismissals() if d["candidate_id"] != candidate_id]
+        entry = {"candidate_id": candidate_id, "reason": reason, "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+        items.append(entry)
+        (self.root / "dismissals.json").write_text(json.dumps(items, indent=2))
+        return entry
+
+    def undismiss(self, candidate_id: str) -> bool:
+        items = self.dismissals()
+        kept = [d for d in items if d["candidate_id"] != candidate_id]
+        (self.root / "dismissals.json").write_text(json.dumps(kept, indent=2))
+        return len(kept) < len(items)
+
     # ---- state -----------------------------------------------------------------------------
     def _all_candidates(self) -> tuple[list[dict], dict[str, str]]:
         cands: list[dict] = []
         dates: dict[str, str] = {}
+        dismissed = {d["candidate_id"] for d in self.dismissals()}
         for meta in self.documents():
             dates[meta["id"]] = meta["effective_date"]
             path = self.root / "candidates" / f"{meta['id']}.json"
@@ -211,8 +230,31 @@ class Workspace:
                 for c in json.loads(path.read_text())["claims"]:
                     if "id" in c and not str(c["id"]).startswith(meta["id"] + ":"):
                         c["id"] = f"{meta['id']}:{c['id']}"
+                    if c.get("id") in dismissed:
+                        continue
                     cands.append(c)
         return cands, dates
+
+    @staticmethod
+    def _next_steps(decision) -> list[str]:
+        reason = decision.unknown_reason or ""
+        steps: list[str] = []
+        if "POSSIBLE_MATCH" in reason or "identity" in reason:
+            steps.append("if the mention and the register entry are the same person, add the mention as an alias with remembro_register(action='alias', name=<canonical>, aliases=[<mention>]); otherwise register the mention as a new person")
+        if "rejected at the boundary" in reason:
+            cid = reason.split("(")[1].split(":")[0] + ":" + reason.split("(")[1].split(":")[1] if "(" in reason and ":" in reason else None
+            steps.append(f"read the rejected candidate with remembro_inspect(what='rejected', query=<id>); if it is extractor noise, remembro_dismiss(candidate_id={cid!r}, reason=...); if it is a real restriction, fix the document or re-ingest")
+        if "not fully read" in reason:
+            steps.append("re-ingest the document (the extractor failed on a span); remembro_inspect(what='unread') lists the spans")
+        if "conflicting limits" in reason or "contradiction" in reason:
+            steps.append("the documents disagree: remembro_inspect(what='contradictions') shows both quotes; an amendment with a later effective date settles it")
+        if "category" in reason and "not one this policy defines" in reason:
+            steps.append("register the category with remembro_register(action='add', kind='category', name=..., aliases=[...]) if the policy covers it under another name")
+        if "currency" in reason:
+            steps.append("the limits are stated in another currency; ask in that currency or record a conversion rule outside Remembro")
+        if "restriction on" in reason and "could not be resolved" in reason:
+            steps.append("a restriction names something the register does not know: remembro_inspect(what='rejected') shows it; register the missing entity or dismiss the candidate")
+        return steps
 
     def _state(self):
         cands, dates = self._all_candidates()
@@ -235,6 +277,7 @@ class Workspace:
             "question": f"May {actor} {action} {amount:,.0f} {currency} of {resource} on {request.on}?",
             "reasons": decision.reasons,
             "unknown_reason": decision.unknown_reason,
+            "next_steps": self._next_steps(decision) if decision.decision.value == "UNKNOWN" else [],
             "evidence": evidence,
             "beliefs_used": decision.beliefs_used,
             "documents_consulted": [d["id"] for d in self.documents()],
@@ -273,6 +316,8 @@ class Workspace:
             return [r for r in rej if not q or q in json.dumps(r, default=str).lower()]
         if what == "unread":
             return state.unread_spans
+        if what == "dismissed":
+            return self.dismissals()
         if what == "beliefs":
             return [b.model_dump(mode="json") for b in state.beliefs if not q or q in b.model_dump_json().lower()]
         if what == "contradictions":
@@ -283,4 +328,4 @@ class Workspace:
             return out
         if what == "transitions":
             return [t.model_dump(mode="json") for t in state.transitions if not q or q in t.model_dump_json().lower()]
-        raise ValueError(f"unknown inspect target {what!r}; one of documents, register, claims, rejected, unread, beliefs, contradictions, transitions")
+        raise ValueError(f"unknown inspect target {what!r}; one of documents, register, claims, rejected, unread, dismissed, beliefs, contradictions, transitions")

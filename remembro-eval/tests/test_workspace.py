@@ -103,3 +103,34 @@ class TestPolish:
     def test_ingest_missing_path_is_an_error_not_a_crash(self, ws):
         with pytest.raises(FileNotFoundError):
             ws.ingest(path="/nonexistent/policy.md")
+
+
+class TestSettlingDoubt:
+    def _doubtful(self, tmp_path):
+        ws = Workspace(tmp_path / "s", extractor="snapshot")
+        gold = json.loads((ROOT / "fixtures/delegation_policy_v1.gold.json").read_text())
+        quote = "Bob Chen is off the roster. Bob Chen"
+        ev = {"id": "e1", "document_id": "note", "page": 1, "paragraph": 1, "section": None, "start_offset": 0, "end_offset": len(quote), "quoted_text": quote, "authority": "body"}
+        junk = {"id": "junk", "subject": "Bob Chen", "subject_kind": "person", "predicate": "off_roster", "object": None, "object_kind": "none", "modality": "assertion", "polarity": "negative", "constraints": {}, "valid_from": None, "valid_until": None, "confidence": 0.5, "evidence": [ev]}
+        ws.ingest(path=POLICY, effective_date="2026-01-01", candidates=gold["claims"])
+        ws.ingest(text=quote, document_id="note", effective_date="2026-06-01", candidates=[junk])
+        return ws
+
+    def test_unknown_carries_next_steps_and_dismissal_settles_it(self, tmp_path):
+        ws = self._doubtful(tmp_path)
+        d = ws.decide(actor="Bob Chen", resource="operational expenditure", amount=10000, currency="AUD", on="2026-06-05")
+        assert d["decision"] == "UNKNOWN"
+        assert d["next_steps"] and any("dismiss" in step for step in d["next_steps"])
+        ws.dismiss("note:junk", reason="extractor noise: 'off the roster' is a scheduling remark")
+        d = ws.decide(actor="Bob Chen", resource="operational expenditure", amount=10000, currency="AUD", on="2026-06-05")
+        assert d["decision"] == "ALLOW"
+        assert any(x["candidate_id"] == "note:junk" for x in ws.inspect("dismissed"))
+
+    def test_identity_unknown_suggests_an_alias(self, tmp_path):
+        ws = Workspace(tmp_path / "s", extractor="snapshot")
+        gold = json.loads((ROOT / "fixtures/delegation_policy_v1.gold.json").read_text())
+        ws.ingest(path=POLICY, effective_date="2026-01-01", candidates=gold["claims"])
+        d = ws.decide(actor="D. Smith", resource="utilities", amount=3000, currency="AUD", on="2026-09-10")
+        assert d["decision"] == "UNKNOWN" and any("alias" in s for s in d["next_steps"])
+        ws.add_entity("person", "David Smith", aliases=["D. Smith"])
+        assert ws.decide(actor="D. Smith", resource="utilities", amount=3000, currency="AUD", on="2026-09-10")["decision"] == "ALLOW"

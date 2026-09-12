@@ -97,7 +97,7 @@ def remembro_register(action: str = "list", kind: str | None = None, name: str |
     return {"error": f"unknown action {action!r}"}
 
 
-@server.tool(name="remembro_inspect", description="Look inside the workspace: documents, register, claims, rejected (what the boundary refused and why), unread (spans the extractor failed on), beliefs, contradictions, transitions (the full audit log). Optional query filters by substring.")
+@server.tool(name="remembro_inspect", description="Look inside the workspace: documents, register, claims, rejected (what the boundary refused and why), unread (spans the extractor failed on), dismissed, beliefs, contradictions, transitions (the full audit log). Optional query filters by substring.")
 @_safe
 def remembro_inspect(what: str = "documents", query: str | None = None, limit: int = 50) -> dict[str, Any]:
     items = _workspace().inspect(what, query)
@@ -108,6 +108,17 @@ def remembro_inspect(what: str = "documents", query: str | None = None, limit: i
 @_safe
 def remembro_status() -> dict[str, Any]:
     return _workspace().status()
+
+
+@server.tool(name="remembro_dismiss", description="Dismiss a rejected candidate as extractor noise, with a reason, so it stops casting doubt on decisions. Use only after reading it with remembro_inspect('rejected'): a dismissal is a human judgement on the record, never a way around a real restriction. undo=true restores it.")
+@_safe
+def remembro_dismiss(candidate_id: str, reason: str = "", undo: bool = False) -> dict[str, Any]:
+    ws = _workspace()
+    if undo:
+        return {"restored": ws.undismiss(candidate_id), "candidate_id": candidate_id}
+    if not reason.strip():
+        return {"error": "a dismissal needs a reason; it goes on the record"}
+    return {"dismissed": ws.dismiss(candidate_id, reason)}
 
 
 @server.tool(name="remembro_forget", description="Remove an ingested document and its claims from the workspace. The register is untouched.")

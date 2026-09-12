@@ -17,7 +17,7 @@ claude mcp add -s user remembro-decisions \
   -e PYTHONPATH=$PWD/src -- $PWD/.venv/bin/python -m remembro.mcp_server
 ```
 
-Five tools. `remembro_ingest` takes a file path or pasted text (a policy, an amendment, a Slack
+Seven tools. `remembro_status` is the one-call overview to start a session with. `remembro_ingest` takes a file path or pasted text (a policy, an amendment, a Slack
 message that delegates or revokes authority) with its effective date, extracts claims with the
 configured model, auto-registers the people and roles the document itself names, proposes the
 categories it does not know, and reports what the boundary refused. `remembro_decide` answers
@@ -26,6 +26,9 @@ categories it does not know, and reports what the boundary refused. `remembro_de
 a register change applies to every past document at once because state is rebuilt from stored
 candidates on every call, never cached. `remembro_inspect` opens documents, claims, rejected
 candidates with reasons, unread spans, beliefs, contradictions and the audit log.
+`remembro_dismiss` records a human judgement that a rejected candidate is extractor noise, with
+a reason, so it stops casting doubt; it is never a way around a real restriction. Every UNKNOWN
+comes with `next_steps`: the alias, category, dismissal or re-ingest that would settle it.
 `remembro_forget` removes a document. The workspace is plain files under `REMEMBRO_HOME`.
 
 The extractor is the only model in the loop and it runs only at ingest. The default is GLM 5.3
@@ -68,7 +71,7 @@ appendix).
 ```sh
 cd remembro-eval
 python3 -m venv .venv && .venv/bin/pip install pydantic pytest
-.venv/bin/python -m pytest -q                                   # 91 tests
+.venv/bin/python -m pytest -q                                   # 99 tests
 PYTHONPATH=src .venv/bin/python -m remembro.cli evaluate        # the gold claims as a perfect extractor
 PYTHONPATH=src .venv/bin/python -m remembro.cli ingest fixtures/delegation_policy_v1.md --extractor rules
 PYTHONPATH=src .venv/bin/python -m remembro.cli --run-name rules evaluate
