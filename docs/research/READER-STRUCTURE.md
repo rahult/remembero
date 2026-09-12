@@ -162,7 +162,9 @@ transformers 5 wrote (upgrade it, as the Modal exporter does). And converting st
 and quantizing with `llama-quantize`, the exporter's path, gives a working 7.5 GiB Q8_0 that
 answers "21 days ago" to the smoke question. On a 16 GB M-series Mac it reads a 24 KB prompt in
 about 12 seconds and answers in about 30, one question at a time. The harness points at it with
-`--reader-model rembero-reader --reader-base-url http://127.0.0.1:8082/v1`.
+`--reader-model rembero-reader --reader-base-url http://127.0.0.1:8082/v1`. On 40 questions
+drawn from the DeepSeek-judged notes run, the local Q8 reader agrees with the served bf16 reader
+on 37 (29 correct against 32), within the reader's own noise, at a median 22 seconds a question.
 
 ## Where this goes
 
