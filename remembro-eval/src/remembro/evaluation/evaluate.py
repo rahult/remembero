@@ -161,7 +161,7 @@ def format_report(report: Report) -> str:
     lines = [
         f"extractor               {report.extractor}",
         f"Decision accuracy       {sum(d['ok'] for d in report.decisions)} / {len(report.decisions)}",
-        f"Claim precision         {report.claim_precision*100:.1f}%  ({report.claims_extracted} extracted, {report.schema_rejections} rejected by schema)",
+        f"Claim precision         {report.claim_precision*100:.1f}%  ({report.claims_extracted} extracted, {report.schema_rejections} rejected at the boundary)",
         f"Claim recall            {report.claim_recall*100:.1f}%  ({report.claims_gold} gold)",
         f"Entity resolution       {report.entity_resolution_accuracy*100:.1f}%",
         f"Temporal accuracy       {report.temporal_accuracy*100:.1f}%",

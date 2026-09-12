@@ -76,6 +76,26 @@ def evaluate(request: Request, state: WorldState, resolver: EntityResolver) -> D
         used(*suspensions)
         return deny(f"{person}'s approval authority is suspended on {request.on}; a suspended person may not exercise authority held directly or by delegation")
 
+    # 3a. a passage the extractor failed to read, which names this person, may hold the
+    # restriction that changes the answer: an incomplete read is doubt, not absence
+    entity = next(e for e in state.entities if e.id == person)
+    names = [entity.canonical_name, *entity.aliases]
+    unread = [u for u in state.unread_spans if any(n and n.lower() in (u.get("span_text") or "").lower() for n in names)]
+    if unread:
+        return unknown(f"the document was not fully read: span {unread[0].get('id')} names {person} but the extractor failed on it ({unread[0].get('error', '')[:80]})")
+
+    # 3b. a restriction on this person that could not be fully resolved is doubt, not absence:
+    # nobody may be allowed past a prohibition the engine could not read
+    unresolved_restrictions = [
+        c for c in state.claims
+        if c.status.value == "REJECTED" and c.subject_entity == person and c.rejection_reason and c.rejection_reason.startswith("unresolved object")
+        and (c.predicate is Predicate.SUSPENDED or (c.predicate is Predicate.MAY_APPROVE and c.polarity is Polarity.NEGATIVE))
+        and in_interval(request.on, c.valid_from, c.valid_until)
+    ]
+    if unresolved_restrictions:
+        c = unresolved_restrictions[0]
+        return unknown(f"a restriction on {person} could not be resolved ({c.id}: {c.rejection_reason}); the engine will not allow past a prohibition it cannot read")
+
     # 4. authority sources: direct via role, or by delegation
     roles = [b for b in state.beliefs if b.proposition.predicate is Predicate.HOLDS_ROLE and b.proposition.subject == person and _current(b, request.on) and b.status is BeliefStatus.SUPPORTED]
     limits: list[tuple[Belief, float | None, str]] = []  # (belief, max, source)

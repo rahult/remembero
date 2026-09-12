@@ -1,0 +1,1491 @@
+{
+  "extractor": "glm-flash",
+  "document": "delegation_policy_v1",
+  "claims": [
+    {
+      "subject": "Board",
+      "subject_kind": "role",
+      "predicate": "revokes_delegation",
+      "object": null,
+      "object_kind": "none",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "by resolution; right to vary any delegation at any time"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.5,
+      "id": "glm-flash_1",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_1",
+          "document_id": "delegation_policy_v1",
+          "page": 1,
+          "paragraph": 3,
+          "section": "1. Purpose",
+          "start_offset": 635,
+          "end_offset": 775,
+          "quoted_text": "Nothing in this policy creates an entitlement to any role, and the Board retains the right to vary any delegation at any time by resolution.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Alice Morgan",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Chief Financial Officer",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2024-03-01",
+      "valid_until": null,
+      "confidence": 0.9,
+      "id": "glm-flash_2",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_2",
+          "document_id": "delegation_policy_v1",
+          "page": 1,
+          "paragraph": 9,
+          "section": "3. Roles referred to in this policy",
+          "start_offset": 1897,
+          "end_offset": 2280,
+          "quoted_text": "Chief Financial Officer | Alice Morgan | 1 March 2024",
+          "authority": "table"
+        }
+      ]
+    },
+    {
+      "subject": "Bob Chen",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Finance Director",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2025-07-15",
+      "valid_until": null,
+      "confidence": 0.7,
+      "id": "glm-flash_3",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_3",
+          "document_id": "delegation_policy_v1",
+          "page": 1,
+          "paragraph": 10,
+          "section": "3. Roles referred to in this policy",
+          "start_offset": 1897,
+          "end_offset": 2280,
+          "quoted_text": "Finance Director | Bob Chen | 15 July 2025",
+          "authority": "table"
+        }
+      ]
+    },
+    {
+      "subject": "Carol Evans",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Procurement Manager",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2025-02-02",
+      "valid_until": null,
+      "confidence": 0.75,
+      "id": "glm-flash_4",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_4",
+          "document_id": "delegation_policy_v1",
+          "page": 1,
+          "paragraph": 11,
+          "section": "3. Roles referred to in this policy",
+          "start_offset": 1897,
+          "end_offset": 2280,
+          "quoted_text": "Procurement Manager | Carol Evans | 2 February 2025",
+          "authority": "table"
+        }
+      ]
+    },
+    {
+      "subject": "David Smith",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Accounts Payable Lead",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2025-11-11",
+      "valid_until": null,
+      "confidence": 0.6,
+      "id": "glm-flash_5",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_5",
+          "document_id": "delegation_policy_v1",
+          "page": 1,
+          "paragraph": 12,
+          "section": "3. Roles referred to in this policy",
+          "start_offset": 1897,
+          "end_offset": 2280,
+          "quoted_text": "Accounts Payable Lead | David Smith | 11 November 2025",
+          "authority": "table"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Financial Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 100000,
+        "currency": "AUD",
+        "category": "operational_expenditure",
+        "condition": "per transaction"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.98,
+      "id": "glm-flash_6",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_6",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 13,
+          "section": "4.1 Operational expenditure",
+          "start_offset": 2370,
+          "end_offset": 2468,
+          "quoted_text": "The Chief Financial Officer may approve operational expenditure up to AUD 100,000 per transaction.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Finance Director",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 50000,
+        "currency": "AUD",
+        "category": "operational_expenditure",
+        "condition": "per transaction"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.98,
+      "id": "glm-flash_7",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_7",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 14,
+          "section": "4.1 Operational expenditure",
+          "start_offset": 2470,
+          "end_offset": 2560,
+          "quoted_text": "The Finance Director may approve operational expenditure up to AUD 50,000 per transaction.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Procurement Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 20000,
+        "currency": "AUD",
+        "category": "operational_expenditure",
+        "condition": "the expenditure relates to goods or services procured under an approved supplier agreement"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.97,
+      "id": "glm-flash_8",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_8",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 15,
+          "section": "4.1 Operational expenditure",
+          "start_offset": 2562,
+          "end_offset": 2756,
+          "quoted_text": "The Procurement Manager may approve operational expenditure up to AUD 20,000 per transaction, provided the expenditure relates to goods or services procured under an approved supplier agreement.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Board",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "obligation",
+      "polarity": "positive",
+      "constraints": {
+        "currency": "AUD",
+        "category": "operational_expenditure",
+        "condition": "expenditure above AUD 100,000"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_9",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_9",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 16,
+          "section": "4.1 Operational expenditure",
+          "start_offset": 2758,
+          "end_offset": 2831,
+          "quoted_text": "Operational expenditure above AUD 100,000 requires approval by the Board.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Financial Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 250000,
+        "currency": "AUD",
+        "category": "capital_expenditure",
+        "condition": "per project"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.98,
+      "id": "glm-flash_10",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_10",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 18,
+          "section": "4.2 Capital expenditure",
+          "start_offset": 2997,
+          "end_offset": 3087,
+          "quoted_text": "The Chief Financial Officer may approve capital expenditure up to AUD 250,000 per project.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Finance Director",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 75000,
+        "currency": "AUD",
+        "category": "capital_expenditure",
+        "condition": "per project"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.98,
+      "id": "glm-flash_11",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_11",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 19,
+          "section": "4.2 Capital expenditure",
+          "start_offset": 3089,
+          "end_offset": 3171,
+          "quoted_text": "The Finance Director may approve capital expenditure up to AUD 75,000 per project.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Procurement Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "category": "capital_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.97,
+      "id": "glm-flash_12",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_12",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 20,
+          "section": "4.2 Capital expenditure",
+          "start_offset": 3173,
+          "end_offset": 3247,
+          "quoted_text": "The Procurement Manager may not approve capital expenditure of any amount.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Board",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "obligation",
+      "polarity": "positive",
+      "constraints": {
+        "category": "capital_expenditure",
+        "condition": "expenditure amount above AUD 250,000"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_13",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_13",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 21,
+          "section": "4.2 Capital expenditure",
+          "start_offset": 3249,
+          "end_offset": 3318,
+          "quoted_text": "Capital expenditure above AUD 250,000 requires approval by the Board.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "any person",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "expenditure",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "category": "expenditure",
+        "condition": "the person, a member of their immediate family, or an entity in which they hold a material interest would benefit from the expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_14",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_14",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 22,
+          "section": "4.3 Prohibitions applying to all approvers",
+          "start_offset": 3369,
+          "end_offset": 3595,
+          "quoted_text": "No person may approve expenditure from which they, a member of their immediate family, or an entity in which they hold a material interest would benefit. Such expenditure must be referred to the next higher level of authority.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Procurement Managers",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "expenditure benefiting themselves",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "category": "expenditure",
+        "condition": "expenditure benefiting themselves, under any circumstances"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_15",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_15",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 23,
+          "section": "4.3 Prohibitions applying to all approvers",
+          "start_offset": 3597,
+          "end_offset": 3790,
+          "quoted_text": "Procurement Managers must not approve expenditure benefiting themselves under any circumstances, and must not split a purchase into smaller transactions in order to bring it within their limit.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Procurement Managers",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "purchases split into smaller transactions",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "category": "expenditure",
+        "condition": "splitting a purchase into smaller transactions in order to bring it within their limit"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.9,
+      "id": "glm-flash_16",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_16",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 23,
+          "section": "4.3 Prohibitions applying to all approvers",
+          "start_offset": 3597,
+          "end_offset": 3790,
+          "quoted_text": "Procurement Managers must not approve expenditure benefiting themselves under any circumstances, and must not split a purchase into smaller transactions in order to bring it within their limit.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "approver",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "own expense claims",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "category": "expenditure",
+        "condition": "the expense claim is the approver's own claim"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_17",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_17",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 24,
+          "section": "4.3 Prohibitions applying to all approvers",
+          "start_offset": 3792,
+          "end_offset": 3846,
+          "quoted_text": "An approver must not approve their own expense claims.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "role holder",
+      "subject_kind": "role",
+      "predicate": "delegates",
+      "object": "another employee",
+      "object_kind": "person",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "delegation of all or part of their approval authority for a defined period not exceeding thirty days, by written notice to the Financial Controller stating the delegate, the scope of authority delegated, and the start and end dates"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_18",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_18",
+          "document_id": "delegation_policy_v1",
+          "page": 3,
+          "paragraph": 25,
+          "section": "5.1 General conditions",
+          "start_offset": 3925,
+          "end_offset": 4190,
+          "quoted_text": "A role holder may delegate all or part of their approval authority to another employee for a defined period not exceeding thirty days, by written notice to the Financial Controller stating the delegate, the scope of authority delegated, and the start and end dates.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "delegate",
+      "subject_kind": "role",
+      "predicate": "delegates",
+      "object": null,
+      "object_kind": "none",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "condition": "further delegation of authority held by delegation"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_19",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_19",
+          "document_id": "delegation_policy_v1",
+          "page": 3,
+          "paragraph": 26,
+          "section": "5.1 General conditions",
+          "start_offset": 4192,
+          "end_offset": 4262,
+          "quoted_text": "A delegate may not further delegate authority they hold by delegation.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "delegate",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "obligation",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "delegated authority is exercised subject to every limit and prohibition that applies to the delegating role holder, and to any narrower limit stated in the notice of delegation"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.6,
+      "id": "glm-flash_20",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_20",
+          "document_id": "delegation_policy_v1",
+          "page": 3,
+          "paragraph": 27,
+          "section": "5.1 General conditions",
+          "start_offset": 4264,
+          "end_offset": 4441,
+          "quoted_text": "Delegated authority is exercised subject to every limit and prohibition that applies to the delegating role holder, and to any narrower limit stated in the notice of delegation.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Alice Morgan",
+      "subject_kind": "person",
+      "predicate": "delegates",
+      "object": "Bob Chen",
+      "object_kind": "person",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 100000,
+        "currency": "AUD",
+        "category": "operational_expenditure",
+        "condition": "during Alice Morgan's period of leave from 1 September 2026 to 20 September 2026"
+      },
+      "valid_from": "2026-09-01",
+      "valid_until": "2026-09-20",
+      "confidence": 0.95,
+      "id": "glm-flash_21",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_21",
+          "document_id": "delegation_policy_v1",
+          "page": 3,
+          "paragraph": 28,
+          "section": "5.2 Delegations in force at the date of this version",
+          "start_offset": 4502,
+          "end_offset": 4763,
+          "quoted_text": "During Alice Morgan's period of leave from 1 September 2026 to 20 September 2026, Alice delegates to Bob Chen her authority to approve operational expenditure. Under this delegation Bob Chen may approve operational expenditure up to AUD 100,000 per transaction.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Bob Chen",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 100000,
+        "currency": "AUD",
+        "category": "operational_expenditure",
+        "condition": "per transaction, under this delegation"
+      },
+      "valid_from": "2026-09-01",
+      "valid_until": "2026-09-20",
+      "confidence": 0.95,
+      "id": "glm-flash_22",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_22",
+          "document_id": "delegation_policy_v1",
+          "page": 3,
+          "paragraph": 28,
+          "section": "5.2 Delegations in force at the date of this version",
+          "start_offset": 4502,
+          "end_offset": 4763,
+          "quoted_text": "During Alice Morgan's period of leave from 1 September 2026 to 20 September 2026, Alice delegates to Bob Chen her authority to approve operational expenditure. Under this delegation Bob Chen may approve operational expenditure up to AUD 100,000 per transaction.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Bob Chen",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "assertion",
+      "polarity": "negative",
+      "constraints": {
+        "category": "capital_expenditure",
+        "condition": "under the delegation in the preceding paragraph"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.6,
+      "id": "glm-flash_23",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_23",
+          "document_id": "delegation_policy_v1",
+          "page": 3,
+          "paragraph": 29,
+          "section": "5.2 Delegations in force at the date of this version",
+          "start_offset": 4765,
+          "end_offset": 4961,
+          "quoted_text": "The delegation in the preceding paragraph does not extend to capital expenditure. Bob Chen's authority for capital expenditure during that period remains the Finance Director limit in section 4.2.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Bob Chen",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "category": "capital_expenditure",
+        "condition": "during that period; limited to the Finance Director limit in section 4.2"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.85,
+      "id": "glm-flash_24",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_24",
+          "document_id": "delegation_policy_v1",
+          "page": 3,
+          "paragraph": 29,
+          "section": "5.2 Delegations in force at the date of this version",
+          "start_offset": 4765,
+          "end_offset": 4961,
+          "quoted_text": "The delegation in the preceding paragraph does not extend to capital expenditure. Bob Chen's authority for capital expenditure during that period remains the Finance Director limit in section 4.2.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Carol Evans",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": "invoices for operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 30000,
+        "currency": "AUD",
+        "category": "operational_expenditure",
+        "condition": "per transaction, while the Accounts Payable function is understaffed"
+      },
+      "valid_from": "2026-09-01",
+      "valid_until": "2026-09-15",
+      "confidence": 0.95,
+      "id": "glm-flash_25",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_25",
+          "document_id": "delegation_policy_v1",
+          "page": 3,
+          "paragraph": 30,
+          "section": "5.2 Delegations in force at the date of this version",
+          "start_offset": 4963,
+          "end_offset": 5267,
+          "quoted_text": "Carol Evans may approve invoices for operational expenditure up to AUD 30,000 per transaction between 1 September 2026 and 15 September 2026, while the Accounts Payable function is understaffed. This is a temporary extension of the Procurement Manager limit and lapses automatically on 15 September 2026.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Carol Evans",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": "Procurement Manager limit",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 30000,
+        "currency": "AUD",
+        "category": "operational_expenditure",
+        "condition": "temporary extension of the Procurement Manager limit; lapses automatically on 15 September 2026"
+      },
+      "valid_from": "2026-09-01",
+      "valid_until": "2026-09-15",
+      "confidence": 0.7,
+      "id": "glm-flash_26",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_26",
+          "document_id": "delegation_policy_v1",
+          "page": 3,
+          "paragraph": 30,
+          "section": "5.2 Delegations in force at the date of this version",
+          "start_offset": 4963,
+          "end_offset": 5267,
+          "quoted_text": "Carol Evans may approve invoices for operational expenditure up to AUD 30,000 per transaction between 1 September 2026 and 15 September 2026, while the Accounts Payable function is understaffed. This is a temporary extension of the Procurement Manager limit and lapses automatically on 15 September 2026.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "D. Smith",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": "utilities invoices",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 5000,
+        "currency": "AUD",
+        "category": "operational_expenditure",
+        "condition": "per transaction; while the Accounts Payable backlog is cleared"
+      },
+      "valid_from": "2026-09-01",
+      "valid_until": "2026-09-30",
+      "confidence": 0.98,
+      "id": "glm-flash_27",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_27",
+          "document_id": "delegation_policy_v1",
+          "page": 3,
+          "paragraph": 31,
+          "section": "5.2 Delegations in force at the date of this version",
+          "start_offset": 5269,
+          "end_offset": 5468,
+          "quoted_text": "D. Smith may approve utilities invoices classified as operational expenditure up to AUD 5,000 per transaction from 1 September 2026 to 30 September 2026 while the Accounts Payable backlog is cleared.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Accounts Payable Lead",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "assertion",
+      "polarity": "negative",
+      "constraints": {
+        "condition": "under this policy"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_28",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_28",
+          "document_id": "delegation_policy_v1",
+          "page": 3,
+          "paragraph": 32,
+          "section": "5.3 Notification",
+          "start_offset": 5493,
+          "end_offset": 5799,
+          "quoted_text": "The Financial Controller shall record every delegation in the delegation register and notify the Accounts Payable Lead. The Accounts Payable Lead is responsible for ensuring that the finance system reflects delegations in force. The Accounts Payable Lead does not hold approval authority under this policy.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "The Board",
+      "subject_kind": "role",
+      "predicate": "suspended",
+      "object": "a person",
+      "object_kind": "person",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "pending the outcome of an investigation"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_29",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_29",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 33,
+          "section": "6.1 Suspension",
+          "start_offset": 5872,
+          "end_offset": 6154,
+          "quoted_text": "The Board or the Chief Executive Officer may suspend a person's approval authority pending the outcome of an investigation. A suspended person retains their role but may not exercise any approval authority, whether held directly or by delegation, for the duration of the suspension.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Executive Officer",
+      "subject_kind": "role",
+      "predicate": "suspended",
+      "object": "a person",
+      "object_kind": "person",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "pending the outcome of an investigation"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_30",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_30",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 33,
+          "section": "6.1 Suspension",
+          "start_offset": 5872,
+          "end_offset": 6154,
+          "quoted_text": "The Board or the Chief Executive Officer may suspend a person's approval authority pending the outcome of an investigation. A suspended person retains their role but may not exercise any approval authority, whether held directly or by delegation, for the duration of the suspension.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "a suspended person",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": null,
+      "object_kind": "none",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.9,
+      "id": "glm-flash_31",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_31",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 33,
+          "section": "6.1 Suspension",
+          "start_offset": 5872,
+          "end_offset": 6154,
+          "quoted_text": "The Board or the Chief Executive Officer may suspend a person's approval authority pending the outcome of an investigation. A suspended person retains their role but may not exercise any approval authority, whether held directly or by delegation, for the duration of the suspension.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "a suspended person",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "condition": "for the duration of the suspension; applies to approval authority held directly or by delegation"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_32",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_32",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 33,
+          "section": "6.1 Suspension",
+          "start_offset": 5872,
+          "end_offset": 6154,
+          "quoted_text": "The Board or the Chief Executive Officer may suspend a person's approval authority pending the outcome of an investigation. A suspended person retains their role but may not exercise any approval authority, whether held directly or by delegation, for the duration of the suspension.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Carol Evans",
+      "subject_kind": "person",
+      "predicate": "suspended",
+      "object": "approval authority",
+      "object_kind": "category",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "pending review of supplier onboarding procedures; until further notice"
+      },
+      "valid_from": "2026-09-08",
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_33",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_33",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 34,
+          "section": "6.1 Suspension",
+          "start_offset": 6156,
+          "end_offset": 6373,
+          "quoted_text": "Carol Evans's approval authority is suspended with effect from 8 September 2026 until further notice pending review of supplier onboarding procedures. Carol Evans remains the Procurement Manager during the suspension.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Carol Evans",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Procurement Manager",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "during the suspension"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_34",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_34",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 34,
+          "section": "6.1 Suspension",
+          "start_offset": 6156,
+          "end_offset": 6373,
+          "quoted_text": "Carol Evans's approval authority is suspended with effect from 8 September 2026 until further notice pending review of supplier onboarding procedures. Carol Evans remains the Procurement Manager during the suspension.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "delegating role holder",
+      "subject_kind": "role",
+      "predicate": "revokes_delegation",
+      "object": null,
+      "object_kind": "none",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "at any time, by written notice to the Financial Controller"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_35",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_35",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 35,
+          "section": "6.2 Revocation",
+          "start_offset": 6396,
+          "end_offset": 6626,
+          "quoted_text": "A delegating role holder may revoke a delegation at any time by written notice to the Financial Controller. Revocation takes effect from the date stated in the notice or, if no date is stated, from the date the notice is received.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "delegating role holder",
+      "subject_kind": "role",
+      "predicate": "revokes_delegation",
+      "object": null,
+      "object_kind": "none",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "revocation takes effect from the date stated in the notice or, if no date is stated, from the date the notice is received"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.85,
+      "id": "glm-flash_36",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_36",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 35,
+          "section": "6.2 Revocation",
+          "start_offset": 6396,
+          "end_offset": 6626,
+          "quoted_text": "A delegating role holder may revoke a delegation at any time by written notice to the Financial Controller. Revocation takes effect from the date stated in the notice or, if no date is stated, from the date the notice is received.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Alice Morgan",
+      "subject_kind": "person",
+      "predicate": "revokes_delegation",
+      "object": "Bob Chen",
+      "object_kind": "person",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "category": "operational_expenditure",
+        "condition": "Revokes the delegation of operational expenditure authority to Bob Chen described in section 5.2, by notice dated 10 September 2026; amendment supersedes the end date stated in section 5.2"
+      },
+      "valid_from": "2026-09-12",
+      "valid_until": null,
+      "confidence": 0.95,
+      "id": "glm-flash_37",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_37",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 36,
+          "section": "6.3 Amendment to the delegation in section 5.2",
+          "start_offset": 6681,
+          "end_offset": 7042,
+          "quoted_text": "By notice dated 10 September 2026, Alice Morgan revoked the delegation of operational expenditure authority to Bob Chen described in section 5.2, with effect from 12 September 2026. From that date Bob Chen's authority for operational expenditure reverts to the Finance Director limit in section 4.1. This amendment supersedes the end date stated in section 5.2.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Bob Chen",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": "Finance Director limit (section 4.1)",
+      "object_kind": "role",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "category": "operational_expenditure",
+        "condition": "Authority for operational expenditure reverts to the Finance Director limit in section 4.1 following revocation of the section 5.2 delegation"
+      },
+      "valid_from": "2026-09-12",
+      "valid_until": null,
+      "confidence": 0.9,
+      "id": "glm-flash_38",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_38",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 36,
+          "section": "6.3 Amendment to the delegation in section 5.2",
+          "start_offset": 6681,
+          "end_offset": 7042,
+          "quoted_text": "By notice dated 10 September 2026, Alice Morgan revoked the delegation of operational expenditure authority to Bob Chen described in section 5.2, with effect from 12 September 2026. From that date Bob Chen's authority for operational expenditure reverts to the Finance Director limit in section 4.1. This amendment supersedes the end date stated in section 5.2.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Finance Director",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 100000,
+        "currency": "AUD",
+        "category": "capital_expenditure",
+        "condition": "per project"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.9,
+      "id": "glm-flash_39",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_39",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 37,
+          "section": "7. Records and review",
+          "start_offset": 7071,
+          "end_offset": 7506,
+          "quoted_text": "All approvals must be recorded in the finance system within two business days. The Financial Controller will sample approvals quarterly and report exceptions to the Audit and Risk Committee. Capital expenditure approved by the Finance Director is capped at AUD 100,000 per project and must be reported to the Committee at its next meeting. This policy will be reviewed annually or earlier if the Company's structure changes materially.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Board",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "requests to vary a limit",
+      "object_kind": "category",
+      "modality": "obligation",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "request to vary a limit must be made in writing"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.8,
+      "id": "glm-flash_40",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_40",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 38,
+          "section": "7. Records and review",
+          "start_offset": 7508,
+          "end_offset": 7913,
+          "quoted_text": "Questions about this policy should be directed to the Office of the CFO. Requests to vary a limit must be made in writing and approved by the Board. The Company's general travel policy, gifts and hospitality policy and procurement policy continue to apply alongside this document. Employees are reminded that the Company's values of integrity, accountability and respect apply to every financial decision.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Financial Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 100000,
+        "currency": "AUD"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.5,
+      "id": "glm-flash_41",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_41",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 41,
+          "section": "Appendix A. Summary of approval limits",
+          "start_offset": 8138,
+          "end_offset": 8785,
+          "quoted_text": "Chief Financial Officer | AUD 100,000 | AUD 250,000",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Chief Financial Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 250000,
+        "currency": "AUD"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.5,
+      "id": "glm-flash_42",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_42",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 41,
+          "section": "Appendix A. Summary of approval limits",
+          "start_offset": 8138,
+          "end_offset": 8785,
+          "quoted_text": "Chief Financial Officer | AUD 100,000 | AUD 250,000",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Finance Director",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 50000,
+        "currency": "AUD",
+        "category": "expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.6,
+      "id": "glm-flash_43",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_43",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 42,
+          "section": "Appendix A. Summary of approval limits",
+          "start_offset": 8138,
+          "end_offset": 8785,
+          "quoted_text": "Finance Director | AUD 50,000 | AUD 75,000",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Finance Director",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 75000,
+        "currency": "AUD",
+        "category": "expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.6,
+      "id": "glm-flash_44",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_44",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 42,
+          "section": "Appendix A. Summary of approval limits",
+          "start_offset": 8138,
+          "end_offset": 8785,
+          "quoted_text": "Finance Director | AUD 50,000 | AUD 75,000",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Procurement Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "maximum_amount": 25000,
+        "currency": "AUD"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.7,
+      "id": "glm-flash_45",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_45",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 43,
+          "section": "Appendix A. Summary of approval limits",
+          "start_offset": 8138,
+          "end_offset": 8785,
+          "quoted_text": "Procurement Manager | AUD 25,000 | Not permitted",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Accounts Payable Lead",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {},
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.5,
+      "id": "glm-flash_46",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_46",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 44,
+          "section": "Appendix A. Summary of approval limits",
+          "start_offset": 8138,
+          "end_offset": 8785,
+          "quoted_text": "Accounts Payable Lead | Not permitted | Not permitted",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Accounts Payable Lead",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": null,
+      "object_kind": "none",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {},
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 0.5,
+      "id": "glm-flash_47",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_47",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 44,
+          "section": "Appendix A. Summary of approval limits",
+          "start_offset": 8138,
+          "end_offset": 8785,
+          "quoted_text": "Accounts Payable Lead | Not permitted | Not permitted",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "CFO",
+      "subject_kind": "role",
+      "predicate": "holds_role",
+      "object": null,
+      "object_kind": "none",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "CFO appointment reflected in policy"
+      },
+      "valid_from": "2024-03-03",
+      "valid_until": null,
+      "confidence": 0.5,
+      "id": "glm-flash_48",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_48",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 48,
+          "section": "Appendix B. Contact and change log",
+          "start_offset": 8975,
+          "end_offset": 9625,
+          "quoted_text": "1.1 | 3 March 2024 | CFO appointment reflected",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Finance Director",
+      "subject_kind": "role",
+      "predicate": "holds_role",
+      "object": null,
+      "object_kind": "none",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "condition": "appointment reflected"
+      },
+      "valid_from": "2025-08-01",
+      "valid_until": null,
+      "confidence": 0.55,
+      "id": "glm-flash_49",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_49",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 49,
+          "section": "Appendix B. Contact and change log",
+          "start_offset": 8975,
+          "end_offset": 9625,
+          "quoted_text": "1.2 | 1 August 2025 | Finance Director appointment reflected",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "subject": "Section 6.3",
+      "subject_kind": "role",
+      "predicate": "revokes_delegation",
+      "object": "Bob Chen",
+      "object_kind": "person",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2026-09-10",
+      "valid_until": null,
+      "confidence": 0.6,
+      "id": "glm-flash_50",
+      "evidence": [
+        {
+          "id": "ev_glm-flash_50",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 51,
+          "section": "Appendix B. Contact and change log",
+          "start_offset": 8975,
+          "end_offset": 9625,
+          "quoted_text": "1.4 | 10 September 2026 | Section 6.3 added (revocation of delegation to Bob Chen)",
+          "authority": "appendix"
+        }
+      ]
+    }
+  ]
+}

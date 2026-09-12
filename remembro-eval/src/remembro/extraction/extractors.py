@@ -152,19 +152,36 @@ Rules: quote nothing you cannot see in the passage; "may not" and "must not" are
 
 
 class LlmExtractor:
-    def __init__(self, base_url: str, model: str, api_key: str, name: str | None = None, timeout: int = 120) -> None:
+    def __init__(self, base_url: str, model: str, api_key: str, name: str | None = None, timeout: int = 180, max_tokens: int = 6000) -> None:
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.api_key = api_key
         self.name = name or model.replace("/", "-")
         self.timeout = timeout
+        self.max_tokens = max_tokens
 
     def _complete(self, passage: str) -> str:
-        body = json.dumps({"model": self.model, "temperature": 0, "max_tokens": 1500, "messages": [{"role": "system", "content": EXTRACTION_PROMPT}, {"role": "user", "content": passage}]}).encode()
+        # one retry at double the budget: a reasoning model that loops on a short table row
+        # usually settles the second time; if not, the span is recorded as unread
+        try:
+            return self._complete_once(passage, self.max_tokens)
+        except RuntimeError as error:
+            if "truncated" not in str(error):
+                raise
+            return self._complete_once(passage, self.max_tokens * 2)
+
+    def _complete_once(self, passage: str, max_tokens: int) -> str:
+        # reasoning models spend most of the budget thinking before the JSON; a tight cap
+        # truncates the answer and the span silently yields nothing, which is the one failure
+        # a boundary must not hide
+        body = json.dumps({"model": self.model, "temperature": 0, "max_tokens": max_tokens, "messages": [{"role": "system", "content": EXTRACTION_PROMPT}, {"role": "user", "content": passage}]}).encode()
         req = urllib.request.Request(f"{self.base_url}/chat/completions", data=body, headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=self.timeout) as response:
             data = json.loads(response.read().decode())
-        return data["choices"][0]["message"]["content"] or ""
+        choice = data["choices"][0]
+        if choice.get("finish_reason") == "length":
+            raise RuntimeError(f"reply truncated at {max_tokens} tokens")
+        return choice["message"]["content"] or ""
 
     def extract(self, document: ParsedDocument) -> list[dict]:
         out: list[dict] = []
@@ -175,14 +192,16 @@ class LlmExtractor:
             try:
                 reply = self._complete(span.text)
             except Exception as error:  # noqa: BLE001 - the boundary must not crash the pipeline
-                out.append({"id": f"{self.name}_error_{span.paragraph}", "error": str(error)[:200]})
+                out.append({"id": f"{self.name}_error_{span.paragraph}", "error": str(error)[:200], "span_text": span.text})
                 continue
             match = re.search(r"\[[\s\S]*\]", reply)
             if not match:
+                out.append({"id": f"{self.name}_error_{span.paragraph}", "error": f"no JSON array in reply: {reply[:120]!r}", "span_text": span.text})
                 continue
             try:
                 items = json.loads(match.group(0))
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as error:
+                out.append({"id": f"{self.name}_error_{span.paragraph}", "error": f"unparseable JSON: {error}", "span_text": span.text})
                 continue
             for item in items if isinstance(items, list) else []:
                 if not isinstance(item, dict):

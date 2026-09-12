@@ -120,3 +120,99 @@ class TestDecisions:
         s, _ = build_state(GOLD["claims"], entities, loose)
         d = decide(Request.model_validate(s7["request"]), s, loose)
         assert d.decision.value == "ALLOW"  # this is the unsafe merge the sensitivity report must show
+
+
+class TestGrounding:
+    """A claim that parses is not yet a claim the engine may act on: its numbers, dates and
+    ceiling must be visible in its own evidence. These are the cases GLM Flash produced."""
+
+    def _glm(self):
+        return json.loads((ROOT / "fixtures/runs/glm-flash-1500tok.claims.json").read_text())["claims"]
+
+    def test_gold_claims_are_all_grounded(self):
+        from remembro.claims.grounding import ground
+        kept, dropped = ground(GOLD["claims"])
+        assert dropped == []
+        assert len(kept) == len(GOLD["claims"])
+
+    def test_amount_absent_from_evidence_is_rejected(self):
+        from remembro.claims.grounding import ground
+        c = json.loads(json.dumps(next(x for x in GOLD["claims"] if x["id"] == "claim_fd_opex")))
+        c["constraints"]["maximum_amount"] = 60000
+        _, dropped = ground([c])
+        assert len(dropped) == 1 and "amount" in dropped[0][1]
+
+    def test_date_absent_from_evidence_is_rejected(self):
+        from remembro.claims.grounding import ground
+        c = json.loads(json.dumps(next(x for x in GOLD["claims"] if x["id"] == "claim_delegation_alice_bob")))
+        c["valid_until"] = "2026-09-25"
+        _, dropped = ground([c])
+        assert len(dropped) == 1 and "date" in dropped[0][1]
+
+    def test_positive_permission_without_ceiling_needs_the_text_to_say_so(self):
+        from remembro.claims.grounding import ground
+        # GLM read "the delegation does not extend to capital expenditure" as an unlimited grant
+        glm = self._glm()
+        bad = [c for c in glm if c.get("predicate") == "may_approve" and c.get("polarity") == "positive" and c.get("constraints", {}).get("maximum_amount") is None and c.get("subject") == "Bob Chen"]
+        assert bad, "fixture changed: the ungrounded unlimited grant is gone"
+        _, dropped = ground(bad)
+        assert len(dropped) == len(bad) and all("ceiling" in r for _, r in dropped)
+
+    def test_grounding_removes_glm_unjustified_allow_for_the_conflict_scenario(self):
+        # scenario 6 asked UNKNOWN; GLM's ungrounded grant made it ALLOW. Grounding must turn
+        # that into a safe outcome (UNKNOWN or DENY), never ALLOW.
+        report, _ = run(GOLD, self._glm(), "glm")
+        s6 = next(d for d in report.decisions if d["id"] == "scenario_06")
+        assert s6["got"] != "ALLOW"
+
+
+class TestRestrictionsSurviveExtractorNoise:
+    """Dropping a restriction fails toward permission. These cases came from GLM Flash."""
+
+    def _glm(self):
+        return json.loads((ROOT / "fixtures/runs/glm-flash.claims.json").read_text())["claims"]
+
+    def test_suspension_ignores_a_meaningless_object(self):
+        susp = json.loads(json.dumps(next(x for x in GOLD["claims"] if x["id"] == "claim_carol_suspended")))
+        susp["object"], susp["object_kind"] = "approval authority", "category"
+        s, _ = state_from([*[c for c in GOLD["claims"] if c["id"] != "claim_carol_suspended"], susp])
+        assert s.claim("claim_carol_suspended").status.value == "ACCEPTED"
+        s8 = next(x for x in GOLD["scenarios"] if x["id"] == "scenario_08")
+        assert decide(Request.model_validate(s8["request"]), s, resolver()).decision.value == "DENY"
+
+    def test_unresolved_restriction_on_a_known_person_makes_decisions_unknown(self):
+        # a prohibition on Carol whose object nobody can resolve is not nothing: it is doubt
+        bad = {**json.loads(json.dumps(GOLD["claims"][0])), "id": "odd", "subject": "Carol Evans", "subject_kind": "person",
+               "predicate": "may_approve", "object": "gadgets", "object_kind": "category", "modality": "prohibition", "polarity": "negative",
+               "constraints": {}, "valid_from": None, "valid_until": None}
+        s, _ = state_from([*GOLD["claims"], bad])
+        s1 = next(x for x in GOLD["scenarios"] if x["id"] == "scenario_01")  # Alice, unaffected
+        assert decide(Request.model_validate(s1["request"]), s, resolver()).decision.value == "ALLOW"
+        carol = Request.model_validate({**next(x for x in GOLD["scenarios"] if x["id"] == "scenario_08")["request"], "on": "2026-09-05"})
+        assert decide(carol, s, resolver()).decision.value == "UNKNOWN"
+
+    def test_revocation_ends_a_grant_that_restates_the_delegation(self):
+        deleg = next(x for x in GOLD["claims"] if x["id"] == "claim_delegation_alice_bob")
+        restated = {**json.loads(json.dumps(deleg)), "id": "restated", "subject": "Bob Chen", "subject_kind": "person",
+                    "predicate": "may_approve", "object": "operational expenditure", "object_kind": "category", "modality": "permission"}
+        s, _ = state_from([*GOLD["claims"], restated])
+        assert str(s.claim("restated").valid_until) == "2026-09-11"
+        s5 = next(x for x in GOLD["scenarios"] if x["id"] == "scenario_05")
+        assert decide(Request.model_validate(s5["request"]), s, resolver()).decision.value == "DENY"
+
+    def test_glm_snapshot_has_no_unjustified_allow(self):
+        report, _ = run(GOLD, self._glm(), "glm")
+        assert report.unjustified_allow == 0, [d for d in report.decisions if not d["ok"]]
+
+
+class TestUnreadSpans:
+    def test_an_unread_span_naming_the_actor_makes_decisions_unknown(self):
+        # the truncated GLM run dropped §6.3 (the revocation) on the floor and allowed Bob;
+        # once the harness records the drop, the engine must refuse to decide about Bob
+        unread = {"id": "x_error_37", "error": "reply truncated at 1500 tokens", "span_text": "By notice dated 10 September 2026, Alice Morgan revoked the delegation of operational expenditure authority to Bob Chen described in section 5.2, with effect from 12 September 2026."}
+        without_revocation = [c for c in GOLD["claims"] if c["id"] != "claim_revocation"]
+        s, _ = state_from([*without_revocation, unread])
+        s5 = next(x for x in GOLD["scenarios"] if x["id"] == "scenario_05")
+        assert decide(Request.model_validate(s5["request"]), s, resolver()).decision.value == "UNKNOWN"
+        s8 = next(x for x in GOLD["scenarios"] if x["id"] == "scenario_08")  # Carol is not named there
+        assert decide(Request.model_validate(s8["request"]), s, resolver()).decision.value == "DENY"

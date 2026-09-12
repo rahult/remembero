@@ -15,6 +15,7 @@ document → DocumentParser → ParsedDocument
         → CandidateClaims
         ---------------- trust boundary ----------------
         → schema validation (Pydantic; a claim that does not parse never enters the state)
+        → grounding                  amounts, dates and "no ceiling" must appear in the claim's own quote
         → EntityResolver             MATCH | POSSIBLE_MATCH | NO_MATCH, thresholds are the knob
         → revocations supersede delegation end dates
         → ConflictDetector           same subject and category, different limit or polarity
@@ -24,7 +25,11 @@ document → DocumentParser → ParsedDocument
 ```
 
 Everything above the boundary may be wrong and replaceable. Everything below is plain Python,
-deterministic, and never consults a model. A POSSIBLE_MATCH never mutates state; a grant to a
+deterministic, and never consults a model. Grounding is the second gate after the schema: a
+well-formed claim whose maximum amount or dates are not in its quoted evidence is rejected,
+and a positive permission with no ceiling is rejected unless the text says the authority is
+unlimited. Those three string checks exist because a frontier model produced exactly those
+claims (below). A POSSIBLE_MATCH never mutates state; a grant to a
 POSSIBLE_MATCH makes any decision that depends on it UNKNOWN. An unresolved contradiction
 makes a decision UNKNOWN only when the two values disagree about that request; the one
 resolution rule applied is the one the document states itself (the body prevails over the
@@ -35,7 +40,7 @@ appendix).
 ```sh
 cd remembro-eval
 python3 -m venv .venv && .venv/bin/pip install pydantic pytest
-.venv/bin/python -m pytest -q                                   # 30 tests
+.venv/bin/python -m pytest -q                                   # 40 tests
 PYTHONPATH=src .venv/bin/python -m remembro.cli evaluate        # the gold claims as a perfect extractor
 PYTHONPATH=src .venv/bin/python -m remembro.cli ingest fixtures/delegation_policy_v1.md --extractor rules
 PYTHONPATH=src .venv/bin/python -m remembro.cli --run-name rules evaluate
@@ -58,16 +63,69 @@ one benchmark.
 
 ## Results
 
-| extractor                    | decisions | claim P / R | temporal | modality | contradictions | provenance | unjustified ALLOW | UNKNOWN |
-| ---------------------------- | --------- | ----------- | -------- | -------- | -------------- | ---------- | ----------------- | ------- |
-| gold claims (perfect)        | 17 / 17   | 100 / 100   | 100%     | 100%     | 2 / 2          | 100%       | 0                 | 3       |
-| rules (regex, 0 model calls) | 17 / 17   | 90 / 90     | 78%      | 100%     | 2 / 2          | 100%       | 0                 | 3       |
+Every extractor is replayed through the same deterministic downstream. Snapshots are in
+`fixtures/runs/`, so each row is reproducible without a model.
 
-The three UNKNOWNs are the ones the spec asks for: the body-versus-body limit conflict
-(scenario 6), the `D. Smith` identity (scenario 7) and a currency mismatch (scenario 14). The
-threshold sensitivity test shows the property the spec predicts: at a match threshold of 0.6
-the initial merges with David Smith and scenario 7 becomes an ALLOW, which the test suite
-asserts as the unsafe case.
+| extractor                                                | decisions | claim P / R | temporal | modality | contradictions | unjustified ALLOW | UNKNOWN |
+| -------------------------------------------------------- | --------- | ----------- | -------- | -------- | -------------- | ----------------- | ------- |
+| gold claims (perfect)                                    | 17 / 17   | 100 / 100   | 100%     | 100%     | 2 / 2          | 0                 | 3       |
+| rules (regex, 0 model calls)                             | 17 / 17   | 90 / 90     | 78%      | 100%     | 2 / 2          | 0                 | 3       |
+| r19 writer (our Gemma 4 E2B LoRA, zero-shot on this schema) | 15 / 17 | 21 / 60   | 78%      | 86%      | 0 / 2          | 0                 | 2       |
+| GLM 5.3 Flash, 1,500-token cap, drops hidden (first run) | 15 / 17   | 44 / 70     | 89%      | 100%     | 0 / 2          | **1**             | 2       |
+| GLM 5.3 Flash, 6,000-token cap, 2 unread spans recorded  | 12 / 17   | 37 / 80     | 89%      | 100%     | 1 / 2          | 0                 | 8       |
+| GLM 5.3 Flash, one retry on truncation, 0 unread spans   | 17 / 17   | 36 / 80     | 89%      | 94%      | 1 / 2          | 0                 | 3       |
+
+Provenance coverage is 100% on every row: an accepted claim always carries a located quote.
+
+**The writer arm.** The fine-tuned fact extractor was never trained on this claim vocabulary,
+and it behaves like it: of 59 candidates, 45 never crossed the boundary. 28 used a predicate
+outside the six (`has_budget`, `requires_approval`, `retains_right`, `notifies`…), 12 gave a
+subject kind the schema does not accept, 4 an object kind, 1 dropped a required field. The 10
+claims that survived are all correct, so every decision made from them is justified; the two
+misses are a DENY where the gold says UNKNOWN (the §7 clause was not extracted, so no
+contradiction) and a DENY where the gold says ALLOW (Carol's extension was not extracted).
+Both fall on the safe side. Teaching the writer this vocabulary is a training-data job, not an
+engine change.
+
+**The frontier arm, and what it taught the boundary.** GLM 5.3 Flash produced schema-valid,
+provenance-bearing claims that were wrong in ways Pydantic cannot see, and the first run
+allowed a revoked delegation and a disputed capital limit. Each fault became a deterministic
+rule, with a test:
+
+1. *Ungrounded content.* From "the delegation does not extend to capital expenditure" GLM
+   emitted a positive, unlimited capital grant to Bob Chen. Grounding now rejects a claim whose
+   amount or dates are not in its own quote, and a positive permission with no ceiling unless
+   the text says the authority is unlimited. That alone turned the disputed-limit ALLOW into a
+   safe outcome.
+2. *A restriction with a meaningless object.* GLM put "approval authority" (kind category) in
+   the object slot of Carol's suspension; the resolver could not match it and rejected the
+   whole suspension, so Carol was allowed while suspended. `suspended` is now objectless by
+   arity, and any restriction on a known person whose object cannot be resolved makes decisions
+   about that person UNKNOWN instead of vanishing.
+3. *A restated delegation.* GLM emitted "Bob may approve up to 100k, 1–20 Sep" alongside
+   "Alice delegates to Bob" from the same paragraph. The revocation ended the delegation but
+   not its restatement, so Bob was allowed after the revocation. A revocation now also ends a
+   positive grant to the delegate, in that category, quoted from the delegation's own
+   paragraph.
+4. *A silent drop.* With a 1,500-token cap the reasoning model's reply for §6.3 (the
+   revocation) was truncated and the harness skipped the span without a trace. The harness now
+   records every failed span with its text, and the engine refuses to decide about a person
+   named in an unread span. On the second run two spans still truncated at 6,000 tokens, one
+   of them the change-log row "Section 6.3 added (revocation of delegation to Bob Chen)", so
+   every question about Bob became UNKNOWN: 12/17, zero unjustified ALLOW. That is the
+   trade-off the spec asks for, made visible. The remedy is on the extractor side (a retry at
+   double the budget), never a relaxation of the rule; with the retry every span is read and
+   the same model decides all 17 correctly with the three intended UNKNOWNs.
+
+The residual failure class the boundary cannot see is an omission that leaves no trace: an
+extractor that reads a passage and returns an empty array. Two arms that disagree about a span
+is the V1 answer to that.
+
+The three UNKNOWNs on the gold and rules rows are the ones the spec asks for: the
+body-versus-body limit conflict (scenario 6), the `D. Smith` identity (scenario 7) and a
+currency mismatch (scenario 14). The threshold sensitivity test shows the property the spec
+predicts: at a match threshold of 0.6 the initial merges with David Smith and scenario 7
+becomes an ALLOW, which the test suite asserts as the unsafe case.
 
 ## What is deliberately not here
 
