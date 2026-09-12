@@ -562,8 +562,13 @@ def serve() -> None:
         "bfloat16",
         "--max-model-len",
         "8192",
+        # vLLM's default profiling run assumes 256 concurrent sequences; on a 24 GB L4 the
+        # newer releases then find no memory left for the KV cache (2026-09-12). 32 is far
+        # above what the benchmarks drive.
+        "--max-num-seqs",
+        "32",
         "--gpu-memory-utilization",
-        "0.90",
+        "0.92",
         *reasoning_flags(served_base),
         "--api-key",
         api_key,
