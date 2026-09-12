@@ -336,6 +336,32 @@ Round 20 is r19's data retrained with `--max-length 4096`, so the 39% of real-se
 extraction 86, query 25. Inside the noise on every number, so the truncation was not what held
 r19 back; r19 stays served.
 
+### A structural (spaCy) reader as a parse-first extractor (2026-09-12)
+
+`prototype2/` (a separate experiment lab, not part of the product) showed that a deterministic
+structural reader (spaCy dependency parse → typed propositions with negation, cessation,
+modality and quantifiers, checked by rules) beats naive small-LLM flat reading on hand-built
+and template-generated claim-verification suites, and that a cascade (structure first, model
+only on structural abstention) halves model calls. The natural question for this project is
+whether parse-first extraction helps the facts leg. Measured on the same 283 real sessions
+and GLM labels as the table above, with the reader run over each session's user turns and
+propositions kept when the subject is first person, not negated, not modal, the object is a
+content word and the verb is not generic:
+
+| extractor               | fact recall | fact precision | facts |
+| ----------------------- | ----------: | -------------: | ----: |
+| Gemma 4 E2B r19         |       44.4% |          57.5% | 1,090 |
+| structural reader alone |        1.5% |          11.0% |   177 |
+| r19 ∪ structural        |       45.0% |          48.9% | 1,267 |
+
+It does not transfer. The parser expects declarative third-person sentences ("Sam works at
+Globex"); chat turns are first-person, elliptical and full of hedges, and what survives the
+filter is `interested(user, type)` and `refer(user, merger)`. The lesson the prototype drew
+for its own LLM arms (hand-suite scores did not survive a generated suite) applies to the
+parser on this text. The cascade principle itself stands and is already how the product
+works: the engine answers what structure can express (dates, closures, counts) and the model
+is asked only for the rest. No product change follows from this measurement.
+
 ### Extraction recall on real sessions (2026-09-10)
 
 The synthetic benchmark says the small model is within a few cases of the frontier model. A
