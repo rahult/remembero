@@ -6,3 +6,5 @@ __pycache__/
 !fixtures/runs/
 data/claims/conversations.jsonl
 data/claims/heldout.jsonl
+data/claims22/conversations.jsonl
+data/claims22/heldout.jsonl

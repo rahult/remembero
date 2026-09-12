@@ -1,0 +1,13 @@
+{
+  "base": "../data/training-r19",
+  "baseNotes": "r18 data (r14 recipe + repair turns) + 3,000 real sessions labelled by z-ai/glm-5.3-flash capped at 8 atomic facts (2,478 with facts) + 1,500 time-range extractor examples",
+  "base_train": 27853,
+  "claims_train": 2170,
+  "paraphrased": 767,
+  "claims_heldout": 138,
+  "duplicates_dropped": 1,
+  "train": 30790,
+  "heldout": 2383,
+  "generatedAt": "2026-09-12T06:36:03.809965+00:00",
+  "notes": "r19 data + claims-extraction task v2: 2,170 templated policy spans (171 negatives; adds lifted suspensions, role endings/replacements, amended limits, 24 multi-word roles, the 'is authorised to'/'shall not' register) + 300 GLM 5.3 Flash paraphrases of the new kinds + r21's 467 paraphrases; fixture names and roles excluded"
+}
