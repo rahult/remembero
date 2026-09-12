@@ -85,3 +85,21 @@ class TestInspect:
         assert ws.inspect("documents")[0]["id"] == "delegation_policy_v1"
         assert isinstance(ws.inspect("rejected"), list)
         assert any(t["event"] == "CLAIM_ACCEPTED" for t in ws.inspect("transitions"))
+
+
+class TestPolish:
+    def test_roles_get_acronym_aliases_when_auto_registered(self, ws):
+        ws.ingest(path=POLICY, effective_date="2026-01-01")
+        reg = {e["canonical_name"]: e for e in ws.register()}
+        assert "APL" in reg["Accounts Payable Lead"]["aliases"]
+        assert "Bob" in reg["Bob Chen"]["aliases"]
+
+    def test_status_overview(self, ws):
+        ws.ingest(path=POLICY, effective_date="2026-01-01")
+        st = ws.status()
+        assert st["documents"] == 1 and st["people"] >= 4 and st["roles"] >= 4
+        assert "open_contradictions" in st and "rejected_at_boundary" in st and st["extractor"]
+
+    def test_ingest_missing_path_is_an_error_not_a_crash(self, ws):
+        with pytest.raises(FileNotFoundError):
+            ws.ingest(path="/nonexistent/policy.md")

@@ -77,6 +77,12 @@ class Workspace:
                 self._save_register(reg)
                 return e
         entity = {"id": eid, "kind": kind, "canonical_name": name, "aliases": list(aliases or [])}
+        if kind == "role":
+            words = [w for w in name.split() if w[0].isupper()]
+            if len(words) >= 2:
+                acronym = "".join(w[0] for w in words)
+                if acronym not in entity["aliases"]:
+                    entity["aliases"].append(acronym)  # "Chief Operating Officer" answers to "COO"
         reg.append(entity)
         self._save_register(reg)
         return entity
@@ -137,6 +143,8 @@ class Workspace:
     def ingest(self, *, path: Path | str | None = None, text: str | None = None, document_id: str | None = None, effective_date: str | None = None, kind: str = "policy", candidates: list[dict] | None = None) -> dict:
         if path is not None:
             path = Path(path).expanduser()
+            if not path.exists():
+                raise FileNotFoundError(f"no such document: {path}")
             text = path.read_text()
             document_id = document_id or path.stem
         if text is None or not document_id:
@@ -230,6 +238,24 @@ class Workspace:
             "evidence": evidence,
             "beliefs_used": decision.beliefs_used,
             "documents_consulted": [d["id"] for d in self.documents()],
+        }
+
+    def status(self) -> dict:
+        state = self._state()
+        reg = self.register()
+        return {
+            "home": str(self.root),
+            "extractor": f"{self.extractor_kind}:{self.model}" if self.extractor_kind == "llm" else self.extractor_kind,
+            "documents": len(self.documents()),
+            "document_ids": [d["id"] for d in self.documents()],
+            "people": sum(1 for e in reg if e["kind"] == "person"),
+            "roles": sum(1 for e in reg if e["kind"] == "role"),
+            "categories": [e["canonical_name"] for e in reg if e["kind"] == "category"],
+            "accepted_claims": sum(1 for c in state.claims if c.status.value in ("ACCEPTED", "CONFLICTED")),
+            "rejected_at_boundary": len(state.unreadable_claims) + sum(1 for c in state.claims if c.status.value == "REJECTED"),
+            "unread_spans": len(state.unread_spans),
+            "open_contradictions": [{"id": c.id, "claims": c.claims} for c in state.contradictions if not c.resolved],
+            "resolved_contradictions": sum(1 for c in state.contradictions if c.resolved),
         }
 
     def inspect(self, what: str, query: str | None = None) -> list[dict]:
