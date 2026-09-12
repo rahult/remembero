@@ -83,7 +83,7 @@ describe('buildComputedNotes', () => {
         { ts: '2023-05-20T10:00:00Z', text: 'USER: Asheville was a 6 hours drive for the road trip.' },
       ],
     );
-    expect(notes).toMatch(/total.*15 hours/);
+    expect(notes).toMatch(/sum of.*15 hours/);
     const marathon = buildComputedNotes(
       'How many minutes did I exceed my target time by in the marathon?',
       '2023/05/30 (Tue) 22:30',
@@ -97,5 +97,35 @@ describe('buildComputedNotes', () => {
 
   it('is empty when the history has nothing datable or countable near the question', () => {
     expect(buildComputedNotes('What is my favourite colour?', '2023/05/30 (Tue) 19:37', [{ ts: '2023-05-10T10:00:00Z', text: 'USER: I like blue best.' }])).toBe('');
+  });
+});
+
+describe('lessons from the first paired run', () => {
+  it('keeps every paragraph of an assistant turn out of the user quantities', () => {
+    const text = 'ASSISTANT: Some options:\n\n**Tustin**: homes in the $250,000-$350,000 range.\n\nUSER: I saw a house on 2/15 and loved it.';
+    expect(extractQuantities(text)).toEqual([]);
+    const events = resolveTemporalExpressions(text, '2022-03-02T10:00:00Z');
+    expect(events.map((e) => e.iso)).toContain('2022-02-15');
+  });
+
+  it('offers a sum only when the question asks for a total', () => {
+    const sources = [
+      { ts: '2023-03-01T10:00:00Z', text: 'USER: I raised $1,000 for charity at the bake sale.' },
+      { ts: '2023-04-01T10:00:00Z', text: 'USER: I raised $2,750 for charity at the gala.' },
+    ];
+    expect(buildComputedNotes('How much money did I raise for charity in total?', '2023/05/30 (Tue) 19:37', sources)).toMatch(/sum of the 2 dollar figures above: 3750/);
+    expect(buildComputedNotes('Which charity event did I enjoy more?', '2023/05/30 (Tue) 19:37', sources)).not.toMatch(/sum of/);
+  });
+
+  it('states the order of dated events for order questions', () => {
+    const notes = buildComputedNotes(
+      'Which event did I participate in first, the charity gala or the charity bake sale?',
+      '2023/05/30 (Tue) 19:37',
+      [
+        { ts: '2023-03-28T10:00:00Z', text: 'USER: I am attending the charity gala tonight.' },
+        { ts: '2023-03-20T10:00:00Z', text: 'USER: The charity bake sale was yesterday.' },
+      ],
+    );
+    expect(notes).toMatch(/Order of the dated events, earliest first: 2023-03-19.*→ 2023-03-28/);
   });
 });

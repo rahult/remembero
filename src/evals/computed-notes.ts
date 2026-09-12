@@ -64,10 +64,19 @@ function msOf(day: string): number {
 /** User turns only: the assistant's hypotheticals must not become the user's dates. */
 export function userSentences(text: string): string[] {
   const out: string[] = [];
-  for (const block of text.split(/\n\s*\n/)) {
-    const trimmed = block.trim();
-    if (trimmed.startsWith('ASSISTANT:')) continue;
-    const body = trimmed.replace(/^USER:\s*/, '');
+  // split by turn marker so an assistant turn's later paragraphs keep their role
+  const marker = /^(USER|ASSISTANT):\s*/gm;
+  const turns: Array<{ role: string; body: string }> = [];
+  let m: RegExpExecArray | null;
+  let last: { role: string; start: number } | undefined;
+  while ((m = marker.exec(text)) !== null) {
+    if (last) turns.push({ role: last.role, body: text.slice(last.start, m.index) });
+    last = { role: m[1]!, start: m.index + m[0].length };
+  }
+  if (last) turns.push({ role: last.role, body: text.slice(last.start) });
+  else turns.push({ role: 'USER', body: text });
+  for (const { role, body } of turns) {
+    if (role !== 'USER') continue;
     for (const sentence of body.split(/(?<=[.!?])\s+|\n+/)) {
       const s = sentence.trim();
       if (s.length > 2) out.push(s);
@@ -100,6 +109,14 @@ export function resolveTemporalExpressions(text: string, sessionTs: string): Dat
     while ((m = us.exec(s)) !== null) {
       const y = m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3]);
       push({ iso: toIso(utc(y, Number(m[1]), Number(m[2]))), expression: m[0], sentence, sessionDay, kind: 'absolute' });
+    }
+    // "on 2/15" without a year: month/day, the year assumed from the session
+    const usShort = /(?<![\d/])(\d{1,2})\/(\d{1,2})(?![\d/])/g;
+    while ((m = usShort.exec(s)) !== null) {
+      const mo = Number(m[1]);
+      const d = Number(m[2]);
+      if (mo < 1 || mo > 12 || d < 1 || d > 31) continue;
+      push({ iso: toIso(utc(year, mo, d)), expression: m[0], sentence, sessionDay, kind: 'absolute', assumedYear: true });
     }
     // "March 7th, 2023" / "March 7" / "7 March 2023" / "7th of March"
     const monthDay = new RegExp(`\\b(${MONTH_RE})\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:,?\\s+(\\d{4}))?\\b`, 'gi');
@@ -240,11 +257,25 @@ export function buildComputedNotes(
   const maxQuantities = limits.maxQuantities ?? 16;
   const maxChars = limits.maxChars ?? 2600;
 
+  const q = question.toLowerCase();
+  const asksTotal = /\b(total|combined|altogether|in all|sum|how much|add(?:ed)? up)\b/.test(q);
+  const asksOrder = /\b(first|last|earlier|later|before|after|order|sequence|which .* (came|happened))\b/.test(q);
+  const unitsInQuestion = new Set(
+    (q.match(new RegExp(`\\b${UNIT_RE}\\b`, 'gi')) ?? []).map((u) => canonicalUnit(u)),
+  );
+  if (/\b(money|cost|spend|spent|paid|pay|price|raise[d]?|earn)\b/.test(q)) unitsInQuestion.add('dollar');
+  if (/\bpercent|%|percentage\b/.test(q)) unitsInQuestion.add('percent');
+  const keywordHits = (sentence: string) => keywords.filter((k) => sentence.toLowerCase().includes(k)).length;
+
   const events: DatedEvent[] = [];
   const quantities: Quantity[] = [];
   for (const source of [...sources].sort((l, r) => l.ts.localeCompare(r.ts))) {
     for (const e of resolveTemporalExpressions(source.text, source.ts)) if (relevant(e.sentence, keywords)) events.push(e);
-    for (const q of extractQuantities(source.text)) if (relevant(q.sentence, keywords)) quantities.push(q);
+    for (const x of extractQuantities(source.text)) {
+      // a quantity belongs to the question when its unit is named in the question, or its
+      // sentence shares two content words with it; one shared word lets in every stray number
+      if (unitsInQuestion.has(x.unit) ? keywordHits(x.sentence) >= 1 : keywordHits(x.sentence) >= 2) quantities.push(x);
+    }
   }
   const lines: string[] = [];
   const dated = events.slice(0, maxEvents);
@@ -255,6 +286,9 @@ export function buildComputedNotes(
       lines.push(`- ${e.iso}: "${snippet(e.sentence)}" [said ${e.sessionDay}, "${e.expression}"${flags ? `; ${flags}` : ''}] — ${distance(e.iso, questionDay)}`);
     }
     const distinct = [...new Map(dated.map((e) => [e.iso, e])).values()].sort((l, r) => l.iso.localeCompare(r.iso));
+    if (asksOrder && distinct.length >= 2) {
+      lines.push(`Order of the dated events, earliest first: ${distinct.map((e) => `${e.iso} ("${snippet(e.sentence, 36)}")${e.approximate ? ' [approximate]' : ''}`).join(' → ')}`);
+    }
     if (distinct.length >= 2) {
       lines.push('Gaps between dated events:');
       const pairs: Array<[DatedEvent, DatedEvent]> = [];
@@ -263,7 +297,7 @@ export function buildComputedNotes(
       } else {
         for (let i = 0; i + 1 < distinct.length; i++) pairs.push([distinct[i]!, distinct[i + 1]!]);
       }
-      for (const [a, b] of pairs) lines.push(`- ${a.iso} ("${snippet(a.sentence, 40)}") to ${b.iso} ("${snippet(b.sentence, 40)}"): ${gap(a.iso, b.iso)}`);
+      for (const [a, b] of pairs) lines.push(`- ${a.iso} ("${snippet(a.sentence, 40)}") to ${b.iso} ("${snippet(b.sentence, 40)}"): ${gap(a.iso, b.iso)}${a.approximate || b.approximate ? ' [approximate: one end is a rough expression like "a month ago"]' : ''}`);
     }
   }
   const counted = quantities.slice(0, maxQuantities);
@@ -273,9 +307,11 @@ export function buildComputedNotes(
     for (const q of counted) byUnit.set(q.unit, [...(byUnit.get(q.unit) ?? []), q]);
     for (const [unit, items] of byUnit) {
       for (const q of items) lines.push(`- ${q.value} ${unit}${q.value === 1 ? '' : 's'}: "${snippet(q.sentence)}"`);
-      if (items.length >= 2) {
+      if (items.length >= 2 && asksTotal) {
         const total = items.reduce((sum, q) => sum + q.value, 0);
-        lines.push(`  total of the ${items.length} ${unit} figures above: ${Number(total.toFixed(2))} ${unit}s`);
+        lines.push(`  sum of the ${items.length} ${unit} figures above: ${Number(total.toFixed(2))} ${unit}s (only if every figure above belongs to the question; drop any that do not and re-add)`);
+      }
+      if (items.length >= 2) {
         if (items.length === 2) {
           const [x, y] = items;
           const diff = Math.abs(x!.value - y!.value);
