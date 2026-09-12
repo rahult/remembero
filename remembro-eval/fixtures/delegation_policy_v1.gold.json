@@ -1,0 +1,1016 @@
+{
+  "document": {
+    "id": "delegation_policy_v1",
+    "language": "en"
+  },
+  "entities": [
+    {
+      "id": "person_alice",
+      "kind": "person",
+      "canonical_name": "Alice Morgan",
+      "aliases": [
+        "Alice"
+      ]
+    },
+    {
+      "id": "person_bob",
+      "kind": "person",
+      "canonical_name": "Bob Chen",
+      "aliases": [
+        "Bob"
+      ]
+    },
+    {
+      "id": "person_carol",
+      "kind": "person",
+      "canonical_name": "Carol Evans",
+      "aliases": [
+        "Carol"
+      ]
+    },
+    {
+      "id": "person_david",
+      "kind": "person",
+      "canonical_name": "David Smith",
+      "aliases": []
+    },
+    {
+      "id": "role_cfo",
+      "kind": "role",
+      "canonical_name": "Chief Financial Officer",
+      "aliases": [
+        "CFO"
+      ]
+    },
+    {
+      "id": "role_fd",
+      "kind": "role",
+      "canonical_name": "Finance Director",
+      "aliases": []
+    },
+    {
+      "id": "role_pm",
+      "kind": "role",
+      "canonical_name": "Procurement Manager",
+      "aliases": [
+        "Procurement Managers"
+      ]
+    },
+    {
+      "id": "role_apl",
+      "kind": "role",
+      "canonical_name": "Accounts Payable Lead",
+      "aliases": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim_role_alice",
+      "subject": "Alice Morgan",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Chief Financial Officer",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2024-03-01",
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_role_alice",
+          "document_id": "delegation_policy_v1",
+          "page": 1,
+          "paragraph": 9,
+          "section": "3. Roles referred to in this policy",
+          "start_offset": 1897,
+          "end_offset": 2280,
+          "quoted_text": "Chief Financial Officer | Alice Morgan | 1 March 2024",
+          "authority": "table"
+        }
+      ]
+    },
+    {
+      "id": "claim_role_bob",
+      "subject": "Bob Chen",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Finance Director",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2025-07-15",
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_role_bob",
+          "document_id": "delegation_policy_v1",
+          "page": 1,
+          "paragraph": 10,
+          "section": "3. Roles referred to in this policy",
+          "start_offset": 1897,
+          "end_offset": 2280,
+          "quoted_text": "Finance Director | Bob Chen | 15 July 2025",
+          "authority": "table"
+        }
+      ]
+    },
+    {
+      "id": "claim_role_carol",
+      "subject": "Carol Evans",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Procurement Manager",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2025-02-02",
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_role_carol",
+          "document_id": "delegation_policy_v1",
+          "page": 1,
+          "paragraph": 11,
+          "section": "3. Roles referred to in this policy",
+          "start_offset": 1897,
+          "end_offset": 2280,
+          "quoted_text": "Procurement Manager | Carol Evans | 2 February 2025",
+          "authority": "table"
+        }
+      ]
+    },
+    {
+      "id": "claim_role_david",
+      "subject": "David Smith",
+      "subject_kind": "person",
+      "predicate": "holds_role",
+      "object": "Accounts Payable Lead",
+      "object_kind": "role",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2025-11-11",
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_role_david",
+          "document_id": "delegation_policy_v1",
+          "page": 1,
+          "paragraph": 12,
+          "section": "3. Roles referred to in this policy",
+          "start_offset": 1897,
+          "end_offset": 2280,
+          "quoted_text": "Accounts Payable Lead | David Smith | 11 November 2025",
+          "authority": "table"
+        }
+      ]
+    },
+    {
+      "id": "claim_cfo_opex",
+      "subject": "Chief Financial Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 100000,
+        "currency": "AUD",
+        "category": "operational_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_cfo_opex",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 13,
+          "section": "4.1 Operational expenditure",
+          "start_offset": 2370,
+          "end_offset": 2468,
+          "quoted_text": "The Chief Financial Officer may approve operational expenditure up to AUD 100,000 per transaction.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "id": "claim_fd_opex",
+      "subject": "Finance Director",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 50000,
+        "currency": "AUD",
+        "category": "operational_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_fd_opex",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 14,
+          "section": "4.1 Operational expenditure",
+          "start_offset": 2470,
+          "end_offset": 2560,
+          "quoted_text": "The Finance Director may approve operational expenditure up to AUD 50,000 per transaction.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "id": "claim_pm_opex",
+      "subject": "Procurement Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 20000,
+        "currency": "AUD",
+        "category": "operational_expenditure",
+        "condition": "goods or services procured under an approved supplier agreement"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_pm_opex",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 15,
+          "section": "4.1 Operational expenditure",
+          "start_offset": 2562,
+          "end_offset": 2654,
+          "quoted_text": "The Procurement Manager may approve operational expenditure up to AUD 20,000 per transaction",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "id": "claim_cfo_capex",
+      "subject": "Chief Financial Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 250000,
+        "currency": "AUD",
+        "category": "capital_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_cfo_capex",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 18,
+          "section": "4.2 Capital expenditure",
+          "start_offset": 2997,
+          "end_offset": 3087,
+          "quoted_text": "The Chief Financial Officer may approve capital expenditure up to AUD 250,000 per project.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "id": "claim_fd_capex",
+      "subject": "Finance Director",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 75000,
+        "currency": "AUD",
+        "category": "capital_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_fd_capex",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 19,
+          "section": "4.2 Capital expenditure",
+          "start_offset": 3089,
+          "end_offset": 3171,
+          "quoted_text": "The Finance Director may approve capital expenditure up to AUD 75,000 per project.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "id": "claim_pm_capex_prohibited",
+      "subject": "Procurement Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "category": "capital_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_pm_capex",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 20,
+          "section": "4.2 Capital expenditure",
+          "start_offset": 3173,
+          "end_offset": 3247,
+          "quoted_text": "The Procurement Manager may not approve capital expenditure of any amount.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "id": "claim_pm_self_benefit",
+      "subject": "Procurement Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "expenditure",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "category": "expenditure",
+        "condition": "benefiting themselves"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_pm_self",
+          "document_id": "delegation_policy_v1",
+          "page": 2,
+          "paragraph": 23,
+          "section": "4.3 Prohibitions applying to all approvers",
+          "start_offset": 3597,
+          "end_offset": 3790,
+          "quoted_text": "Procurement Managers must not approve expenditure benefiting themselves under any circumstances",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "id": "claim_delegation_alice_bob",
+      "subject": "Alice Morgan",
+      "subject_kind": "person",
+      "predicate": "delegates",
+      "object": "Bob Chen",
+      "object_kind": "person",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 100000,
+        "currency": "AUD",
+        "category": "operational_expenditure"
+      },
+      "valid_from": "2026-09-01",
+      "valid_until": "2026-09-20",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_delegation",
+          "document_id": "delegation_policy_v1",
+          "page": 3,
+          "paragraph": 28,
+          "section": "5.2 Delegations in force at the date of this version",
+          "start_offset": 4673,
+          "end_offset": 4763,
+          "quoted_text": "delegation Bob Chen may approve operational expenditure up to AUD 100,000 per transaction.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "id": "claim_carol_extension",
+      "subject": "Carol Evans",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": "invoices for operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 30000,
+        "currency": "AUD",
+        "category": "operational_expenditure"
+      },
+      "valid_from": "2026-09-01",
+      "valid_until": "2026-09-15",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_carol_ext",
+          "document_id": "delegation_policy_v1",
+          "page": 3,
+          "paragraph": 30,
+          "section": "5.2 Delegations in force at the date of this version",
+          "start_offset": 4963,
+          "end_offset": 5267,
+          "quoted_text": "Carol Evans may approve invoices for operational expenditure up to AUD 30,000 per transaction between 1 September 2026 and 15 September 2026",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "id": "claim_dsmith_utilities",
+      "subject": "D. Smith",
+      "subject_kind": "person",
+      "predicate": "may_approve",
+      "object": "utilities invoices classified as operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 5000,
+        "currency": "AUD",
+        "category": "operational_expenditure"
+      },
+      "valid_from": "2026-09-01",
+      "valid_until": "2026-09-30",
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_dsmith",
+          "document_id": "delegation_policy_v1",
+          "page": 3,
+          "paragraph": 31,
+          "section": "5.2 Delegations in force at the date of this version",
+          "start_offset": 5269,
+          "end_offset": 5468,
+          "quoted_text": "D. Smith may approve utilities invoices classified as operational expenditure up to AUD 5,000 per transaction from 1 September 2026 to 30 September 2026",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "id": "claim_carol_suspended",
+      "subject": "Carol Evans",
+      "subject_kind": "person",
+      "predicate": "suspended",
+      "object": null,
+      "object_kind": "none",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {},
+      "valid_from": "2026-09-08",
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_carol_susp",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 34,
+          "section": "6.1 Suspension",
+          "start_offset": 6156,
+          "end_offset": 6373,
+          "quoted_text": "Carol Evans's approval authority is suspended with effect from 8 September 2026 until further notice",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "id": "claim_revocation",
+      "subject": "Alice Morgan",
+      "subject_kind": "person",
+      "predicate": "revokes_delegation",
+      "object": "Bob Chen",
+      "object_kind": "person",
+      "modality": "assertion",
+      "polarity": "positive",
+      "constraints": {
+        "category": "operational_expenditure"
+      },
+      "valid_from": "2026-09-12",
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_revocation",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 36,
+          "section": "6.3 Amendment to the delegation in section 5.2",
+          "start_offset": 6681,
+          "end_offset": 7042,
+          "quoted_text": "Alice Morgan revoked the delegation of operational expenditure authority to Bob Chen described in section 5.2, with effect from 12 September 2026.",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "id": "claim_fd_capex_s7",
+      "subject": "Finance Director",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 100000,
+        "currency": "AUD",
+        "category": "capital_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_fd_capex_s7",
+          "document_id": "delegation_policy_v1",
+          "page": 4,
+          "paragraph": 37,
+          "section": "7. Records and review",
+          "start_offset": 7071,
+          "end_offset": 7506,
+          "quoted_text": "Capital expenditure approved by the Finance Director is capped at AUD 100,000 per project",
+          "authority": "body"
+        }
+      ]
+    },
+    {
+      "id": "claim_appx_pm_opex",
+      "subject": "Procurement Manager",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 25000,
+        "currency": "AUD",
+        "category": "operational_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_appx_pm",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 43,
+          "section": "Appendix A. Summary of approval limits",
+          "start_offset": 8138,
+          "end_offset": 8785,
+          "quoted_text": "Procurement Manager | AUD 25,000 | Not permitted",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "id": "claim_appx_cfo_opex",
+      "subject": "Chief Financial Officer",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 100000,
+        "currency": "AUD",
+        "category": "operational_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_appx_cfo",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 41,
+          "section": "Appendix A. Summary of approval limits",
+          "start_offset": 8138,
+          "end_offset": 8785,
+          "quoted_text": "Chief Financial Officer | AUD 100,000 | AUD 250,000",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "id": "claim_appx_apl_opex",
+      "subject": "Accounts Payable Lead",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "category": "operational_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_appx_apl_opex",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 44,
+          "section": "Appendix A. Summary of approval limits",
+          "start_offset": 8138,
+          "end_offset": 8785,
+          "quoted_text": "Accounts Payable Lead | Not permitted | Not permitted",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "id": "claim_appx_apl_capex",
+      "subject": "Accounts Payable Lead",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "capital expenditure",
+      "object_kind": "category",
+      "modality": "prohibition",
+      "polarity": "negative",
+      "constraints": {
+        "category": "capital_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_appx_apl_capex",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 44,
+          "section": "Appendix A. Summary of approval limits",
+          "start_offset": 8138,
+          "end_offset": 8785,
+          "quoted_text": "Accounts Payable Lead | Not permitted | Not permitted",
+          "authority": "appendix"
+        }
+      ]
+    },
+    {
+      "id": "claim_appx_fd_opex",
+      "subject": "Finance Director",
+      "subject_kind": "role",
+      "predicate": "may_approve",
+      "object": "operational expenditure",
+      "object_kind": "category",
+      "modality": "permission",
+      "polarity": "positive",
+      "constraints": {
+        "maximum_amount": 50000,
+        "currency": "AUD",
+        "category": "operational_expenditure"
+      },
+      "valid_from": null,
+      "valid_until": null,
+      "confidence": 1.0,
+      "evidence": [
+        {
+          "id": "ev_appx_fd",
+          "document_id": "delegation_policy_v1",
+          "page": 5,
+          "paragraph": 42,
+          "section": "Appendix A. Summary of approval limits",
+          "start_offset": 8138,
+          "end_offset": 8785,
+          "quoted_text": "Finance Director | AUD 50,000 | AUD 75,000",
+          "authority": "appendix"
+        }
+      ]
+    }
+  ],
+  "contradictions": [
+    {
+      "type": "LIMIT_MISMATCH",
+      "claims": [
+        "claim_pm_opex",
+        "claim_appx_pm_opex"
+      ],
+      "resolved": true,
+      "resolution": "body prevails over appendix"
+    },
+    {
+      "type": "LIMIT_MISMATCH",
+      "claims": [
+        "claim_fd_capex",
+        "claim_fd_capex_s7"
+      ],
+      "resolved": false
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "scenario_01",
+      "question": "Can Alice approve AUD 80,000 operational expenditure on 2026-06-01?",
+      "request": {
+        "actor": "Alice Morgan",
+        "action": "approve",
+        "resource": "operational_expenditure",
+        "amount": 80000,
+        "currency": "AUD",
+        "on": "2026-06-01"
+      },
+      "expected": {
+        "decision": "ALLOW",
+        "reason": "CFO operational limit 100,000"
+      }
+    },
+    {
+      "id": "scenario_02",
+      "question": "Can Alice approve AUD 120,000 operational expenditure on 2026-06-01?",
+      "request": {
+        "actor": "Alice Morgan",
+        "action": "approve",
+        "resource": "operational_expenditure",
+        "amount": 120000,
+        "currency": "AUD",
+        "on": "2026-06-01"
+      },
+      "expected": {
+        "decision": "DENY",
+        "reason": "exceeds CFO limit; Board approval required"
+      }
+    },
+    {
+      "id": "scenario_03",
+      "question": "Can Bob approve AUD 90,000 operational expenditure on 2026-09-05?",
+      "request": {
+        "actor": "Bob Chen",
+        "action": "approve",
+        "resource": "operational_expenditure",
+        "amount": 90000,
+        "currency": "AUD",
+        "on": "2026-09-05"
+      },
+      "expected": {
+        "decision": "ALLOW",
+        "reason": "delegation from Alice in force"
+      }
+    },
+    {
+      "id": "scenario_04",
+      "question": "Can Bob approve AUD 90,000 operational expenditure on 2026-09-25?",
+      "request": {
+        "actor": "Bob Chen",
+        "action": "approve",
+        "resource": "operational_expenditure",
+        "amount": 90000,
+        "currency": "AUD",
+        "on": "2026-09-25"
+      },
+      "expected": {
+        "decision": "DENY",
+        "reason": "delegation ended; Finance Director limit 50,000"
+      }
+    },
+    {
+      "id": "scenario_05",
+      "question": "Can Bob approve AUD 70,000 operational expenditure on 2026-09-15?",
+      "request": {
+        "actor": "Bob Chen",
+        "action": "approve",
+        "resource": "operational_expenditure",
+        "amount": 70000,
+        "currency": "AUD",
+        "on": "2026-09-15"
+      },
+      "expected": {
+        "decision": "DENY",
+        "reason": "delegation revoked effective 12 September"
+      }
+    },
+    {
+      "id": "scenario_06",
+      "question": "Can Bob approve AUD 90,000 capital expenditure on 2026-10-01?",
+      "request": {
+        "actor": "Bob Chen",
+        "action": "approve",
+        "resource": "capital_expenditure",
+        "amount": 90000,
+        "currency": "AUD",
+        "on": "2026-10-01"
+      },
+      "expected": {
+        "decision": "UNKNOWN",
+        "reason": "Finance Director capital limit stated as 75,000 (s4.2) and 100,000 (s7); unresolved contradiction"
+      }
+    },
+    {
+      "id": "scenario_07",
+      "question": "Can David Smith approve AUD 4,000 of utilities invoices on 2026-09-05?",
+      "request": {
+        "actor": "David Smith",
+        "action": "approve",
+        "resource": "utilities",
+        "amount": 4000,
+        "currency": "AUD",
+        "on": "2026-09-05"
+      },
+      "expected": {
+        "decision": "UNKNOWN",
+        "reason": "permission is granted to 'D. Smith'; identity with David Smith not established"
+      }
+    },
+    {
+      "id": "scenario_08",
+      "question": "Can Carol approve AUD 15,000 operational expenditure on 2026-09-10?",
+      "request": {
+        "actor": "Carol Evans",
+        "action": "approve",
+        "resource": "operational_expenditure",
+        "amount": 15000,
+        "currency": "AUD",
+        "on": "2026-09-10"
+      },
+      "expected": {
+        "decision": "DENY",
+        "reason": "suspended from 8 September"
+      }
+    },
+    {
+      "id": "scenario_09",
+      "question": "Can Carol approve AUD 25,000 operational expenditure on 2026-09-05?",
+      "request": {
+        "actor": "Carol Evans",
+        "action": "approve",
+        "resource": "operational_expenditure",
+        "amount": 25000,
+        "currency": "AUD",
+        "on": "2026-09-05"
+      },
+      "expected": {
+        "decision": "ALLOW",
+        "reason": "temporary extension to 30,000 in force"
+      }
+    },
+    {
+      "id": "scenario_10",
+      "question": "Can Carol approve AUD 25,000 operational expenditure on 2026-06-01?",
+      "request": {
+        "actor": "Carol Evans",
+        "action": "approve",
+        "resource": "operational_expenditure",
+        "amount": 25000,
+        "currency": "AUD",
+        "on": "2026-06-01"
+      },
+      "expected": {
+        "decision": "DENY",
+        "reason": "Procurement Manager limit 20,000; the appendix's 25,000 is overridden by the body"
+      }
+    },
+    {
+      "id": "scenario_11",
+      "question": "Can Bob approve AUD 60,000 capital expenditure on 2026-10-01?",
+      "request": {
+        "actor": "Bob Chen",
+        "action": "approve",
+        "resource": "capital_expenditure",
+        "amount": 60000,
+        "currency": "AUD",
+        "on": "2026-10-01"
+      },
+      "expected": {
+        "decision": "ALLOW",
+        "reason": "within both stated Finance Director capital limits"
+      }
+    },
+    {
+      "id": "scenario_12",
+      "question": "Can Carol approve AUD 10,000 capital expenditure on 2026-06-01?",
+      "request": {
+        "actor": "Carol Evans",
+        "action": "approve",
+        "resource": "capital_expenditure",
+        "amount": 10000,
+        "currency": "AUD",
+        "on": "2026-06-01"
+      },
+      "expected": {
+        "decision": "DENY",
+        "reason": "Procurement Manager may not approve capital expenditure"
+      }
+    },
+    {
+      "id": "scenario_13",
+      "question": "Can Alice approve AUD 50,000 operational expenditure that benefits her on 2026-06-01?",
+      "request": {
+        "actor": "Alice Morgan",
+        "action": "approve",
+        "resource": "operational_expenditure",
+        "amount": 50000,
+        "currency": "AUD",
+        "on": "2026-06-01",
+        "self_benefit": true
+      },
+      "expected": {
+        "decision": "DENY",
+        "reason": "self-benefit prohibition"
+      }
+    },
+    {
+      "id": "scenario_14",
+      "question": "Can Bob approve USD 90,000 operational expenditure on 2026-09-05?",
+      "request": {
+        "actor": "Bob Chen",
+        "action": "approve",
+        "resource": "operational_expenditure",
+        "amount": 90000,
+        "currency": "USD",
+        "on": "2026-09-05"
+      },
+      "expected": {
+        "decision": "UNKNOWN",
+        "reason": "limits are in AUD; currency mismatch"
+      }
+    },
+    {
+      "id": "scenario_15",
+      "question": "Can Erin Fox approve AUD 1,000 operational expenditure on 2026-06-01?",
+      "request": {
+        "actor": "Erin Fox",
+        "action": "approve",
+        "resource": "operational_expenditure",
+        "amount": 1000,
+        "currency": "AUD",
+        "on": "2026-06-01"
+      },
+      "expected": {
+        "decision": "DENY",
+        "reason": "unknown person"
+      }
+    },
+    {
+      "id": "scenario_16",
+      "question": "Can Alice approve AUD 80,000 operational expenditure on 2026-09-05 while on leave?",
+      "request": {
+        "actor": "Alice Morgan",
+        "action": "approve",
+        "resource": "operational_expenditure",
+        "amount": 80000,
+        "currency": "AUD",
+        "on": "2026-09-05"
+      },
+      "expected": {
+        "decision": "ALLOW",
+        "reason": "leave does not remove authority; delegation adds Bob's"
+      }
+    },
+    {
+      "id": "scenario_17",
+      "question": "Can Bob approve AUD 90,000 operational expenditure on 2026-09-11?",
+      "request": {
+        "actor": "Bob Chen",
+        "action": "approve",
+        "resource": "operational_expenditure",
+        "amount": 90000,
+        "currency": "AUD",
+        "on": "2026-09-11"
+      },
+      "expected": {
+        "decision": "ALLOW",
+        "reason": "day before revocation takes effect"
+      }
+    }
+  ]
+}
