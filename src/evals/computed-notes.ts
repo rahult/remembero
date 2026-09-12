@@ -282,6 +282,30 @@ export function buildComputedNotes(
     }
   }
   const lines: string[] = [];
+  // counting questions: a roster of the user's own sentences naming the subject, dated, so
+  // the reader counts from a short list instead of scanning fifteen sessions
+  const asksCount = /^\s*how many\b/i.test(question) || /\b(how many|number of|count of|list (all|every))\b/i.test(q);
+  if (asksCount) {
+    const subject = keywords.filter((k) => SMALL_NUMBERS[k] === undefined && !/^(total|different|typical|usual|various|separate|distinct|overall)$/.test(k));
+    const roster: Array<{ day: string; sentence: string }> = [];
+    const seen = new Set<string>();
+    for (const source of [...sources].sort((l, r) => l.ts.localeCompare(r.ts))) {
+      for (const sentence of userSentences(source.text)) {
+        const low = sentence.toLowerCase();
+        if (subject.length > 0 && subject.some((k) => low.includes(k))) {
+          const key = low.replace(/\s+/g, ' ').trim();
+          if (seen.has(key)) continue;
+          seen.add(key);
+          roster.push({ day: dayOf(source.ts), sentence });
+        }
+      }
+    }
+    if (roster.length > 0) {
+      const shown = roster.slice(0, 14);
+      lines.push(`Sentences in the history that name the question's subject (${subject.slice(0, 5).join(', ')}), dated, each once${roster.length > shown.length ? `; ${roster.length - shown.length} more not shown` : ''}:`);
+      for (const r of shown) lines.push(`- ${r.day}: "${snippet(r.sentence, 110)}"`);
+    }
+  }
   const dated = events.slice(0, maxEvents);
   if (dated.length > 0) {
     lines.push('Dated events (each temporal expression resolved against the date of the session it was said in):');
