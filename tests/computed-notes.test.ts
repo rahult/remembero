@@ -169,3 +169,32 @@ describe('lessons from the second paired run', () => {
     expect(notes).toMatch(/Coverage: .*none match "purchasing cow peter"/);
   });
 });
+
+describe('the question itself, seasons and anchored offsets', () => {
+  it('resolves the question\'s own time reference against the question date and points at the matching event', () => {
+    const notes = buildComputedNotes(
+      'I received a piece of jewelry last Saturday from whom?',
+      '2023/05/24 (Wed) 10:00',
+      [
+        { ts: '2023-05-21T10:00:00Z', text: 'USER: My aunt gave me a necklace yesterday, it was her mother\'s.' },
+        { ts: '2023-04-02T10:00:00Z', text: 'USER: I received a crystal chandelier from my aunt last week.' },
+      ],
+    );
+    expect(notes).toMatch(/The question's "last Saturday".*2023-05-20/);
+    expect(notes).toMatch(/closest dated event.*2023-05-20/);
+  });
+
+  it('resolves seasons to an approximate date', () => {
+    const events = resolveTemporalExpressions('USER: I went to Europe last summer and loved Lisbon.', '2023-05-01T10:00:00Z');
+    const summer = events.find((e) => e.expression.toLowerCase() === 'last summer');
+    expect(summer?.iso).toBe('2022-07-15');
+    expect(summer?.approximate).toBe(true);
+  });
+
+  it('resolves offsets from holidays and from dates', () => {
+    const events = resolveTemporalExpressions('USER: I went to the Holiday Market a week before Black Friday. I bought the phone two days after Christmas.', '2023-12-10T10:00:00Z');
+    const byExpr = Object.fromEntries(events.map((e) => [e.expression.toLowerCase(), e.iso]));
+    expect(byExpr['a week before black friday']).toBe('2023-11-17');
+    expect(byExpr['two days after christmas']).toBe('2023-12-27');
+  });
+});

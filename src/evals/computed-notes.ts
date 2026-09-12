@@ -85,6 +85,35 @@ export function userSentences(text: string): string[] {
   return out;
 }
 
+function nthWeekday(y: number, mo: number, weekday: number, n: number): number {
+  const first = new Date(utc(y, mo, 1)).getUTCDay();
+  const day = 1 + ((weekday - first + 7) % 7) + (n - 1) * 7;
+  return utc(y, mo, day);
+}
+
+function lastWeekday(y: number, mo: number, weekday: number): number {
+  const lastDay = new Date(utc(y, mo + 1, 0)).getUTCDate();
+  const last = new Date(utc(y, mo, lastDay)).getUTCDay();
+  return utc(y, mo, lastDay - ((last - weekday + 7) % 7));
+}
+
+/** US holidays with fixed or rule-based dates, as a UTC ms value in the given year. */
+export function holiday(name: string, y: number): number | undefined {
+  const n = name.toLowerCase().replace(/[’']/g, "'").trim();
+  if (n === 'thanksgiving') return nthWeekday(y, 11, 4, 4);
+  if (n === 'black friday') return nthWeekday(y, 11, 4, 4) + DAY_MS;
+  if (n === 'christmas' || n === 'christmas day') return utc(y, 12, 25);
+  if (n === 'christmas eve') return utc(y, 12, 24);
+  if (/^new year'?s? day$/.test(n)) return utc(y, 1, 1);
+  if (/^new year'?s? eve$/.test(n)) return utc(y, 12, 31);
+  if (n === 'halloween') return utc(y, 10, 31);
+  if (n === 'independence day' || n === 'the fourth of july' || n === 'july 4th') return utc(y, 7, 4);
+  if (/^valentine'?s? day$/.test(n)) return utc(y, 2, 14);
+  if (n === 'labor day') return nthWeekday(y, 9, 1, 1);
+  if (n === 'memorial day') return lastWeekday(y, 5, 1);
+  return undefined;
+}
+
 function number(word: string): number | undefined {
   const w = word.toLowerCase();
   if (/^\d+(?:[.,]\d+)?$/.test(w)) return Number(w.replace(/,/g, ''));
@@ -166,6 +195,35 @@ export function resolveTemporalExpressions(text: string, sessionTs: string): Dat
     while ((m = lastUnit.exec(s)) !== null) {
       const days = m[1].toLowerCase() === 'week' ? 7 : m[1].toLowerCase() === 'month' ? 30 : 365;
       push({ iso: toIso(base - days * DAY_MS), expression: m[0], sentence, sessionDay, kind: 'relative', approximate: true });
+    }
+    // seasons: "last summer" → the middle of that season in the previous year, approximate
+    const season = /\b(last|this|next)\s+(summer|winter|spring|fall|autumn)\b/gi;
+    while ((m = season.exec(s)) !== null) {
+      const mid: Record<string, [number, number]> = { spring: [4, 15], summer: [7, 15], fall: [10, 15], autumn: [10, 15], winter: [1, 15] };
+      const [mo, d] = mid[m[2].toLowerCase()]!;
+      let y = year;
+      if (m[1].toLowerCase() === 'last') y = utc(year, mo, d) < base ? year : year - 1;
+      if (m[1].toLowerCase() === 'last' && utc(year, mo, d) < base) y = year;  // this year's season already passed
+      if (m[1].toLowerCase() === 'last' && utc(year, mo, d) >= base) y = year - 1;
+      if (m[1].toLowerCase() === 'next') y = utc(year, mo, d) > base ? year : year + 1;
+      push({ iso: toIso(utc(y, mo, d)), expression: m[0], sentence, sessionDay, kind: 'relative', approximate: true });
+    }
+    // anchored offsets: "a week before Black Friday", "two days after Christmas", "3 days before March 7"
+    const anchored = new RegExp(`\\b(\\d+|a|an|one|two|three|four|five|six|seven|ten)\\s+(day|week|month)s?\\s+(before|after|prior to|following)\\s+(black friday|thanksgiving|christmas(?: day)?|christmas eve|new year'?s? day|new year'?s? eve|halloween|independence day|the fourth of july|july 4th|valentine'?s? day|labor day|memorial day|(?:${MONTH_RE})\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?(?:,?\\s+\\d{4})?)`, 'gi');
+    while ((m = anchored.exec(s)) !== null) {
+      const n = number(m[1]);
+      if (n === undefined) continue;
+      const unit = m[2].toLowerCase();
+      const days = unit === 'day' ? n : unit === 'week' ? n * 7 : Math.round(n * 30.44);
+      const sign = /before|prior/i.test(m[3]) ? -1 : 1;
+      const anchor = holiday(m[4], year) ?? (() => {
+        const mm = new RegExp(`(${MONTH_RE})\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:,?\\s+(\\d{4}))?`, 'i').exec(m[4]);
+        if (!mm) return undefined;
+        const mo = MONTHS[mm[1].toLowerCase()];
+        return mo ? utc(mm[3] ? Number(mm[3]) : year, mo, Number(mm[2])) : undefined;
+      })();
+      if (anchor === undefined) continue;
+      push({ iso: toIso(anchor + sign * days * DAY_MS), expression: m[0], sentence, sessionDay, kind: 'relative', approximate: unit === 'month' });
     }
     // weekdays: "last Saturday", "on Monday", "this Tuesday" → the most recent occurrence before the session day
     const weekday = /\b(last|this|on|next)\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/gi;
@@ -272,9 +330,13 @@ export function buildComputedNotes(
   const keywordHits = (sentence: string) => keywords.filter((k) => sentence.toLowerCase().includes(k)).length;
 
   const events: DatedEvent[] = [];
+  const allEvents: DatedEvent[] = [];
   const quantities: Quantity[] = [];
   for (const source of [...sources].sort((l, r) => l.ts.localeCompare(r.ts))) {
-    for (const e of resolveTemporalExpressions(source.text, source.ts)) if (relevant(e.sentence, keywords)) events.push(e);
+    for (const e of resolveTemporalExpressions(source.text, source.ts)) {
+      allEvents.push(e);
+      if (relevant(e.sentence, keywords)) events.push(e);
+    }
     for (const x of extractQuantities(source.text)) {
       // a quantity belongs to the question when its unit is named in the question, or its
       // sentence shares two content words with it; one shared word lets in every stray number
@@ -282,7 +344,17 @@ export function buildComputedNotes(
     }
   }
   const lines: string[] = [];
+  // the question's own time reference ("last Saturday", "two months ago", "the past weekend"):
+  // resolve it against the question date and point at the dated events closest to it
+  const questionRefs = resolveTemporalExpressions(`USER: ${question.replace(/\bthe past weekend\b/i, 'last Saturday')}`, `${questionDay}T00:00:00Z`).filter((e) => e.kind !== 'absolute');
   const dated = events.slice(0, maxEvents);
+  if (questionRefs.length > 0 && allEvents.length > 0) {
+    const ref = questionRefs[0]!;
+    // every dated event counts here, whatever its wording: the question asks what happened then
+    const byDistance = [...new Map(allEvents.map((e) => [e.iso, e])).values()].sort((l, r) => Math.abs(msOf(l.iso) - msOf(ref.iso)) - Math.abs(msOf(r.iso) - msOf(ref.iso)));
+    const closest = byDistance.slice(0, 2).map((e) => `${e.iso} ("${snippet(e.sentence, 60)}", ${Math.round(Math.abs(msOf(e.iso) - msOf(ref.iso)) / DAY_MS)} days away)`);
+    lines.push(`The question's "${ref.expression}" counted from the question date ${questionDay} is ${ref.iso}${ref.approximate ? ' (approximate)' : ''}; the closest dated event${closest.length > 1 ? 's' : ''}: ${closest.join('; ')}.`);
+  }
   if (dated.length > 0) {
     lines.push('Dated events (each temporal expression resolved against the date of the session it was said in):');
     for (const e of dated) {
