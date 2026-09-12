@@ -582,6 +582,7 @@ async function judgeUnmatched(): Promise<void> {
 async function distillReader(): Promise<void> {
   const labelsPath = flag('--labels', 'data/real/labels-glmflash8.jsonl')!;
   const out = flag('--out', 'data/training-reader-v3')!;
+  if (process.argv.includes('--computed-notes')) process.env.REMEMBERO_READER_COMPUTED_NOTES = '1';
   const trainCount = Number(flag('--train-count', '3000'));
   const target = Number(flag('--examples', '4000'));
   const heldoutTarget = Number(flag('--heldout-examples', '200'));

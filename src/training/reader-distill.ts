@@ -273,6 +273,9 @@ export function readerMessages(
     'direct',
     undefined,
     true,
+    // the deterministic computed-notes block, so the teacher answers with it and the reader
+    // learns to read it (REMEMBERO_READER_COMPUTED_NOTES=1, or --computed-notes)
+    process.env.REMEMBERO_READER_COMPUTED_NOTES === '1',
   );
   return context.messages as Conversation['messages'];
 }

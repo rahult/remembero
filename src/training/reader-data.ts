@@ -424,6 +424,9 @@ export function toReaderConversation(example: ReaderExample): Conversation {
     'direct',
     undefined,
     true,
+    // the deterministic computed-notes block, so the teacher answers with it and the reader
+    // learns to read it (REMEMBERO_READER_COMPUTED_NOTES=1, or --computed-notes)
+    process.env.REMEMBERO_READER_COMPUTED_NOTES === '1',
   );
   return {
     messages: [
