@@ -22,13 +22,31 @@ endpoint works with `LLM_BASE_URL`, `LLM_MODEL` and `LLM_API_KEY`.
 
 ## What you will see
 
-- **"How long ago was my last dentist visit?"** The answer states the number of days from
-  3 August to today and the due date six months on, each line quoting the sentence it came
-  from. The arithmetic is done by code, not the model.
-- **"How many kilometres of long runs?"** 12 + 16 + 21, summed by the notes, with the
-  three dated runs listed.
-- **"What does my gym cost now?"** The later value wins; the earlier one is kept as history.
-- **"What have I promised Maya?"** A commitment with its deadline.
-- **"What could I get Sam?"** A preference, returned as evidence rather than advice.
-- **"Who is my accountant?"** No fact supports an answer, so the status is `no_match` and
-  the nearest facts are listed under `related`. The memory does not guess.
+Nine `remember` calls, each printing the facts the writer extracted, then seven questions
+answered in evidence mode: the rows, the claims behind them, the sentence each came from,
+and a Computed section.
+
+- **"When was my last dental check-up?"** The date, and under it the distance from
+  3 August to today in weeks and days. The arithmetic is done by code, not the model.
+- **"What long runs have I done so far?"** Three rows, and the notes resolve the three
+  dates against when they were said and state the gaps between them.
+- **"What is my monthly gym cost?"** Both figures the sentence stated come back, with the
+  difference between them computed; the writer stored both, it did not supersede.
+- **"When is the Atlas status update due?"** The deadline, and "5 days after the question
+  date" beneath it.
+- **"When did our office move to Collins Street?"** The move date.
+- **"What could I get Sam for his birthday?"** A preference, returned as evidence rather
+  than advice, with his birthday resolved to a date three weeks out.
+- **"Who is my accountant?"** No fact supports an answer, so the status is `unanswerable`
+  and nothing is invented.
+
+## What the run also shows
+
+The writer is a small model and the transcript keeps its rough edges on purpose. "I
+promised Maya a status update on the Atlas project" became `deadline(atlas, ...)` and lost
+who the promise was made to, so the question is asked about the deadline. Compound
+statements extract more shallowly than short ones, which is why the statements are one or
+two facts each, the way people talk to an assistant in short turns. Questions worded
+another way can produce a query the engine refuses (an aggregate over non-numeric values,
+or a wildcard where a variable was needed); the refusal is printed as such and nothing is
+guessed. The captured output of one run is in `transcript.md`.

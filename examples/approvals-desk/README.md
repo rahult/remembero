@@ -39,4 +39,5 @@ the quotes. The interesting ones:
 
 The script is `approvals-desk.yaml`; the policy and amendment are the fixtures in
 `remembro-eval/fixtures/`. Write your own inbox the same way and put private documents under
-`remembro-eval/exercises/private/`, which is never committed.
+`remembro-eval/exercises/private/`, which is never committed. The captured output of one run through the
+local writer is in `transcript.md`: 13 of 13 decisions as expected, 0 unjustified ALLOW.

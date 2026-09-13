@@ -16,7 +16,6 @@ show="node $here/../lib/show.mjs"
 export LLM_BASE_URL="${LLM_BASE_URL:-http://127.0.0.1:8081/v1}"
 export LLM_MODEL="${LLM_MODEL:-rembero-writer}"
 export LLM_API_KEY="${LLM_API_KEY:-local}"
-export REMBERO_SELF="${REMBERO_SELF:-rahul}"
 export REMBERO_HOME="$(mktemp -d "${TMPDIR:-/tmp}/rembero-timeline.XXXXXX")"
 ns=personal
 say() { printf '\n\033[1m%s\033[0m\n' "$1"; }
@@ -35,21 +34,21 @@ if ! curl -sf "$health" >/dev/null 2>&1; then
 fi
 
 say "Fresh memory root: $REMBERO_HOME   (writer: $LLM_MODEL at $LLM_BASE_URL)"
-say "Remembering seven statements"
+say "Remembering nine statements"
 while IFS= read -r line; do
   [ -z "$line" ] && continue
   printf '\n\033[2m> %s\033[0m\n' "$line"
-  $REMEMBERO remember "$line" -n $ns | $show
+  $REMEMBERO remember "$line" -n $ns 2>&1 | $show || true
 done < "$here/statements.txt"
 
 say "What the memory now holds"
-$REMEMBERO list -n $ns
+$REMEMBERO list -n $ns | $show
 
 say "Asking"
 while IFS= read -r q; do
   [ -z "$q" ] && continue
   printf '\n\033[1m? %s\033[0m\n' "$q"
-  $REMEMBERO recall "$q" -n $ns --answer-mode evidence --related | $show
+  $REMEMBERO recall "$q" -n $ns --answer-mode evidence --related 2>&1 | $show || true
 done < "$here/questions.txt"
 
 printf '\n\033[2mMemory for this run is in %s (safe to delete).\033[0m\n' "$REMBERO_HOME"
