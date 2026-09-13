@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 const title = "Remembero — Memory you can reason with";
 const description =
-  "Proof-carrying memory for agents: readable facts, deterministic rules, real-life browser labs, and an SQLite-native playground.";
+  "Proof-carrying memory for agents that runs on its own 2.3B model: readable facts, deterministic rules, computed notes, real-life browser labs, an SQLite-native playground, and worked examples with their numbers attached.";
 
 const designContract = `<!--
 THESIS: The main site sells proof-carrying memory; two labs show the real-life effect; the playground exposes the mechanism.

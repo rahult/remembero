@@ -16,6 +16,17 @@ browser-contained proof playground at `/playground` for
   deterministic gate rule, complete decision proof, and measured gate time visible together.
 - `/playground` measures SQLite + Wasm boot, rule + proof, SQL, and insert operations in
   the current browser while keeping the extension build identity inspectable.
+- `/#models` states which models Remembero runs on and what they score: the writer (a 2.3B
+  Gemma 4 E2B fine-tune served as a Q8_0 GGUF under llama.cpp; extraction 87/103, query 27/31,
+  policy decisions 20/20 unseen with zero unjustified ALLOW) and the reader (a Gemma 4 E4B
+  fine-tune distilled from GLM 5.3 Flash; LongMemEval 383/500 with computed notes against the
+  teacher's 440 under one judge). The four product features that came with them (computed
+  notes, structured evidence, evidence mode by default, self-explaining empty results) sit
+  under the cards. Numbers come from `docs/research/READER-STRUCTURE.md` and
+  `docs/research/MODEL-COMPARISON.md` in the main repository; update both together.
+- `/#examples` links the four executable examples with their numbers: the Remembro
+  decisions pipeline (`remembro-eval/README.md`), the scenario exercises, the LongMemEval
+  runs, and the extraction and agent-boundary benchmarks.
 - `/guides/agent-harness` turns the lab into a portable MCP and agent-harness integration
   recipe with a bounded Query tool, validation, proof-aware synthesis, review-gated writes,
   and the executable agent database scorecard.

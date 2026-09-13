@@ -5,6 +5,11 @@ const playground = "/playground";
 const chatMemoryLab = "/labs/chat-memory";
 const groundedAgentLab = "/labs/grounded-agent";
 const agentHarnessGuide = "/guides/agent-harness";
+const readerDoc = `${github}/blob/main/docs/research/READER-STRUCTURE.md`;
+const modelComparison = `${github}/blob/main/docs/research/MODEL-COMPARISON.md`;
+const decisionsReadme = `${github}/blob/main/remembro-eval/README.md`;
+const exercisesDir = `${github}/tree/main/remembro-eval/exercises`;
+const extractionBench = `${github}/blob/main/docs/research/EXTRACTION-BENCH.md`;
 
 function HeroProof() {
   return (
@@ -30,14 +35,14 @@ export default function Home() {
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Remembero home">remembero</a>
         <nav className="desktop-nav" aria-label="Main navigation">
-          <a href="#product">Product</a><a href="#labs">Labs</a><a href={agentHarnessGuide}>Agent guide</a><a href={playground}>Playground</a><a href={github}>GitHub</a>
+          <a href="#product">Product</a><a href="#models">Models</a><a href="#labs">Labs</a><a href="#examples">Examples</a><a href={agentHarnessGuide}>Agent guide</a><a href={playground}>Playground</a><a href={github}>GitHub</a>
         </nav>
         <div className="header-actions">
           <a className="button primary header-try" href={playground}>Try the playground</a>
           <a className="button secondary desktop-source" href={github}>View on GitHub</a>
           <details className="mobile-menu">
             <summary aria-label="Open menu"><i /><i /><i /></summary>
-            <nav aria-label="Mobile navigation"><a href="#product">Product</a><a href="#labs">Labs</a><a href={agentHarnessGuide}>Agent guide</a><a href={playground}>Playground</a><a href={github}>GitHub</a></nav>
+            <nav aria-label="Mobile navigation"><a href="#product">Product</a><a href="#models">Models</a><a href="#labs">Labs</a><a href="#examples">Examples</a><a href={agentHarnessGuide}>Agent guide</a><a href={playground}>Playground</a><a href={github}>GitHub</a></nav>
           </details>
         </div>
       </header>
@@ -47,7 +52,7 @@ export default function Home() {
           <h1>Memory you<br />can reason with.</h1>
           <p>Store facts and rules as readable knowledge. Ask useful questions. Get deterministic answers with the proof attached.</p>
           <div className="hero-actions"><a className="button primary" href={playground}>Try the playground</a><a className="button secondary" href={github}>View on GitHub</a></div>
-          <span className="hero-boundary">Local-first by default. Logic owns the answer.</span>
+          <span className="hero-boundary">Local-first by default. Runs on our own 2.3B model. Logic owns the answer.</span>
         </div>
         <HeroProof />
       </section>
@@ -126,16 +131,89 @@ status(atlas, blocked).`}</code></pre></article>
         </div>
       </section>
 
+      <section className="models section-dark" id="models" aria-labelledby="models-title">
+        <div className="section-shell">
+          <div className="models-heading">
+            <div><h2 id="models-title">Runs on our own <em>small models.</em></h2><p>The model that translates is a 2.3B fine-tune that runs on a laptop. The frontier model is the teacher and the yardstick, not a dependency at runtime.</p></div>
+            <a className="button secondary" href={modelComparison}>Model comparison</a>
+          </div>
+          <div className="model-grid">
+            <article>
+              <span>Writer</span>
+              <h3>Gemma 4 E2B, fine-tuned</h3>
+              <p>Turns chat and documents into facts, authors the Datalog query, extracts policy claims. Served as a 4.6 GiB Q8_0 GGUF under llama.cpp; a laptop scores what the bf16 copy scores on a cloud GPU.</p>
+              <dl>
+                <div><dt>Extraction benchmark</dt><dd>87<i>/103</i></dd></div>
+                <div><dt>Query authoring</dt><dd>27<i>/31</i></dd></div>
+                <div><dt>Policy decisions, unseen fixture</dt><dd>20<i>/20</i></dd></div>
+                <div><dt>Unjustified ALLOW</dt><dd>0</dd></div>
+              </dl>
+            </article>
+            <article>
+              <span>Reader</span>
+              <h3>Gemma 4 E4B, distilled</h3>
+              <p>Answers from retrieved history. Distilled from GLM 5.3 Flash over real sessions, then handed computed notes: dates resolved, distances stated, totals summed, deterministically, before it reads.</p>
+              <dl>
+                <div><dt>LongMemEval, 500 questions</dt><dd>383<i>/500</i></dd></div>
+                <div><dt>Teacher, same judge</dt><dd>440<i>/500</i></dd></div>
+                <div><dt>Computed notes, no training</dt><dd>+29</dd></div>
+                <div><dt>Next</dt><dd className="model-next">v5, trained with the notes present</dd></div>
+              </dl>
+            </article>
+          </div>
+          <div className="model-ledger">
+            <span><strong>Computed notes.</strong> Every temporal expression resolved against when it was said, every line quoting its sentence.</span>
+            <span><strong>Structured evidence.</strong> The memory&apos;s own facts, dated, grounded and deduplicated, placed before the chats.</span>
+            <span><strong>Evidence mode by default.</strong> One model call to translate, none to phrase; recalled facts never leave the process.</span>
+            <span><strong>Empty results explain themselves.</strong> The engine reports which goal matched nothing and which swap would return rows.</span>
+          </div>
+          <p className="models-note">Numbers under one judge (DeepSeek) and one protocol; the reader is 57 behind its teacher on the 500 and the gap is the work. Local embeddings (nomic-embed-text) tie the hosted model on the semantic route. <a href={readerDoc}>Method and every run</a>.</p>
+        </div>
+      </section>
+
+      <section className="examples section" id="examples" aria-labelledby="examples-title">
+        <div className="section-shell">
+          <h2 id="examples-title">Worked examples, with the <em>numbers attached.</em></h2>
+          <p className="examples-lede">Each one is executable from the repository and reports what it refused as carefully as what it answered.</p>
+          <div className="examples-grid">
+            <a href={decisionsReadme}>
+              <span>Decisions</span>
+              <strong>Evidence → claims → beliefs → decisions</strong>
+              <p>A five-page delegation policy, its amendment, a Slack message that revokes authority. &ldquo;May X approve Y on this date&rdquo; returns ALLOW, DENY or UNKNOWN with the quotes it rests on. Uncertainty never silently becomes permission.</p>
+              <code>17/17 and 20/20 decisions · 0 unjustified ALLOW · eight MCP tools</code>
+            </a>
+            <a href={exercisesDir}>
+              <span>Exercises</span>
+              <strong>Scripts of what happens over time</strong>
+              <p>A YAML script ingests, registers an alias, then decides at each date, and states what the answer must be and why. Runs against the real local writer in a fresh workspace.</p>
+              <code>leave-week 10/10 · amendment 10/10</code>
+            </a>
+            <a href={readerDoc}>
+              <span>LongMemEval</span>
+              <strong>500 questions over long chat histories</strong>
+              <p>Multi-session, temporal, knowledge-update, abstention. Every stored run re-judged under one judge; paired runs, identical retrieval, so a change is measured against the reader&apos;s own noise.</p>
+              <code>GLM 5.3 Flash 440 · our reader 383 · noise band ±7</code>
+            </a>
+            <a href={extractionBench}>
+              <span>Benchmarks</span>
+              <strong>Extraction and the agent boundary</strong>
+              <p>103 schema-conditioned extraction cases across twelve phenomena, and a 31-case boundary benchmark where the model proposes and a frozen rule set decides. Both publish their negative results.</p>
+              <code>writer 87/103 · query 27/31 · frontier 96 and 30</code>
+            </a>
+          </div>
+        </div>
+      </section>
+
       <section className="boundary section-dark">
         <div className="section-shell boundary-grid">
           <article className="model-boundary">
             <h2>Models translate.<br />Rules <em>decide.</em></h2>
-            <p>Natural language can translate a question into a query. Remembero evaluates the accepted query against explicit knowledge and returns the evidence locally.</p>
-            <ol className="boundary-flow"><li>Question <span>natural language</span></li><li>Translate <span>model</span></li><li>Query <span>accepted</span></li><li>Evaluate <span>rules + facts</span></li><li>Answer + evidence</li></ol>
+            <p>Our own writer translates a question into a query. Remembero evaluates the accepted query against explicit knowledge, adds the computed notes, and returns the evidence locally. No model phrases the answer unless you ask for one.</p>
+            <ol className="boundary-flow"><li>Question <span>natural language</span></li><li>Translate <span>our 2.3B writer</span></li><li>Query <span>accepted</span></li><li>Evaluate <span>rules + facts</span></li><li>Notes <span>dates, distances, totals</span></li><li>Answer + evidence</li></ol>
           </article>
           <article className="integrations">
             <h2>One memory layer.<br />Three ways <em>in.</em></h2>
-            <div className="integration-list"><div><strong>MCP</strong><span>Connect agents and tools through Model Context Protocol servers.</span></div><div><strong>TypeScript</strong><span>Use the typed library API inside your applications.</span></div><div><strong>CLI</strong><code>npx -y remembero</code></div></div>
+            <div className="integration-list"><div><strong>MCP</strong><span>An eight-tool core profile for agents; <code>remembero init</code> installs the Claude Code hooks and a session brief.</span></div><div><strong>TypeScript</strong><span>Use the typed library API inside your applications.</span></div><div><strong>CLI</strong><code>npx -y remembero</code></div></div>
           </article>
         </div>
       </section>
@@ -149,7 +227,7 @@ status(atlas, blocked).`}</code></pre></article>
 
       <footer className="site-footer">
         <strong>remembero</strong>
-        <nav aria-label="Footer navigation"><a href={chatMemoryLab}>Chat lab</a><a href={groundedAgentLab}>Agent lab</a><a href={playground}>Playground</a><a href={github}>GitHub</a><a href={`${github}#readme`}>Docs</a><a href="https://www.npmjs.com/package/remembero">npm</a><span>MIT licensed</span></nav>
+        <nav aria-label="Footer navigation"><a href="#models">Models</a><a href="#examples">Examples</a><a href={chatMemoryLab}>Chat lab</a><a href={groundedAgentLab}>Agent lab</a><a href={playground}>Playground</a><a href={github}>GitHub</a><a href={`${github}#readme`}>Docs</a><a href="https://www.npmjs.com/package/remembero">npm</a><span>MIT licensed</span></nav>
       </footer>
     </main>
   );

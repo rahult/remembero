@@ -25,6 +25,13 @@ test("server-renders the Remembero marketing homepage with lab and playground na
   assert.match(html, /The database is the demo\./);
   assert.match(html, /See what better tools do for a small model\./);
   assert.match(html, /Models translate\./);
+  assert.match(html, /Runs on our own/);
+  assert.match(html, /Worked examples, with the/);
+  assert.match(html, /383<i>\/500<\/i>/);
+  assert.match(html, /href="#models"/);
+  assert.match(html, /href="#examples"/);
+  assert.match(html, /remembro-eval\/README\.md/);
+  assert.match(html, /docs\/research\/READER-STRUCTURE\.md/);
   assert.match(html, /Build agents that can/);
   assert.match(html, /href="\/playground"/);
   assert.match(html, /href="\/labs\/chat-memory"/);
