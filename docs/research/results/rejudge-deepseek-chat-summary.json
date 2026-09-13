@@ -1,0 +1,2718 @@
+{
+  "judgeModel": "deepseek-chat",
+  "generatedAt": "2026-09-13T06:26:14.757Z",
+  "runs": [
+    {
+      "run": "longmemeval-extraction-v1-extracted-r11-dev40.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 40,
+      "original": 17,
+      "rejudged": 9,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 17,
+          "rejudged": 9,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 1,
+          "original": 0,
+          "rejudged": 0,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v1-extracted-r12-strat48.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 48,
+      "original": 22,
+      "rejudged": 20,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 8,
+          "original": 8,
+          "rejudged": 8,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 8,
+          "original": 0,
+          "rejudged": 0,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 8,
+          "original": 3,
+          "rejudged": 3,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 8,
+          "original": 3,
+          "rejudged": 2,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 8,
+          "original": 6,
+          "rejudged": 6,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 8,
+          "original": 2,
+          "rejudged": 1,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v1-extracted-r13-strat48.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 48,
+      "original": 23,
+      "rejudged": 19,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 8,
+          "original": 5,
+          "rejudged": 3,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 8,
+          "original": 5,
+          "rejudged": 4,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 8,
+          "original": 4,
+          "rejudged": 4,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 8,
+          "original": 3,
+          "rejudged": 2,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 8,
+          "original": 5,
+          "rejudged": 5,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 8,
+          "original": 1,
+          "rejudged": 1,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v1-extracted-r14-strat48.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 48,
+      "original": 29,
+      "rejudged": 31,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 8,
+          "original": 7,
+          "rejudged": 6,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 8,
+          "original": 3,
+          "rejudged": 4,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 8,
+          "original": 4,
+          "rejudged": 5,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 8,
+          "original": 6,
+          "rejudged": 6,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 8,
+          "original": 5,
+          "rejudged": 6,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 8,
+          "original": 4,
+          "rejudged": 4,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v1-hybrid-luna-strat48.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 48,
+      "original": 33,
+      "rejudged": 33,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 8,
+          "original": 8,
+          "rejudged": 8,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 8,
+          "original": 2,
+          "rejudged": 2,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 8,
+          "original": 5,
+          "rejudged": 6,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 8,
+          "original": 7,
+          "rejudged": 6,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 8,
+          "original": 6,
+          "rejudged": 6,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 8,
+          "original": 5,
+          "rejudged": 5,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v1-hybrid-r12-strat48.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 48,
+      "original": 33,
+      "rejudged": 35,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 8,
+          "original": 8,
+          "rejudged": 8,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 8,
+          "original": 2,
+          "rejudged": 3,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 8,
+          "original": 5,
+          "rejudged": 5,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 8,
+          "original": 7,
+          "rejudged": 7,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 8,
+          "original": 5,
+          "rejudged": 6,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 8,
+          "original": 6,
+          "rejudged": 6,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v1-hybrid-r13-strat48.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 48,
+      "original": 35,
+      "rejudged": 34,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 8,
+          "original": 8,
+          "rejudged": 8,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 8,
+          "original": 2,
+          "rejudged": 2,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 8,
+          "original": 6,
+          "rejudged": 6,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 8,
+          "original": 7,
+          "rejudged": 6,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 8,
+          "original": 6,
+          "rejudged": 6,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 8,
+          "original": 6,
+          "rejudged": 6,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v1-hybrid-r14-dev261-nofacts.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 261,
+      "original": 209,
+      "rejudged": 208,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 37,
+          "rejudged": 38,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 69,
+          "original": 48,
+          "rejudged": 51,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 15,
+          "original": 9,
+          "rejudged": 9,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 49,
+          "rejudged": 45,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 44,
+          "original": 39,
+          "rejudged": 39,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 28,
+          "original": 27,
+          "rejudged": 26,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v1-hybrid-r14-strat48.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 48,
+      "original": 37,
+      "rejudged": 37,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 8,
+          "original": 8,
+          "rejudged": 8,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 8,
+          "original": 4,
+          "rejudged": 4,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 8,
+          "original": 6,
+          "rejudged": 6,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 8,
+          "original": 6,
+          "rejudged": 6,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 8,
+          "original": 7,
+          "rejudged": 7,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 8,
+          "original": 6,
+          "rejudged": 6,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v1-raw-dev261.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 261,
+      "original": 214,
+      "rejudged": 214,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 38,
+          "rejudged": 38,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 69,
+          "original": 50,
+          "rejudged": 51,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 15,
+          "original": 11,
+          "rejudged": 11,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 52,
+          "rejudged": 50,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 44,
+          "original": 37,
+          "rejudged": 38,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 28,
+          "original": 26,
+          "rejudged": 26,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v1-raw-dev40.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 40,
+      "original": 38,
+      "rejudged": 38,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 38,
+          "rejudged": 38,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 1,
+          "original": 0,
+          "rejudged": 0,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v1-raw-strat48.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 48,
+      "original": 32,
+      "rejudged": 32,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 8,
+          "original": 8,
+          "rejudged": 8,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 8,
+          "original": 2,
+          "rejudged": 3,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 8,
+          "original": 4,
+          "rejudged": 3,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 8,
+          "original": 7,
+          "rejudged": 7,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 8,
+          "original": 5,
+          "rejudged": 5,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 8,
+          "original": 6,
+          "rejudged": 6,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v10-composed-semantic-ds41flash16k-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 428,
+      "rejudged": 434,
+      "errors": 2,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 66,
+          "rejudged": 64,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 103,
+          "rejudged": 103,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 28,
+          "rejudged": 28,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 114,
+          "rejudged": 119,
+          "errors": 2
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 66,
+          "rejudged": 69,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 51,
+          "rejudged": 51,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v10-composed-semantic-ds41flashreader-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 423,
+      "rejudged": 432,
+      "errors": 16,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 63,
+          "rejudged": 64,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 104,
+          "rejudged": 106,
+          "errors": 5
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 21,
+          "rejudged": 23,
+          "errors": 5
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 116,
+          "rejudged": 118,
+          "errors": 6
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 69,
+          "rejudged": 70,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 50,
+          "rejudged": 51,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v10-composed-semantic-dsflashreader-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 413,
+      "rejudged": 418,
+      "errors": 5,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 63,
+          "rejudged": 64,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 99,
+          "rejudged": 97,
+          "errors": 1
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 26,
+          "rejudged": 27,
+          "errors": 1
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 113,
+          "rejudged": 115,
+          "errors": 1
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 62,
+          "rejudged": 64,
+          "errors": 2
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 50,
+          "rejudged": 51,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v10-composed-semantic-glmflashreader-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 435,
+      "rejudged": 440,
+      "errors": 2,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 65,
+          "rejudged": 64,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 108,
+          "rejudged": 111,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 27,
+          "rejudged": 27,
+          "errors": 2
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 115,
+          "rejudged": 119,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 70,
+          "rejudged": 69,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 50,
+          "rejudged": 50,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v10-composed-semantic-glmreader-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 433,
+      "rejudged": 442,
+      "errors": 2,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 63,
+          "rejudged": 64,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 109,
+          "rejudged": 109,
+          "errors": 1
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 26,
+          "rejudged": 28,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 116,
+          "rejudged": 120,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 67,
+          "rejudged": 70,
+          "errors": 1
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 52,
+          "rejudged": 51,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v11-composed-semantic-glmflash-allreader-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 432,
+      "rejudged": 442,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 61,
+          "rejudged": 63,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 113,
+          "rejudged": 111,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 28,
+          "rejudged": 29,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 116,
+          "rejudged": 118,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 66,
+          "rejudged": 70,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 48,
+          "rejudged": 51,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v12-composed-semantic-gemma4-31b-reader-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 347,
+      "rejudged": 358,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 61,
+          "rejudged": 60,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 86,
+          "rejudged": 88,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 28,
+          "rejudged": 28,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 60,
+          "rejudged": 67,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 63,
+          "rejudged": 66,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 49,
+          "rejudged": 49,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v12-composed-semantic-glmflash-allreader-glmrange-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 425,
+      "rejudged": 435,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 62,
+          "rejudged": 61,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 107,
+          "rejudged": 108,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 30,
+          "rejudged": 30,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 110,
+          "rejudged": 115,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 69,
+          "rejudged": 71,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 47,
+          "rejudged": 50,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v12-composed-semantic-nemotron3super-reader-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 389,
+      "rejudged": 396,
+      "errors": 1,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 64,
+          "rejudged": 64,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 92,
+          "rejudged": 94,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 23,
+          "rejudged": 26,
+          "errors": 1
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 108,
+          "rejudged": 108,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 54,
+          "rejudged": 54,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 48,
+          "rejudged": 50,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v13-composed-semantic-glmflash-glmrange-r19-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 426,
+      "rejudged": 440,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 63,
+          "rejudged": 63,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 107,
+          "rejudged": 110,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 29,
+          "rejudged": 29,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 110,
+          "rejudged": 117,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 68,
+          "rejudged": 70,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 49,
+          "rejudged": 51,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v14-composed-semantic-readerv1-e4b-ctx24k-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 235,
+      "rejudged": 262,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 54,
+          "rejudged": 58,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 41,
+          "rejudged": 41,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 6,
+          "rejudged": 14,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 44,
+          "rejudged": 48,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 51,
+          "rejudged": 56,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 39,
+          "rejudged": 45,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v14-composed-semantic-readerv1-e4b-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 208,
+      "rejudged": 225,
+      "errors": 56,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 56,
+          "rejudged": 58,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 49,
+          "rejudged": 51,
+          "errors": 1
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 7,
+          "rejudged": 14,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 42,
+          "rejudged": 45,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 53,
+          "rejudged": 56,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 1,
+          "rejudged": 1,
+          "errors": 55
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v14-composed-semantic-readerv2-e4b-ctx24k-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 231,
+      "rejudged": 250,
+      "errors": 3,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 56,
+          "rejudged": 58,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 36,
+          "rejudged": 37,
+          "errors": 1
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 0,
+          "rejudged": 0,
+          "errors": 2
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 57,
+          "rejudged": 61,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 45,
+          "rejudged": 50,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 37,
+          "rejudged": 44,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v14-composed-semantic-readerv3-e4b-ctx24k-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 320,
+      "rejudged": 348,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 63,
+          "rejudged": 61,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 60,
+          "rejudged": 62,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 25,
+          "rejudged": 29,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 65,
+          "rejudged": 86,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 57,
+          "rejudged": 59,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 50,
+          "rejudged": 51,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v14-composed-semantic-readerv4-e4b-ctx24k-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 328,
+      "rejudged": 350,
+      "errors": 5,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 60,
+          "rejudged": 62,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 68,
+          "rejudged": 70,
+          "errors": 1
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 22,
+          "rejudged": 25,
+          "errors": 4
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 68,
+          "rejudged": 81,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 60,
+          "rejudged": 62,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 50,
+          "rejudged": 50,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v15-composed-engine-scoped-glmflash-glmrange-r19-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 424,
+      "rejudged": 439,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 61,
+          "rejudged": 62,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 101,
+          "rejudged": 106,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 29,
+          "rejudged": 30,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 112,
+          "rejudged": 118,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 71,
+          "rejudged": 72,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 50,
+          "rejudged": 51,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v2-hybrid-gemma4-e2b-dev261.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 261,
+      "original": 219,
+      "rejudged": 214,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 37,
+          "rejudged": 36,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 69,
+          "original": 55,
+          "rejudged": 55,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 15,
+          "original": 10,
+          "rejudged": 10,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 52,
+          "rejudged": 48,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 44,
+          "original": 38,
+          "rejudged": 38,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 28,
+          "original": 27,
+          "rejudged": 27,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v2-hybrid-gemma4-e2b-r17-dev261.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 261,
+      "original": 201,
+      "rejudged": 209,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 36,
+          "rejudged": 38,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 69,
+          "original": 45,
+          "rejudged": 48,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 15,
+          "original": 8,
+          "rejudged": 12,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 50,
+          "rejudged": 48,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 44,
+          "original": 36,
+          "rejudged": 37,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 28,
+          "original": 26,
+          "rejudged": 26,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v2-hybrid-r14-dev261.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 261,
+      "original": 211,
+      "rejudged": 212,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 38,
+          "rejudged": 38,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 69,
+          "original": 51,
+          "rejudged": 51,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 15,
+          "original": 8,
+          "rejudged": 11,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 49,
+          "rejudged": 46,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 44,
+          "original": 39,
+          "rejudged": 40,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 28,
+          "original": 26,
+          "rejudged": 26,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v2-hybrid-r14-strat48.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 48,
+      "original": 33,
+      "rejudged": 34,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 8,
+          "original": 8,
+          "rejudged": 8,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 8,
+          "original": 3,
+          "rejudged": 4,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 8,
+          "original": 5,
+          "rejudged": 5,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 8,
+          "original": 6,
+          "rejudged": 6,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 8,
+          "original": 5,
+          "rejudged": 5,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 8,
+          "original": 6,
+          "rejudged": 6,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v3-hybrid-reserved-r14-dev261.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 261,
+      "original": 206,
+      "rejudged": 208,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 37,
+          "rejudged": 37,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 69,
+          "original": 49,
+          "rejudged": 52,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 15,
+          "original": 10,
+          "rejudged": 9,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 50,
+          "rejudged": 48,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 44,
+          "original": 35,
+          "rejudged": 37,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 28,
+          "original": 25,
+          "rejudged": 25,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v4-hybrid-routed-e2b-dev261.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 261,
+      "original": 210,
+      "rejudged": 213,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 37,
+          "rejudged": 38,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 69,
+          "original": 50,
+          "rejudged": 53,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 15,
+          "original": 9,
+          "rejudged": 10,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 53,
+          "rejudged": 50,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 44,
+          "original": 35,
+          "rejudged": 36,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 28,
+          "original": 26,
+          "rejudged": 26,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v4-reserved200-routed-e2b-dev261.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 261,
+      "original": 215,
+      "rejudged": 214,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 38,
+          "rejudged": 38,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 69,
+          "original": 49,
+          "rejudged": 52,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 15,
+          "original": 10,
+          "rejudged": 11,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 54,
+          "rejudged": 49,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 44,
+          "original": 37,
+          "rejudged": 38,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 28,
+          "original": 27,
+          "rejudged": 26,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v5-hybrid-msk15-e2b-dev261.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 261,
+      "original": 219,
+      "rejudged": 213,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 37,
+          "rejudged": 35,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 69,
+          "original": 60,
+          "rejudged": 59,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 15,
+          "original": 7,
+          "rejudged": 9,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 51,
+          "rejudged": 46,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 44,
+          "original": 37,
+          "rejudged": 37,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 28,
+          "original": 27,
+          "rejudged": 27,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v5-keyed-msk15-e2b-dev261.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 261,
+      "original": 214,
+      "rejudged": 215,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 38,
+          "rejudged": 38,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 69,
+          "original": 55,
+          "rejudged": 57,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 15,
+          "original": 10,
+          "rejudged": 10,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 49,
+          "rejudged": 48,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 44,
+          "original": 36,
+          "rejudged": 36,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 28,
+          "original": 26,
+          "rejudged": 26,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v5-keyed-turn-k15-wide-e2b-dev261.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 261,
+      "original": 218,
+      "rejudged": 213,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 39,
+          "rejudged": 39,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 69,
+          "original": 60,
+          "rejudged": 59,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 15,
+          "original": 12,
+          "rejudged": 11,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 49,
+          "rejudged": 45,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 44,
+          "original": 37,
+          "rejudged": 38,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 28,
+          "original": 21,
+          "rejudged": 21,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v5-keyed-turn2-msk15-e2b-dev261.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 261,
+      "original": 216,
+      "rejudged": 214,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 36,
+          "rejudged": 36,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 69,
+          "original": 54,
+          "rejudged": 56,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 15,
+          "original": 11,
+          "rejudged": 11,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 51,
+          "rejudged": 47,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 44,
+          "original": 36,
+          "rejudged": 37,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 28,
+          "original": 28,
+          "rejudged": 27,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v6-composed-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 414,
+      "rejudged": 416,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 64,
+          "rejudged": 64,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 101,
+          "rejudged": 102,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 19,
+          "rejudged": 20,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 113,
+          "rejudged": 112,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 67,
+          "rejudged": 67,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 50,
+          "rejudged": 51,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v6-hybrid-msk15-tk10-range-e2b-dev261.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 261,
+      "original": 224,
+      "rejudged": 225,
+      "errors": 1,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 36,
+          "rejudged": 35,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 69,
+          "original": 60,
+          "rejudged": 60,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 15,
+          "original": 8,
+          "rejudged": 9,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 55,
+          "rejudged": 57,
+          "errors": 1
+        },
+        "knowledge-update": {
+          "questions": 44,
+          "original": 37,
+          "rejudged": 37,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 28,
+          "original": 28,
+          "rejudged": 27,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v6-hybrid-turn-msk15-tk10-range-e2b-dev261.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 261,
+      "original": 218,
+      "rejudged": 215,
+      "errors": 1,
+      "byType": {
+        "single-session-user": {
+          "questions": 39,
+          "original": 35,
+          "rejudged": 34,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 69,
+          "original": 60,
+          "rejudged": 60,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 15,
+          "original": 10,
+          "rejudged": 10,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 52,
+          "rejudged": 50,
+          "errors": 1
+        },
+        "knowledge-update": {
+          "questions": 44,
+          "original": 34,
+          "rejudged": 34,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 28,
+          "original": 27,
+          "rejudged": 27,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v6-raw-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 391,
+      "rejudged": 387,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 65,
+          "rejudged": 66,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 83,
+          "rejudged": 84,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 21,
+          "rejudged": 20,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 104,
+          "rejudged": 98,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 66,
+          "rejudged": 67,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 52,
+          "rejudged": 52,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v7-composed-semantic-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 416,
+      "rejudged": 420,
+      "errors": 5,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 63,
+          "rejudged": 63,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 103,
+          "rejudged": 107,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 23,
+          "rejudged": 24,
+          "errors": 5
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 110,
+          "rejudged": 109,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 66,
+          "rejudged": 66,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 51,
+          "rejudged": 51,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v8-composed-semantic-notes-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 416,
+      "rejudged": 430,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 65,
+          "rejudged": 64,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 102,
+          "rejudged": 106,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 27,
+          "rejudged": 29,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 108,
+          "rejudged": 114,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 64,
+          "rejudged": 66,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 50,
+          "rejudged": 51,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-extraction-v9-composed-semantic-twocall-e2b-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 401,
+      "rejudged": 411,
+      "errors": 2,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 65,
+          "rejudged": 64,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 94,
+          "rejudged": 91,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 26,
+          "rejudged": 26,
+          "errors": 2
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 102,
+          "rejudged": 114,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 64,
+          "rejudged": 65,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 50,
+          "rejudged": 51,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-ms-v1-hybrid-e2b-k10.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 69,
+      "original": 57,
+      "rejudged": 58,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 69,
+          "original": 57,
+          "rejudged": 58,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-ms-v1-hybrid-e2b-k15-entity-wide.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 69,
+      "original": 57,
+      "rejudged": 58,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 69,
+          "original": 57,
+          "rejudged": 58,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-ms-v1-hybrid-e2b-k15-entity.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 69,
+      "original": 57,
+      "rejudged": 59,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 69,
+          "original": 57,
+          "rejudged": 59,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-ms-v1-hybrid-e2b-k15.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 69,
+      "original": 61,
+      "rejudged": 59,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 69,
+          "original": 61,
+          "rejudged": 59,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-ms-v1-hybrid-e2b-k5-entity.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 69,
+      "original": 48,
+      "rejudged": 50,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 69,
+          "original": 48,
+          "rejudged": 50,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-ms-v1-raw-k15.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 69,
+      "original": 57,
+      "rejudged": 58,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 69,
+          "original": 57,
+          "rejudged": 58,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-ms-v6-engine-recall-e2b-glmflash-all133.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 133,
+      "original": 105,
+      "rejudged": 107,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 133,
+          "original": 105,
+          "rejudged": 107,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-ms-v7-engine-recall-r19-glmflash-all133.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 133,
+      "original": 108,
+      "rejudged": 113,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 133,
+          "original": 108,
+          "rejudged": 113,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-ms-v8-engine-recall-scoped-r19-glmflash-all133.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 133,
+      "original": 113,
+      "rejudged": 111,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 133,
+          "original": 113,
+          "rejudged": 111,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-glmflash-baseline-mt-all266.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 266,
+      "original": 202,
+      "rejudged": 213,
+      "errors": 3,
+      "byType": {
+        "multi-session": {
+          "questions": 133,
+          "original": 93,
+          "rejudged": 95,
+          "errors": 3
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 109,
+          "rejudged": 118,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-glmflash-notes-mt-all266.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 266,
+      "original": 207,
+      "rejudged": 215,
+      "errors": 1,
+      "byType": {
+        "multi-session": {
+          "questions": 133,
+          "original": 98,
+          "rejudged": 99,
+          "errors": 1
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 109,
+          "rejudged": 116,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-reader-v4-baseline-ds-mt-all266.json",
+      "originalJudge": "deepseek-chat",
+      "questions": 266,
+      "original": 167,
+      "rejudged": 169,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 133,
+          "original": 87,
+          "rejudged": 88,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 80,
+          "rejudged": 81,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-reader-v4-local-base-multi-ds-local.json",
+      "originalJudge": "deepseek-chat",
+      "questions": 133,
+      "original": 82,
+      "rejudged": 83,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 133,
+          "original": 82,
+          "rejudged": 83,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-reader-v4-local-base-temporal-ds-local.json",
+      "originalJudge": "deepseek-chat",
+      "questions": 133,
+      "original": 85,
+      "rejudged": 85,
+      "errors": 0,
+      "byType": {
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 85,
+          "rejudged": 85,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-reader-v4-local-notes-temporal-ds-local.json",
+      "originalJudge": "deepseek-chat",
+      "questions": 133,
+      "original": 74,
+      "rejudged": 74,
+      "errors": 31,
+      "byType": {
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 74,
+          "rejudged": 74,
+          "errors": 31
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-reader-v4-local-notes40-ds-local.json",
+      "originalJudge": "deepseek-chat",
+      "questions": 40,
+      "original": 29,
+      "rejudged": 29,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 21,
+          "original": 15,
+          "rejudged": 15,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 19,
+          "original": 14,
+          "rejudged": 14,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-reader-v4-notes-ds-mt-all266.json",
+      "originalJudge": "deepseek-chat",
+      "questions": 266,
+      "original": 183,
+      "rejudged": 184,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 133,
+          "original": 86,
+          "rejudged": 85,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 97,
+          "rejudged": 99,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-readerv4-baseline-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 318,
+      "rejudged": 354,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 60,
+          "rejudged": 64,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 66,
+          "rejudged": 76,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 17,
+          "rejudged": 18,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 67,
+          "rejudged": 83,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 60,
+          "rejudged": 63,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 48,
+          "rejudged": 50,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-readerv4-baseline-mt-all266.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 266,
+      "original": 139,
+      "rejudged": 155,
+      "errors": 1,
+      "byType": {
+        "multi-session": {
+          "questions": 133,
+          "original": 73,
+          "rejudged": 73,
+          "errors": 1
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 66,
+          "rejudged": 82,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-readerv4-baseline-mt266.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 135,
+      "original": 73,
+      "rejudged": 87,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 69,
+          "original": 39,
+          "rejudged": 42,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 34,
+          "rejudged": 45,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-readerv4-notes-all500.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 500,
+      "original": 359,
+      "rejudged": 383,
+      "errors": 0,
+      "byType": {
+        "single-session-user": {
+          "questions": 70,
+          "original": 59,
+          "rejudged": 65,
+          "errors": 0
+        },
+        "multi-session": {
+          "questions": 133,
+          "original": 81,
+          "rejudged": 85,
+          "errors": 0
+        },
+        "single-session-preference": {
+          "questions": 30,
+          "original": 18,
+          "rejudged": 18,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 87,
+          "rejudged": 100,
+          "errors": 0
+        },
+        "knowledge-update": {
+          "questions": 78,
+          "original": 62,
+          "rejudged": 63,
+          "errors": 0
+        },
+        "single-session-assistant": {
+          "questions": 56,
+          "original": 52,
+          "rejudged": 52,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-readerv4-notes-mt-all266.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 266,
+      "original": 153,
+      "rejudged": 173,
+      "errors": 1,
+      "byType": {
+        "multi-session": {
+          "questions": 133,
+          "original": 77,
+          "rejudged": 81,
+          "errors": 1
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 76,
+          "rejudged": 92,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-readerv4-notes-mt266.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 135,
+      "original": 80,
+      "rejudged": 84,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 69,
+          "original": 39,
+          "rejudged": 39,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 41,
+          "rejudged": 45,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-readerv4-notes-v2-mt-all266.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 266,
+      "original": 167,
+      "rejudged": 176,
+      "errors": 0,
+      "byType": {
+        "multi-session": {
+          "questions": 133,
+          "original": 82,
+          "rejudged": 81,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 85,
+          "rejudged": 95,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-readerv4-notes-v3-mt-all266.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 266,
+      "original": 166,
+      "rejudged": 179,
+      "errors": 3,
+      "byType": {
+        "multi-session": {
+          "questions": 133,
+          "original": 82,
+          "rejudged": 82,
+          "errors": 3
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 84,
+          "rejudged": 97,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-raw-readerv4-notes-v4-mt-all266.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 266,
+      "original": 157,
+      "rejudged": 172,
+      "errors": 1,
+      "byType": {
+        "multi-session": {
+          "questions": 133,
+          "original": 77,
+          "rejudged": 79,
+          "errors": 0
+        },
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 80,
+          "rejudged": 93,
+          "errors": 1
+        }
+      }
+    },
+    {
+      "run": "longmemeval-tr-v1-raw-range-k10.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 66,
+      "original": 56,
+      "rejudged": 58,
+      "errors": 0,
+      "byType": {
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 56,
+          "rejudged": 58,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-tr-v1-raw-range.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 66,
+      "original": 55,
+      "rejudged": 52,
+      "errors": 0,
+      "byType": {
+        "temporal-reasoning": {
+          "questions": 66,
+          "original": 55,
+          "rejudged": 52,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-tr-v2-glmflash-range-glmflash-reader-e2b-all133.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 133,
+      "original": 113,
+      "rejudged": 119,
+      "errors": 0,
+      "byType": {
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 113,
+          "rejudged": 119,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-tr-v3-datedist-gemma31b-e2b-all133.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 133,
+      "original": 67,
+      "rejudged": 73,
+      "errors": 0,
+      "byType": {
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 67,
+          "rejudged": 73,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-tr-v3-datedist-glmflash-e2b-all133.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 133,
+      "original": 108,
+      "rejudged": 118,
+      "errors": 0,
+      "byType": {
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 108,
+          "rejudged": 118,
+          "errors": 0
+        }
+      }
+    },
+    {
+      "run": "longmemeval-tr-v4-r19range-glmflash-e2b-all133.json",
+      "originalJudge": "openai/gpt-4o-2024-08-06",
+      "questions": 133,
+      "original": 114,
+      "rejudged": 120,
+      "errors": 0,
+      "byType": {
+        "temporal-reasoning": {
+          "questions": 133,
+          "original": 114,
+          "rejudged": 120,
+          "errors": 0
+        }
+      }
+    }
+  ]
+}

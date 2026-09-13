@@ -183,6 +183,24 @@ on 37 (29 correct against 32), within the reader's own noise, at a median 22 sec
   rounds then run locally in Unsloth Studio (MLX), reader rounds on RunPod H100 while Modal
   credit is out, v5 from its step-50 checkpoint when it returns.
 
+## One judge: every stored run re-judged with DeepSeek
+
+All 78 stored runs (20,246 answers) re-judged with `deepseek-chat`; sidecars sit next to each
+run, `rejudge-deepseek-chat-summary.json` collects them. DeepSeek is the more lenient judge
+overall (0.766 against gpt-4o's 0.745 across every answer) and the ordering is unchanged:
+
+| run (500 unless stated) | gpt-4o | DeepSeek |
+| --- | --- | --- |
+| GLM 5.3 Flash, hybrid, r19 extractor | 426 | **440** |
+| reader v4, hybrid (previous best) | 328 | 350 |
+| reader v4, raw baseline | 318 | 354 |
+| reader v4, raw + computed notes | 359 | **383** |
+| reader v3, hybrid | 320 | 348 |
+| reader v4, 266 multi+temporal, baseline → notes v3 | 139 → 166 | 155 → 179 |
+| GLM Flash, 266, baseline → notes | 202 → 207 | 213 → 215 |
+
+The gap our reader has to close for parity is 57 on the 500 under the judge we now use.
+
 ## Structured evidence
 
 `src/knowledge/structured-evidence.ts`, `--structured-evidence` on the harness. The writer
