@@ -228,3 +228,98 @@ answering, four arms: baseline, computed notes, structured evidence, both.
    worse on both types. A long list displaces the dated events and gives a small reader more
    to misread, not less. Enumeration needs the items themselves, which is the engine-recall
    block's job over the fact store, not a regex over text.
+
+## Reader v5 on the M4 Pro (handoff, 2026-09-13)
+
+Modal halted v5 at step 54 of 74 with checkpoint-50 on the volume and no credit to finish it.
+The same run goes locally instead: a 24 GB M4 Pro with Unsloth Studio 2026.8.19, whose
+training backend on Apple Silicon is MLX (torch-free; `mlx_lm` 0.31 ships `gemma4_text`, so
+Gemma 4 E4B loads). The recipe is committed as `benchmarks/unsloth/reader-v5-mlx.yaml`; this
+section is everything the clone on that machine does not carry.
+
+**Same recipe, one machine.** The Modal `train()` settings and their MLX equivalents:
+
+| setting | Modal H100 (v4, v5) | M4 Pro MLX |
+|---|---|---|
+| base | google/gemma-4-E4B-it, bf16 | same, base loaded 4-bit (bf16 E4B plus 6k-token activations does not fit 24 GB) |
+| LoRA | rank 32, alpha 64, q/k/v/o/gate/up/down, no dropout | same; vision and audio towers skipped |
+| optimiser | lr 2e-4 linear, 1 epoch, weight decay 0 | same, warmup 5 steps |
+| batch | 8 x accum 8 = 64 | 1 x accum 64 = 64, so 74 optimizer steps over 4,713 rows |
+| loss | completion only, no packing, max length 8192 | same (`train_on_completions`, `packing: false`) |
+| checkpoints | every 25 steps to the volume | every 10 steps to `outputs/reader-v5-mlx`; Ctrl+C and relaunch resumes |
+
+The rows measured with the Gemma 4 tokenizer (300-row sample): mean 5,926 tokens, p95 6,685,
+max 7,370, completion mean 126 tokens. Nothing truncates at 8192; if memory forces it,
+7424 still covers the longest row.
+
+**What the clone lacks (all gitignored).** Copy from the 16 GB Mac (`/Volumes/Atlas/Code/projects/rembero`):
+
+```sh
+# training data: 4,713 rows, 117 MB, plus its per-row meta and the manifest that is tracked
+rsync -av data/training-reader-v5/ m4pro:~/rembero/data/training-reader-v5/
+# the harness's environment: LLM_BASE_URL, LLM_API_KEY (DeepSeek direct API for the judge and
+# the temporal-range model), HF_TOKEN (Gemma 4 is gated); MODAL_* and TINKER_* are unused here
+rsync -av .env m4pro:~/rembero/.env
+# reader v4 Q8_0 (7.5 GiB), the pair v5 is measured against, if that machine will run both
+rsync -av /Volumes/Atlas/models/rembero/reader-v4-gemma4-e4b-Q8_0.gguf m4pro:~/models/
+```
+
+The LongMemEval dataset is fetched by `npm run bench:longmemeval:download` into
+`.cache/longmemeval/`. The harness judge and temporal-range model are `deepseek-chat` through
+`LLM_BASE_URL`; nothing else external is needed for the raw formation (no embeddings, no
+extraction cache, no Ollama).
+
+**Run order on the M4 Pro.**
+
+```sh
+git clone <repo> ~/rembero && cd ~/rembero && git checkout remembro-v0
+npm ci && npm run build:core && npm run bench:longmemeval:download
+unsloth --version                       # 2026.8.19 is what the config was dry-run against
+unsloth train --config benchmarks/unsloth/reader-v5-mlx.yaml --dry-run
+# smoke: downloads the model, proves 4-bit E4B at 8192 fits, prints seconds per step (x74)
+unsloth train --config benchmarks/unsloth/reader-v5-mlx.yaml --max-steps 2 --output-dir outputs/reader-v5-smoke
+caffeinate -i unsloth train --config benchmarks/unsloth/reader-v5-mlx.yaml 2>&1 | tee runs/local/reader-v5-mlx.log
+unsloth list-checkpoints --outputs-dir outputs
+unsloth export outputs/reader-v5-mlx/<final> exports/reader-v5 --format gguf --quantization q8_0 --max-seq-length 8192
+```
+
+Per-step speed on Apple Silicon is unmeasured; the smoke test decides. Above about 1,500 s a
+step the epoch passes 30 hours and RunPod H100 (the fallback in the decisions above) is the
+cheaper path, with `benchmarks/modal/train_lora.py`'s `train()` as the recipe to port.
+
+**Serving and the smoke question.** Same as reader v4 (section "Running the reader locally"):
+
+```sh
+llama-server -m exports/reader-v5/<file>.gguf --port 8082 -c 12288 -np 1 -ngl 99 --alias rembero-reader \
+  --reasoning-budget 0 --chat-template-kwargs '{"enable_thinking":false}'
+```
+
+If the export emits noise from the first token, it is the direct-to-q8 converter bug noted in
+that section: export f16 and quantize with `llama-quantize` instead.
+
+**Measurement.** The pair is reader v4 on the 266 multi-session and temporal questions,
+DeepSeek judge, raw formation, lexical retrieval, computed notes on: baseline 167, notes 183
+(table above, "Under the cheaper judge"). v5 runs the notes arm with the settings those v4 runs
+recorded (`readerMaxTokens 300`, `temporalRangeModel deepseek-chat`, `dateDistances`,
+`computedNotes`, top-k 4 / 15 / 10, context 24,576 bytes, all defaults except the flags below):
+
+```sh
+node dist/evals/run-longmemeval-answer.js --question-types multi-session,temporal-reasoning \
+  --computed-notes --date-distances --concurrency 1 \
+  --reader-model rembero-reader --reader-base-url http://127.0.0.1:8082/v1 --reader-max-tokens 300 \
+  --temporal-range-model deepseek-chat --judge-model deepseek-chat \
+  --output docs/research/results/longmemeval-raw-reader-v5-local-notes-mt-all266.json
+```
+
+The v4 local runs went one type at a time (133 each, about 22 s a question on a 16 GB Mac, so
+budget roughly 2 hours per type) and one of them logged 31 reader errors out of 133: rows the
+summary counts as wrong. Check `summary.errors` in the output and rerun those with `--cases`
+before reading the number. Noise on the 266 with identical prompts is about ±4, so v5 has to
+clear 187 to count as a gain over v4 with notes; then it goes on the full 500 against GLM's 440.
+Add the row to the run matrix (`docs/research/run-matrix/training-runs.json`, platform
+"M4 Pro MLX", the smoke test's minutes and $0) and the result to the table above.
+
+**When Modal credit returns.** checkpoint-50 of the Modal v5 run is still on the
+`rembero-finetune` volume (`modal volume ls rembero-finetune runs/`); `train()` resumes from the
+latest checkpoint in a run directory on relaunch. Two v5 readers trained from the same data on
+different hardware are a free reproducibility check, not a conflict.
