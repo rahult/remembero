@@ -166,6 +166,35 @@ about 12 seconds and answers in about 30, one question at a time. The harness po
 drawn from the DeepSeek-judged notes run, the local Q8 reader agrees with the served bf16 reader
 on 37 (29 correct against 32), within the reader's own noise, at a median 22 seconds a question.
 
+## Decisions (2026-09-13, with the user)
+
+- Done means our own reader matches GLM Flash on the full 500 under the same judge and
+  formation. DeepSeek `deepseek-chat` is the judge for everything from here; every stored run
+  is re-judged with it (`node dist/evals/rejudge-longmemeval.js`, sidecar files next to each
+  run, originals untouched) so tables share one judge; old gpt-4o numbers stay as history.
+- Computed notes ship in the product now, `REMBERO_COMPUTED_NOTES` default on, at both attach
+  points: evidence mode gains a Computed section under each row's sources, every line quoting
+  its sentence; natural mode gets the block in the phrasing prompt.
+- Iteration runs on a 100-question stratified subset (27 multi-session, 27 temporal, 16
+  knowledge-update, 14 single-user, 10 single-assistant, 6 preference; seed 100), the 266 only
+  to confirm. The lost local arms are not rerun.
+- The next class is structured evidence from the writer's own facts (see below). Training
+  resumes only when two consecutive structural changes each land inside the noise band; writer
+  rounds then run locally in Unsloth Studio (MLX), reader rounds on RunPod H100 while Modal
+  credit is out, v5 from its step-50 checkpoint when it returns.
+
+## Structured evidence
+
+`src/knowledge/structured-evidence.ts`, `--structured-evidence` on the harness. The writer
+extracted facts at write time; before the reader sees them, code dates each fact (a temporal
+expression inside it resolved against its session, else the session date), grounds it against
+the session text it came from (a fact whose content words never appear there is dropped),
+deduplicates, and where one claim has several values marks the latest current and the earlier
+ones superseded, with their dates. The block goes before the chats: dated claims to compose
+from first, the wording to check second. It is measured on the 100-question subset in hybrid
+formation with the local r23 writer filling the extraction cache and the local reader v4
+answering, four arms: baseline, computed notes, structured evidence, both.
+
 ## Where this goes
 
 1. GLM gains a little from the block (+5, all multi-session) and loses nothing, so the block
