@@ -1,4 +1,4 @@
-# Demos
+# Examples
 
 Three runnable, real-life scenarios. Each one is a folder with a script, its data, a
 README that says what you will see, and the captured transcript of one run so you can
