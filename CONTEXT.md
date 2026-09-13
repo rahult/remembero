@@ -35,3 +35,20 @@ in `docs/adr/`.
   exact containment of the gold answer set: every expected value present, no
   extra named entities, no forbidden terms. Replaces loose substring matching
   that passed wrong-superset answers.
+- **Reader** — the model that answers a question from retrieved memory (sessions,
+  facts, notes). Distinct from the **writer**, the model that turns text into
+  facts or claims at write time. One deployment may use different models for each.
+- **Computed notes** — a deterministic block, produced by code with no model call,
+  appended to the reader's context: temporal expressions in the user's own words
+  resolved against the date they were said, distances and gaps between dated
+  events, and quantities with units. Code output, never model output.
+- **Structured evidence** — claims the writer produced (subject, predicate, object,
+  validity interval, quoted source), resolved, dated and superseded by
+  deterministic rules before the reader sees them. Model output checked by code;
+  never to be confused with computed notes.
+- **Arm** — one run of a benchmark under one setting. A **paired run** is two arms
+  that differ in exactly one setting with identical retrieval, so a difference in
+  score is attributable to that setting.
+- **Judge** — the model that grades a reader's answer against the gold answer.
+  Judges differ in leniency, so a score always names its judge and rows in one
+  table share one judge.
