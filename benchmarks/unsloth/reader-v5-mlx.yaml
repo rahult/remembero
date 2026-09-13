@@ -1,0 +1,45 @@
+# Reader v5 on Apple Silicon through Unsloth Studio's MLX backend.
+#
+# Same recipe as the Modal run (benchmarks/modal/train_lora.py train(): Gemma 4 E4B,
+# rank-32 LoRA, alpha 64, lr 2e-4 linear, 1 epoch, loss on the assistant turn only,
+# no packing, max length 8192, effective batch 64) adapted to one 24 GB machine:
+#   - batch 1 x grad-accum 64 keeps the same effective batch (74 steps over 4,713 rows)
+#   - the base loads 4-bit (QLoRA); bf16 E4B plus 6k-token activations does not fit 24 GB
+#   - rows are 5.9k tokens mean, 7.4k max (Gemma 4 tokenizer); 8192 truncates nothing
+#
+# Launch from the repo root:
+#   HF_TOKEN=... unsloth train --config benchmarks/unsloth/reader-v5-mlx.yaml
+# Smoke test first (measures seconds per step; multiply by 74 for the full run):
+#   HF_TOKEN=... unsloth train --config benchmarks/unsloth/reader-v5-mlx.yaml --max-steps 2
+
+model: google/gemma-4-E4B-it
+data:
+  local_dataset:
+    - data/training-reader-v5/conversations.jsonl
+  format_type: chatml          # rows carry a "messages" list; last turn is the assistant
+training:
+  training_type: lora
+  max_seq_length: 8192
+  load_in_4bit: true
+  output_dir: outputs/reader-v5-mlx
+  num_epochs: 1
+  learning_rate: 0.0002
+  batch_size: 1
+  gradient_accumulation_steps: 64
+  warmup_steps: 5
+  max_steps: 0
+  save_steps: 10               # ~7 checkpoints; Ctrl+C then relaunch resumes from the last
+  weight_decay: 0.0            # the Modal run used the transformers default
+  random_seed: 7
+  packing: false
+  train_on_completions: true   # completion_only_loss=True in the Modal script
+  gradient_checkpointing: unsloth
+lora:
+  lora_r: 32
+  lora_alpha: 64
+  lora_dropout: 0.0
+  target_modules: q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj
+  finetune_vision_layers: false   # text-only model use; skips the vision/audio towers
+  finetune_language_layers: true
+  finetune_attention_modules: true
+  finetune_mlp_modules: true
