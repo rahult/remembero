@@ -1,0 +1,267 @@
+{
+  "run": "longmemeval-extraction-v1-extracted-r11-dev40.json",
+  "originalJudge": "openai/gpt-4o-2024-08-06",
+  "judgeModel": "deepseek-chat",
+  "total": {
+    "questions": 40,
+    "original": 17,
+    "rejudged": 9,
+    "errors": 0
+  },
+  "byType": {
+    "single-session-user": {
+      "questions": 39,
+      "original": 17,
+      "rejudged": 9,
+      "errors": 0
+    },
+    "multi-session": {
+      "questions": 1,
+      "original": 0,
+      "rejudged": 0,
+      "errors": 0
+    }
+  },
+  "labels": [
+    {
+      "questionId": "6ade9755",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "6b168ec8",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "94f70d80",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "58bf7951",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "853b0a1d",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "e47becba",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "726462e0",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "5d3d2817",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": false
+    },
+    {
+      "questionId": "8ebdbe50",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": false
+    },
+    {
+      "questionId": "c5e8278d",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "8550ddae",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": false
+    },
+    {
+      "questionId": "caf9ead2",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "3f1e9474",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "25e5aa4f",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "86b68151",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "b86304ba",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "ec81a493",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": false
+    },
+    {
+      "questionId": "60d45044",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": false
+    },
+    {
+      "questionId": "577d4d32",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "76d63226",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "15745da0",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "19b5f2b3",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": false
+    },
+    {
+      "questionId": "e01b8e2f",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": false
+    },
+    {
+      "questionId": "bc8a6e93",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "001be529",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "4fd1909e",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "86f00804",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "8a137a7f",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "c19f7a0b",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": false
+    },
+    {
+      "questionId": "4100d0a0",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "311778f1",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "1faac195",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "36580ce8",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "a82c026e",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "19b5f2b3_abs",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "faba32e5",
+      "questionType": "single-session-user",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "bc8a6e93_abs",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "29f2956b_abs",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "f4f1d8a4_abs",
+      "questionType": "single-session-user",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_59c863d7",
+      "questionType": "multi-session",
+      "original": false,
+      "rejudged": false
+    }
+  ]
+}

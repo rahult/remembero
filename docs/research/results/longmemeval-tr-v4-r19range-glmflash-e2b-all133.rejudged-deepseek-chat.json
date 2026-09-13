@@ -1,0 +1,819 @@
+{
+  "run": "longmemeval-tr-v4-r19range-glmflash-e2b-all133.json",
+  "originalJudge": "openai/gpt-4o-2024-08-06",
+  "judgeModel": "deepseek-chat",
+  "total": {
+    "questions": 133,
+    "original": 114,
+    "rejudged": 120,
+    "errors": 0
+  },
+  "byType": {
+    "temporal-reasoning": {
+      "questions": 133,
+      "original": 114,
+      "rejudged": 120,
+      "errors": 0
+    }
+  },
+  "labels": [
+    {
+      "questionId": "gpt4_fa19884c",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_b5700ca9",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_59149c77",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_1d4ab0c9",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "71017276",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_f49edff3",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "0bc8ad92",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_4929293a",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "b46e15ed",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_e072b769",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "af082822",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "9a707b81",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "gpt4_7f6b06db",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "gpt4_7a0daae1",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "0db4c65d",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_1d80365e",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_1e4a8aeb",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_8279ba02",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_6dc9b45b",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_1916e0ea",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_18c2b244",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "2ebe6c90",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_a1b77f9c",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_4fc4f797",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_468eb063",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_7abb270c",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "gpt4_ec93e27f",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "4dfccbf7",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "8077ef71",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_61e13b3c",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_e061b84f",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "gpt4_45189cb4",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "gpt4_d6585ce8",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "gpt4_4ef30696",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "5e1b23de",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "6e984301",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": false
+    },
+    {
+      "questionId": "gpt4_f420262c",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "bcbe585f",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "370a8ff4",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "gpt4_8e165409",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_74aed68e",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_af6db32f",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_21adecb5",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_e414231e",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_98f46fc6",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_a2d1d1f6",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "2ebe6c92",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_e061b84g",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_68e94287",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "b46e15ee",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "eac54adc",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_1e4a8aec",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_7ddcf75f",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_85da3956",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_7ca326fa",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_4929293b",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_7bc6cf22",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "71017277",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": true
+    },
+    {
+      "questionId": "9a707b82",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_b0863698",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_f420262d",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_d6585ce9",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_59149c78",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_8279ba03",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_b5700ca0",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_68e94288",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_e414231f",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_fa19884d",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "0bc8ad93",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": true
+    },
+    {
+      "questionId": "eac54add",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_468eb064",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": true
+    },
+    {
+      "questionId": "4dfccbf8",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "2c63a862",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "6e984302",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "2a1811e2",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "bbf86515",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_2487a7cb",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_76048e76",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_2655b836",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "08f4fc43",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_5dcc0aab",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_385a5000",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "f0853d11",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "0bb5a684",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_65aabe59",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "982b5123",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "gpt4_0b2f1d21",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_2312f94c",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_6ed717ea",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_70e84552",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_2d58bcd6",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_93159ced",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "b9cfe692",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "dcfa8644",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "c8090214",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_4edbafa2",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "a3838d2b",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_8c8961ae",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_483dd43c",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "e4e14d04",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "c9f37c46",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_b4a80587",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "a3045048",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_2c50253f",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_9a159967",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_88806d6e",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_4cd9eba1",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "cc6d1ec1",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "d01c6aa8",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_2f56ae70",
+      "questionType": "temporal-reasoning",
+      "original": false,
+      "rejudged": false
+    },
+    {
+      "questionId": "6613b389",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_d9af6064",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "993da5e2",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_1a1dc16d",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_7de946e7",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_cd90e484",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_93f6379c",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_c27434e8",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_fe651585",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_78cf46a3",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_d31cdae3",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "b29f3365",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_0a05b494",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "c8090214_abs",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_213fd887",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_2f584639",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_c27434e8_abs",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_5438fa52",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "8c18457d",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_93159ced_abs",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "982b5123_abs",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_70e84552_abs",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    },
+    {
+      "questionId": "gpt4_fe651585_abs",
+      "questionType": "temporal-reasoning",
+      "original": true,
+      "rejudged": true
+    }
+  ]
+}
