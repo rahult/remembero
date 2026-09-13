@@ -1,4 +1,5 @@
 import { buildComputedNotes } from '../knowledge/computed-notes.js';
+import { buildStructuredEvidence } from '../knowledge/structured-evidence.js';
 import {
   existsSync,
   mkdirSync,
@@ -245,6 +246,7 @@ export interface LongMemEvalAnswerRun {
     dateDistances?: boolean;
     computedNotes?: boolean;
     focusedBudget?: boolean;
+    structuredEvidence?: boolean;
     hybridQuestionTypes: string[] | null;
     factsInContext: boolean;
     readerMaxTokens: number;
@@ -533,6 +535,7 @@ export function buildLongMemEvalAnswerContext(
   dateDistances = false,
   computedNotes = false,
   focusedBudget = false,
+  structuredEvidence = false,
 ): AnswerContext {
   validateOptions(Math.max(1, rankedSources.length), contextBytes);
   const usable = rankedSources.filter(
@@ -602,7 +605,22 @@ export function buildLongMemEvalAnswerContext(
         return block === '' ? '' : `\n${block}`;
       })()
     : '';
-  const user = `History chats:\n\n${history || '[no safe relevant history retrieved]'}\n${remembered}${engineBlock}${computedBlock}Current date: ${instance.question_date}\nQuestion: ${instance.question}\nAnswer:`;
+  // structured evidence goes first: dated claims to compose from, then the chats to check
+  const evidenceBlock = structuredEvidence
+    ? (() => {
+        const block = buildStructuredEvidence(
+          instance.question,
+          instance.question_date,
+          [
+            ...selected.map(({ ts, text, facts }) => ({ ts, text: text!, facts })),
+            // supplementary facts have no session text here; they ground against themselves
+            ...extraFacts.map(({ ts, clause }) => ({ ts, text: `USER: ${clause}`, facts: [clause] })),
+          ],
+        );
+        return block === '' ? '' : `${block}\n`;
+      })()
+    : '';
+  const user = `${evidenceBlock}History chats:\n\n${history || '[no safe relevant history retrieved]'}\n${remembered}${engineBlock}${computedBlock}Current date: ${instance.question_date}\nQuestion: ${instance.question}\nAnswer:`;
   assertSafeForExternalLlm(user, 'LongMemEval answer prompt');
   const system =
     instance.question_type === 'single-session-preference'
@@ -731,6 +749,8 @@ export async function evaluateLongMemEvalAnswerInstance(
     computedNotes?: boolean;
     /** Context budget per session weighted by the question's content words it contains. */
     focusedBudget?: boolean;
+    /** Dated, grounded, deduplicated extracted facts placed before the chats. */
+    structuredEvidence?: boolean;
     engineRecall?: {
       /** The writer: authors the Datalog query (usage is accounted with extraction). */
       llm: LongMemEvalCompletionClient;
@@ -1408,6 +1428,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       options.dateDistances === true,
       options.computedNotes === true,
       options.focusedBudget === true,
+      options.structuredEvidence === true,
     );
     contextSessionIds = [
       ...answerContext.contextSessionIds,

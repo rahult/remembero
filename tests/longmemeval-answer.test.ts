@@ -1224,3 +1224,28 @@ describe('focused budget', () => {
     expect(section(focused, 'b').length).toBeLessThan(section(even, 'b').length);
   });
 });
+
+describe('structured evidence in the answer context', () => {
+  it('places dated facts before the chats when enabled', () => {
+    const instance = {
+      question_id: 'q3',
+      question_type: 'multi-session',
+      question: 'How many online courses have I completed in total?',
+      question_date: '2023/05/30 (Tue) 16:30',
+      answer: '5',
+      haystack_session_ids: ['a', 'b'],
+      haystack_dates: [],
+      haystack_sessions: [],
+      answer_session_ids: ['a', 'b'],
+    } as unknown as LongMemEvalInstance;
+    const sources = [
+      { opId: 'a', ts: '2023-05-23T09:00:00Z', text: 'USER: Just wrapped up my third Coursera course on deep learning.', facts: ['completed 3 courses on Coursera'] },
+      { opId: 'b', ts: '2023-05-30T09:00:00Z', text: 'USER: I finished two courses on edX this week.', facts: ['completed 2 courses on edX'] },
+    ];
+    const ctx = buildLongMemEvalAnswerContext(instance, sources, 8192, [], 'direct', undefined, false, false, false, true);
+    const text = ctx.messages.at(-1)!.content;
+    expect(text.indexOf('Dated facts')).toBeGreaterThanOrEqual(0);
+    expect(text.indexOf('Dated facts')).toBeLessThan(text.indexOf('History chats'));
+    expect(text).toMatch(/2023-05-23.*completed 3 courses on Coursera/);
+  });
+});
