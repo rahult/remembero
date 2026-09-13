@@ -103,6 +103,16 @@ On the frozen 50-question expansion, the same prepared lane scores 18/50 (36.0%)
 503 ms memory-query p95, with $0.005221 embedding cost and no same-question no-retrieval
 control.
 
+## Examples
+
+Three runnable real-life scenarios live in [examples/](examples/README.md), each with its data,
+a README that says what you will see, and the captured transcript of one run:
+[team-rules](examples/team-rules/) (a team's project memory with proofs, `why-not`, a refused
+write, a what-if and supersession; no model), [personal-timeline](examples/personal-timeline/)
+(weeks of statements, then questions answered with computed notes by the local writer), and
+[approvals-desk](examples/approvals-desk/) (a year of "may X approve Y on this date" decided
+from a delegations schedule, a Slack message and an amendment, with quotes).
+
 ## Try the real web console
 
 ```bash

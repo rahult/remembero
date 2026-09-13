@@ -1,0 +1,45 @@
+name: approvals-desk
+description: >
+  A finance inbox at a community foundation. The delegations schedule is ingested in March.
+  Requests arrive through the year: within limits, over limits, during a suspension, under a
+  Slack delegation from the CEO, from an unknown person, from an ambiguous initial, with a
+  conflict of interest. In November an amendment changes the limits. Every answer carries
+  its quotes; UNKNOWN is an answer, never a permission.
+steps:
+  - ingest: {path: fixtures/harbourview_delegations_v2.md, effective_date: "2026-03-01", kind: policy}
+  # ingest proposes "grant expenditure" as a category it does not know; a human registers it
+  - register: {action: add, kind: category, name: grant expenditure, aliases: [grants, grant payments, grant]}
+
+  # April: two requests from the Grants Manager
+  - decide: {actor: Nadia Kessler, resource: grants, amount: 18000, currency: NZD, on: "2026-04-10", expect: ALLOW, because: "Grants Manager, 25,000 per grant"}
+  - decide: {actor: Nadia Kessler, resource: operational expenditure, amount: 12000, currency: NZD, on: "2026-04-10", expect: DENY, because: "her operational limit is 10,000"}
+
+  # July and August: the COO, before and during the suspension
+  - decide: {actor: Owen Pritchard, resource: operational expenditure, amount: 55000, currency: NZD, on: "2026-07-01", expect: ALLOW, because: "COO limit 60,000"}
+  - decide: {actor: Owen Pritchard, resource: operational expenditure, amount: 55000, currency: NZD, on: "2026-08-20", expect: DENY, because: "authority suspended from 10 August pending review"}
+
+  # May: the CEO, inside and outside her limits
+  - decide: {actor: Helen Marsh, resource: capital expenditure, amount: 90000, currency: NZD, on: "2026-05-01", expect: ALLOW, because: "CEO capital limit 300,000"}
+  - decide: {actor: Helen Marsh, resource: grants, amount: 250000, currency: NZD, on: "2026-05-01", expect: DENY, because: "CEO grant limit 200,000 per grant"}
+
+  # August: the CEO covers the gap the suspension left, by Slack, for a limited time
+  - ingest:
+      document_id: slack-helen-2026-08-12
+      effective_date: "2026-08-12"
+      kind: message
+      text: >
+        Team, while Owen's review is under way, Nadia Kessler may approve operational
+        expenditure up to NZD 20,000 per transaction on my behalf, until 30 September 2026.
+        Anything above that comes to me. Thanks for your patience. Helen Marsh, CEO
+  - decide: {actor: Nadia Kessler, resource: operational expenditure, amount: 15000, currency: NZD, on: "2026-09-01", expect: ALLOW, because: "the CEO's delegation to 20,000 until 30 September"}
+  - decide: {actor: Nadia Kessler, resource: operational expenditure, amount: 15000, currency: NZD, on: "2026-10-05", expect: DENY, because: "the delegation ended 30 September; her own limit is 10,000"}
+
+  # The cases a spreadsheet gets wrong
+  - decide: {actor: Sam Oduya, resource: operational expenditure, amount: 500, currency: NZD, on: "2026-09-01", expect: DENY, because: "not a known person; no authority can be attributed"}
+  - decide: {actor: J. Ford, resource: facilities maintenance, amount: 6000, currency: NZD, on: "2026-07-10", expect: UNKNOWN, because: "Julian Ford and Julia Ford are both in the register; an initial is not an identity"}
+  - decide: {actor: Owen Pritchard, resource: operational expenditure, amount: 55000, currency: NZD, on: "2026-07-01", self_benefit: true, expect: DENY, because: "a person may not approve expenditure in which they have an interest"}
+
+  # November: the amendment changes the limits and lifts the suspension
+  - ingest: {path: fixtures/harbourview_delegations_v2_amendment1.md, effective_date: "2026-11-01", kind: amendment}
+  - decide: {actor: Owen Pritchard, resource: operational expenditure, amount: 70000, currency: NZD, on: "2026-11-15", expect: ALLOW, because: "80,000 from 1 November; suspension lifted 1 September"}
+  - decide: {actor: Nadia Kessler, resource: grants, amount: 22000, currency: NZD, on: "2026-12-01", expect: DENY, because: "grant limit lowered to 20,000"}

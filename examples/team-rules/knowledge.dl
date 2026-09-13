@@ -1,0 +1,37 @@
+% Monday morning, a four-person product team. Facts first, then the rules the team
+% agreed on, then one constraint the store enforces on every write.
+
+rembero_arg_names(owner, project, person).
+rembero_arg_names(contributor, project, person).
+rembero_arg_names(status, project, state).
+rembero_arg_names(promised_update, from, to, project).
+
+owner(atlas, rahul).
+owner(orion, maya).
+owner(nova, priya).
+contributor(atlas, maya).
+contributor(atlas, priya).
+contributor(orion, sam).
+contributor(nova, rahul).
+
+status(atlas, blocked).
+status(orion, active).
+status(nova, shipped).
+blocked_on(atlas, vendor_contract).
+due(atlas, '2026-09-30').
+
+promised_update(rahul, maya, atlas).
+promised_update(maya, sam, orion).
+on_leave(priya).
+
+% Rules: derived on demand, never stored, always with a proof.
+member(Person) :- owner(_, Person).
+member(Person) :- contributor(_, Person).
+collaborator(Person, Project) :- owner(Project, _), contributor(Project, Person).
+teammate(A, B) :- collaborator(A, Project), collaborator(B, Project), A != B.
+needs_follow_up(From, To, Project) :- promised_update(From, To, Project), status(Project, blocked).
+at_risk(Project) :- status(Project, blocked), due(Project, _).
+available(Person) :- member(Person), \+ on_leave(Person).
+
+% Constraint: a blocked project must say what it is blocked on. Checked on every write.
+:- status(Project, blocked), \+ blocked_on(Project, _).
