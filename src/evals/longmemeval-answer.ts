@@ -1,4 +1,4 @@
-import { buildComputedNotes } from './computed-notes.js';
+import { buildComputedNotes } from '../knowledge/computed-notes.js';
 import {
   existsSync,
   mkdirSync,

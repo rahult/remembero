@@ -1,3 +1,4 @@
+import { buildComputedNotes, computedNoteLines } from '../knowledge/computed-notes.js';
 import {
   CLOSURE_SUFFIX,
   parseQueryProgram,
@@ -271,6 +272,10 @@ export interface RecallRelatedKnowledgeOptions {
 }
 
 export interface RecallOptions {
+  /** The moment the question is asked; relative dates in computed notes count from it. */
+  at?: Date;
+  /** Computed notes in the answer (default: on unless REMBERO_COMPUTED_NOTES=0). */
+  computedNotes?: boolean;
   queryPromptVariant?: QueryPromptVariant;
   explain?: boolean;
   /** Total proof witnesses per returned row, including the primary witness. */
@@ -417,12 +422,39 @@ function collectEvidence(
   }
 }
 
+/** Every memory source a proof tree rests on, with the text and time it was said. */
+function collectSources(proof: SourcedQueryProof, out: MemorySource[]): void {
+  if ('aggregated' in proof) {
+    for (const contributor of proof.contributors) for (const child of contributor.proofs) collectSources(child, out);
+    return;
+  }
+  if ('negated' in proof) return;
+  for (const source of [...(proof.sources ?? []), ...(proof.sourceAlternatives ?? [])]) {
+    if (!out.some((s) => s.opId === source.opId && s.ts === source.ts)) out.push(source);
+  }
+  for (const child of proof.because ?? []) collectSources(child, out);
+  if (proof.aggregate !== undefined) {
+    for (const contributor of proof.aggregate.contributors) for (const child of contributor.proofs) collectSources(child, out);
+  }
+}
+
+function sourcesAsTurns(sources: MemorySource[]): Array<{ ts: string; text: string }> {
+  return sources
+    .filter((s) => s.text !== undefined && s.text !== '')
+    .map((s) => ({ ts: s.ts, text: `USER: ${s.text}` }));
+}
+
+export function computedNotesEnabled(options: { computedNotes?: boolean }): boolean {
+  return options.computedNotes ?? process.env.REMBERO_COMPUTED_NOTES !== '0';
+}
+
 /** Render successful recall with compact local proof and provenance evidence. */
 export function evidenceRecallAnswer(
   query: string,
   bindings: Record<string, string>[],
   explanation: ExplainKnowledgeResult,
   rowTrust?: KnowledgeTrust[],
+  notes?: { question: string; at: Date },
 ): string {
   if (explanation.rows.length !== bindings.length) {
     throw new Error('evidence recall explanation rows must match binding rows');
@@ -475,6 +507,18 @@ export function evidenceRecallAnswer(
       lines.push(
         `   Sources: ${[...summary.sources.values()].sort().join('; ')}`,
       );
+    }
+    if (notes !== undefined) {
+      // computed notes: the sources' own words, dated by when they were said, with the
+      // arithmetic done; every line quotes the sentence it came from
+      const rowSources: MemorySource[] = [];
+      for (const proof of row.proofs) collectSources(proof, rowSources);
+      for (const alternative of row.alternativeProofs ?? []) for (const proof of alternative) collectSources(proof, rowSources);
+      const computed = computedNoteLines(notes.question, notes.at.toISOString(), sourcesAsTurns(rowSources));
+      if (computed.length > 0) {
+        lines.push('   Computed (deterministic, from the sources above):');
+        for (const line of computed) lines.push(`     ${line}`);
+      }
     }
   }
   const answer = lines.join('\n');
@@ -1796,11 +1840,13 @@ export async function recallQuestion(
     options.answerMode ?? deps.recallAnswerMode,
   );
   const answerModeResult = answerMode === 'natural' ? {} : { answerMode };
+  const askedAt = options.at ?? new Date();
+  const notesOn = computedNotesEnabled(options);
   const retrieval = await retrieveQuestion(
     deps,
     question,
     namespaces,
-    answerMode === 'evidence' ? { ...options, explain: true } : options,
+    answerMode === 'evidence' || notesOn ? { ...options, explain: true } : options,
   );
   if (retrieval.query === null) {
     return {
@@ -1853,19 +1899,29 @@ export async function recallQuestion(
         retrieval.bindings,
         retrieval.explanation,
         retrieval.rowTrust,
+        notesOn ? { question, at: askedAt } : undefined,
       ),
       answerMode,
       ...retrieval,
     };
   }
 
-  const phrasing = phrasingUserPrompt(
+  let phrasing = phrasingUserPrompt(
     question,
     retrieval.query,
     retrieval.bindings,
     retrieval.trustMode,
     retrieval.rowTrust,
   );
+  if (notesOn && retrieval.explanation !== undefined) {
+    const all: MemorySource[] = [];
+    for (const row of retrieval.explanation.rows) {
+      for (const proof of row.proofs) collectSources(proof, all);
+      for (const alternative of row.alternativeProofs ?? []) for (const proof of alternative) collectSources(proof, all);
+    }
+    const block = buildComputedNotes(question, askedAt.toISOString(), sourcesAsTurns(all));
+    if (block !== '') phrasing = `${phrasing}\n\n${block}`;
+  }
   assertSafeForExternalLlm(phrasing, 'recall evidence');
   const answer = await deps.llm.complete([
     { role: 'system', content: PHRASING_SYSTEM_PROMPT },

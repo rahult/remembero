@@ -5,6 +5,14 @@ chronological order. Only releases that had a standalone README note are listed.
 
 ## Unreleased
 
+- Recall answers carry **computed notes**: a deterministic section (evidence mode) or block
+  (natural mode) that resolves each source's temporal expressions against the time it was
+  said, states distances to now and gaps between dated events, and totals quantities with
+  units, every line quoting its source sentence. `REMBERO_COMPUTED_NOTES=0` disables it;
+  `recallQuestion` accepts `at` (the moment asked) and `computedNotes`. The same module drives
+  `--computed-notes` in the LongMemEval harness, where it lifted our reader from 318 to 359
+  on the 500 with no training (`docs/research/READER-STRUCTURE.md`).
+
 Recall answers render locally by default: `REMBERO_RECALL_ANSWER_MODE` now defaults to
 `evidence`, so an ordinary `recall` makes one model call (question to query) and none to
 phrase the answer; recalled facts no longer leave the process unless `natural` is chosen.

@@ -2426,3 +2426,46 @@ describe('OpenRouterClient', () => {
     ).rejects.toThrow(/^LLM request failed with status 400$/i);
   });
 });
+
+describe('computed notes in recall', () => {
+  const setup = () => {
+    const sourced = new MemoryStore(mkdtempSync(join(tmpdir(), 'rembero-notes-')));
+    sourced.assert('default', 'attended(rahul, walk_for_hunger).', {
+      opId: 'run-source',
+      sourceText: 'I ran the Walk for Hunger 5K yesterday, it was great.',
+      at: new Date('2023-02-22T10:00:00.000Z'),
+    });
+    return sourced;
+  };
+
+  it('evidence mode appends a Computed section with the date resolved against the source turn', async () => {
+    const sourced = setup();
+    const llm = new ScriptedLlm(['?- attended(rahul, What).']);
+    const result = await recallQuestion({ store: sourced, llm }, 'When did I run the Walk for Hunger 5K?', ['default'], {
+      answerMode: 'evidence',
+      at: new Date('2023-03-14T21:24:00.000Z'),
+    });
+    expect(result.answer).toContain('Sources: default/run-source@2023-02-22T10:00:00.000Z');
+    expect(result.answer).toMatch(/Computed \(deterministic[\s\S]*2023-02-21[\s\S]*21 days/);
+  });
+
+  it('natural mode includes the block in the phrasing prompt, and REMBERO_COMPUTED_NOTES=0 removes it', async () => {
+    const sourced = setup();
+    const llm = new ScriptedLlm(['?- attended(rahul, What).', 'You ran it 20 days ago.']);
+    await recallQuestion({ store: sourced, llm }, 'When did I run the Walk for Hunger 5K?', ['default'], {
+      at: new Date('2023-03-14T21:24:00.000Z'),
+    });
+    expect(llm.calls.at(-1)?.at(-1)?.content).toMatch(/Computed from the history[\s\S]*2023-02-21/);
+    process.env.REMBERO_COMPUTED_NOTES = '0';
+    try {
+      const quiet = new ScriptedLlm(['?- attended(rahul, What).']);
+      const result = await recallQuestion({ store: setup(), llm: quiet }, 'When did I run the Walk for Hunger 5K?', ['default'], {
+        answerMode: 'evidence',
+        at: new Date('2023-03-14T21:24:00.000Z'),
+      });
+      expect(result.answer).not.toContain('Computed (');
+    } finally {
+      delete process.env.REMBERO_COMPUTED_NOTES;
+    }
+  });
+});
