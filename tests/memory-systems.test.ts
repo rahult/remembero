@@ -242,3 +242,227 @@ describe('rembero.memory-systems.v1', () => {
     });
   });
 });
+
+import {
+  evaluateLongMemEvalAnswerInstance,
+  longMemEvalAnswerRun,
+  type LongMemEvalCompletionClient,
+} from '../src/evals/longmemeval-answer.js';
+import type { ChatMessage, LlmCompletion } from '../src/llm/client.js';
+import {
+  createBuiltinMemorySystem,
+  isBuiltinMemorySystem,
+} from '../src/evals/memory-systems-builtin.js';
+import type {
+  MemorySystemClient,
+  MemorySystemResponse,
+} from '../src/evals/memory-systems-protocol.js';
+
+class ScriptedClient implements LongMemEvalCompletionClient {
+  readonly calls: ChatMessage[][] = [];
+  constructor(
+    readonly model: string,
+    private readonly outputs: string[],
+  ) {}
+  async completeWithUsage(messages: ChatMessage[]): Promise<LlmCompletion> {
+    this.calls.push(structuredClone(messages));
+    const content = this.outputs.shift();
+    if (content === undefined) throw new Error('scripted completion exhausted');
+    return {
+      content,
+      model: this.model,
+      usage: {
+        promptTokens: 10,
+        completionTokens: 2,
+        totalTokens: 12,
+        cachedPromptTokens: 0,
+        reasoningTokens: 0,
+        costUsd: 0.001,
+      },
+    };
+  }
+}
+
+function fixedClient(
+  id: string,
+  response: Omit<MemorySystemResponse, 'questionId'>,
+): MemorySystemClient {
+  return {
+    id,
+    async request(request) {
+      return { questionId: request.questionId, ...response };
+    },
+    async close() {},
+  };
+}
+
+describe('the memory-system seam', () => {
+  it('replaces the lexical search with the adapter ranking in the retrieval lane', async () => {
+    const reader = new ScriptedClient('reader', ['Business Administration.']);
+    const judge = new ScriptedClient('judge', ['yes']);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      // not the _abs id the other cases use: retrieval recall is scored only for
+      // questions that have evidence to find
+      { ...instance(), question_id: 'ba358f49' },
+      reader,
+      judge,
+      {
+        topK: 4,
+        contextBytes: 24_576,
+        semanticQuestionTypes: new Set<string>(),
+        memorySystem: {
+          lane: 'retrieval',
+          client: fixedClient('stub', {
+            retrieved: [{ sessionId: 'evidence', rank: 1, score: 0.83 }],
+            memories: [],
+            unsupported: ['memories'],
+            usage: {
+              modelCalls: 48,
+              inputTokens: 120_000,
+              outputTokens: 3_000,
+              costUsd: 0.03,
+            },
+            wallMs: { ingest: 41_000, search: 120 },
+          }),
+        },
+      },
+    );
+    expect(observation.status).toBe('judged');
+    expect(observation.retrievedSessionIds).toEqual(['evidence']);
+    expect(observation.retrieval?.recallAtK).toBe(1);
+    expect(observation.memorySystem).toMatchObject({
+      id: 'stub',
+      lane: 'retrieval',
+      usage: { modelCalls: 48, costUsd: 0.03 },
+      wallMs: { ingest: 41_000, search: 120 },
+      returnedSessions: 1,
+    });
+    expect(reader.calls[0]?.[1]?.content).toContain(
+      'I graduate with Business Administration',
+    );
+    expect(reader.calls[0]?.[1]?.content).not.toContain('credit card rewards');
+  });
+
+  it('reads from memory text alone in the memories lane and records what it dropped', async () => {
+    const reader = new ScriptedClient('reader', ['Business Administration.']);
+    const judge = new ScriptedClient('judge', ['yes']);
+    const filler = 'x'.repeat(3_000);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      instance(),
+      reader,
+      judge,
+      {
+        topK: 4,
+        // small on purpose: the second memory cannot fit, so it is dropped and counted
+        contextBytes: 4_096,
+        semanticQuestionTypes: new Set<string>(),
+        memorySystem: {
+          lane: 'memories',
+          client: fixedClient('stub', {
+            retrieved: [],
+            memories: [
+              {
+                text: "User's degree is Business Administration",
+                sessionIds: ['evidence'],
+                at: '2023-06-01',
+              },
+              { text: filler, sessionIds: ['noise'], at: '2023-05-15' },
+            ],
+            unsupported: [],
+            usage: {
+              modelCalls: 3,
+              inputTokens: 10,
+              outputTokens: 1,
+              costUsd: 0.001,
+            },
+            wallMs: { ingest: 10, search: 1 },
+          }),
+        },
+      },
+    );
+    expect(observation.status).toBe('judged');
+    expect(reader.calls[0]?.[1]?.content).toContain(
+      "MEMORY: User's degree is Business Administration",
+    );
+    expect(reader.calls[0]?.[1]?.content).not.toContain(
+      'I graduate with Business Administration',
+    );
+    expect(observation.retrievedSessionIds).toEqual(['evidence']);
+    expect(observation.memorySystem?.returnedMemories).toBe(2);
+    expect(observation.memorySystem?.memoryBytes.dropped).toBeGreaterThan(2_000);
+    expect(observation.memorySystem?.memoryBytes.kept).toBeLessThan(4_096);
+  });
+
+  it('fails the question when the memories lane comes back empty', async () => {
+    const reader = new ScriptedClient('reader', ['unused']);
+    const judge = new ScriptedClient('judge', ['unused']);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      instance(),
+      reader,
+      judge,
+      {
+        topK: 4,
+        semanticQuestionTypes: new Set<string>(),
+        memorySystem: {
+          lane: 'memories',
+          client: fixedClient('retriever-only', {
+            retrieved: [{ sessionId: 'evidence', rank: 1 }],
+            memories: [],
+            unsupported: ['memories'],
+          }),
+        },
+      },
+    );
+    expect(observation.status).toBe('error');
+    expect(observation.error).toMatch(/memories lane is unsupported/);
+  });
+
+  it('ranks with BM25 and returns the whole haystack newest first for full context', async () => {
+    expect(isBuiltinMemorySystem('builtin:bm25')).toBe(true);
+    expect(isBuiltinMemorySystem('builtin:nothing')).toBe(false);
+    const request = memorySystemRequestFor(instance(), 'retrieval', 2);
+    const bm25 = createBuiltinMemorySystem('builtin:bm25', {});
+    const ranked = await bm25.request(request);
+    expect(ranked.retrieved?.[0]?.sessionId).toBe('evidence');
+    expect(ranked.unsupported).toEqual(['memories']);
+    const full = createBuiltinMemorySystem('builtin:full-context', {});
+    const everything = await full.request(request);
+    expect(everything.retrieved?.map(({ sessionId }) => sessionId)).toEqual([
+      'evidence',
+      'noise',
+    ]);
+    await bm25.close();
+    await full.close();
+  });
+
+  it('names the memory system in the run artifact without changing the schema', () => {
+    const run = longMemEvalAnswerRun(
+      [],
+      'glm-5.3-flash:cloud',
+      'deepseek-chat',
+      {
+        memorySystemId: 'builtin:bm25',
+        topK: 4,
+        multiSessionTopK: 15,
+        temporalTopK: 10,
+        contextBytes: 24_576,
+        settings: {
+          aggregationReaderModel: null,
+          temporalRangeModel: null,
+          readingStrategy: 'direct',
+          hybridRetrieval: 'shared',
+          retrievalUnit: 'session',
+          entityRetrieval: false,
+          hybridQuestionTypes: null,
+          factsInContext: true,
+          readerMaxTokens: 440,
+          memorySystem: 'builtin:bm25',
+          memoryLane: 'retrieval',
+        },
+      },
+    );
+    expect(run.retrieval).toBe('memory-system:builtin:bm25');
+    expect(run.schemaVersion).toBe('remembero.longmemeval-answer.v1');
+    expect(run.settings?.memoryLane).toBe('retrieval');
+  });
+});

@@ -97,6 +97,7 @@ export function createMemorySystemProcess(options: MemorySystemProcessOptions): 
     });
     spawned.stdout.setEncoding('utf8');
     spawned.stdout.on('data', (chunk: string) => {
+      if (child !== spawned) return;
       buffer += chunk;
       if (Buffer.byteLength(buffer, 'utf8') > maxResponseBytes) {
         buffer = '';
@@ -110,6 +111,7 @@ export function createMemorySystemProcess(options: MemorySystemProcessOptions): 
       consume();
     });
     spawned.stderr.on('data', (chunk: Buffer) => {
+      if (child !== spawned) return;
       diagnosticBytes += chunk.length;
     });
     // A broken stdin pipe is not the real failure; the close handler reports that.

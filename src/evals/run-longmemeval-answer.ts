@@ -23,6 +23,12 @@ import {
   longMemEvalSplit,
   type LongMemEvalSplit,
 } from './longmemeval-semantic.js';
+import { openMemorySystem } from './memory-systems-builtin.js';
+import {
+  summarizeMemorySystemUsage,
+  type MemorySystemClient,
+  type MemorySystemLane,
+} from './memory-systems-protocol.js';
 
 interface Args {
   data: string;
@@ -74,6 +80,8 @@ interface Args {
   readerMaxTokens: number | undefined;
   readerBaseUrl: string | undefined;
   readerApiKey: string | undefined;
+  memorySystem: string | undefined;
+  memoryLane: MemorySystemLane;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -155,6 +163,14 @@ Options:
   --multi-semantic-max-score <n>  Multi-session local-score ceiling for semantic routing
   --prepare-semantic     Prepare document embeddings before measuring the user turn
   --local-only           Keep every question on local lexical retrieval
+  --memory-system <spec>  Replace Remembero's formation and search with another memory
+                         layer: builtin:full-context, builtin:bm25, builtin:embed, or a path
+                         to an adapter manifest whose protocol is rembero.memory-systems.v1.
+                         One adapter process per --concurrency worker, alive for the run
+  --memory-lane <retrieval|memories>  retrieval (default): the adapter ranks sessions and the
+                         reader sees the same raw sessions it sees for Remembero. memories:
+                         the adapter returns its own memory text and the reader answers from
+                         that alone, inside the same byte budget
   --no-semantic-preferences  Compatibility alias for --local-only
   --json                 Print the complete run instead of its summary
 `;
@@ -232,6 +248,8 @@ function parseArgs(argv: string[]): Args {
     readerMaxTokens: undefined,
     readerBaseUrl: undefined,
     readerApiKey: undefined,
+    memorySystem: undefined,
+    memoryLane: 'retrieval',
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -433,6 +451,14 @@ function parseArgs(argv: string[]): Args {
       args.extractionCharacters = Number(requiredValue(argv, index++, arg));
     } else if (arg === '--local-only' || arg === '--no-semantic-preferences') {
       args.semanticQuestionTypes.clear();
+    } else if (arg === '--memory-system') {
+      args.memorySystem = requiredValue(argv, index++, arg);
+    } else if (arg === '--memory-lane') {
+      const value = requiredValue(argv, index++, arg);
+      if (value !== 'retrieval' && value !== 'memories') {
+        throw new Error('--memory-lane must be retrieval or memories');
+      }
+      args.memoryLane = value;
     } else if (arg === '--json') args.json = true;
     else if (arg === '--help' || arg === '-h') {
       console.log(USAGE);
@@ -495,6 +521,28 @@ async function warmUp(
 async function main(): Promise<void> {
   loadEnv();
   const args = parseArgs(process.argv.slice(2));
+  if (args.memorySystem !== undefined) {
+    if (args.formation !== 'raw') {
+      throw new Error(
+        '--memory-system does its own formation; drop --formation',
+      );
+    }
+    if (args.engineRecall || args.entityRetrieval) {
+      throw new Error(
+        '--memory-system cannot be combined with --engine-recall or --entity-retrieval',
+      );
+    }
+    if (args.temporalRangeModel !== undefined) {
+      throw new Error(
+        '--memory-system cannot be combined with --temporal-range-model: time-aware retrieval is off for every system',
+      );
+    }
+    if (args.semanticQuestionTypes.size > 0) {
+      throw new Error(
+        '--memory-system needs --local-only: the memory layer under test does the retrieval',
+      );
+    }
+  }
   const apiKey = process.env.LLM_API_KEY;
   if (!apiKey)
     throw new Error(
@@ -582,85 +630,121 @@ async function main(): Promise<void> {
   if (extractor !== undefined) await warmUp(extractor, 'extraction endpoint');
   // a self-hosted reader scales to zero as well
   if (args.readerBaseUrl !== undefined) await warmUp(reader, 'reader endpoint');
-  let completed = 0;
-  const observations = await mapConcurrent(
-    instances,
-    args.concurrency,
-    async (instance) => {
-      const observation = await evaluateLongMemEvalAnswerInstance(
-        instance,
-        reader,
-        judge,
-        {
-          topK: args.topK,
-          multiSessionTopK: args.multiSessionTopK,
-          temporalTopK: args.temporalTopK,
-          contextBytes: args.contextBytes,
-          ...(embeddings === undefined ? {} : { embeddings }),
-          semanticQuestionTypes: args.semanticQuestionTypes,
-          multiSessionSemanticMaximumLexicalScore:
-            args.multiSessionSemanticMaximumLexicalScore,
-          prepareSemantic: args.prepareSemantic,
-          formation: args.formation,
-          ...(extractor === undefined ? {} : { extractor }),
-          ...(args.extractionCharacters === undefined
-            ? {}
-            : { extractionCharacters: args.extractionCharacters }),
-          ...(args.extractionAssistantCharacters === undefined
-            ? {}
-            : {
-                extractionAssistantCharacters:
-                  args.extractionAssistantCharacters,
+  // builtin:embed needs a vector client even though --local-only turns Remembero's own
+  // semantic route off: there the embedding model is the memory system under test
+  const memorySystemEmbeddings =
+    args.memorySystem === 'builtin:embed'
+      ? (embeddings ?? embeddingClientFromEnv())
+      : embeddings;
+  // one adapter process per worker: each client queues its own requests, so a question is
+  // never interleaved with another inside one store
+  const memorySystems: MemorySystemClient[] =
+    args.memorySystem === undefined
+      ? []
+      : await Promise.all(
+          Array.from(
+            { length: args.concurrency },
+            async () =>
+              await openMemorySystem(args.memorySystem!, {
+                ...(memorySystemEmbeddings === undefined
+                  ? {}
+                  : { embeddings: memorySystemEmbeddings }),
               }),
-          ...(args.extractionMaxTokens === undefined
-            ? {}
-            : { extractionMaxTokens: args.extractionMaxTokens }),
-          factsInContext: args.factsInContext,
-          hybridRetrieval: args.hybridRetrieval,
-          retrievalUnit: args.retrievalUnit,
-          readingStrategy: args.readingStrategy,
-          ...(args.readerMaxTokens === undefined
-            ? {}
-            : { readerMaxTokens: args.readerMaxTokens }),
-          ...(aggregationReader === undefined ? {} : { aggregationReader }),
-          ...(temporalRangeExtractor === undefined
-            ? {}
-            : { temporalRangeExtractor }),
-          entityRetrieval: args.entityRetrieval,
-          dateDistances: args.dateDistances,
-          computedNotes: args.computedNotes,
-          focusedBudget: args.focusedBudget,
-          structuredEvidence: args.structuredEvidence,
-          ...(args.engineRecall
-            ? {
-                engineRecall: {
-                  llm: engineWriter,
-                  ...(args.engineRecallQuestionTypes === undefined
-                    ? {}
-                    : { questionTypes: args.engineRecallQuestionTypes }),
-                },
-              }
-            : {}),
-          ...(args.extractionCacheDir === undefined
-            ? {}
-            : { extractionCacheDir: args.extractionCacheDir }),
-          ...(args.hybridQuestionTypes === undefined
-            ? {}
-            : { hybridQuestionTypes: args.hybridQuestionTypes }),
-          ...(args.reservedMinimumScore === undefined
-            ? {}
-            : { reservedMinimumScore: args.reservedMinimumScore }),
-        },
-      );
-      completed++;
-      if (!args.json) {
-        console.error(
-          `[${completed}/${instances.length}] ${instance.question_id}: ${observation.status === 'judged' ? (observation.correct ? 'correct' : 'incorrect') : `error (${observation.error})`}`,
+          ),
         );
-      }
-      return observation;
-    },
-  );
+  let completed = 0;
+  let observations: LongMemEvalAnswerObservation[];
+  try {
+    observations = await mapConcurrent(
+      instances,
+      args.concurrency,
+      async (instance, index) => {
+        const observation = await evaluateLongMemEvalAnswerInstance(
+          instance,
+          reader,
+          judge,
+          {
+            topK: args.topK,
+            multiSessionTopK: args.multiSessionTopK,
+            temporalTopK: args.temporalTopK,
+            contextBytes: args.contextBytes,
+            ...(embeddings === undefined ? {} : { embeddings }),
+            semanticQuestionTypes: args.semanticQuestionTypes,
+            multiSessionSemanticMaximumLexicalScore:
+              args.multiSessionSemanticMaximumLexicalScore,
+            prepareSemantic: args.prepareSemantic,
+            formation: args.formation,
+            ...(extractor === undefined ? {} : { extractor }),
+            ...(args.extractionCharacters === undefined
+              ? {}
+              : { extractionCharacters: args.extractionCharacters }),
+            ...(args.extractionAssistantCharacters === undefined
+              ? {}
+              : {
+                  extractionAssistantCharacters:
+                    args.extractionAssistantCharacters,
+                }),
+            ...(args.extractionMaxTokens === undefined
+              ? {}
+              : { extractionMaxTokens: args.extractionMaxTokens }),
+            factsInContext: args.factsInContext,
+            hybridRetrieval: args.hybridRetrieval,
+            retrievalUnit: args.retrievalUnit,
+            readingStrategy: args.readingStrategy,
+            ...(args.readerMaxTokens === undefined
+              ? {}
+              : { readerMaxTokens: args.readerMaxTokens }),
+            ...(aggregationReader === undefined ? {} : { aggregationReader }),
+            ...(temporalRangeExtractor === undefined
+              ? {}
+              : { temporalRangeExtractor }),
+            entityRetrieval: args.entityRetrieval,
+            dateDistances: args.dateDistances,
+            computedNotes: args.computedNotes,
+            focusedBudget: args.focusedBudget,
+            structuredEvidence: args.structuredEvidence,
+            ...(memorySystems.length === 0
+              ? {}
+              : {
+                  memorySystem: {
+                    client: memorySystems[index % memorySystems.length]!,
+                    lane: args.memoryLane,
+                  },
+                }),
+            ...(args.engineRecall
+              ? {
+                  engineRecall: {
+                    llm: engineWriter,
+                    ...(args.engineRecallQuestionTypes === undefined
+                      ? {}
+                      : { questionTypes: args.engineRecallQuestionTypes }),
+                  },
+                }
+              : {}),
+            ...(args.extractionCacheDir === undefined
+              ? {}
+              : { extractionCacheDir: args.extractionCacheDir }),
+            ...(args.hybridQuestionTypes === undefined
+              ? {}
+              : { hybridQuestionTypes: args.hybridQuestionTypes }),
+            ...(args.reservedMinimumScore === undefined
+              ? {}
+              : { reservedMinimumScore: args.reservedMinimumScore }),
+          },
+        );
+        completed++;
+        if (!args.json) {
+          console.error(
+            `[${completed}/${instances.length}] ${instance.question_id}: ${observation.status === 'judged' ? (observation.correct ? 'correct' : 'incorrect') : `error (${observation.error})`}`,
+          );
+        }
+        return observation;
+      },
+    );
+  } finally {
+    // the adapter processes outlive every question, but not the run
+    await Promise.all(memorySystems.map(async (client) => await client.close()));
+  }
   const run = longMemEvalAnswerRun(observations, reader.model, judge.model, {
     topK: args.topK,
     multiSessionTopK: args.multiSessionTopK,
@@ -675,6 +759,9 @@ async function main(): Promise<void> {
     prepareSemantic: args.prepareSemantic,
     formation: args.formation,
     extractionModel: extractor?.model ?? null,
+    ...(args.memorySystem === undefined
+      ? {}
+      : { memorySystemId: args.memorySystem }),
     settings: {
       aggregationReaderModel: aggregationReader?.model ?? null,
       temporalRangeModel: temporalRangeExtractor?.model ?? null,
@@ -697,6 +784,8 @@ async function main(): Promise<void> {
           : [...args.hybridQuestionTypes],
       factsInContext: args.factsInContext,
       readerMaxTokens: args.readerMaxTokens ?? 4096,
+      memorySystem: args.memorySystem ?? null,
+      memoryLane: args.memorySystem === undefined ? null : args.memoryLane,
     },
   });
   const serialized = stringifyBoundedResult(run, 'LongMemEval answer run');
@@ -774,6 +863,28 @@ async function main(): Promise<void> {
     console.log(
       `judge calls/tokens/cost: ${summary.judgeUsage.calls} / ${summary.judgeUsage.totalTokens} / $${summary.judgeUsage.costUsd.toFixed(6)}`,
     );
+    if (args.memorySystem !== undefined) {
+      const adapter = summarizeMemorySystemUsage(observations);
+      console.log(
+        `memory system: ${args.memorySystem} (lane ${args.memoryLane})`,
+      );
+      console.log(
+        `memory system calls/tokens/cost: ${adapter.modelCalls} / ${adapter.inputTokens + adapter.outputTokens} / $${adapter.costUsd.toFixed(6)}`,
+      );
+      console.log(
+        `memory system ingest/search p50: ${adapter.medianIngestMs.toFixed(1)} / ${adapter.medianSearchMs.toFixed(1)} ms; dropped memory bytes ${adapter.droppedMemoryBytes}`,
+      );
+      const overreach = observations.filter(
+        (observation) =>
+          observation.memorySystem !== undefined &&
+          observation.memorySystem.returnedSessions > args.multiSessionTopK,
+      ).length;
+      if (overreach > 0) {
+        console.log(
+          `note: ${overreach} questions returned more sessions than the requested top-k (full context does this by design)`,
+        );
+      }
+    }
     console.log(
       `embedding calls/tokens/cost: ${summary.embeddingUsage.calls} / ${summary.embeddingUsage.totalTokens} / $${summary.embeddingUsage.costUsd.toFixed(6)}`,
     );
