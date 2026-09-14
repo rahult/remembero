@@ -100,6 +100,11 @@ export interface MemorySystemObservation {
   returnedMemories: number;
   /** Memory text bytes offered, kept inside the context budget, and dropped. */
   memoryBytes: { supplied: number; kept: number; dropped: number };
+  /**
+   * The adapter returned more sessions than the question's retrieval depth asked for. The
+   * harness still scores it at that depth; this says the system did not respect topK.
+   */
+  overRequestedDepth?: boolean;
   unsupported: MemorySystemLane[];
 }
 

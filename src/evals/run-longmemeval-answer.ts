@@ -23,6 +23,7 @@ import {
   longMemEvalSplit,
   type LongMemEvalSplit,
 } from './longmemeval-semantic.js';
+import { mapConcurrent } from './map-concurrent.js';
 import { openMemorySystem } from './memory-systems-builtin.js';
 import {
   summarizeMemorySystemUsage,
@@ -468,25 +469,6 @@ function parseArgs(argv: string[]): Args {
   return args;
 }
 
-async function mapConcurrent<T, R>(
-  values: readonly T[],
-  concurrency: number,
-  operation: (value: T, index: number) => Promise<R>,
-): Promise<R[]> {
-  const results = new Array<R>(values.length);
-  let next = 0;
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, values.length) }, async () => {
-      while (true) {
-        const index = next++;
-        if (index >= values.length) return;
-        results[index] = await operation(values[index]!, index);
-      }
-    }),
-  );
-  return results;
-}
-
 function percent(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
 }
@@ -658,7 +640,7 @@ async function main(): Promise<void> {
     observations = await mapConcurrent(
       instances,
       args.concurrency,
-      async (instance, index) => {
+      async (instance, _index, workerId) => {
         const observation = await evaluateLongMemEvalAnswerInstance(
           instance,
           reader,
@@ -707,7 +689,9 @@ async function main(): Promise<void> {
               ? {}
               : {
                   memorySystem: {
-                    client: memorySystems[index % memorySystems.length]!,
+                    // by worker, not by position: one live adapter per worker, never two
+                    // in-flight questions queued behind the same process
+                    client: memorySystems[workerId % memorySystems.length]!,
                     lane: args.memoryLane,
                   },
                 }),
@@ -875,13 +859,11 @@ async function main(): Promise<void> {
         `memory system ingest/search p50: ${adapter.medianIngestMs.toFixed(1)} / ${adapter.medianSearchMs.toFixed(1)} ms; dropped memory bytes ${adapter.droppedMemoryBytes}`,
       );
       const overreach = observations.filter(
-        (observation) =>
-          observation.memorySystem !== undefined &&
-          observation.memorySystem.returnedSessions > args.multiSessionTopK,
+        (observation) => observation.memorySystem?.overRequestedDepth === true,
       ).length;
       if (overreach > 0) {
         console.log(
-          `note: ${overreach} questions returned more sessions than the requested top-k (full context does this by design)`,
+          `note: ${overreach} questions returned more sessions than that question's top-k; the harness scored them at it anyway (full context does this by design)`,
         );
       }
     }

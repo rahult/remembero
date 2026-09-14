@@ -21,7 +21,7 @@ import {
   type LlmUsageTotals,
 } from '../llm/client.js';
 import { recallWords } from '../llm/schema.js';
-import { assertSafeForExternalLlm } from '../safety.js';
+import { assertSafeForExternalLlm, redactSensitiveText } from '../safety.js';
 import {
   searchKnowledge,
   type KnowledgeSearchResult,
@@ -1397,24 +1397,36 @@ export async function evaluateLongMemEvalAnswerInstance(
           return true;
         });
       topScore = ranked[0]?.score ?? 0;
+      // The question is scored at effectiveTopK, so an adapter that ignores request.topK
+      // does not get to buy recall with depth. builtin:full-context is the deliberate
+      // exception: handing back the whole haystack is the point of that row.
+      const overRequestedDepth = ranked.length > effectiveTopK;
+      const depthCap =
+        client.id === 'builtin:full-context'
+          ? MEMORY_SYSTEM_MAX_SESSIONS
+          : Math.min(effectiveTopK, MEMORY_SYSTEM_MAX_SESSIONS);
+      const withinDepth = ranked.slice(0, depthCap);
       const memoryBytes = { supplied: 0, kept: 0, dropped: 0 };
       const memories = reply.memories ?? [];
       if (lane === 'retrieval') {
-        rankedSources = ranked
-          .slice(0, MEMORY_SYSTEM_MAX_SESSIONS)
-          .flatMap(({ sessionId }) => {
-            const record = sessionRecords.get(sessionId);
-            return record === undefined
-              ? []
-              : [
-                  {
-                    opId: sessionId,
-                    ts: record.ts,
-                    text: record.text,
-                    facts: [],
-                  },
-                ];
-          });
+        rankedSources = withinDepth.flatMap(({ sessionId }) => {
+          const record = sessionRecords.get(sessionId);
+          if (record === undefined) return [];
+          // Parity with the store path: MemoryStore redacts a source that trips
+          // containsSensitiveText and marks it, and the context builder drops it. Without
+          // this the external arm would send raw what the Remembero arm dropped, and the
+          // prompt guard would fail the whole question instead.
+          const source = redactSensitiveText(record.text);
+          return [
+            {
+              opId: sessionId,
+              ts: record.ts,
+              text: source.text,
+              facts: [],
+              ...(source.redacted ? { redacted: true as const } : {}),
+            },
+          ];
+        });
         retrievedSessionIds = rankedSources.map(({ opId }) => opId);
       } else {
         if (memories.length === 0) {
@@ -1457,17 +1469,23 @@ export async function evaluateLongMemEvalAnswerInstance(
           grouped.set(sessionId, group);
         }
         rankedSources = [...grouped.entries()]
-          .slice(0, MEMORY_SYSTEM_MAX_SESSIONS)
-          .map(([sessionId, group]) => ({
-            opId: sessionId,
-            ts: group.ts,
-            text: group.lines.map((line) => `MEMORY: ${line}`).join('\n'),
-            facts: [],
-          }));
+          .slice(0, depthCap)
+          .map(([sessionId, group]) => {
+            const source = redactSensitiveText(
+              group.lines.map((line) => `MEMORY: ${line}`).join('\n'),
+            );
+            return {
+              opId: sessionId,
+              ts: group.ts,
+              text: source.text,
+              facts: [],
+              ...(source.redacted ? { redacted: true as const } : {}),
+            };
+          });
         retrievedSessionIds = [
           ...new Set([
             ...kept.flatMap(({ sessionIds }) => sessionIds ?? []),
-            ...ranked.map(({ sessionId }) => sessionId),
+            ...withinDepth.map(({ sessionId }) => sessionId),
           ]),
         ];
       }
@@ -1480,6 +1498,7 @@ export async function evaluateLongMemEvalAnswerInstance(
         returnedMemories: memories.length,
         memoryBytes,
         unsupported: reply.unsupported ?? [],
+        ...(overRequestedDepth ? { overRequestedDepth: true } : {}),
       };
     }
 

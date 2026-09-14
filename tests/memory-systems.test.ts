@@ -7,6 +7,21 @@ import {
   summarizeMemorySystemUsage,
 } from '../src/evals/memory-systems-protocol.js';
 import { createMemorySystemProcess } from '../src/evals/memory-systems-process.js';
+import type {
+  MemorySystemClient,
+  MemorySystemResponse,
+} from '../src/evals/memory-systems-protocol.js';
+import { mapConcurrent } from '../src/evals/map-concurrent.js';
+import {
+  evaluateLongMemEvalAnswerInstance,
+  longMemEvalAnswerRun,
+  type LongMemEvalCompletionClient,
+} from '../src/evals/longmemeval-answer.js';
+import {
+  createBuiltinMemorySystem,
+  isBuiltinMemorySystem,
+} from '../src/evals/memory-systems-builtin.js';
+import type { ChatMessage, LlmCompletion } from '../src/llm/client.js';
 import type { LongMemEvalInstance } from '../src/evals/longmemeval.js';
 
 function instance(): LongMemEvalInstance {
@@ -243,21 +258,6 @@ describe('rembero.memory-systems.v1', () => {
   });
 });
 
-import {
-  evaluateLongMemEvalAnswerInstance,
-  longMemEvalAnswerRun,
-  type LongMemEvalCompletionClient,
-} from '../src/evals/longmemeval-answer.js';
-import type { ChatMessage, LlmCompletion } from '../src/llm/client.js';
-import {
-  createBuiltinMemorySystem,
-  isBuiltinMemorySystem,
-} from '../src/evals/memory-systems-builtin.js';
-import type {
-  MemorySystemClient,
-  MemorySystemResponse,
-} from '../src/evals/memory-systems-protocol.js';
-
 class ScriptedClient implements LongMemEvalCompletionClient {
   readonly calls: ChatMessage[][] = [];
   constructor(
@@ -433,6 +433,155 @@ describe('the memory-system seam', () => {
     ]);
     await bm25.close();
     await full.close();
+  });
+
+  it('redacts a sensitive session exactly as the store path does, instead of failing the question', async () => {
+    const reader = new ScriptedClient('reader', ['Business Administration.']);
+    const judge = new ScriptedClient('judge', ['yes']);
+    // the lexical arm never sends this: MemoryStore redacts it and the context builder
+    // drops the source. The external arm must reach the same place.
+    const sensitive = {
+      ...instance(),
+      question_id: 'ba358f49',
+      haystack_sessions: [
+        [
+          { role: 'user' as const, content: 'My password is hunter2sesame.' },
+          { role: 'assistant' as const, content: 'Noted.' },
+        ],
+        instance().haystack_sessions[1]!,
+      ],
+    };
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      sensitive,
+      reader,
+      judge,
+      {
+        topK: 4,
+        contextBytes: 24_576,
+        semanticQuestionTypes: new Set<string>(),
+        memorySystem: {
+          lane: 'retrieval',
+          client: fixedClient('stub', {
+            retrieved: [
+              { sessionId: 'noise', rank: 1, score: 0.9 },
+              { sessionId: 'evidence', rank: 2, score: 0.8 },
+            ],
+            memories: [],
+            unsupported: ['memories'],
+          }),
+        },
+      },
+    );
+    expect(observation.status).toBe('judged');
+    expect(observation.redactedRetrievedSessions).toBe(1);
+    // still retrieved (the ranking is the adapter's), but never sent
+    expect(observation.retrievedSessionIds).toEqual(['noise', 'evidence']);
+    expect(observation.contextSessionIds).toContain('evidence');
+    expect(reader.calls[0]?.[1]?.content).not.toContain('hunter2sesame');
+    expect(reader.calls[0]?.[1]?.content).toContain(
+      'I graduate with Business Administration',
+    );
+  });
+
+  it('scores an adapter at the depth it was asked for, and says when it overshot', async () => {
+    const deep = (): LongMemEvalInstance => ({
+      ...instance(),
+      question_id: 'ba358f49',
+      question_type: 'single-session-user',
+      haystack_session_ids: ['s0', 's1', 's2', 'evidence'],
+      haystack_dates: [
+        '2023/05/15 (Mon) 02:21',
+        '2023/05/16 (Tue) 02:21',
+        '2023/05/17 (Wed) 02:21',
+        '2023/06/01 (Thu) 11:04',
+      ],
+      haystack_sessions: [
+        [{ role: 'user', content: 'One.' }],
+        [{ role: 'user', content: 'Two.' }],
+        [{ role: 'user', content: 'Three.' }],
+        [{ role: 'user', content: 'I graduate with Business Administration.' }],
+      ],
+      answer_session_ids: ['evidence'],
+    });
+    const everything = [
+      { sessionId: 's0', rank: 1 },
+      { sessionId: 's1', rank: 2 },
+      { sessionId: 's2', rank: 3 },
+      { sessionId: 'evidence', rank: 4 },
+    ];
+    const greedy = await evaluateLongMemEvalAnswerInstance(
+      deep(),
+      new ScriptedClient('reader', ['Business Administration.']),
+      new ScriptedClient('judge', ['yes']),
+      {
+        topK: 2,
+        contextBytes: 24_576,
+        semanticQuestionTypes: new Set<string>(),
+        memorySystem: {
+          lane: 'retrieval',
+          client: fixedClient('greedy', {
+            retrieved: everything,
+            memories: [],
+            unsupported: ['memories'],
+          }),
+        },
+      },
+    );
+    expect(greedy.retrievedSessionIds).toEqual(['s0', 's1']);
+    expect(greedy.memorySystem?.returnedSessions).toBe(4);
+    expect(greedy.memorySystem?.overRequestedDepth).toBe(true);
+    // the whole haystack is the point of the full-context row, so it keeps its depth
+    const full = await evaluateLongMemEvalAnswerInstance(
+      deep(),
+      new ScriptedClient('reader', ['Business Administration.']),
+      new ScriptedClient('judge', ['yes']),
+      {
+        topK: 2,
+        contextBytes: 24_576,
+        semanticQuestionTypes: new Set<string>(),
+        memorySystem: {
+          lane: 'retrieval',
+          client: fixedClient('builtin:full-context', {
+            retrieved: everything,
+            memories: [],
+            unsupported: ['memories'],
+          }),
+        },
+      },
+    );
+    expect(full.retrievedSessionIds).toEqual(['s0', 's1', 's2', 'evidence']);
+    expect(full.memorySystem?.overRequestedDepth).toBe(true);
+  });
+
+  it('gives each worker its own adapter, so no client is asked two questions at once', async () => {
+    const clients = ['a', 'b'].map((id) => {
+      const state = { id, inFlight: 0, peak: 0, served: 0 };
+      return state;
+    });
+    // worker 0 takes question 0 and then every later one; worker 1 stays inside question 1
+    // until they are done. By position, question 3 and question 1 share a client.
+    let release = (): void => {};
+    const slow = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let fastDone = 0;
+    await mapConcurrent([0, 1, 2, 3], 2, async (_value, index, workerId) => {
+      const client = clients[workerId % clients.length]!;
+      client.inFlight += 1;
+      client.served += 1;
+      client.peak = Math.max(client.peak, client.inFlight);
+      if (index === 1) {
+        await slow;
+      } else {
+        fastDone += 1;
+        if (fastDone === 3) release();
+        await Promise.resolve();
+      }
+      client.inFlight -= 1;
+    });
+    expect(clients.map(({ peak }) => peak)).toEqual([1, 1]);
+    expect(clients.every(({ served }) => served > 0)).toBe(true);
+    expect(clients.reduce((total, { served }) => total + served, 0)).toBe(4);
   });
 
   it('names the memory system in the run artifact without changing the schema', () => {
