@@ -136,6 +136,7 @@ model), DeepSeek `deepseek-chat` as judge instead of gpt-4o:
 | --- | --- | --- | --- |
 | v4 baseline | 87/133 | 80/133 | 167/266 |
 | v4 computed notes | 86/133 | 97/133 | 183/266 |
+| **v5** (distilled with the block present, 4,713 examples) | 73/133 | 92/133 | **165/266** |
 
 DeepSeek is the more lenient judge (167 against gpt-4o's 139 on the same baseline), and the
 block's gain holds under it. This is the pair reader v5 is measured against.
@@ -194,6 +195,23 @@ moves on the way: EU-RO-1 had no 80 GB GPUs in stock and EU-NL-1 has no S3 endpo
 has both. At 135 s a step, a fresh 74-step run costs about $13 on serverless, so v6 waits for
 either a pod at $1.99/h or Modal credit. Runbook: `benchmarks/runpod/README.md`; contract and
 core: `src/evals/reader-contract.ts`, `benchmarks/train/reader_lora.py`.
+
+**v5 measured (2026-09-15, 00:04).** Same 266, same flags as the v4 pair (raw, lexical only,
+GLM Flash time range, date distances and computed notes, 24 KB context, 300-token reader
+budget, DeepSeek judge): **165 against v4's 183**, multi-session 73 against 86, temporal 92
+against 97; paired by question v5 gains 17 and loses 35. Not noise. Training with the block
+present did not teach the reader to use it better; it made a worse reader, and mostly on
+multi-session, the type the block touches least. Two differences from v4 are confounded here:
+v5 is a fresh 4,713-example distillation rather than v4's 6,000 (v3's 3,000 plus 3,000), and
+the second half of its training ran on a different stack (TRL 1.13, Liger) from the first. The
+loss curve was continuous across the resume (0.59 at steps 50 to 70), so the stack is the
+less likely cause; the data size and the teacher answering with the block in view are the
+candidates. On the dev split alone (135 of the 266) the picture was the same, 85 to 92.
+**Decision: v4 stays the reader.** Any further gate on structure blocks (focused budget,
+structured evidence) runs against v4. A v6 would need v4's data plus the block, not a smaller
+fresh set, and a pod or Modal credit rather than serverless at 135 s a step. Files:
+`docs/research/results/longmemeval-raw-reader-v5-local-notes-mt-all266.json` (and the
+`-dev135` file from the first, dev-split attempt).
 
 ## One judge: every stored run re-judged with DeepSeek
 
