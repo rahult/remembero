@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from benchmarks.train.reader_lora import export_text_only, to_prompt_completion, train_lora
+from benchmarks.train.reader_lora import to_prompt_completion, train_lora
 
 TINY = "HuggingFaceTB/SmolLM2-135M-Instruct"
 

@@ -1,6 +1,9 @@
 """LoRA SFT of a small chat model on conversations.jsonl, the recipe Remembero's writer and
 reader runs use, with nothing Modal-specific: paths are arguments and persistence is a
-callback. benchmarks/modal/train_lora.py and benchmarks/runpod/run.sh both call this."""
+callback. benchmarks/modal/train_lora.py and benchmarks/runpod/run.sh both call this.
+
+Launch the Modal app from the repository root: its `add_local_python_source("benchmarks")` has to
+resolve `benchmarks` as a namespace package on the local path, which only holds from there."""
 
 from __future__ import annotations
 
@@ -36,9 +39,10 @@ def load_base_model(model_id: str):
     kwargs = dict(dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32, attn_implementation="sdpa")
     try:
         return AutoModelForCausalLM.from_pretrained(model_id, **kwargs)
-    except (ValueError, KeyError, OSError):
+    except (ValueError, KeyError, OSError) as error:
         from transformers import AutoModelForImageTextToText
 
+        print(f"AutoModelForCausalLM refused {model_id} ({str(error)[:80]}); loading the multimodal class")
         return AutoModelForImageTextToText.from_pretrained(model_id, **kwargs)
 
 
@@ -64,6 +68,7 @@ def lora_targets(model) -> list[str]:
             names.append(name)
     if not names:
         raise RuntimeError("no LoRA target modules found; unexpected model layout")
+    print(f"LoRA on {len(names)} Linear layers (e.g. {names[0]})")
     return names
 
 
@@ -107,15 +112,14 @@ def train_lora(
     eval_ds = Dataset.from_list(held_rows) if held_rows else None
     peft_config = LoraConfig(r=lora_rank, lora_alpha=2 * lora_rank, lora_dropout=0.0, bias="none",
                              task_type="CAUSAL_LM", target_modules=lora_targets(model))
-    # Two fields below no longer exist in the installed stack: TRL 1.x removed
-    # `chat_template_kwargs` from SFTConfig (it is a per-example dataset column there) and
-    # transformers 5 removed `group_by_length`. The inspect filter drops them and prints that it
-    # did; that print is expected, not a fault. Reader v4 and v5 were trained with both fields
-    # already absent (the v5 checkpoint's saved SFTConfig on the Modal volume has no
-    # chat_template_kwargs and no group_by_length, with completion_only_loss=True,
-    # max_length=8192, use_liger_kernel=False, batch 4 x grad-accum 16, seed 42), so TRL 1.13
-    # reproduces that recipe exactly. Do not reintroduce either field to "restore" them: a
-    # resume that trains under different settings than the checkpoint is no longer the same run.
+    # Two fields this recipe once carried are deliberately absent: `chat_template_kwargs`, which
+    # TRL 1.x removed from SFTConfig (it is a per-example dataset column there), and
+    # `group_by_length`, which transformers 5 removed. Reader v4 and v5 were trained without
+    # them (the v5 checkpoint's saved SFTConfig on the Modal volume has neither, with
+    # completion_only_loss=True, max_length=8192, use_liger_kernel=False, batch 4 x grad-accum 16,
+    # seed 42), so leaving them out is what reproduces those runs. They are not passed at all
+    # rather than filtered out below, so that a future TRL which accepts one again cannot quietly
+    # change the recipe under a resume.
     wanted = dict(
         output_dir=str(run_dir / "trainer"), num_train_epochs=epochs, learning_rate=lr,
         lr_scheduler_type="linear", per_device_train_batch_size=batch_size,
@@ -123,8 +127,7 @@ def train_lora(
         bf16=torch.cuda.is_available(), max_length=max_length, logging_steps=10,
         save_strategy="steps", save_steps=save_steps, save_total_limit=1,
         eval_strategy="epoch" if eval_ds is not None else "no", report_to=[],
-        gradient_checkpointing=True, group_by_length=True, packing=False,
-        completion_only_loss=True, chat_template_kwargs={"enable_thinking": False},
+        gradient_checkpointing=True, packing=False, completion_only_loss=True,
         # Liger's fused linear cross-entropy never materialises the logits tensor (34 GB at
         # batch 8 x 8k over Gemma's 262k vocabulary); it is what lets the run fit and go faster.
         use_liger_kernel=liger,
@@ -146,7 +149,8 @@ def train_lora(
         trainer = SFTTrainer(model=model, args=config, train_dataset=train_ds, eval_dataset=eval_ds,
                              processing_class=tokenizer, peft_config=peft_config, callbacks=[Persist()])
     except Exception as error:  # Liger has no patch for this architecture: fall back, say so
-        if not liger:
+        missing_liger = isinstance(error, ImportError) or "liger" in str(error).lower()
+        if not liger or not missing_liger:
             raise
         print(f"liger unavailable for {base_model} ({str(error)[:120]}); training without it")
         config = SFTConfig(**{k: v for k, v in {**wanted, "use_liger_kernel": False}.items() if k in accepted})
@@ -192,9 +196,12 @@ def export_text_only(run_dir: Path) -> Path:
     language_model = getattr(full.model, "language_model", None) or getattr(full, "language_model")
     text_cls = getattr(transformers, text_config.architectures[0] if getattr(text_config, "architectures", None) else "Gemma4ForCausalLM")
     text_model = text_cls(text_config)
-    text_model.model.load_state_dict(language_model.state_dict(), strict=False)
+    # Gemma 4's KV-sharing layers have no counterpart here, so a non-empty list is expected
+    # rather than an error (restore_dropped_weights puts those tensors back); print, never raise.
+    missing, unexpected = text_model.model.load_state_dict(language_model.state_dict(), strict=False)
     if hasattr(full, "lm_head") and hasattr(text_model, "lm_head"):
         text_model.lm_head.load_state_dict(full.lm_head.state_dict())
+    print(f"text-only export: missing={list(missing)[:5]} unexpected={list(unexpected)[:5]}")
     text_model.to(torch.bfloat16).save_pretrained(str(text_dir), safe_serialization=True)
     AutoTokenizer.from_pretrained(str(merged_dir)).save_pretrained(str(text_dir))
     return text_dir
