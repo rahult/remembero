@@ -183,6 +183,18 @@ on 37 (29 correct against 32), within the reader's own noise, at a median 22 sec
   rounds then run locally in Unsloth Studio (MLX), reader rounds on RunPod H100 while Modal
   credit is out, v5 from its step-50 checkpoint when it returns.
 
+**Run A, 2026-09-14 evening: finished on RunPod Serverless.** The step-50 checkpoint and the
+data came off the Modal volume without compute credit (`modal volume get`), went onto a RunPod
+network volume, and a serverless H100 worker resumed steps 51 to 74 with the recipe the
+checkpoint's own SFTConfig recorded (batch 4 x accum 16, max length 8192, no
+`chat_template_kwargs`, no `group_by_length`), Liger fused cross-entropy on. 62 minutes wall,
+$4.96, train loss 0.194; the worker merged, exported text-only, converted to f16 and
+quantized to Q8_0 (7.97 GB) on its own disk and left the GGUF on the volume. Two datacenter
+moves on the way: EU-RO-1 had no 80 GB GPUs in stock and EU-NL-1 has no S3 endpoint; US-GA-2
+has both. At 135 s a step, a fresh 74-step run costs about $13 on serverless, so v6 waits for
+either a pod at $1.99/h or Modal credit. Runbook: `benchmarks/runpod/README.md`; contract and
+core: `src/evals/reader-contract.ts`, `benchmarks/train/reader_lora.py`.
+
 ## One judge: every stored run re-judged with DeepSeek
 
 All 78 stored runs (20,246 answers) re-judged with `deepseek-chat`; sidecars sit next to each

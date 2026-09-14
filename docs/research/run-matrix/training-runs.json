@@ -435,6 +435,21 @@
       "queryAlias": null,
       "extractionAlias": null,
       "notes": "LongMemEval 328/500 (v3 320): abstention 0.93 = GLM; multi 68, temporal 68 still ~45 behind GLM each; needed an A100-80GB to serve"
+    },
+    {
+      "run": "reader-v5 E4B",
+      "date": "2026-09-14",
+      "base": "Gemma 4 E4B",
+      "platform": "Modal H100 (steps 1-50) + RunPod Serverless H100 flex (51-74)",
+      "data": "4,713 GLM-distilled examples with computed notes and date distances (contract dd+notes@24576), max_length 8192, batch 4 x 16",
+      "tasks": "reader",
+      "minutes": 62,
+      "costUsd": 4.96,
+      "costNote": "RunPod part only: 62 min wall including a 2-min bootstrap install, $4.79/h flex; Modal part (steps 1-50) was about $7 before credit ran out",
+      "heldoutLoss": null,
+      "queryAlias": null,
+      "extractionAlias": null,
+      "notes": "resumed from checkpoint-50 off the Modal volume; Liger fused linear cross-entropy on; 135 s/step at batch 4 x accum 16 (Modal v4 measured 80 s/step at 8 x 8); train_loss 0.194; exported Q8_0 GGUF 7.97 GB on the worker"
     }
   ]
 }
