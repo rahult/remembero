@@ -62,7 +62,7 @@ docker run --rm --platform linux/amd64 rembero-reader-train:local python -c "imp
 
 In the RunPod console:
 
-1. **Storage → Network Volume**: create one of **40 GB**; note the datacenter it lands in (e.g. `EU-RO-1`).
+1. **Storage → Network Volume**: create one of **40 GB**; note the datacenter it lands in (e.g. `US-GA-2`).
 2. **Storage → S3 API keys**: create a key; keep the access key and secret.
 3. **Serverless → New Endpoint**: GPU **H100 80GB**, **max workers 1**, **container disk 80 GB**
    (the merged checkpoints and the f16 GGUF are built there, not on the volume),
@@ -76,7 +76,7 @@ Then put the six values in `.env` (already gitignored) and export them:
 export RUNPOD_API_KEY=...
 export RUNPOD_ENDPOINT_ID=...
 export RUNPOD_VOLUME_ID=...
-export RUNPOD_DATACENTER=EU-RO-1
+export RUNPOD_DATACENTER=US-GA-2
 export RUNPOD_S3_ACCESS_KEY=...
 export RUNPOD_S3_SECRET_KEY=...
 ```

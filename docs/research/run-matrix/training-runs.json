@@ -449,7 +449,7 @@
       "heldoutLoss": null,
       "queryAlias": null,
       "extractionAlias": null,
-      "notes": "resumed from checkpoint-50 off the Modal volume; Liger fused linear cross-entropy on; 135 s/step at batch 4 x accum 16 (Modal v4 measured 80 s/step at 8 x 8); train_loss 0.194; exported Q8_0 GGUF 7.97 GB on the worker; LongMemEval 266 (raw+notes, DeepSeek): 165 vs v4 183 (multi 73 vs 86, temporal 92 vs 97); v4 stays the reader"
+      "notes": "resumed from checkpoint-50 off the Modal volume; Liger fused linear cross-entropy on; 135 s/step at batch 4 x accum 16 (Modal v4 measured 80 s/step at 8 x 8); train_loss 0.194; exported Q8_0 GGUF 7.97 GB on the worker; first 266 measurement (165) used retrieval depth 5/5 against v4's 15/10 and is not a pair; the paired run is in progress"
     }
   ]
 }
