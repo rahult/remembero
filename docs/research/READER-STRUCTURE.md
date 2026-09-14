@@ -137,6 +137,7 @@ model), DeepSeek `deepseek-chat` as judge instead of gpt-4o:
 | v4 baseline | 87/133 | 80/133 | 167/266 |
 | v4 computed notes | 86/133 | 97/133 | 183/266 |
 | v5 (distilled with the block present, 4,713 examples), retrieval depth 5/5, not paired | 73/133 | 92/133 | 165/266 |
+| **v5, paired** (retrieval 4/15/10, recall@k 0.906 = v4's) | 81/133 | 100/133 | **181/266** |
 
 DeepSeek is the more lenient judge (167 against gpt-4o's 139 on the same baseline), and the
 block's gain holds under it. This is the pair reader v5 is measured against.
@@ -196,20 +197,22 @@ has both. At 135 s a step, a fresh 74-step run costs about $13 on serverless, so
 either a pod at $1.99/h or Modal credit. Runbook: `benchmarks/runpod/README.md`; contract and
 core: `src/evals/reader-contract.ts`, `benchmarks/train/reader_lora.py`.
 
-**v5 measured, first attempt (2026-09-15, 00:04): not a paired run.** The 165 above was
-obtained with the harness's default retrieval depth (5 sessions for every type), while the
-v4 row it sits next to retrieved 15 for multi-session and 10 for temporal (average 12.4
-sessions, recall@k 0.907 against 0.798). The prompt was identical in every other respect;
-the retrieval was not, and the whole 18-point gap sits in the questions whose evidence never
-reached the reader. On the questions with full evidence in context v5 was level with or
-ahead of v4 (multi-session 0.79 against 0.72, temporal 0.79 against 0.79). So the number
-supports no verdict on v5 against v4; it is kept as
-`longmemeval-raw-reader-v5-local-notes-mt-all266-topk5.json` and the dev-split file. The
-lesson is structural and is now in the runbook: the reader contract pins the prompt, not the
-retrieval depth, so every paired run passes `--top-k 4 --multi-session-top-k 15
---temporal-top-k 10` explicitly. The paired run (same flags as the v4 row) started at 00:10
-on 2026-09-15 and writes to `longmemeval-raw-reader-v5-local-notes-mt-all266.json`; its row
-and verdict follow here when it finishes.
+**v5 measured (2026-09-15, 02:00), paired.** Same 266, same flags as the v4 row, retrieval
+depth passed explicitly (`--top-k 4 --multi-session-top-k 15 --temporal-top-k 10`), recall@k
+0.906 for both: **v5 181 against v4 183**, multi-session 81 against 86, temporal 100 against
+97; paired by question v5 gains 19 and loses 21. Inside the noise band. Training with the
+computed-notes block present in every prompt, on a fresh 4,713-example distillation, produced
+a reader level with v4; the block itself is what carries the gain (v4 raw 354 → 383 on the
+500), and the reader does not read it any better for having been trained with it. Two
+confounds remain and are recorded in the run matrix: v5 saw 4,713 examples against v4's
+6,000, and its last 24 steps ran on a different stack (TRL 1.13, Liger). A first attempt at
+this measurement, kept as `...-topk5.json`, used the harness's default depth of 5 sessions
+and scored 165; it is not a pair and supports no verdict. The lesson went into the runbook:
+the reader contract pins the prompt, not the retrieval depth. Decision: v4 stays the served
+reader (no reason to swap for a level model), v5 is kept as an equal alternative, and
+`data/training-reader-v6` (v4's 6,000 examples re-rendered with the block, contract
+`dd+notes@24576`, zero teacher calls) is ready for the next paid run, which tests the data
+size confound directly.
 
 ## One judge: every stored run re-judged with DeepSeek
 
