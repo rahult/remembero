@@ -60,17 +60,25 @@ def stage_resume_checkpoint(volume_run_dir: Path, run_dir: Path) -> Path | None:
 
 
 def persist_checkpoint(run_dir: Path, volume_run_dir: Path) -> Path | None:
-    """Copy the newest local checkpoint to the volume, keeping only that one there."""
+    """Copy the newest local checkpoint to the volume, keeping only that one there.
+
+    Copy first, prune second: the new checkpoint lands under a `.partial` sibling and is
+    renamed into place before any older one is removed, so a worker that dies mid-copy
+    leaves the volume with the previous complete checkpoint rather than a truncated one."""
     source = latest_checkpoint_dir(run_dir / "trainer")
     if source is None:
         return None
     trainer = volume_run_dir / "trainer"
     trainer.mkdir(parents=True, exist_ok=True)
-    for old in trainer.glob("checkpoint-*"):
-        if old.is_dir() and old.name != source.name:
-            shutil.rmtree(old, ignore_errors=True)
     target = trainer / source.name
-    shutil.copytree(source, target, dirs_exist_ok=True)
+    partial = trainer / f"{source.name}.partial"
+    shutil.rmtree(partial, ignore_errors=True)
+    shutil.copytree(source, partial)
+    shutil.rmtree(target, ignore_errors=True)
+    partial.rename(target)
+    for old in trainer.glob("checkpoint-*"):
+        if old.is_dir() and old.name != target.name:
+            shutil.rmtree(old, ignore_errors=True)
     return target
 
 

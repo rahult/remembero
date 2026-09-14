@@ -30,6 +30,13 @@ describe('reader contract', () => {
     expect(contractRunnerFlags(c)).toEqual(['--date-distances', '--computed-notes', '--structured-evidence', '--context-bytes', '24576']);
   });
 
+  it('refuses a --context-bytes that is not a positive integer', () => {
+    expect(() => contractFromFlags(['--context-bytes', 'abc'])).toThrow(
+      '--context-bytes must be a positive integer, got abc',
+    );
+    expect(contractFromFlags(['--context-bytes', '8192']).contextBytes).toBe(8192);
+  });
+
   it('renders the distillation prompt byte-for-byte as the harness renders it', () => {
     const contract = { ...READER_CONTRACT_V5, structuredEvidence: true };
     const distilled = readerMessages(haystack, 'How long ago did I see John Mulaney?', 'temporal-reasoning', contract);

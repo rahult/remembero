@@ -1,6 +1,6 @@
 """LoRA SFT of a small chat model on conversations.jsonl, the recipe Remembero's writer and
 reader runs use, with nothing Modal-specific: paths are arguments and persistence is a
-callback. benchmarks/modal/train_lora.py and benchmarks/runpod/run.sh both call this.
+callback. benchmarks/modal/train_lora.py and benchmarks/runpod/handler.py both call this.
 
 Launch the Modal app from the repository root: its `add_local_python_source("benchmarks")` has to
 resolve `benchmarks` as a namespace package on the local path, which only holds from there."""

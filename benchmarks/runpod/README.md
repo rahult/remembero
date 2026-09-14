@@ -24,10 +24,18 @@ disk while the volume stays at 40 GB.
 | A fresh 4,700-row run at `--max-length 6912` | ≈ $6 | ≈ 80 min |
 | Network volume, 40 GB | ≈ $2.80 / month | charged while it exists — delete it when the run is done |
 
+**Measured.** The reader v5 resume — 24 steps at batch 4 × accum 16 — took **62 minutes** of wall
+time including the bootstrap and cost **$4.96** at the H100 flex rate: **135 s per step**.
+
 The 16 GB base model is downloaded once into `HF_HOME=/runpod-volume/hf` and reused by every
 later job, so only the first job pays for the download.
 
 ## One-time setup
+
+There are two ways in. **Pushing the image needs a fast uplink**: the built image is 10.6 GB, and
+`docker push` moves all of it. This Mac pushed at ~117 KB/s — four to five hours — so unless the
+uplink sustains several MB/s, use the bootstrap template below, which is what actually ran reader
+v5.
 
 Build and push the image from the repository root (the build is amd64; on an Apple Silicon Mac
 it runs under emulation and takes 20–40 minutes):
@@ -81,6 +89,63 @@ id are always `RUNPOD_DATACENTER` and `RUNPOD_VOLUME_ID`.
 uv pip install --python .venv/bin/python runpod boto3
 ```
 
+### Bootstrap template (no image push)
+
+Reader v5 was trained this way. Instead of building and pushing an image, point a serverless
+template at the **public** base image and install the dependencies in the start command; the
+worker's own code lives on the network volume. On the real run the bootstrap cost about **two
+minutes** of worker time, once per cold start.
+
+- Image: `runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04`
+- `containerDiskInGb`: **80** (the merged checkpoints and the f16 GGUF are built there)
+- Env: `HF_HOME=/runpod-volume/hf`, `PYTHONPATH=/runpod-volume/code`
+- Start command, as `dockerStartCmd: ["bash","-lc", "<the line below>"]`:
+
+```sh
+set -e; export DEBIAN_FRONTEND=noninteractive PYTHONPATH=/runpod-volume/code HF_HOME=/runpod-volume/hf TOKENIZERS_PARALLELISM=false PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True; pip install -q "transformers>=5.0,<6" "trl>=0.24" "peft>=0.17" "datasets>=3.0" "accelerate>=1.0" "liger-kernel>=0.8.2" sentencepiece protobuf runpod gguf; if [ ! -x /opt/llama.cpp/build/bin/llama-quantize ]; then apt-get update -qq && apt-get install -y -qq --no-install-recommends git cmake build-essential >/dev/null && git clone --depth 1 https://github.com/ggml-org/llama.cpp /opt/llama.cpp && cmake -S /opt/llama.cpp -B /opt/llama.cpp/build -DGGML_CUDA=OFF -DLLAMA_CURL=OFF >/dev/null && cmake --build /opt/llama.cpp/build --target llama-quantize -j "$(nproc)" >/dev/null; fi; exec python -u /runpod-volume/code/benchmarks/runpod/handler.py
+```
+
+The code goes onto the volume with `volume.py put`, under `code/benchmarks/...`, plus an empty
+`code/benchmarks/__init__.py` so `benchmarks` imports as a package:
+
+```sh
+.venv/bin/python benchmarks/runpod/volume.py put benchmarks/train/__init__.py      code/benchmarks/train/__init__.py
+.venv/bin/python benchmarks/runpod/volume.py put benchmarks/train/reader_lora.py   code/benchmarks/train/reader_lora.py
+.venv/bin/python benchmarks/runpod/volume.py put benchmarks/runpod/__init__.py     code/benchmarks/runpod/__init__.py
+.venv/bin/python benchmarks/runpod/volume.py put benchmarks/runpod/handler.py      code/benchmarks/runpod/handler.py
+touch /tmp/empty-init.py && .venv/bin/python benchmarks/runpod/volume.py put /tmp/empty-init.py code/benchmarks/__init__.py
+```
+
+### Datacenter
+
+The network volume pins the endpoint to its datacenter, so the volume has to be created in a
+datacenter that has **80 GB GPU stock** *and* **exposes the S3 API** — both, or the run cannot
+start or the data cannot be uploaded. On 2026-09-14: **EU-RO-1** had no 80 GB stock, **EU-NL-1**
+has no S3 endpoint, and **US-GA-2** had both (US-CA-2 also has S3 plus H100). Check each before
+creating the volume:
+
+```graphql
+query { gpuTypes(input: {id: "NVIDIA H100 80GB HBM3"}) {
+  lowestPrice(input: {gpuCount: 1, dataCenterId: "US-GA-2"}) { stockStatus }
+} }
+```
+
+```sh
+curl -sI https://s3api-us-ga-2.runpod.io/    # 401 = the endpoint exists; no connection = it does not
+```
+
+### Creating the template and the endpoint through the REST API
+
+Both can be created without the console: `POST /v1/templates` (the image, `containerDiskInGb`,
+the env pair and `dockerStartCmd` above), then `POST /v1/endpoints` with `templateId`,
+`gpuTypeIds`, `networkVolumeId`, `dataCenterIds`, `workersMax` 1 and `executionTimeoutMs`
+10800000. Widening `gpuTypeIds` to all five 80 GB types is what actually got a worker assigned:
+
+```
+NVIDIA H100 80GB HBM3, NVIDIA H100 PCIe, NVIDIA H100 NVL,
+NVIDIA A100-SXM4-80GB, NVIDIA A100 80GB PCIe
+```
+
 ## Per run
 
 Upload the training data (and, to resume a run started elsewhere, its checkpoint directory):
@@ -128,8 +193,14 @@ including the per-stage progress and every line `reader_lora.py` prints. What to
 Same line as reader v4 (docs/research/READER-STRUCTURE.md, "Running the reader locally"):
 
 ```sh
-llama-server -m /Volumes/Atlas/models/rembero/reader-v5-gemma4-e4b-Q8_0.gguf --port 8082 -c 12288 -np 1 -ngl 99 --alias rembero-reader \
+llama-server -m /Volumes/Atlas/models/rembero/reader-v5-gemma4-e4b-Q8_0.gguf --port 8083 -c 12288 -np 1 -ngl 99 --alias rembero-reader-v5 \
   --reasoning-budget 0 --chat-template-kwargs '{"enable_thinking":false}'
 ```
 
-The harness points at it with `--reader-model rembero-reader --reader-base-url http://127.0.0.1:8082/v1`.
+Port **8083** and alias **`rembero-reader-v5`**, not 8082 / `rembero-reader`: that slot belongs to
+the v4 server, and a harness pointed at 8082 would measure v5 while labelling the numbers v4.
+
+The harness points at it with `--reader-model rembero-reader-v5 --reader-base-url http://127.0.0.1:8083/v1`.
+The reader contract pins the prompt but not the retrieval depth, so every paired run must also pass
+`--top-k 4 --multi-session-top-k 15 --temporal-top-k 10` explicitly (the harness default is 5/5) —
+without them the comparison is not paired.

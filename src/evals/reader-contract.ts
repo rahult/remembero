@@ -57,8 +57,15 @@ export function contractFromFlags(
   for (const [key, flag] of FLAGS)
     if (argv.includes(flag)) contract[key] = true;
   const bytes = argv.indexOf('--context-bytes');
-  if (bytes >= 0 && argv[bytes + 1] !== undefined)
-    contract.contextBytes = Number(argv[bytes + 1]);
+  if (bytes >= 0 && argv[bytes + 1] !== undefined) {
+    const value = argv[bytes + 1]!;
+    const parsed = Number(value);
+    // A typo here would otherwise reach the contract id and the runner flags as NaN,
+    // labelling a run with a byte budget nobody ever read at.
+    if (!Number.isInteger(parsed) || parsed <= 0)
+      throw new Error(`--context-bytes must be a positive integer, got ${value}`);
+    contract.contextBytes = parsed;
+  }
   return contract;
 }
 
