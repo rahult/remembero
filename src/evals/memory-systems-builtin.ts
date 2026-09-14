@@ -25,6 +25,7 @@ import { MemoryStore } from '../store/store.js';
 import {
   DEFAULT_LONGMEMEVAL_EXTRACTION_CHARACTERS,
   LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
+  extractionErrorKind,
   longMemEvalTranscript,
   type LongMemEvalCompletionClient,
 } from './longmemeval-answer.js';
@@ -231,6 +232,35 @@ async function embedded(
   };
 }
 
+/** Harness retrieval flags the memory-system request has no field for. */
+export interface MemorySystemRetrievalFlags {
+  temporalRangeModel?: string | undefined;
+  retrievalUnit?: 'session' | 'turn' | undefined;
+}
+
+/**
+ * The Remembero rows are the stock path seen through the seam, and the seam is narrow: a flag
+ * that changes how the native path retrieves cannot reach the built-in, so a run combining the
+ * two would compare two different retrievers while reporting one. Refuse it by name instead.
+ */
+export function assertBuiltinMemorySystemScope(
+  spec: string,
+  flags: MemorySystemRetrievalFlags,
+): void {
+  if (spec !== 'builtin:remembero-raw' && spec !== 'builtin:remembero-hybrid')
+    return;
+  if (flags.temporalRangeModel !== undefined) {
+    throw new Error(
+      `${spec} retrieves without a date range; --temporal-range-model does not reach it through the memory-system seam`,
+    );
+  }
+  if (flags.retrievalUnit === 'turn') {
+    throw new Error(
+      `${spec} retrieves whole sessions; --retrieval-unit turn does not reach it through the memory-system seam`,
+    );
+  }
+}
+
 /** The cache key the native hybrid path writes: sha256 over the model and the transcript. */
 function extractionCachePath(
   directory: string,
@@ -254,6 +284,14 @@ function extractionCachePath(
  * the native harness path calls, with the same limit, minimum score and source character
  * limit, so the raw row must retrieve exactly what the native path retrieves — including a
  * redacted session, which the native path keeps in the ranking and the context builder drops.
+ *
+ * Supported scope. The seam's request carries the question, the sessions and top-k, and
+ * nothing else, so these rows reproduce the native path only at its defaults: whole-session
+ * retrieval, no time-aware range, shared hybrid retrieval, and the harness's one answer-context
+ * policy (user turns except for assistant-memory questions, which the seam honours because the
+ * context text still comes from the harness's own session records, not from the adapter).
+ * assertBuiltinMemorySystemScope refuses the flags that would silently change the native side
+ * of the comparison; the answer-context policy has no flag to refuse — it is a constant.
  */
 async function rememberoMemory(
   request: MemorySystemRequest,
@@ -343,15 +381,14 @@ async function rememberoMemory(
               writeFileSync(cachePath, JSON.stringify({ facts: result.added }));
             }
           } catch (error) {
-            // a refused extraction leaves the session raw, exactly as the native path does
+            // a refused extraction leaves the session raw, exactly as the native path does.
+            // The cache is shared with that path, so the error is stored in its shape too:
+            // extractionErrorKind strips the run-specific quotes and numbers.
             if (cachePath !== undefined) {
               mkdirSync(options.extractionCacheDir!, { recursive: true });
               writeFileSync(
                 cachePath,
-                JSON.stringify({
-                  facts: [],
-                  error: error instanceof Error ? error.message : 'error',
-                }),
+                JSON.stringify({ facts: [], error: extractionErrorKind(error) }),
               );
             }
           }

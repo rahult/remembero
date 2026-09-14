@@ -24,6 +24,7 @@ import {
   type LongMemEvalCompletionClient,
 } from '../src/evals/longmemeval-answer.js';
 import {
+  assertBuiltinMemorySystemScope,
   createBuiltinMemorySystem,
   isBuiltinMemorySystem,
 } from '../src/evals/memory-systems-builtin.js';
@@ -713,5 +714,62 @@ describe('Remembero as a memory system', () => {
     expect(() => createBuiltinMemorySystem('builtin:remembero-hybrid', {})).toThrow(
       /needs an extraction client/,
     );
+  });
+});
+
+describe('the scope the Remembero rows are measured in', () => {
+  it('refuses a harness retrieval flag that cannot reach the built-in', () => {
+    expect(() =>
+      assertBuiltinMemorySystemScope('builtin:remembero-raw', {
+        retrievalUnit: 'turn',
+      }),
+    ).toThrow(/--retrieval-unit turn/);
+    expect(() =>
+      assertBuiltinMemorySystemScope('builtin:remembero-hybrid', {
+        temporalRangeModel: 'deepseek-chat',
+      }),
+    ).toThrow(/--temporal-range-model/);
+    // the defaults the paired runs use, and a row that is not the stock path, stay allowed
+    expect(() =>
+      assertBuiltinMemorySystemScope('builtin:remembero-raw', {
+        retrievalUnit: 'session',
+      }),
+    ).not.toThrow();
+    expect(() =>
+      assertBuiltinMemorySystemScope('builtin:bm25', { retrievalUnit: 'turn' }),
+    ).not.toThrow();
+  });
+
+  it('builds the same prompt with and without --structured-evidence in the memories lane', async () => {
+    // structured evidence is built from each source's extracted facts; in the memories lane the
+    // memory text *is* the source and the seam attaches no facts, so the flag cannot do anything
+    const prompts: string[] = [];
+    for (const structuredEvidence of [false, true]) {
+      const reader = new ScriptedClient('reader', ['Business Administration.']);
+      const judge = new ScriptedClient('judge', ['yes']);
+      await evaluateLongMemEvalAnswerInstance(instance(), reader, judge, {
+        topK: 4,
+        contextBytes: 24_576,
+        semanticQuestionTypes: new Set<string>(),
+        structuredEvidence,
+        memorySystem: {
+          lane: 'memories',
+          client: fixedClient('builtin:remembero-hybrid', {
+            retrieved: [{ sessionId: 'evidence', rank: 1, score: 3 }],
+            memories: [
+              {
+                text: 'graduated(user, business_administration).',
+                sessionIds: ['evidence'],
+                at: '2023-06-01',
+              },
+            ],
+            unsupported: [],
+          }),
+        },
+      });
+      prompts.push(reader.calls[0]?.[1]?.content ?? '');
+    }
+    expect(prompts[0]).toContain('MEMORY: graduated(user, business_administration).');
+    expect(prompts[1]).toBe(prompts[0]);
   });
 });

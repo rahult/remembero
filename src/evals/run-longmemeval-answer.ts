@@ -24,7 +24,10 @@ import {
   type LongMemEvalSplit,
 } from './longmemeval-semantic.js';
 import { mapConcurrent } from './map-concurrent.js';
-import { openMemorySystem } from './memory-systems-builtin.js';
+import {
+  assertBuiltinMemorySystemScope,
+  openMemorySystem,
+} from './memory-systems-builtin.js';
 import {
   summarizeMemorySystemUsage,
   type MemorySystemClient,
@@ -524,6 +527,12 @@ async function main(): Promise<void> {
         '--memory-system needs --local-only: the memory layer under test does the retrieval',
       );
     }
+    // the Remembero rows are measured against the stock path: refuse the flags that would
+    // move the native side without reaching the built-in
+    assertBuiltinMemorySystemScope(args.memorySystem, {
+      temporalRangeModel: args.temporalRangeModel,
+      retrievalUnit: args.retrievalUnit,
+    });
   }
   const apiKey = process.env.LLM_API_KEY;
   if (!apiKey)
@@ -602,7 +611,9 @@ async function main(): Promise<void> {
           baseUrl: args.extractionBaseUrl ?? baseUrl,
           model: args.extractionModel ?? args.readerModel,
         });
-  if (args.engineRecall && extractor === undefined) {
+  // the engine's query is written from extracted facts, so it needs a formation that has them:
+  // --extraction-model alone (which builtin:remembero-hybrid uses) is not one
+  if (args.engineRecall && args.formation === 'raw') {
     throw new Error('--engine-recall needs the extracted or hybrid formation');
   }
   // the writer that authors the engine's query is the extraction model
