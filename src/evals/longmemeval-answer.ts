@@ -243,7 +243,14 @@ export interface LongMemEvalAnswerRun {
   judgeModel: string;
   embeddingModel: string | null;
   judgeProtocol: 'longmemeval-official-compatible-v1';
-  formation: (typeof LONGMEMEVAL_FORMATION_LABELS)[LongMemEvalFormation];
+  /**
+   * How the memory under test was formed. Stock runs carry a Remembero formation label; a
+   * `--memory-system` run carries `memory-system:<id>`, because the seam forces `--formation
+   * raw` and no Remembero formation ran at all.
+   */
+  formation:
+    | (typeof LONGMEMEVAL_FORMATION_LABELS)[LongMemEvalFormation]
+    | `memory-system:${string}`;
   extractionModel: string | null;
   /** Every knob that shaped the run, so a results file explains itself. */
   settings?: {
@@ -264,6 +271,12 @@ export interface LongMemEvalAnswerRun {
     readerMaxTokens: number;
     memorySystem?: string | null;
     memoryLane?: MemorySystemLane | null;
+    /**
+     * The embedding model the memory system itself ran on (e.g. `builtin:embed`). Kept out of
+     * the top-level `embeddingModel`, which readers take to mean Remembero's own semantic
+     * route — that route is off under `--local-only`.
+     */
+    memorySystemEmbeddingModel?: string | null;
   };
   retrieval:
     | 'remembero-local-source-search'
@@ -1973,7 +1986,10 @@ export function longMemEvalAnswerRun(
     judgeModel,
     embeddingModel: options.embeddingModel ?? null,
     judgeProtocol: 'longmemeval-official-compatible-v1',
-    formation: LONGMEMEVAL_FORMATION_LABELS[options.formation ?? 'raw'],
+    formation:
+      options.memorySystemId === undefined
+        ? LONGMEMEVAL_FORMATION_LABELS[options.formation ?? 'raw']
+        : (`memory-system:${options.memorySystemId}` as const),
     ...(options.settings === undefined ? {} : { settings: options.settings }),
     extractionModel: options.extractionModel ?? null,
     retrieval:

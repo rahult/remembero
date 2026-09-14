@@ -12,7 +12,7 @@
   "judgeModel": "deepseek-chat",
   "embeddingModel": null,
   "judgeProtocol": "longmemeval-official-compatible-v1",
-  "formation": "durable-raw-session-facts",
+  "formation": "memory-system:builtin:full-context",
   "settings": {
     "aggregationReaderModel": null,
     "temporalRangeModel": null,

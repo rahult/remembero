@@ -799,6 +799,12 @@ async function main(): Promise<void> {
       readerMaxTokens: args.readerMaxTokens ?? 4096,
       memorySystem: args.memorySystem ?? null,
       memoryLane: args.memorySystem === undefined ? null : args.memoryLane,
+      // the memory system's own embedder, recorded here rather than in the top-level
+      // embeddingModel: that field means Remembero's semantic route, which --local-only turns off
+      memorySystemEmbeddingModel:
+        args.memorySystem === undefined
+          ? null
+          : (memorySystemEmbeddings?.model ?? null),
     },
   });
   const serialized = stringifyBoundedResult(run, 'LongMemEval answer run');

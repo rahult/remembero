@@ -621,6 +621,49 @@ describe('the memory-system seam', () => {
     expect(run.schemaVersion).toBe('remembero.longmemeval-answer.v1');
     expect(run.settings?.memoryLane).toBe('retrieval');
   });
+
+  it('labels the formation after the memory system, not the Remembero formation the seam forces', () => {
+    const settings = {
+      aggregationReaderModel: null,
+      temporalRangeModel: null,
+      readingStrategy: 'direct',
+      hybridRetrieval: 'shared',
+      retrievalUnit: 'session',
+      entityRetrieval: false,
+      hybridQuestionTypes: null,
+      factsInContext: true,
+      readerMaxTokens: 440,
+    } as const;
+    // the seam forces --formation raw, so a raw label here would claim a Remembero formation
+    // that never ran
+    const viaSeam = longMemEvalAnswerRun([], 'reader', 'judge', {
+      formation: 'raw',
+      memorySystemId: 'stub:memory',
+      settings: {
+        ...settings,
+        memorySystem: 'stub:memory',
+        memoryLane: 'retrieval',
+        memorySystemEmbeddingModel: 'nomic-embed-text',
+      },
+    });
+    expect(viaSeam.formation).toBe('memory-system:stub:memory');
+    expect(viaSeam.formation).toBe(viaSeam.retrieval);
+    expect(viaSeam.settings?.memorySystemEmbeddingModel).toBe(
+      'nomic-embed-text',
+    );
+    // the top-level field still means Remembero's own semantic route, which did not run
+    expect(viaSeam.embeddingModel).toBeNull();
+    // a stock run keeps the formation label it always had
+    const stock = longMemEvalAnswerRun([], 'reader', 'judge', {
+      formation: 'raw',
+      settings,
+    });
+    expect(stock.formation).toBe('durable-raw-session-facts');
+    expect(
+      longMemEvalAnswerRun([], 'reader', 'judge', { formation: 'hybrid' })
+        .formation,
+    ).toBe('raw-session-facts-plus-extracted');
+  });
 });
 
 describe('Remembero as a memory system', () => {
