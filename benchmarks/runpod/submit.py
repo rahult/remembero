@@ -25,8 +25,9 @@ print("job", job.job_id)
 last = None
 started = time.time()
 while True:
-    status = job.status()
+    # One fetch a poll: _fetch_job carries the status and the in-flight progress string together.
     detail = job._fetch_job() if hasattr(job, "_fetch_job") else {}
+    status = detail.get("status") or job.status()
     line = f"{status} {detail.get('output') if isinstance(detail.get('output'), str) else ''}".strip()
     if line != last:
         print(f"[{(time.time() - started) / 60:5.1f} min] {line}"); last = line

@@ -5,6 +5,16 @@ GGUF and quantizes it, leaving `runs/<run>/<run>-Q8_0.gguf` and `runs/<run>/metr
 network volume. The worker is `handler.py`; the recipe it calls is `benchmarks/train/reader_lora.py`,
 the same code Modal ran, so a run started there resumes here from its checkpoint.
 
+**What lives where.** The 40 GB network volume (`/runpod-volume`) holds only what has to outlive
+the worker: the Hugging Face cache (`hf/`, the 16 GB base model), the input data
+(`data/<run>/conversations.jsonl`, and `heldout.jsonl` if there is one), the newest trainer
+checkpoint (`runs/<run>/trainer/checkpoint-N`, replaced each save so only one is kept), and the
+outputs (`runs/<run>/<run>-Q8_0.gguf`, `runs/<run>/adapter/`, `runs/<run>/metrics.json`).
+Everything heavy and disposable — the trainer's working directory, `merged/` and `merged-text/`
+(~14 GB each), the f16 GGUF (~9 GB) — is written to the worker's **80 GB container disk** under
+`/workspace/runs/<run>` and dies with the job. That is why the endpoint needs 80 GB of container
+disk while the volume stays at 40 GB.
+
 ## What it costs
 
 | Item | Price | Notes |
@@ -46,7 +56,8 @@ In the RunPod console:
 
 1. **Storage → Network Volume**: create one of **40 GB**; note the datacenter it lands in (e.g. `EU-RO-1`).
 2. **Storage → S3 API keys**: create a key; keep the access key and secret.
-3. **Serverless → New Endpoint**: GPU **H100 80GB**, **max workers 1**, **container disk 40 GB**,
+3. **Serverless → New Endpoint**: GPU **H100 80GB**, **max workers 1**, **container disk 80 GB**
+   (the merged checkpoints and the f16 GGUF are built there, not on the volume),
    the network volume from step 1 attached, the image `<dockerhub-user>/rembero-reader-train:v1`
    from Docker Hub, **execution timeout 10800 s** (3 hours — the 600 s default kills the job).
 4. **Settings → API keys**: create an API key.
@@ -62,8 +73,12 @@ export RUNPOD_S3_ACCESS_KEY=...
 export RUNPOD_S3_SECRET_KEY=...
 ```
 
+`volume.py` takes the S3 key pair under those names or under the short `S3_ACCESS_KEY` /
+`S3_SECRET_KEY`, whichever is set — the `.env` here uses the short ones. The datacenter and volume
+id are always `RUNPOD_DATACENTER` and `RUNPOD_VOLUME_ID`.
+
 ```sh
-.venv/bin/pip install runpod boto3
+uv pip install --python .venv/bin/python runpod boto3
 ```
 
 ## Per run
@@ -102,7 +117,11 @@ including the per-stage progress and every line `reader_lora.py` prints. What to
   need a smaller `--max-length`. `"liger": false` in `metrics.json` says the same thing after the fact.
 - `SFTConfig does not accept [...]; continuing without them` — a TRL/transformers upgrade changed the
   recipe's field names; check it before trusting the run.
-- `resumed_from` in the job's JSON result names the checkpoint it picked up, or `null` for a fresh run.
+- `train: resuming from checkpoint-50` is the worker copying that checkpoint off the volume onto the
+  container disk before training; `resumed_from` in the job's JSON result names the checkpoint the
+  trainer actually picked up, or `null` for a fresh run. Each `train: checkpoint saved` line means a
+  new checkpoint has been copied back to the volume and the previous one deleted there — that is the
+  state a re-submitted job resumes from if the worker dies.
 
 ## Serving the result locally
 

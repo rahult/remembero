@@ -1,7 +1,8 @@
 """Copy files to and from a RunPod network volume through its S3-compatible API.
   python benchmarks/runpod/volume.py put <local-path> <volume-path>   (file or directory)
   python benchmarks/runpod/volume.py get <volume-path> <local-path>
-Env: RUNPOD_S3_ACCESS_KEY, RUNPOD_S3_SECRET_KEY, RUNPOD_VOLUME_ID, RUNPOD_DATACENTER (e.g. EU-RO-1)."""
+Env: RUNPOD_VOLUME_ID, RUNPOD_DATACENTER (e.g. EU-RO-1), and the S3 key pair under either
+RUNPOD_S3_ACCESS_KEY / RUNPOD_S3_SECRET_KEY or the short S3_ACCESS_KEY / S3_SECRET_KEY."""
 
 from __future__ import annotations
 
@@ -12,10 +13,21 @@ from pathlib import Path
 import boto3
 
 
+def credential(*names: str) -> str:
+    """The first of these environment variables that is set (the console calls the S3 keys one
+    thing, the .env here another), or a KeyError naming all of them."""
+    for name in names:
+        value = os.environ.get(name)
+        if value:
+            return value
+    raise KeyError(f"set one of {', '.join(names)}")
+
+
 def client():
     dc = os.environ["RUNPOD_DATACENTER"]
     return boto3.client("s3", endpoint_url=f"https://s3api-{dc.lower()}.runpod.io/", region_name=dc,
-                        aws_access_key_id=os.environ["RUNPOD_S3_ACCESS_KEY"], aws_secret_access_key=os.environ["RUNPOD_S3_SECRET_KEY"])
+                        aws_access_key_id=credential("RUNPOD_S3_ACCESS_KEY", "S3_ACCESS_KEY"),
+                        aws_secret_access_key=credential("RUNPOD_S3_SECRET_KEY", "S3_SECRET_KEY"))
 
 
 def put(local: Path, remote: str) -> None:
