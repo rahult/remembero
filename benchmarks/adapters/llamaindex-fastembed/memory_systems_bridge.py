@@ -78,21 +78,21 @@ def main() -> None:
         line = line.strip()
         if not line:
             continue
-        request = json.loads(line)
-        question_id = str(request.get("questionId", ""))
-        if request.get("protocolVersion") != PROTOCOL_VERSION:
-            response: dict[str, Any] = {
+        question_id = ""
+        response: dict[str, Any]
+        try:
+            request = json.loads(line)
+            question_id = str(request.get("questionId", ""))
+            if request.get("protocolVersion") != PROTOCOL_VERSION:
+                raise ValueError(
+                    f"unsupported protocol version {request.get('protocolVersion')!r}"
+                )
+            response = answer(request, embedding)
+        except Exception as error:  # a malformed line or one bad question must not end the run
+            response = {
                 "questionId": question_id,
-                "error": f"unsupported protocol version {request.get('protocolVersion')!r}",
+                "error": f"{type(error).__name__}: {error}"[:300],
             }
-        else:
-            try:
-                response = answer(request, embedding)
-            except Exception as error:  # one bad question must not end the run
-                response = {
-                    "questionId": question_id,
-                    "error": f"{type(error).__name__}: {error}"[:300],
-                }
         sys.stdout.write(json.dumps(response, separators=(",", ":")) + "\n")
         sys.stdout.flush()
 

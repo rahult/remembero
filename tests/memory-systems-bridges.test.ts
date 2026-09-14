@@ -59,12 +59,16 @@ function graduationInstance(): LongMemEvalInstance {
   };
 }
 
-/** Second question: entirely different sessions, so a leaked store is visible as an id. */
+/**
+ * Second question: entirely different sessions, but deliberately the *same* query as the
+ * first. A store that survived the first question would rank its graduation session top
+ * here, so the assertion that 'evidence' is absent has something to catch.
+ */
 function bicycleInstance(): LongMemEvalInstance {
   return {
     question_id: 'bridge_two',
     question_type: 'single-session-user',
-    question: 'What colour is my bicycle?',
+    question: 'What degree did I graduate with?',
     answer: 'green',
     question_date: '2023/08/02 (Wed) 09:00',
     haystack_session_ids: ['weather', 'bicycle'],
@@ -132,10 +136,11 @@ describe.skipIf(!haveUv())('memory-systems bridges over rembero.memory-systems.v
           const secondIds = (second.retrieved ?? []).map(({ sessionId }) => sessionId);
           expect(secondIds.length).toBeGreaterThan(0);
           expect(secondIds.length).toBeLessThanOrEqual(secondRequest.topK);
-          expect(secondIds[0]).toBe('bicycle');
-          // The first question's sessions must not survive into the second one's store.
+          // Same query as the first question: a store that carried over would put its
+          // graduation session at the top of this list.
           expect(secondIds).not.toContain('evidence');
           expect(secondIds).not.toContain('noise');
+          expect(secondIds.every((id) => id === 'weather' || id === 'bicycle')).toBe(true);
           expect(second.unsupported).toEqual(['memories']);
         } finally {
           await client.close();

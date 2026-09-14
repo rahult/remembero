@@ -3,6 +3,7 @@
 # requires-python = ">=3.11,<3.14"
 # dependencies = [
 #   "fastembed==0.8.0",
+#   "langchain-core==1.6.3",
 #   "langgraph==1.2.10",
 # ]
 # ///
@@ -53,11 +54,9 @@ def answer(request: dict[str, Any], embeddings: FastEmbedEmbeddings) -> dict[str
     )
     namespace = ("rembero-memory-systems", str(request["questionId"]))
     for session in request["sessions"]:
-        store.put(
-            namespace,
-            str(session["id"]),
-            {"text": session_text(session), "date": str(session["date"])},
-        )
+        # Only "text" is indexed and only the key is returned, so the session date is not
+        # stored: nothing here reads it, and an unread field reads as a signal that it does.
+        store.put(namespace, str(session["id"]), {"text": session_text(session)})
     ingest_ms = (perf_counter() - ingest_started) * 1000
     search_started = perf_counter()
     top_k_value = request.get("topK", 5)
@@ -87,21 +86,21 @@ def main() -> None:
         line = line.strip()
         if not line:
             continue
-        request = json.loads(line)
-        question_id = str(request.get("questionId", ""))
-        if request.get("protocolVersion") != PROTOCOL_VERSION:
-            response: dict[str, Any] = {
+        question_id = ""
+        response: dict[str, Any]
+        try:
+            request = json.loads(line)
+            question_id = str(request.get("questionId", ""))
+            if request.get("protocolVersion") != PROTOCOL_VERSION:
+                raise ValueError(
+                    f"unsupported protocol version {request.get('protocolVersion')!r}"
+                )
+            response = answer(request, embeddings)
+        except Exception as error:  # a malformed line or one bad question must not end the run
+            response = {
                 "questionId": question_id,
-                "error": f"unsupported protocol version {request.get('protocolVersion')!r}",
+                "error": f"{type(error).__name__}: {error}"[:300],
             }
-        else:
-            try:
-                response = answer(request, embeddings)
-            except Exception as error:  # one bad question must not end the run
-                response = {
-                    "questionId": question_id,
-                    "error": f"{type(error).__name__}: {error}"[:300],
-                }
         sys.stdout.write(json.dumps(response, separators=(",", ":")) + "\n")
         sys.stdout.flush()
 
