@@ -107,6 +107,15 @@ def train_lora(
     eval_ds = Dataset.from_list(held_rows) if held_rows else None
     peft_config = LoraConfig(r=lora_rank, lora_alpha=2 * lora_rank, lora_dropout=0.0, bias="none",
                              task_type="CAUSAL_LM", target_modules=lora_targets(model))
+    # Two fields below no longer exist in the installed stack: TRL 1.x removed
+    # `chat_template_kwargs` from SFTConfig (it is a per-example dataset column there) and
+    # transformers 5 removed `group_by_length`. The inspect filter drops them and prints that it
+    # did; that print is expected, not a fault. Reader v4 and v5 were trained with both fields
+    # already absent (the v5 checkpoint's saved SFTConfig on the Modal volume has no
+    # chat_template_kwargs and no group_by_length, with completion_only_loss=True,
+    # max_length=8192, use_liger_kernel=False, batch 4 x grad-accum 16, seed 42), so TRL 1.13
+    # reproduces that recipe exactly. Do not reintroduce either field to "restore" them: a
+    # resume that trains under different settings than the checkpoint is no longer the same run.
     wanted = dict(
         output_dir=str(run_dir / "trainer"), num_train_epochs=epochs, learning_rate=lr,
         lr_scheduler_type="linear", per_device_train_batch_size=batch_size,
