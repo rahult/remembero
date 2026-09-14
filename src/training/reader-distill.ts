@@ -14,6 +14,11 @@
  * evidence for no LongMemEval question; questions are written fresh over them.
  */
 import { buildLongMemEvalAnswerContext } from '../evals/longmemeval-answer.js';
+import {
+  contractBuilderArgs,
+  contractFromEnv,
+  type ReaderContract,
+} from '../evals/reader-contract.js';
 import type { LongMemEvalInstance } from '../evals/longmemeval.js';
 import type { Conversation } from './export.js';
 import type { LabelledSession } from './reader-data.js';
@@ -248,6 +253,7 @@ export function readerMessages(
   haystack: Haystack,
   question: string,
   type: DistillType,
+  contract: ReaderContract = contractFromEnv(),
 ): Conversation['messages'] {
   const instance = {
     question_id: `distill-${type}`,
@@ -268,14 +274,11 @@ export function readerMessages(
       text: s.transcript,
       facts: s.facts,
     })),
-    24 * 1024,
+    contract.contextBytes,
     [],
     'direct',
     undefined,
-    true,
-    // the deterministic computed-notes block, so the teacher answers with it and the reader
-    // learns to read it (REMEMBERO_READER_COMPUTED_NOTES=1, or --computed-notes)
-    process.env.REMEMBERO_READER_COMPUTED_NOTES === '1',
+    ...contractBuilderArgs(contract),
   );
   return context.messages as Conversation['messages'];
 }
