@@ -25,7 +25,7 @@ describe('reader contract', () => {
   it('reads the same flags the evaluation runner takes', () => {
     const c = contractFromFlags(['--date-distances', '--computed-notes', '--structured-evidence']);
     expect(c).toEqual({ ...READER_CONTRACT_V5, structuredEvidence: true });
-    expect(contractRunnerFlags(c)).toEqual(['--date-distances', '--computed-notes', '--structured-evidence']);
+    expect(contractRunnerFlags(c)).toEqual(['--date-distances', '--computed-notes', '--structured-evidence', '--context-bytes', '24576']);
   });
 
   it('renders the distillation prompt byte-for-byte as the harness renders it', () => {

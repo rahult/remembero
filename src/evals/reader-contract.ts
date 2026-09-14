@@ -74,11 +74,14 @@ export function contractFromEnv(
   };
 }
 
-/** The flags that make run-longmemeval-answer build this exact prompt. */
+/**
+ * The flags that make run-longmemeval-answer build this exact prompt. The byte budget is
+ * always stated: the runner's own default (57344) is not the distiller's (24576), so a
+ * contract that left the flag off would be evaluated at a context size it never read at.
+ */
 export function contractRunnerFlags(contract: ReaderContract): string[] {
   const flags = FLAGS.filter(([key]) => contract[key]).map(([, flag]) => flag);
-  if (contract.contextBytes !== DEFAULT_READER_CONTEXT_BYTES)
-    flags.push('--context-bytes', String(contract.contextBytes));
+  flags.push('--context-bytes', String(contract.contextBytes));
   return flags;
 }
 
