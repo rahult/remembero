@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Base model `google/gemma-4-E4B-it`; it is not gated (checked 2026-09-14), no Hugging Face token needed.
-- Recipe unchanged from v4/v5: rank-32 LoRA, alpha 64, lr 2e-4 linear, 1 epoch, batch 8 × grad-accum 8, max length 8192, completion-only loss, no packing, gradient checkpointing, seed 42 (TRL default).
+- Recipe unchanged from v4/v5: rank-32 LoRA, alpha 64, lr 2e-4 linear, 1 epoch, **batch 4 × grad-accum 16** (effective 64; the v5 checkpoint's saved SFTConfig records 4 × 16, not the Modal function's 8 × 8 defaults), max length 8192, completion-only loss, no packing, gradient checkpointing, seed 42. The saved config also shows `chat_template_kwargs` and `group_by_length` absent (dropped by TRL 1.x and transformers 5 on Modal too), so the core keeps that behaviour and never reintroduces them.
 - A structure block enters the contract only after a paired run on the 266 (DeepSeek judge) shows a gain outside the ±4 noise band. Today that is date distances and computed notes (raw 500: 354 → 383). Focused budget and structured evidence stay flags until they earn their place (subset-100 hybrid: baseline 74, evidence 71, both 75, inside noise).
 - Budget: $10 on RunPod **Serverless** (the user's choice, 2026-09-14 16:04): H100 80GB flex workers at $4.18-4.79/h, billed per second from worker start to stop, nothing while idle. Run A (finish v5 from step 50) ≈ $2.50. Run B (v6, full run) ≈ $6, only if Task 7's gate passes and the balance allows. No pods.
 - Base model stays Gemma 4 E4B (research 2026-09-14: the 2-3B alternatives save under $1 a run and lose ~16 RULER@128k points; Qwen3.5-4B has no reader evidence). Cost levers instead: Liger fused linear cross-entropy (`use_liger_kernel`; removes the 34 GB logits tensor, ~+20% throughput) on every GPU run, with automatic fallback to the plain path if the architecture is unsupported; `max_length 6912` (covers the p95 row, 6,685 tokens) for fresh runs. Run A keeps 8192 because it resumes a checkpoint trained at 8192.
@@ -587,7 +587,7 @@ from benchmarks.runpod.handler import job_config, STAGES
 def test_job_config_fills_defaults_and_validates():
     cfg = job_config({"run": "reader-v5-gemma4-e4b"})
     assert cfg["base_model"] == "google/gemma-4-E4B-it" and cfg["max_length"] == 8192
-    assert cfg["liger"] is True and cfg["quant"] == "Q8_0" and cfg["batch_size"] == 8
+    assert cfg["liger"] is True and cfg["quant"] == "Q8_0" and cfg["batch_size"] == 4 and cfg["grad_accum"] == 16
     assert cfg["data_dir"] == "/runpod-volume/data/reader-v5-gemma4-e4b"
     assert cfg["run_dir"] == "/runpod-volume/runs/reader-v5-gemma4-e4b"
 
@@ -625,7 +625,7 @@ VOLUME = Path("/runpod-volume")
 STAGES = ("train", "export-text", "convert-f16", "quantize")
 RUN_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$")
 DEFAULTS = {"base_model": "google/gemma-4-E4B-it", "max_length": 8192, "liger": True,
-            "batch_size": 8, "grad_accum": 8, "quant": "Q8_0", "merge": True}
+            "batch_size": 4, "grad_accum": 16, "quant": "Q8_0", "merge": True}
 
 
 def job_config(inp: dict) -> dict:
@@ -765,10 +765,12 @@ import runpod
 ap = argparse.ArgumentParser()
 ap.add_argument("run"); ap.add_argument("--max-length", type=int, default=8192)
 ap.add_argument("--no-liger", action="store_true"); ap.add_argument("--quant", default="Q8_0")
+ap.add_argument("--batch-size", type=int, default=4); ap.add_argument("--grad-accum", type=int, default=16)
 a = ap.parse_args()
 runpod.api_key = os.environ["RUNPOD_API_KEY"]
 endpoint = runpod.Endpoint(os.environ["RUNPOD_ENDPOINT_ID"])
-job = endpoint.run({"input": {"run": a.run, "max_length": a.max_length, "liger": not a.no_liger, "quant": a.quant},
+job = endpoint.run({"input": {"run": a.run, "max_length": a.max_length, "liger": not a.no_liger, "quant": a.quant,
+                              "batch_size": a.batch_size, "grad_accum": a.grad_accum},
                     "policy": {"executionTimeout": 3 * 60 * 60 * 1000, "ttl": 24 * 60 * 60 * 1000}})
 print("job", job.job_id)
 last = None
@@ -787,7 +789,7 @@ print(json.dumps(job.output(), indent=2) if status == "COMPLETED" else f"job end
 
 - [ ] **Step 7: Write the README**
 
-`benchmarks/runpod/README.md`, in this order, every command literal: (1) the cost table (H100 flex $4.18-4.79/h; Run A ≈ 26 min at ~65 s/step plus a few minutes of cold start ≈ $2.50; a fresh 4,700-row run at 6912 ≈ 80 min ≈ $6; network volume 40 GB ≈ $2.80/month, delete it when done); (2) one-time setup: Docker Hub login, `docker build --platform linux/amd64 ... && docker push`; in the RunPod console create a network volume (40 GB, note its datacenter), an S3 API key, and a Serverless endpoint (H100 80GB, max workers 1, container disk 40 GB, the network volume attached, the image from Docker Hub, execution timeout 10800 s), and an API key; export `RUNPOD_API_KEY`, `RUNPOD_ENDPOINT_ID`, `RUNPOD_VOLUME_ID`, `RUNPOD_DATACENTER`, `RUNPOD_S3_ACCESS_KEY`, `RUNPOD_S3_SECRET_KEY` in `.env` (already gitignored); `.venv/bin/pip install runpod boto3`; (3) per run: `volume.py put` the data directory and, for a resume, the checkpoint directory, then `submit.py`, then `volume.py get` the GGUF; (4) how to see logs (endpoint → Requests → the job) and what a Liger fallback looks like in them; (5) the local serve line from READER-STRUCTURE.md.
+`benchmarks/runpod/README.md`, in this order, every command literal: (1) the cost table (H100 flex $4.18-4.79/h; Run A ≈ 26 min at ~65 s/step with batch 4 × accum 16 plus a few minutes of cold start ≈ $2.50; a fresh 4,700-row run at 6912 ≈ 80 min ≈ $6; network volume 40 GB ≈ $2.80/month, delete it when done); (2) one-time setup: Docker Hub login, `docker build --platform linux/amd64 ... && docker push`; in the RunPod console create a network volume (40 GB, note its datacenter), an S3 API key, and a Serverless endpoint (H100 80GB, max workers 1, container disk 40 GB, the network volume attached, the image from Docker Hub, execution timeout 10800 s), and an API key; export `RUNPOD_API_KEY`, `RUNPOD_ENDPOINT_ID`, `RUNPOD_VOLUME_ID`, `RUNPOD_DATACENTER`, `RUNPOD_S3_ACCESS_KEY`, `RUNPOD_S3_SECRET_KEY` in `.env` (already gitignored); `.venv/bin/pip install runpod boto3`; (3) per run: `volume.py put` the data directory and, for a resume, the checkpoint directory, then `submit.py`, then `volume.py get` the GGUF; (4) how to see logs (endpoint → Requests → the job) and what a Liger fallback looks like in them; (5) the local serve line from READER-STRUCTURE.md.
 
 - [ ] **Step 8: Run the handler tests, build the image, verify the handler starts**
 
@@ -843,7 +845,7 @@ Expected: 117 MB and a few hundred MB uploaded, listed file by file.
 
 - [ ] **Step 5: Submit and follow**
 
-Run: `.venv/bin/python benchmarks/runpod/submit.py reader-v5-gemma4-e4b --max-length 8192 2>&1 | tee runs/local/reader-v5-serverless.log`
+Run: `.venv/bin/python benchmarks/runpod/submit.py reader-v5-gemma4-e4b --max-length 8192 --batch-size 4 --grad-accum 16 2>&1 | tee runs/local/reader-v5-serverless.log`
 Expected: progress lines `train: starting`, several `train: checkpoint saved`, `export-text`, `convert-f16`, `quantize`, then COMPLETED with metrics showing `resumed_from: .../checkpoint-50`, `liger: true` (or a logged fallback), and `gguf_bytes` near 8.0e9. Wall time 30 to 40 minutes including the cold start and the base-model download.
 
 - [ ] **Step 6: Fetch and verify locally**
