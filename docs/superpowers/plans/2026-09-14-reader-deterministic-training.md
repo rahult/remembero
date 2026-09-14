@@ -681,10 +681,10 @@ if __name__ == "__main__":
 ```dockerfile
 # benchmarks/runpod/Dockerfile — build from the repository root:
 #   docker build --platform linux/amd64 -f benchmarks/runpod/Dockerfile -t <dockerhub-user>/rembero-reader-train:v1 .
-FROM runpod/pytorch:2.8.0-py3.11-cuda12.8.1-devel-ubuntu22.04
+FROM runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04
 ENV HF_HOME=/runpod-volume/hf TOKENIZERS_PARALLELISM=false PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 RUN pip install --no-cache-dir "transformers>=5.0,<6" "trl>=0.24" "peft>=0.17" "datasets>=3.0" "accelerate>=1.0" \
-    "liger-kernel>=0.5" sentencepiece protobuf runpod
+    "liger-kernel>=0.8.2" sentencepiece protobuf runpod
 RUN apt-get update && apt-get install -y --no-install-recommends git cmake build-essential && rm -rf /var/lib/apt/lists/* \
  && git clone --depth 1 https://github.com/ggml-org/llama.cpp /opt/llama.cpp \
  && cmake -S /opt/llama.cpp -B /opt/llama.cpp/build -DGGML_CUDA=OFF -DLLAMA_CURL=OFF \
@@ -698,7 +698,7 @@ ENV PYTHONPATH=/app
 CMD ["python", "-u", "/app/benchmarks/runpod/handler.py"]
 ```
 
-If the `runpod/pytorch` tag above does not exist when you build, list `https://hub.docker.com/r/runpod/pytorch/tags`, pick the newest `2.x-py3.11-cuda12.x-devel` tag, and record the one used in the README. `HF_HOME` on the volume means the 16 GB base model downloads once and is reused by every later job.
+The tag above was confirmed on Docker Hub on 2026-09-14; if it is gone when you build, list `https://hub.docker.com/r/runpod/pytorch/tags`, pick the newest `2.x-py3.11-cuda12.x-cudnn-devel` tag, and record the one used in the README. Liger's `apply_liger_kernel_to_gemma4` (RMSNorm, GeGLU, fused linear cross-entropy) exists from the pinned version on, so the fallback in `train_lora` is a safety net, not the expected path. `HF_HOME` on the volume means the 16 GB base model downloads once and is reused by every later job.
 
 - [ ] **Step 5: Write `volume.py` (files in and out over the S3-compatible API)**
 
