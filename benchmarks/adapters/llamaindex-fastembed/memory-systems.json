@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "rembero.memory-stack-adapter.v1",
+  "protocol": "rembero.memory-systems.v1",
+  "adapter": {
+    "id": "llamaindex-vectormemory-fastembed",
+    "version": "llama-index-core-0.14.23_fastembed-0.8.0_bge-small-en-v1.5",
+    "capabilities": {
+      "answerRows": false,
+      "rankedRetrieval": true,
+      "citations": false,
+      "rules": false,
+      "temporalUpdates": false,
+      "trustViews": false
+    },
+    "disclosures": {
+      "packages": {
+        "llama-index-core": "0.14.23",
+        "llama-index-embeddings-fastembed": "0.6.0",
+        "fastembed": "0.8.0"
+      },
+      "embeddingModel": "BAAI/bge-small-en-v1.5 (FastEmbed ONNX, 384 dimensions, CPU)",
+      "storage": "LlamaIndex VectorMemory over SimpleVectorStore; a fresh VectorMemory per benchmark question inside one long-lived process",
+      "writePolicy": "Store each haystack session's whole transcript under its session id; no LLM runs at ingest",
+      "retrievalPolicy": "VectorMemory.get with the question as input and similarity_top_k set to the request's topK; returned chat messages are deduplicated back to session ids in score order",
+      "providerCostBoundary": "Local CPU embeddings only; no LLM, no API key, no remote inference provider",
+      "notes": [
+        "Retrieval lane only: a pure retriever returns unsupported for the memories lane rather than a proxy.",
+        "First execution downloads the pinned 67 MB embedding model; that download is outside the reported wallMs."
+      ]
+    }
+  },
+  "command": {
+    "executable": "uv",
+    "args": ["run", "--script", "memory_systems_bridge.py"],
+    "workingDirectory": ".",
+    "timeoutMs": 900000,
+    "maxOutputBytes": 4000000
+  }
+}
