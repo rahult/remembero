@@ -587,8 +587,10 @@ async function main(): Promise<void> {
   });
   // extracted/hybrid formations run the product's transcript extraction with its own
   // model, typically the fine-tuned dialect model on a self-hosted OpenAI-compatible endpoint
+  // raw formation makes no extraction calls of its own, but builtin:remembero-hybrid does
+  // its own formation behind --memory-system: --extraction-model is what asks for a writer
   const extractor =
-    args.formation === 'raw'
+    args.formation === 'raw' && args.extractionModel === undefined
       ? undefined
       : new OpenRouterClient({
           apiKey:
@@ -631,6 +633,22 @@ async function main(): Promise<void> {
                 ...(memorySystemEmbeddings === undefined
                   ? {}
                   : { embeddings: memorySystemEmbeddings }),
+                ...(extractor === undefined ? {} : { extractor }),
+                ...(args.extractionCacheDir === undefined
+                  ? {}
+                  : { extractionCacheDir: args.extractionCacheDir }),
+                ...(args.extractionCharacters === undefined
+                  ? {}
+                  : { extractionCharacters: args.extractionCharacters }),
+                ...(args.extractionAssistantCharacters === undefined
+                  ? {}
+                  : {
+                      extractionAssistantCharacters:
+                        args.extractionAssistantCharacters,
+                    }),
+                ...(args.extractionMaxTokens === undefined
+                  ? {}
+                  : { extractionMaxTokens: args.extractionMaxTokens }),
               }),
           ),
         );

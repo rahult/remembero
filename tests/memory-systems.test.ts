@@ -1,4 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { createHash } from 'node:crypto';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
   MEMORY_SYSTEMS_PROTOCOL_VERSION,
   memorySystemDate,
@@ -13,8 +17,10 @@ import type {
 } from '../src/evals/memory-systems-protocol.js';
 import { mapConcurrent } from '../src/evals/map-concurrent.js';
 import {
+  DEFAULT_LONGMEMEVAL_EXTRACTION_CHARACTERS,
   evaluateLongMemEvalAnswerInstance,
   longMemEvalAnswerRun,
+  longMemEvalTranscript,
   type LongMemEvalCompletionClient,
 } from '../src/evals/longmemeval-answer.js';
 import {
@@ -613,5 +619,99 @@ describe('the memory-system seam', () => {
     expect(run.retrieval).toBe('memory-system:builtin:bm25');
     expect(run.schemaVersion).toBe('remembero.longmemeval-answer.v1');
     expect(run.settings?.memoryLane).toBe('retrieval');
+  });
+});
+
+describe('Remembero as a memory system', () => {
+  it('ranks with its own lexical source search in the retrieval lane', async () => {
+    const client = createBuiltinMemorySystem('builtin:remembero-raw', {});
+    try {
+      const reply = await client.request(
+        memorySystemRequestFor(instance(), 'retrieval', 4),
+      );
+      expect(reply.retrieved?.[0]?.sessionId).toBe('evidence');
+      expect(reply.unsupported).toEqual(['memories']);
+      expect(reply.usage).toEqual({
+        modelCalls: 0,
+        inputTokens: 0,
+        outputTokens: 0,
+        costUsd: 0,
+      });
+    } finally {
+      await client.close();
+    }
+  });
+
+  it('returns the writer facts it matched as memory text in the memories lane', async () => {
+    // the noise session first, in haystack order: the writer finds nothing in it
+    const extractor = new ScriptedClient('writer', [
+      '% nothing',
+      'graduated(user, business_administration).',
+    ]);
+    const client = createBuiltinMemorySystem('builtin:remembero-hybrid', {
+      extractor,
+    });
+    try {
+      const reply = await client.request(
+        memorySystemRequestFor(instance(), 'memories', 4),
+      );
+      expect(
+        reply.memories?.some(({ text }) => text.includes('business_administration')),
+      ).toBe(true);
+      expect(reply.memories?.[0]?.sessionIds).toEqual(['evidence']);
+      expect(reply.retrieved?.[0]?.sessionId).toBe('evidence');
+      expect(reply.usage?.modelCalls).toBe(2);
+    } finally {
+      await client.close();
+    }
+  });
+
+  it('replays a cached extraction instead of calling the writer', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'remembero-extraction-cache-'));
+    try {
+      // the same key the native hybrid path writes: sha256 of model, newline, transcript
+      for (const [index, facts] of [[0, []], [1, ['graduated(user, business_administration).']]] as const) {
+        const transcript = longMemEvalTranscript(
+          instance().haystack_sessions[index]!,
+        ).slice(0, DEFAULT_LONGMEMEVAL_EXTRACTION_CHARACTERS);
+        writeFileSync(
+          join(
+            root,
+            `${createHash('sha256')
+              .update(`writer\n${transcript}`)
+              .digest('hex')
+              .slice(0, 40)}.json`,
+          ),
+          JSON.stringify({ facts }),
+        );
+      }
+      const extractor = new ScriptedClient('writer', []);
+      const client = createBuiltinMemorySystem('builtin:remembero-hybrid', {
+        extractor,
+        extractionCacheDir: root,
+      });
+      try {
+        const reply = await client.request(
+          memorySystemRequestFor(instance(), 'memories', 4),
+        );
+        expect(extractor.calls).toEqual([]);
+        expect(reply.usage?.modelCalls).toBe(0);
+        expect(
+          reply.memories?.some(({ text }) =>
+            text.includes('business_administration'),
+          ),
+        ).toBe(true);
+      } finally {
+        await client.close();
+      }
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses the hybrid row without a writer', () => {
+    expect(() => createBuiltinMemorySystem('builtin:remembero-hybrid', {})).toThrow(
+      /needs an extraction client/,
+    );
   });
 });

@@ -5,9 +5,29 @@
  * whole-session embeddings from a local nomic-embed-text through Ollama. None of them calls
  * a paid model. openMemorySystem also resolves an adapter manifest to a long-lived process.
  */
+import { createHash } from 'node:crypto';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { performance } from 'node:perf_hooks';
+import type { ChatMessage } from '../llm/client.js';
 import type { EmbeddingClient } from '../llm/embeddings.js';
-import type { LongMemEvalCompletionClient } from './longmemeval-answer.js';
+import { searchKnowledge } from '../knowledge/search.js';
+import { rememberTranscriptText } from '../llm/pipeline.js';
+import { MemoryStore } from '../store/store.js';
+import {
+  DEFAULT_LONGMEMEVAL_EXTRACTION_CHARACTERS,
+  LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
+  longMemEvalTranscript,
+  type LongMemEvalCompletionClient,
+} from './longmemeval-answer.js';
 import { loadExternalAdapterManifest } from './memory-stack-external.js';
 import { createMemorySystemProcess } from './memory-systems-process.js';
 import {
@@ -22,6 +42,8 @@ export const BUILTIN_MEMORY_SYSTEMS = [
   'builtin:full-context',
   'builtin:bm25',
   'builtin:embed',
+  'builtin:remembero-raw',
+  'builtin:remembero-hybrid',
 ] as const;
 
 export type BuiltinMemorySystemId = (typeof BUILTIN_MEMORY_SYSTEMS)[number];
@@ -37,6 +59,7 @@ export interface MemorySystemFactoryOptions {
   extractor?: LongMemEvalCompletionClient;
   extractionCacheDir?: string;
   extractionCharacters?: number;
+  extractionAssistantCharacters?: number;
   extractionMaxTokens?: number;
   timeoutMs?: number;
 }
@@ -208,6 +231,190 @@ async function embedded(
   };
 }
 
+/** The cache key the native hybrid path writes: sha256 over the model and the transcript. */
+function extractionCachePath(
+  directory: string,
+  model: string,
+  transcript: string,
+): string {
+  return join(
+    directory,
+    `${createHash('sha256')
+      .update(`${model}\n${transcript}`)
+      .digest('hex')
+      .slice(0, 40)}.json`,
+  );
+}
+
+/**
+ * Remembero as a row in its own benchmark: a fresh MemoryStore per question, one placeholder
+ * fact per session carrying the transcript as source text (raw formation), optionally the
+ * r23 writer's extracted facts on top (hybrid formation), then the product's own lexical
+ * source search. These are the same MemoryStore, rememberTranscriptText and searchKnowledge
+ * the native harness path calls, with the same limit, minimum score and source character
+ * limit, so the raw row must retrieve exactly what the native path retrieves — including a
+ * redacted session, which the native path keeps in the ranking and the context builder drops.
+ */
+async function rememberoMemory(
+  request: MemorySystemRequest,
+  options: MemorySystemFactoryOptions,
+  hybrid: boolean,
+): Promise<MemorySystemResponse> {
+  const root = mkdtempSync(join(tmpdir(), 'remembero-memory-system-'));
+  const usage = { modelCalls: 0, inputTokens: 0, outputTokens: 0, costUsd: 0 };
+  try {
+    const store = new MemoryStore(root);
+    const ingestStarted = performance.now();
+    const sessionOf = new Map<string, string>();
+    const extractor = options.extractor;
+    const writer =
+      extractor === undefined
+        ? undefined
+        : {
+            complete: async (messages: ChatMessage[]): Promise<string> => {
+              const completion = await extractor.completeWithUsage(messages, {
+                maxTokens: options.extractionMaxTokens ?? 512,
+              });
+              usage.modelCalls += 1;
+              usage.inputTokens += completion.usage.promptTokens ?? 0;
+              usage.outputTokens += completion.usage.completionTokens ?? 0;
+              usage.costUsd += completion.usage.costUsd ?? 0;
+              return completion.content;
+            },
+          };
+    for (const [index, session] of request.sessions.entries()) {
+      const opId = `longmemeval:${index}:${session.id}`;
+      sessionOf.set(opId, session.id);
+      const text = sessionText(session);
+      const at = new Date(`${session.date}T09:00:00.000Z`);
+      if (hybrid && writer !== undefined && extractor !== undefined) {
+        const factsOperationId = `${opId}:facts`;
+        sessionOf.set(factsOperationId, session.id);
+        // the extraction prompt is the native path's transcript, not the retrieval source
+        // text: same string, same hash, so the r23 cache replays instead of calling a writer
+        const transcript = longMemEvalTranscript(session.turns, {
+          ...(options.extractionAssistantCharacters === undefined
+            ? {}
+            : { assistantCharacters: options.extractionAssistantCharacters }),
+        }).slice(
+          0,
+          options.extractionCharacters ??
+            DEFAULT_LONGMEMEVAL_EXTRACTION_CHARACTERS,
+        );
+        const cachePath =
+          options.extractionCacheDir === undefined
+            ? undefined
+            : extractionCachePath(
+                options.extractionCacheDir,
+                extractor.model,
+                transcript,
+              );
+        const cached =
+          cachePath !== undefined && existsSync(cachePath)
+            ? (JSON.parse(readFileSync(cachePath, 'utf8')) as {
+                facts: string[];
+                error?: string;
+              })
+            : undefined;
+        if (cached !== undefined) {
+          if (cached.error === undefined && cached.facts.length > 0) {
+            store.assert('longmemeval', cached.facts.join('\n'), {
+              opId: factsOperationId,
+              sourceText: text,
+              at,
+            });
+          }
+        } else {
+          try {
+            const result = await rememberTranscriptText(
+              { store, llm: writer },
+              transcript,
+              'longmemeval',
+              {
+                captureId: opId,
+                opId: factsOperationId,
+                sourceText: text,
+                origin: 'manual',
+                at,
+              },
+            );
+            if (cachePath !== undefined) {
+              mkdirSync(options.extractionCacheDir!, { recursive: true });
+              writeFileSync(cachePath, JSON.stringify({ facts: result.added }));
+            }
+          } catch (error) {
+            // a refused extraction leaves the session raw, exactly as the native path does
+            if (cachePath !== undefined) {
+              mkdirSync(options.extractionCacheDir!, { recursive: true });
+              writeFileSync(
+                cachePath,
+                JSON.stringify({
+                  facts: [],
+                  error: error instanceof Error ? error.message : 'error',
+                }),
+              );
+            }
+          }
+        }
+      }
+      store.assert('longmemeval', `longmem_session(session_${index}).`, {
+        opId,
+        sourceText: text,
+        at,
+      });
+    }
+    const ingest = performance.now() - ingestStarted;
+    const searchStarted = performance.now();
+    const snapshot = store.knowledgeSnapshot(['longmemeval']);
+    const search = searchKnowledge(
+      snapshot.clauses,
+      request.question,
+      snapshot.sources,
+      {
+        limit: Math.min(100, hybrid ? request.topK * 8 : request.topK),
+        minimumScore: 1,
+        kinds: ['fact'],
+        sourceCharacterLimit: LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
+      },
+    );
+    const seen = new Set<string>();
+    const retrieved: MemorySystemResponse['retrieved'] = [];
+    const memories: MemorySystemResponse['memories'] = [];
+    for (const result of search.results) {
+      const source = result.sources[0];
+      if (source === undefined) continue;
+      const sessionId = sessionOf.get(source.opId) ?? source.opId;
+      const isPlaceholder = result.clause.startsWith('longmem_session(');
+      // a redacted source is never shown: the native path drops it from the reader's
+      // context too, and only its session id survives in the ranking
+      if (!isPlaceholder && source.redacted !== true && memories.length < 200) {
+        memories.push({
+          text: result.clause,
+          sessionIds: [sessionId],
+          at: source.ts.slice(0, 10),
+        });
+      }
+      if (seen.has(sessionId) || retrieved.length >= request.topK) continue;
+      seen.add(sessionId);
+      retrieved.push({
+        sessionId,
+        rank: retrieved.length + 1,
+        score: result.score,
+      });
+    }
+    return {
+      questionId: request.questionId,
+      retrieved,
+      memories,
+      unsupported: hybrid ? [] : ['memories'],
+      usage,
+      wallMs: { ingest, search: performance.now() - searchStarted },
+    };
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
 export function createBuiltinMemorySystem(
   id: BuiltinMemorySystemId,
   options: MemorySystemFactoryOptions,
@@ -216,12 +423,22 @@ export function createBuiltinMemorySystem(
   if (id === 'builtin:embed' && embeddings === undefined) {
     throw new Error('builtin:embed needs an embedding client');
   }
+  if (id === 'builtin:remembero-hybrid' && options.extractor === undefined) {
+    throw new Error(
+      'builtin:remembero-hybrid needs an extraction client (--extraction-model)',
+    );
+  }
   return {
     id,
     async request(request) {
       if (id === 'builtin:full-context') return fullContext(request);
       if (id === 'builtin:bm25') return bm25(request);
-      return await embedded(request, embeddings!);
+      if (id === 'builtin:embed') return await embedded(request, embeddings!);
+      return await rememberoMemory(
+        request,
+        options,
+        id === 'builtin:remembero-hybrid',
+      );
     },
     async close() {},
   };
