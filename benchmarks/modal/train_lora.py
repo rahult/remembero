@@ -27,7 +27,6 @@ from __future__ import annotations
 import json
 import os
 import subprocess
-import time
 from pathlib import Path
 
 import modal
@@ -67,6 +66,9 @@ train_image = (
             "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
         }
     )
+    # the training recipe itself lives in benchmarks/train/reader_lora.py, which also runs on
+    # a rented GPU; ship it into the container instead of keeping a second copy here
+    .add_local_python_source("benchmarks")
 )
 
 serve_image = (
@@ -89,25 +91,12 @@ serve_image = (
 # ---- data -----------------------------------------------------------------------------
 
 
-def _to_prompt_completion(path: str) -> list[dict]:
-    """conversations.jsonl -> TRL conversational prompt/completion rows (loss on the assistant turn only)."""
-    rows: list[dict] = []
-    with open(path, encoding="utf-8") as handle:
-        for line in handle:
-            line = line.strip()
-            if not line:
-                continue
-            messages = json.loads(line)["messages"]
-            if messages[-1]["role"] != "assistant":
-                raise ValueError("last message must be the assistant turn")
-            rows.append({"prompt": messages[:-1], "completion": [messages[-1]]})
-    return rows
-
-
 def check_data(data: str, heldout: str | None) -> None:
     """Local validation, no GPU: shape, counts, and a size estimate."""
-    train = _to_prompt_completion(data)
-    held = _to_prompt_completion(heldout) if heldout else []
+    from benchmarks.train.reader_lora import to_prompt_completion
+
+    train = to_prompt_completion(data)
+    held = to_prompt_completion(heldout) if heldout else []
     chars = sum(len(m["content"]) for r in train for m in [*r["prompt"], *r["completion"]])
     completion_chars = sum(len(m["content"]) for r in train for m in r["completion"])
     print(
@@ -126,49 +115,6 @@ def check_data(data: str, heldout: str | None) -> None:
 
 
 # ---- train ----------------------------------------------------------------------------
-
-
-def load_base_model(model_id: str, torch):
-    """Text-only causal LM where the checkpoint offers one; multimodal wrapper (Gemma 4) otherwise."""
-    from transformers import AutoModelForCausalLM
-
-    kwargs = dict(dtype=torch.bfloat16, attn_implementation="sdpa")
-    try:
-        return AutoModelForCausalLM.from_pretrained(model_id, **kwargs)
-    except (ValueError, KeyError, OSError) as error:
-        from transformers import AutoModelForImageTextToText
-
-        print(f"AutoModelForCausalLM refused {model_id} ({str(error)[:80]}); loading the multimodal class")
-        return AutoModelForImageTextToText.from_pretrained(model_id, **kwargs)
-
-
-LORA_PROJECTIONS = {"q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"}
-
-
-def lora_targets(model) -> list[str]:
-    """Full names of the text model's attention/MLP Linear layers.
-
-    Matching by short name ("q_proj") is enough for Qwen and Llama, but Gemma 4 wraps each
-    projection in a clipping module PEFT cannot adapt, with the real Linear one level down
-    (q_proj.linear). Naming the Linear modules explicitly works for both, and skips the
-    vision and audio towers of multimodal checkpoints.
-    """
-    import torch.nn as nn
-
-    names: list[str] = []
-    for name, module in model.named_modules():
-        if not isinstance(module, nn.Linear):
-            continue
-        if any(tower in name for tower in ("vision", "audio", "embed_vision", "embed_audio")):
-            continue
-        parts = name.split(".")
-        leaf, parent = parts[-1], (parts[-2] if len(parts) > 1 else "")
-        if leaf in LORA_PROJECTIONS or (leaf == "linear" and parent in LORA_PROJECTIONS):
-            names.append(name)
-    if not names:
-        raise RuntimeError("no LoRA target modules found; unexpected model layout")
-    print(f"LoRA on {len(names)} Linear layers (e.g. {names[0]})")
-    return names
 
 
 def save_processor_files(base_model: str, target: Path) -> None:
@@ -206,27 +152,11 @@ def export_text_only(run: str) -> str:
     vLLM's loader mismatched the multimodal wrapper's weight names on the merged save; the
     plain Gemma4ForCausalLM layout loads cleanly, and this project never sends images or audio.
     """
-    import torch
-    from transformers import AutoConfig, AutoModelForImageTextToText, AutoTokenizer
+    from benchmarks.train.reader_lora import export_text_only as core
 
-    merged_dir = Path(VOL) / "runs" / run / "merged"
-    text_dir = Path(VOL) / "runs" / run / "merged-text"
-    config = AutoConfig.from_pretrained(str(merged_dir))
-    text_config = getattr(config, "text_config", None)
-    if text_config is None:
-        return f"{merged_dir} is already text-only"
-    full = AutoModelForImageTextToText.from_pretrained(str(merged_dir), dtype=torch.bfloat16)
-    language_model = getattr(full.model, "language_model", None) or getattr(full, "language_model")
-    text_cls = getattr(__import__("transformers"), text_config.architectures[0] if getattr(text_config, "architectures", None) else "Gemma4ForCausalLM")
-    text_model = text_cls(text_config)
-    missing, unexpected = text_model.model.load_state_dict(language_model.state_dict(), strict=False)
-    if hasattr(full, "lm_head") and hasattr(text_model, "lm_head"):
-        text_model.lm_head.load_state_dict(full.lm_head.state_dict())
-    print(f"text-only export: missing={list(missing)[:5]} unexpected={list(unexpected)[:5]}")
-    text_model.to(torch.bfloat16).save_pretrained(str(text_dir), safe_serialization=True)
-    AutoTokenizer.from_pretrained(str(merged_dir)).save_pretrained(str(text_dir))
+    path = core(Path(VOL) / "runs" / run)
     volume.commit()
-    return str(text_dir)
+    return str(path)
 
 
 gguf_image = (
@@ -372,138 +302,15 @@ def train(
 ) -> dict:
     # BASE_MODEL is read from the *local* environment at import; the container never sees
     # it, so the caller passes it in. (Two "Gemma" runs silently trained Qwen before this.)
-    import torch
-    from datasets import Dataset
-    from peft import LoraConfig, PeftModel
-    from transformers import AutoTokenizer
-    from trl import SFTConfig, SFTTrainer
+    from benchmarks.train.reader_lora import train_lora
 
-    try:
-        import fla  # noqa: F401
-
-        print("flash-linear-attention: available (fast Gated DeltaNet path)")
-    except ImportError:
-        print("flash-linear-attention: MISSING; Gated DeltaNet layers will run the slow torch fallback")
-
-    run_dir = Path(VOL) / "runs" / run
-    data_dir = Path(VOL) / "data" / run
-    started = time.time()
-
-    tokenizer = AutoTokenizer.from_pretrained(base_model)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-    model = load_base_model(base_model, torch)
-
-    train_rows = _to_prompt_completion(str(data_dir / "conversations.jsonl"))
-    heldout_path = data_dir / "heldout.jsonl"
-    held_rows = _to_prompt_completion(str(heldout_path)) if heldout_path.exists() else []
-    train_ds = Dataset.from_list(train_rows)
-    eval_ds = Dataset.from_list(held_rows) if held_rows else None
-
-    peft_config = LoraConfig(
-        r=lora_rank,
-        lora_alpha=2 * lora_rank,
-        lora_dropout=0.0,
-        bias="none",
-        task_type="CAUSAL_LM",
-        target_modules=lora_targets(model),
-    )
-    # transformers 5.x keeps renaming/removing TrainingArguments fields (warmup_ratio,
-    # group_by_length, ...); keep only the ones this SFTConfig accepts and say what was dropped.
-    import inspect
-
-    wanted = dict(
-        output_dir=str(run_dir / "trainer"),
-        num_train_epochs=epochs,
-        learning_rate=lr,
-        lr_scheduler_type="linear",
-        per_device_train_batch_size=batch_size,
-        gradient_accumulation_steps=grad_accum,
-        per_device_eval_batch_size=batch_size,
-        bf16=True,
-        max_length=max_length,
-        logging_steps=10,
-        # Checkpoint the adapter to the Volume so a preempted or killed container resumes
-        # instead of starting over (an A10G epoch is ~2.5 h).
-        save_strategy="steps",
-        save_steps=25,
-        save_total_limit=1,
-        eval_strategy="epoch" if eval_ds is not None else "no",
-        report_to=[],
-        # Recompute activations everywhere: r13's long transcript examples (2k-token rows in
-        # batches of 8) ran an 80 GB H100 out of memory without it. Costs ~30% speed.
-        gradient_checkpointing=True,
-        # Query and extraction prompts differ a lot in length; length-sorted batches cut padding.
-        group_by_length=True,
-        packing=False,
-        # conversational prompt/completion rows: TRL puts the loss on the completion only
-        completion_only_loss=True,
-        # Render prompts with the empty <think></think> block so the tokenized prompt is an
-        # exact prefix of prompt+completion (otherwise the template's trailing newline merges
-        # with the completion's and TRL warns on every row).
-        chat_template_kwargs={"enable_thinking": False},
-    )
-    accepted = inspect.signature(SFTConfig.__init__).parameters
-    dropped = sorted(k for k in wanted if k not in accepted)
-    if dropped:
-        print(f"SFTConfig does not accept {dropped}; continuing without them")
-    config = SFTConfig(**{k: v for k, v in wanted.items() if k in accepted})
-    from transformers import TrainerCallback
-
-    class CommitVolume(TrainerCallback):
-        """Modal only persists Volume writes on commit; do it right after each checkpoint."""
-
-        def on_save(self, args, state, control, **kwargs):
-            volume.commit()
-
-    trainer = SFTTrainer(
-        model=model,
-        args=config,
-        train_dataset=train_ds,
-        eval_dataset=eval_ds,
-        processing_class=tokenizer,
-        peft_config=peft_config,
-        callbacks=[CommitVolume()],
-    )
-    checkpoints = sorted(
-        (run_dir / "trainer").glob("checkpoint-*"),
-        key=lambda d: int(d.name.split("-")[-1]),
-    )
-    if checkpoints:
-        print(f"resuming from {checkpoints[-1]}")
-    trainer.train(resume_from_checkpoint=str(checkpoints[-1]) if checkpoints else None)
-    metrics: dict = {"run": run, "base_model": base_model, "gpu": TRAIN_GPU}
-    if eval_ds is not None:
-        evaluation = trainer.evaluate()
-        metrics["heldout_loss"] = evaluation.get("eval_loss")
-    # log_history ends with the eval entry; the train summary is the last entry that has train_loss
-    metrics["train_loss"] = next(
-        (h["train_loss"] for h in reversed(trainer.state.log_history) if "train_loss" in h), None
-    )
-    metrics["final_step_loss"] = next(
-        (h["loss"] for h in reversed(trainer.state.log_history) if "loss" in h), None
-    )
-    sample = train_rows[:200]
-    sample_tokens = sum(
-        len(tokenizer(tokenizer.apply_chat_template([*r["prompt"], *r["completion"]], tokenize=False))["input_ids"])
-        for r in sample
-    )
-    metrics["train_tokens_estimate"] = sample_tokens * len(train_rows) // max(len(sample), 1)
-
-    adapter_dir = run_dir / "adapter"
-    trainer.model.save_pretrained(str(adapter_dir))
-    tokenizer.save_pretrained(str(adapter_dir))
+    metrics = train_lora(Path(VOL) / "data" / run, Path(VOL) / "runs" / run, base_model,
+                         epochs=epochs, lr=lr, lora_rank=lora_rank, batch_size=batch_size,
+                         grad_accum=grad_accum, max_length=max_length, merge=merge, on_save=volume.commit)
+    metrics.update(run=run, gpu=TRAIN_GPU)
     if merge:
-        merged_dir = run_dir / "merged"
-        base = load_base_model(base_model, torch)
-        merged = PeftModel.from_pretrained(base, str(adapter_dir)).merge_and_unload()
-        merged.save_pretrained(str(merged_dir), safe_serialization=True)
-        tokenizer.save_pretrained(str(merged_dir))
-        save_processor_files(base_model, merged_dir)
-        metrics["merged_dir"] = str(merged_dir)
+        save_processor_files(base_model, Path(VOL) / "runs" / run / "merged")
     (Path(VOL) / "runs" / "latest").write_text(run)
-    metrics["wall_seconds"] = round(time.time() - started, 1)
-    (run_dir / "metrics.json").write_text(json.dumps(metrics, indent=2))
     volume.commit()
     return metrics
 
@@ -630,6 +437,10 @@ if __name__ == "__main__":
     # `python benchmarks/modal/train_lora.py --check [data] [heldout]` validates the data
     # locally without Modal credentials.
     import sys
+
+    # run as a script, sys.path[0] is this directory, so the repository root (which holds the
+    # `benchmarks` package check_data imports the parser from) has to be added explicitly
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
     if len(sys.argv) >= 2 and sys.argv[1] == "--check":
         check_data(
