@@ -60,6 +60,36 @@ rl.on('line', (line) => {
 
 const SILENT = 'setInterval(() => {}, 1000);';
 
+// An adapter that hangs on one question and answers the next, to prove a killed child does not
+// take the question after it down with it.
+const HANGS_ON_MARKED = `
+const readline = require('node:readline');
+const rl = readline.createInterface({ input: process.stdin });
+rl.on('line', (line) => {
+  const request = JSON.parse(line);
+  if (request.question.includes('hang')) return;
+  process.stdout.write(JSON.stringify({
+    questionId: request.questionId,
+    retrieved: [{ sessionId: 'evidence', rank: 1 }],
+  }) + '\\n');
+});
+`;
+
+// An adapter that prints a startup banner on stdout before it ever answers.
+const BANNER = `
+const readline = require('node:readline');
+process.stdout.write('fastembed: loading model (this is not an answer)\\n');
+const rl = readline.createInterface({ input: process.stdin });
+rl.on('line', (line) => {
+  const request = JSON.parse(line);
+  process.stdout.write('progress: 100%\\n');
+  process.stdout.write(JSON.stringify({
+    questionId: request.questionId,
+    retrieved: [{ sessionId: 'evidence', rank: 1 }],
+  }) + '\\n');
+});
+`;
+
 describe('rembero.memory-systems.v1', () => {
   it('normalizes dataset dates and never shows the adapter the gold answer', () => {
     expect(memorySystemDate('2023/07/10 (Mon) 09:00')).toBe('2023-07-10');
@@ -131,6 +161,42 @@ describe('rembero.memory-systems.v1', () => {
       await expect(
         client.request(memorySystemRequestFor(instance(), 'retrieval', 4)),
       ).rejects.toThrow(/timed out after 400ms/);
+    } finally {
+      await client.close();
+    }
+  });
+
+  it('answers the question after a timeout through a fresh child', async () => {
+    const client = createMemorySystemProcess({
+      id: 'flaky',
+      executable: process.execPath,
+      args: ['-e', HANGS_ON_MARKED],
+      timeoutMs: 400,
+    });
+    try {
+      const hung = instance();
+      hung.question = 'please hang on this one';
+      await expect(
+        client.request(memorySystemRequestFor(hung, 'retrieval', 4)),
+      ).rejects.toThrow(/timed out after 400ms/);
+      // The killed child must not settle this one with "exited with SIGKILL".
+      const next = await client.request(memorySystemRequestFor(instance(), 'retrieval', 4));
+      expect(next.retrieved).toEqual([{ sessionId: 'evidence', rank: 1 }]);
+    } finally {
+      await client.close();
+    }
+  });
+
+  it('skips non-JSON stdout chatter instead of failing the question', async () => {
+    const client = createMemorySystemProcess({
+      id: 'noisy',
+      executable: process.execPath,
+      args: ['-e', BANNER],
+      timeoutMs: 10_000,
+    });
+    try {
+      const first = await client.request(memorySystemRequestFor(instance(), 'retrieval', 4));
+      expect(first.retrieved).toEqual([{ sessionId: 'evidence', rank: 1 }]);
     } finally {
       await client.close();
     }

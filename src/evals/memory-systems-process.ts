@@ -59,24 +59,31 @@ export function createMemorySystemProcess(options: MemorySystemProcessOptions): 
     while (newline >= 0) {
       const line = buffer.slice(0, newline);
       buffer = buffer.slice(newline + 1);
-      const current = pending;
-      if (line.trim() !== '' && current !== undefined) {
-        try {
-          settle(
-            undefined,
-            parseMemorySystemResponse(JSON.parse(line) as unknown, current.request),
-          );
-        } catch (error) {
-          settle(error instanceof Error ? error : new Error(String(error)));
-        }
-      }
       newline = buffer.indexOf('\n');
+      if (line.trim() === '') continue;
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(line) as unknown;
+      } catch {
+        // A banner or a progress line on stdout is chatter, not an answer: count it with the
+        // rest of the suppressed diagnostics and keep waiting for a real response.
+        diagnosticBytes += Buffer.byteLength(line, 'utf8');
+        continue;
+      }
+      const current = pending;
+      if (current === undefined) continue;
+      try {
+        settle(undefined, parseMemorySystemResponse(parsed, current.request));
+      } catch (error) {
+        settle(error instanceof Error ? error : new Error(String(error)));
+      }
     }
   };
 
   const start = (): ChildProcessWithoutNullStreams => {
     if (child !== undefined) return child;
     buffer = '';
+    diagnosticBytes = 0;
     const spawned = spawn(options.executable, options.args ?? [], {
       shell: false,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -93,6 +100,9 @@ export function createMemorySystemProcess(options: MemorySystemProcessOptions): 
       buffer += chunk;
       if (Buffer.byteLength(buffer, 'utf8') > maxResponseBytes) {
         buffer = '';
+        // Disown before killing: the next question must reach a fresh child, and this one's
+        // late close event must not settle it.
+        if (child === spawned) child = undefined;
         spawned.kill('SIGKILL');
         settle(new Error(`${options.id} response exceeded ${maxResponseBytes} bytes`));
         return;
@@ -104,11 +114,15 @@ export function createMemorySystemProcess(options: MemorySystemProcessOptions): 
     });
     // A broken stdin pipe is not the real failure; the close handler reports that.
     spawned.stdin.on('error', () => {});
+    // A child we have already disowned (killed at a timeout, at the byte cap, or closed) must
+    // never settle the request that came after it.
     spawned.on('error', (error) => {
+      if (child !== spawned) return;
       child = undefined;
       settle(error);
     });
     spawned.on('close', (code, signal) => {
+      if (child !== spawned) return;
       child = undefined;
       settle(
         new Error(
@@ -132,6 +146,9 @@ export function createMemorySystemProcess(options: MemorySystemProcessOptions): 
               resolve,
               reject,
               timer: setTimeout(() => {
+                // Disown before killing, so the next question spawns a fresh child instead of
+                // inheriting this one's SIGKILL.
+                if (child === spawned) child = undefined;
                 spawned.kill('SIGKILL');
                 settle(
                   new Error(
@@ -150,6 +167,9 @@ export function createMemorySystemProcess(options: MemorySystemProcessOptions): 
       return await run;
     },
     async close() {
+      // A request still in flight is answered by nobody once the child is gone; say so rather
+      // than leaving its promise pending forever.
+      settle(new Error(`${options.id} closed with a request in flight`));
       const spawned = child;
       if (spawned === undefined) return;
       child = undefined;
