@@ -27,6 +27,10 @@ import { fileURLToPath } from 'node:url';
 import { loadEnv } from '../env.js';
 import { loadLongMemEvalS } from '../evals/longmemeval.js';
 import { longMemEvalSplit } from '../evals/longmemeval-semantic.js';
+import {
+  contractFromFlags,
+  distillManifestContract,
+} from '../evals/reader-contract.js';
 import { OpenRouterClient, type ChatMessage } from '../llm/client.js';
 import { rememberTranscriptText } from '../llm/pipeline.js';
 import { MemoryStore } from '../store/store.js';
@@ -582,7 +586,7 @@ async function judgeUnmatched(): Promise<void> {
 async function distillReader(): Promise<void> {
   const labelsPath = flag('--labels', 'data/real/labels-glmflash8.jsonl')!;
   const out = flag('--out', 'data/training-reader-v3')!;
-  if (process.argv.includes('--computed-notes')) process.env.REMEMBERO_READER_COMPUTED_NOTES = '1';
+  const contract = contractFromFlags(process.argv);
   const trainCount = Number(flag('--train-count', '3000'));
   const target = Number(flag('--examples', '4000'));
   const heldoutTarget = Number(flag('--heldout-examples', '200'));
@@ -662,7 +666,12 @@ async function distillReader(): Promise<void> {
           stats.noQuestion += 1;
           return;
         }
-        const messages = readerMessages(haystack, parsed.question, type);
+        const messages = readerMessages(
+          haystack,
+          parsed.question,
+          type,
+          contract,
+        );
         const answered = await client.completeWithUsage(messages, {
           maxTokens: 4_000,
         });
@@ -715,6 +724,7 @@ async function distillReader(): Promise<void> {
   );
   const manifest = {
     labels: labelsPath,
+    contract: distillManifestContract(process.argv),
     teacher: model,
     typeWeights: weightsFlag ?? 'default',
     seed,

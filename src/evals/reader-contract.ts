@@ -69,8 +69,6 @@ export function contractFromEnv(
   return {
     ...READER_CONTRACT_V5,
     computedNotes: env.REMEMBERO_READER_COMPUTED_NOTES === '1',
-    focusedBudget: env.REMEMBERO_READER_FOCUSED_BUDGET === '1',
-    structuredEvidence: env.REMEMBERO_READER_STRUCTURED_EVIDENCE === '1',
   };
 }
 
@@ -95,4 +93,19 @@ export function contractBuilderArgs(
     contract.focusedBudget,
     contract.structuredEvidence,
   ];
+}
+
+/**
+ * What the distill command writes into its manifest: the contract it rendered every
+ * training prompt with, its id, and the flags that reproduce it in the evaluation runner.
+ */
+export function distillManifestContract(
+  argv: readonly string[],
+): ReaderContract & { id: string; runnerFlags: string[] } {
+  const contract = contractFromFlags(argv);
+  return {
+    ...contract,
+    id: contractId(contract),
+    runnerFlags: contractRunnerFlags(contract),
+  };
 }

@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   READER_CONTRACT_V5,
+  contractFromEnv,
   contractFromFlags,
   contractId,
   contractRunnerFlags,
+  distillManifestContract,
 } from '../src/evals/reader-contract.js';
 import { buildLongMemEvalAnswerContext } from '../src/evals/longmemeval-answer.js';
 import { readerMessages, type Haystack } from '../src/training/reader-distill.js';
@@ -44,5 +46,15 @@ describe('reader contract', () => {
     );
     expect(distilled).toEqual(harness.messages);
     expect(distilled[1]!.content).toContain('Computed');
+  });
+
+  it('the distill manifest records the contract it rendered with', () => {
+    const entry = distillManifestContract(['--computed-notes', '--date-distances']);
+    expect(entry.id).toBe('dd+notes@24576');
+    expect(entry.runnerFlags).toEqual(['--date-distances', '--computed-notes', '--context-bytes', '24576']);
+  });
+
+  it('reads the one environment variable the old distill commands set', () => {
+    expect(contractFromEnv({} as NodeJS.ProcessEnv)).toEqual({ ...READER_CONTRACT_V5, computedNotes: false });
   });
 });
