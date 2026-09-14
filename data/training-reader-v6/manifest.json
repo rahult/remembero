@@ -1,0 +1,45 @@
+{
+  "labels": "data/real/labels-glmflash8.jsonl",
+  "teacher": "z-ai/glm-5.3-flash",
+  "typeWeights": "multi-session=40,temporal-reasoning=35,knowledge-update=15,abstention=10",
+  "seed": 7,
+  "trainSessions": 3000,
+  "heldoutSessions": 213,
+  "train": 3000,
+  "heldout": 100,
+  "byType": {
+    "temporal-reasoning": 1300,
+    "multi-session": 1325,
+    "abstention": 353,
+    "knowledge-update": 122
+  },
+  "stats": {
+    "attempted": 4123,
+    "kept": 3100,
+    "noQuestion": 7,
+    "rejected": 357,
+    "errors": 628
+  },
+  "generatedAt": "2026-09-14T14:33:49.105Z",
+  "contract": {
+    "dateDistances": true,
+    "computedNotes": true,
+    "focusedBudget": false,
+    "structuredEvidence": false,
+    "contextBytes": 24576,
+    "id": "dd+notes@24576",
+    "runnerFlags": [
+      "--date-distances",
+      "--computed-notes",
+      "--context-bytes",
+      "24576"
+    ]
+  },
+  "rerenderedFrom": "data/training-reader-v4",
+  "poolSessions": 3213,
+  "rows": {
+    "train": 3000,
+    "heldout": 100
+  },
+  "skipped": 0
+}

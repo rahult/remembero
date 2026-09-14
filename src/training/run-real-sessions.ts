@@ -10,6 +10,9 @@
  *   node dist/training/run-real-sessions.js export  --labels data/real/labels.jsonl \
  *        --train-count 3000 --heldout-count 100 --base data/training-r14 --out data/training-r17
  *
+ *   node dist/training/run-real-sessions.js rerender --in data/training-reader-v4 \
+ *        --out data/training-reader-v6 --date-distances --computed-notes
+ *
  * `label` and `measure` resume: sessions already in the output are skipped.
  */
 import { createHash } from 'node:crypto';
@@ -48,6 +51,7 @@ import {
   type DistilledExample,
 } from './reader-distill.js';
 import type { Rng } from './rng.js';
+import { rerenderMetaFile } from './reader-rerender.js';
 import {
   generateReaderExamples,
   rewritePrompt,
@@ -749,6 +753,97 @@ async function distillReader(): Promise<void> {
   console.log(JSON.stringify(manifest, null, 2));
 }
 
+/**
+ * Reader v6 data: v4's examples re-rendered through a reader contract.
+ *
+ * v4's prompts were built before the contract, so a reader trained on them meets a
+ * different prompt at evaluation time (date distances, computed notes). The examples
+ * themselves are still the ones we want, so this re-renders them rather than distilling
+ * again: same questions, same haystacks in the same order, same teacher answers, no
+ * teacher calls. The meta files are copied unchanged — they describe the example, not
+ * its rendering — and the manifest records the contract and what it was re-rendered from.
+ *
+ *   node dist/training/run-real-sessions.js rerender --in data/training-reader-v4 \
+ *        --out data/training-reader-v6 --date-distances --computed-notes
+ */
+async function rerenderReader(): Promise<void> {
+  const inDir = flag('--in', 'data/training-reader-v4')!;
+  const out = flag('--out', 'data/training-reader-v6')!;
+  const labelsPath = flag('--labels', 'data/real/labels-glmflash8.jsonl')!;
+  const seed = Number(flag('--seed', '7'));
+  const contract = contractFromFlags(process.argv);
+  const labels = readRows(labelsPath);
+  // the same pool the distiller drew from, both halves together: a meta row names its
+  // sessions by id, and train and heldout rows are rebuilt against the one pool
+  const pool = new Map<string, LabelledSession>();
+  for (const s of await orderedSessions(seed)) {
+    const row = labels.get(s.id);
+    if (row === undefined || row.error) continue;
+    pool.set(s.id, {
+      id: s.id,
+      date: s.date.slice(0, 10).replace(/\//g, '-'),
+      facts: row.facts,
+      transcript: realTranscript(s.session),
+    });
+  }
+  mkdirSync(out, { recursive: true });
+  const results: Record<string, { rows: number; skipped: number }> = {};
+  for (const [name, file] of [
+    ['train', 'conversations.jsonl'],
+    ['heldout', 'heldout.jsonl'],
+  ] as const) {
+    const metaPath = join(inDir, `${file}.meta.jsonl`);
+    if (!existsSync(metaPath)) {
+      console.error(`no ${metaPath}, skipping ${name}`);
+      continue;
+    }
+    const result = rerenderMetaFile(
+      metaPath,
+      join(out, file),
+      pool,
+      contract,
+      (done) => {
+        if (done % 250 === 0) console.error(`[${name} ${done}]`);
+      },
+    );
+    // the meta rows describe the example, not the rendering, so they carry over verbatim
+    writeFileSync(join(out, `${file}.meta.jsonl`), readFileSync(metaPath));
+    results[name] = { rows: result.rows, skipped: result.skipped };
+    for (const example of result.missingExamples)
+      console.error(
+        `${name} row ${example.index} skipped: sessions not in pool: ${example.missing.join(', ')}`,
+      );
+  }
+  const base = existsSync(join(inDir, 'manifest.json'))
+    ? (JSON.parse(readFileSync(join(inDir, 'manifest.json'), 'utf8')) as Record<
+        string,
+        unknown
+      >)
+    : {};
+  const manifest = {
+    ...base,
+    contract: distillManifestContract(process.argv),
+    rerenderedFrom: inDir,
+    labels: labelsPath,
+    seed,
+    poolSessions: pool.size,
+    rows: {
+      train: results.train?.rows ?? 0,
+      heldout: results.heldout?.rows ?? 0,
+    },
+    skipped:
+      (results.train?.skipped ?? 0) + (results.heldout?.skipped ?? 0),
+    train: results.train?.rows ?? 0,
+    heldout: results.heldout?.rows ?? 0,
+    generatedAt: new Date().toISOString(),
+  };
+  writeFileSync(
+    join(out, 'manifest.json'),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
+  console.log(JSON.stringify(manifest, null, 2));
+}
+
 const invokedDirectly =
   process.argv[1] !== undefined &&
   fileURLToPath(import.meta.url) === process.argv[1];
@@ -762,9 +857,10 @@ if (invokedDirectly) {
   else if (command === 'reader') await exportReader();
   else if (command === 'judge') await judgeUnmatched();
   else if (command === 'distill') await distillReader();
+  else if (command === 'rerender') await rerenderReader();
   else {
     console.error(
-      'usage: run-real-sessions.js label|measure|export|reader|judge|distill [flags]',
+      'usage: run-real-sessions.js label|measure|export|reader|judge|distill|rerender [flags]',
     );
     process.exit(1);
   }
