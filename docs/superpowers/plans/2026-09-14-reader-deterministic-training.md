@@ -15,7 +15,9 @@
 - Base model `google/gemma-4-E4B-it`; it is not gated (checked 2026-09-14), no Hugging Face token needed.
 - Recipe unchanged from v4/v5: rank-32 LoRA, alpha 64, lr 2e-4 linear, 1 epoch, batch 8 × grad-accum 8, max length 8192, completion-only loss, no packing, gradient checkpointing, seed 42 (TRL default).
 - A structure block enters the contract only after a paired run on the 266 (DeepSeek judge) shows a gain outside the ±4 noise band. Today that is date distances and computed notes (raw 500: 354 → 383). Focused budget and structured evidence stay flags until they earn their place (subset-100 hybrid: baseline 74, evidence 71, both 75, inside noise).
-- Budget: $10 on RunPod. Run A (finish v5) ≈ $2. Run B (v6) ≈ $4, only if Task 7's gate passes. Never leave a pod running idle; every runbook step ends with the stop command.
+- Budget: $10 on RunPod **Serverless** (the user's choice, 2026-09-14 16:04): H100 80GB flex workers at $4.18-4.79/h, billed per second from worker start to stop, nothing while idle. Run A (finish v5 from step 50) ≈ $2.50. Run B (v6, full run) ≈ $6, only if Task 7's gate passes and the balance allows. No pods.
+- Base model stays Gemma 4 E4B (research 2026-09-14: the 2-3B alternatives save under $1 a run and lose ~16 RULER@128k points; Qwen3.5-4B has no reader evidence). Cost levers instead: Liger fused linear cross-entropy (`use_liger_kernel`; removes the 34 GB logits tensor, ~+20% throughput) on every GPU run, with automatic fallback to the plain path if the architecture is unsupported; `max_length 6912` (covers the p95 row, 6,685 tokens) for fresh runs. Run A keeps 8192 because it resumes a checkpoint trained at 8192.
+- Serverless facts that bind the worker: default execution timeout 600 s (set `policy.executionTimeout` to 10,800,000 ms per job); `/run` payload 10 MB (data, checkpoint and GGUF travel by network volume mounted at `/runpod-volume`, loaded and fetched over RunPod's S3-compatible API); the image is built for linux/amd64 and pushed to Docker Hub; progress via `runpod.serverless.progress_update`.
 - The teacher for any new distillation is GLM 5.3 Flash through Ollama Cloud (`glm-5.3-flash:cloud` at `http://127.0.0.1:11434/v1`), which is on the subscription, not OpenRouter.
 - Judge for every measurement: `deepseek-chat`, official-compatible protocol, as every stored run.
 
@@ -277,7 +279,7 @@ git commit -m "Distill: the contract comes from flags and is written into the ma
 - Test: `benchmarks/train/test_reader_lora.py` (pytest, CPU smoke on a 135M model)
 
 **Interfaces:**
-- Produces: `train_lora(data_dir: Path, run_dir: Path, base_model: str, *, epochs=1, lr=2e-4, lora_rank=32, batch_size=8, grad_accum=8, max_length=8192, merge=True, on_save=None, resume=True) -> dict` and `export_text_only(run_dir: Path) -> Path` and `to_prompt_completion(path) -> list[dict]`, all free of Modal. The Modal `train()` becomes a thin wrapper that mounts the volume paths and passes `on_save=volume.commit`.
+- Produces: `train_lora(data_dir: Path, run_dir: Path, base_model: str, *, epochs=1, lr=2e-4, lora_rank=32, batch_size=8, grad_accum=8, max_length=8192, merge=True, save_steps=25, on_save=None, resume=True, liger=False) -> dict` whose dict carries `resumed_from`, `liger` (whether the fused kernel was actually used) and `max_length` and `export_text_only(run_dir: Path) -> Path` and `to_prompt_completion(path) -> list[dict]`, all free of Modal. The Modal `train()` becomes a thin wrapper that mounts the volume paths and passes `on_save=volume.commit`.
 
 - [ ] **Step 1: Write the failing smoke test**
 
@@ -324,6 +326,7 @@ def test_train_lora_runs_on_cpu_and_resumes(tmp_path):
     # a second call resumes from the last checkpoint and finishes immediately
     again = train_lora(data, run, TINY, epochs=1, batch_size=1, grad_accum=1, max_length=128, merge=False, save_steps=2)
     assert again["resumed_from"] is not None
+    assert again["liger"] is False  # CPU smoke never asks for Liger
 ```
 
 - [ ] **Step 2: Run it to verify it fails**
@@ -413,6 +416,7 @@ def train_lora(
     max_length: int = 8192,
     merge: bool = True,
     save_steps: int = 25,
+    liger: bool = False,
     on_save: Callable[[], None] | None = None,
     resume: bool = True,
 ) -> dict:
@@ -443,6 +447,9 @@ def train_lora(
         eval_strategy="epoch" if eval_ds is not None else "no", report_to=[],
         gradient_checkpointing=True, group_by_length=True, packing=False,
         completion_only_loss=True, chat_template_kwargs={"enable_thinking": False},
+        # Liger's fused linear cross-entropy never materialises the logits tensor (34 GB at
+        # batch 8 x 8k over Gemma's 262k vocabulary); it is what lets the run fit and go faster.
+        use_liger_kernel=liger,
     )
     accepted = inspect.signature(SFTConfig.__init__).parameters
     config = SFTConfig(**{k: v for k, v in wanted.items() if k in accepted})
@@ -452,11 +459,21 @@ def train_lora(
             if on_save is not None:
                 on_save()
 
-    trainer = SFTTrainer(model=model, args=config, train_dataset=train_ds, eval_dataset=eval_ds,
-                         processing_class=tokenizer, peft_config=peft_config, callbacks=[Persist()])
+    try:
+        trainer = SFTTrainer(model=model, args=config, train_dataset=train_ds, eval_dataset=eval_ds,
+                             processing_class=tokenizer, peft_config=peft_config, callbacks=[Persist()])
+    except Exception as error:  # Liger has no patch for this architecture: fall back, say so
+        if not liger:
+            raise
+        print(f"liger unavailable for {base_model} ({str(error)[:120]}); training without it")
+        config = SFTConfig(**{k: v for k, v in {**wanted, "use_liger_kernel": False}.items() if k in accepted})
+        model = load_base_model(base_model)
+        trainer = SFTTrainer(model=model, args=config, train_dataset=train_ds, eval_dataset=eval_ds,
+                             processing_class=tokenizer, peft_config=peft_config, callbacks=[Persist()])
+    metrics_liger = bool(getattr(trainer.args, "use_liger_kernel", False))
     checkpoint = latest_checkpoint(run_dir) if resume else None
     trainer.train(resume_from_checkpoint=str(checkpoint) if checkpoint else None)
-    metrics: dict = {"base_model": base_model, "resumed_from": str(checkpoint) if checkpoint else None}
+    metrics: dict = {"base_model": base_model, "resumed_from": str(checkpoint) if checkpoint else None, "liger": metrics_liger, "max_length": max_length}
     if eval_ds is not None:
         metrics["heldout_loss"] = trainer.evaluate().get("eval_loss")
     metrics["train_loss"] = next((h["train_loss"] for h in reversed(trainer.state.log_history) if "train_loss" in h), None)
@@ -508,9 +525,10 @@ if __name__ == "__main__":
     ap.add_argument("--base-model", default="google/gemma-4-E4B-it")
     ap.add_argument("--max-length", type=int, default=8192); ap.add_argument("--batch-size", type=int, default=8)
     ap.add_argument("--grad-accum", type=int, default=8); ap.add_argument("--no-merge", action="store_true")
+    ap.add_argument("--liger", action="store_true")
     a = ap.parse_args()
     print(json.dumps(train_lora(Path(a.data), Path(a.run), a.base_model, batch_size=a.batch_size,
-                                grad_accum=a.grad_accum, max_length=a.max_length, merge=not a.no_merge), indent=2))
+                                grad_accum=a.grad_accum, max_length=a.max_length, merge=not a.no_merge, liger=a.liger), indent=2))
 ```
 
 - [ ] **Step 4: Point the Modal app at the core**
@@ -547,86 +565,254 @@ git commit -m "Training core shared by Modal and any rented GPU; resume and pers
 
 ---
 
-### Task 4: The RunPod runbook and scripts
+### Task 4: The serverless worker
 
 **Files:**
-- Create: `benchmarks/runpod/README.md`, `benchmarks/runpod/pod-setup.sh`, `benchmarks/runpod/run.sh`
-- Test: `bash -n` on both scripts; a dry run of `run.sh --dry-run` prints the commands without executing.
+- Create: `benchmarks/runpod/Dockerfile`, `benchmarks/runpod/handler.py`, `benchmarks/runpod/submit.py`, `benchmarks/runpod/volume.py`, `benchmarks/runpod/README.md`
+- Test: `benchmarks/runpod/test_handler.py` (pytest; the handler's stage plan and input validation, no GPU), `docker build` of the image.
 
 **Interfaces:**
-- Consumes: `benchmarks/train/reader_lora.py` (Task 3).
-- Produces: on the pod, `/workspace/runs/<run>/gguf/<run>-Q8_0.gguf` and a printed `scp` line to fetch it.
+- Consumes: `train_lora`, `export_text_only` from `benchmarks/train/reader_lora.py` (Task 3).
+- Produces: a Docker image `<dockerhub-user>/rembero-reader-train:v1` whose handler takes `{"run": str, "base_model": str, "max_length": int, "liger": bool, "batch_size": int, "grad_accum": int, "quant": "Q8_0"}` and, with the network volume at `/runpod-volume`, reads `data/<run>/conversations.jsonl`, resumes from `runs/<run>/trainer/checkpoint-*` if present, and leaves `runs/<run>/<run>-<quant>.gguf` plus `runs/<run>/metrics.json` on the volume; `submit.py` submits and follows a job; `volume.py put|get` moves files over the S3-compatible API.
 
-- [ ] **Step 1: Write `pod-setup.sh`**
+- [ ] **Step 1: Write the failing handler test**
 
-```bash
-#!/usr/bin/env bash
-# One-time setup on a fresh RunPod pod (PyTorch template, CUDA 12.x). Idempotent.
-set -euo pipefail
-cd /workspace
-python -c "import torch; print('torch', torch.__version__, 'cuda', torch.cuda.is_available())"
-pip install -q "transformers>=5.0,<6" "trl>=0.24" "peft>=0.17" "datasets>=3.0" "accelerate>=1.0" sentencepiece protobuf
-if [ ! -d llama.cpp ]; then
-  git clone --depth 1 https://github.com/ggml-org/llama.cpp
-  cmake -S llama.cpp -B llama.cpp/build -DGGML_CUDA=OFF -DLLAMA_CURL=OFF
-  cmake --build llama.cpp/build --target llama-quantize -j "$(nproc)"
-  pip install -q -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt "transformers>=5.0,<6"
-fi
-mkdir -p data runs
-echo "pod ready: $(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader)"
+```python
+# benchmarks/runpod/test_handler.py
+import pytest
+
+from benchmarks.runpod.handler import job_config, STAGES
+
+
+def test_job_config_fills_defaults_and_validates():
+    cfg = job_config({"run": "reader-v5-gemma4-e4b"})
+    assert cfg["base_model"] == "google/gemma-4-E4B-it" and cfg["max_length"] == 8192
+    assert cfg["liger"] is True and cfg["quant"] == "Q8_0" and cfg["batch_size"] == 8
+    assert cfg["data_dir"] == "/runpod-volume/data/reader-v5-gemma4-e4b"
+    assert cfg["run_dir"] == "/runpod-volume/runs/reader-v5-gemma4-e4b"
+
+
+def test_job_config_rejects_a_run_name_that_escapes_the_volume():
+    with pytest.raises(ValueError):
+        job_config({"run": "../etc"})
+
+
+def test_stage_order_is_train_export_convert_quantize():
+    assert STAGES == ("train", "export-text", "convert-f16", "quantize")
 ```
 
-- [ ] **Step 2: Write `run.sh`**
+- [ ] **Step 2: Run it to verify it fails**
 
-```bash
-#!/usr/bin/env bash
-# Train (or resume) one run, export text-only, convert to GGUF, quantize, print the fetch line.
-#   run.sh <run-name> [--max-length 8192] [--dry-run]
-# Data at /workspace/data/<run>/conversations.jsonl; an existing
-# /workspace/runs/<run>/trainer/checkpoint-N resumes from step N.
-set -euo pipefail
-run="$1"; shift
-dry=0; args=()
-for a in "$@"; do [ "$a" = "--dry-run" ] && dry=1 || args+=("$a"); done
-cd /workspace/rembero
-cmds=(
-  "python -m benchmarks.train.reader_lora --data /workspace/data/$run --run /workspace/runs/$run ${args[*]:-}"
-  "python -c 'from pathlib import Path; from benchmarks.train.reader_lora import export_text_only; print(export_text_only(Path(\"/workspace/runs/$run\")))'"
-  "python /workspace/llama.cpp/convert_hf_to_gguf.py /workspace/runs/$run/merged-text --outtype f16 --outfile /workspace/runs/$run/$run-f16.gguf"
-  "/workspace/llama.cpp/build/bin/llama-quantize /workspace/runs/$run/$run-f16.gguf /workspace/runs/$run/$run-Q8_0.gguf Q8_0"
-  "rm -f /workspace/runs/$run/$run-f16.gguf"
-)
-for c in "${cmds[@]}"; do echo "+ $c"; [ "$dry" = 1 ] || eval "$c"; done
-echo "fetch with: scp -P <port> root@<pod-ip>:/workspace/runs/$run/$run-Q8_0.gguf /Volumes/Atlas/models/rembero/"
-echo "then STOP THE POD."
+Run: `.venv/bin/python -m pytest benchmarks/runpod/test_handler.py -q`
+Expected: FAIL, `No module named 'benchmarks.runpod.handler'`. (`pip install runpod` into `.venv` first if `import runpod` fails; the handler imports it lazily so the test does not need a worker.)
+
+- [ ] **Step 3: Write the handler**
+
+```python
+# benchmarks/runpod/handler.py
+"""RunPod Serverless worker: train (or resume) one reader run from the network volume,
+export it text-only, convert to GGUF and quantize, all on the volume. One job = one run.
+Progress is reported per stage so `submit.py` can print it; the job result is metrics.json."""
+
+from __future__ import annotations
+
+import json
+import re
+import subprocess
+from pathlib import Path
+
+VOLUME = Path("/runpod-volume")
+STAGES = ("train", "export-text", "convert-f16", "quantize")
+RUN_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$")
+DEFAULTS = {"base_model": "google/gemma-4-E4B-it", "max_length": 8192, "liger": True,
+            "batch_size": 8, "grad_accum": 8, "quant": "Q8_0", "merge": True}
+
+
+def job_config(inp: dict) -> dict:
+    run = str(inp.get("run", ""))
+    if not RUN_NAME.match(run):
+        raise ValueError(f"run must match {RUN_NAME.pattern}, got {run!r}")
+    cfg = {**DEFAULTS, **{k: v for k, v in inp.items() if k in DEFAULTS}, "run": run}
+    cfg["data_dir"] = str(VOLUME / "data" / run)
+    cfg["run_dir"] = str(VOLUME / "runs" / run)
+    return cfg
+
+
+def run_job(cfg: dict, progress=lambda msg: None) -> dict:
+    from benchmarks.train.reader_lora import export_text_only, train_lora
+
+    data_dir, run_dir = Path(cfg["data_dir"]), Path(cfg["run_dir"])
+    if not (data_dir / "conversations.jsonl").exists():
+        raise FileNotFoundError(f"{data_dir}/conversations.jsonl is not on the volume")
+    progress("train: starting")
+    metrics = train_lora(data_dir, run_dir, cfg["base_model"], batch_size=cfg["batch_size"],
+                         grad_accum=cfg["grad_accum"], max_length=cfg["max_length"],
+                         merge=cfg["merge"], liger=cfg["liger"], on_save=lambda: progress("train: checkpoint saved"))
+    progress("export-text")
+    text_dir = export_text_only(run_dir)
+    f16 = run_dir / f"{cfg['run']}-f16.gguf"
+    quantized = run_dir / f"{cfg['run']}-{cfg['quant']}.gguf"
+    progress("convert-f16")
+    subprocess.run(["python", "/opt/llama.cpp/convert_hf_to_gguf.py", str(text_dir), "--outtype", "f16", "--outfile", str(f16)], check=True)
+    progress("quantize")
+    subprocess.run(["/opt/llama.cpp/build/bin/llama-quantize", str(f16), str(quantized), cfg["quant"]], check=True)
+    f16.unlink()
+    metrics["gguf"] = str(quantized)
+    metrics["gguf_bytes"] = quantized.stat().st_size
+    (run_dir / "metrics.json").write_text(json.dumps(metrics, indent=2))
+    return metrics
+
+
+def handler(job: dict) -> dict:
+    import runpod
+
+    cfg = job_config(job.get("input") or {})
+    return run_job(cfg, progress=lambda msg: runpod.serverless.progress_update(job, msg))
+
+
+if __name__ == "__main__":
+    import runpod
+
+    runpod.serverless.start({"handler": handler})
 ```
 
-- [ ] **Step 3: Write the README**
+- [ ] **Step 4: Write the Dockerfile**
 
-`benchmarks/runpod/README.md` holds, in this order: (1) cost table (community H100 $1.99/h; reader step ≈ 80 s at batch 64 × 8k; v5 finish 24 steps ≈ 35 min ≈ $1.20 plus ~15 min setup ≈ $1.70 total; a full 4,700-row run ≈ 100 min ≈ $3.50; download of the base model 16 GB ≈ 3 min on RunPod); (2) create the pod: RunPod console → Pods → Deploy → filter H100 80GB, Community Cloud, the current "RunPod PyTorch" template, 80 GB container disk, 0 GB volume, enable SSH over exposed TCP, deploy; copy the SSH command; (3) push the repo's `benchmarks/` and the data: `rsync -avz -e "ssh -p <port>" benchmarks root@<ip>:/workspace/rembero/benchmarks/` and `rsync -avz -e "ssh -p <port>" data/training-reader-v5/ root@<ip>:/workspace/data/reader-v5-gemma4-e4b/`; (4) `bash /workspace/rembero/benchmarks/runpod/pod-setup.sh`; (5) resume: fetch the checkpoint from Modal first (Task 5); (6) `bash benchmarks/runpod/run.sh reader-v5-gemma4-e4b`; (7) fetch the GGUF, **stop the pod**, then terminate it once the file is verified locally; (8) the local serve line from READER-STRUCTURE.md and the evaluation command from Task 6. Every command literal, no prose placeholders except `<ip>` and `<port>`.
+```dockerfile
+# benchmarks/runpod/Dockerfile — build from the repository root:
+#   docker build --platform linux/amd64 -f benchmarks/runpod/Dockerfile -t <dockerhub-user>/rembero-reader-train:v1 .
+FROM runpod/pytorch:2.8.0-py3.11-cuda12.8.1-devel-ubuntu22.04
+ENV HF_HOME=/runpod-volume/hf TOKENIZERS_PARALLELISM=false PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+RUN pip install --no-cache-dir "transformers>=5.0,<6" "trl>=0.24" "peft>=0.17" "datasets>=3.0" "accelerate>=1.0" \
+    "liger-kernel>=0.5" sentencepiece protobuf runpod
+RUN apt-get update && apt-get install -y --no-install-recommends git cmake build-essential && rm -rf /var/lib/apt/lists/* \
+ && git clone --depth 1 https://github.com/ggml-org/llama.cpp /opt/llama.cpp \
+ && cmake -S /opt/llama.cpp -B /opt/llama.cpp/build -DGGML_CUDA=OFF -DLLAMA_CURL=OFF \
+ && cmake --build /opt/llama.cpp/build --target llama-quantize -j 8 \
+ && pip install --no-cache-dir -r /opt/llama.cpp/requirements/requirements-convert_hf_to_gguf.txt "transformers>=5.0,<6"
+WORKDIR /app
+COPY benchmarks/train /app/benchmarks/train
+COPY benchmarks/runpod/handler.py /app/benchmarks/runpod/handler.py
+RUN touch /app/benchmarks/__init__.py /app/benchmarks/runpod/__init__.py
+ENV PYTHONPATH=/app
+CMD ["python", "-u", "/app/benchmarks/runpod/handler.py"]
+```
 
-- [ ] **Step 4: Verify the scripts parse and the dry run prints five commands**
+If the `runpod/pytorch` tag above does not exist when you build, list `https://hub.docker.com/r/runpod/pytorch/tags`, pick the newest `2.x-py3.11-cuda12.x-devel` tag, and record the one used in the README. `HF_HOME` on the volume means the 16 GB base model downloads once and is reused by every later job.
 
-Run: `bash -n benchmarks/runpod/pod-setup.sh benchmarks/runpod/run.sh && (cd /tmp && mkdir -p workspace/rembero && cd workspace/rembero && bash /Volumes/Atlas/Code/projects/rembero/benchmarks/runpod/run.sh reader-v5-gemma4-e4b --dry-run 2>&1 | grep -c '^+ ')`
-Expected: `5`. (The dry run only echoes; `cd /workspace/rembero` fails outside the pod, so run it from a throwaway directory named the same or accept the cd error as the only output difference.)
+- [ ] **Step 5: Write `volume.py` (files in and out over the S3-compatible API)**
 
-- [ ] **Step 5: Commit**
+```python
+# benchmarks/runpod/volume.py
+"""Copy files to and from a RunPod network volume through its S3-compatible API.
+  python benchmarks/runpod/volume.py put <local-path> <volume-path>   (file or directory)
+  python benchmarks/runpod/volume.py get <volume-path> <local-path>
+Env: RUNPOD_S3_ACCESS_KEY, RUNPOD_S3_SECRET_KEY, RUNPOD_VOLUME_ID, RUNPOD_DATACENTER (e.g. EU-RO-1)."""
+
+from __future__ import annotations
+
+import os
+import sys
+from pathlib import Path
+
+import boto3
+
+
+def client():
+    dc = os.environ["RUNPOD_DATACENTER"]
+    return boto3.client("s3", endpoint_url=f"https://s3api-{dc.lower()}.runpod.io/", region_name=dc,
+                        aws_access_key_id=os.environ["RUNPOD_S3_ACCESS_KEY"], aws_secret_access_key=os.environ["RUNPOD_S3_SECRET_KEY"])
+
+
+def put(local: Path, remote: str) -> None:
+    s3, bucket = client(), os.environ["RUNPOD_VOLUME_ID"]
+    files = [local] if local.is_file() else sorted(p for p in local.rglob("*") if p.is_file())
+    for f in files:
+        key = remote if local.is_file() else f"{remote.rstrip('/')}/{f.relative_to(local)}"
+        print(f"put {f} -> {key} ({f.stat().st_size / 2**20:.1f} MiB)")
+        s3.upload_file(str(f), bucket, key)
+
+
+def get(remote: str, local: Path) -> None:
+    s3, bucket = client(), os.environ["RUNPOD_VOLUME_ID"]
+    local.parent.mkdir(parents=True, exist_ok=True)
+    print(f"get {remote} -> {local}")
+    s3.download_file(bucket, remote, str(local))
+
+
+if __name__ == "__main__":
+    op, a, b = sys.argv[1:4]
+    put(Path(a), b) if op == "put" else get(a, Path(b))
+```
+
+- [ ] **Step 6: Write `submit.py`**
+
+```python
+# benchmarks/runpod/submit.py
+"""Submit one training job to the serverless endpoint and follow it to the end.
+  RUNPOD_API_KEY=... RUNPOD_ENDPOINT_ID=... python benchmarks/runpod/submit.py reader-v5-gemma4-e4b [--max-length 6912] [--no-liger]
+Sets the execution timeout to three hours (the endpoint default of 600 s would kill the job)."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import time
+
+import runpod
+
+ap = argparse.ArgumentParser()
+ap.add_argument("run"); ap.add_argument("--max-length", type=int, default=8192)
+ap.add_argument("--no-liger", action="store_true"); ap.add_argument("--quant", default="Q8_0")
+a = ap.parse_args()
+runpod.api_key = os.environ["RUNPOD_API_KEY"]
+endpoint = runpod.Endpoint(os.environ["RUNPOD_ENDPOINT_ID"])
+job = endpoint.run({"input": {"run": a.run, "max_length": a.max_length, "liger": not a.no_liger, "quant": a.quant},
+                    "policy": {"executionTimeout": 3 * 60 * 60 * 1000, "ttl": 24 * 60 * 60 * 1000}})
+print("job", job.job_id)
+last = None
+started = time.time()
+while True:
+    status = job.status()
+    detail = job._fetch_job() if hasattr(job, "_fetch_job") else {}
+    line = f"{status} {detail.get('output') if isinstance(detail.get('output'), str) else ''}".strip()
+    if line != last:
+        print(f"[{(time.time() - started) / 60:5.1f} min] {line}"); last = line
+    if status in ("COMPLETED", "FAILED", "CANCELLED", "TIMED_OUT"):
+        break
+    time.sleep(30)
+print(json.dumps(job.output(), indent=2) if status == "COMPLETED" else f"job ended {status}")
+```
+
+- [ ] **Step 7: Write the README**
+
+`benchmarks/runpod/README.md`, in this order, every command literal: (1) the cost table (H100 flex $4.18-4.79/h; Run A ≈ 26 min at ~65 s/step plus a few minutes of cold start ≈ $2.50; a fresh 4,700-row run at 6912 ≈ 80 min ≈ $6; network volume 40 GB ≈ $2.80/month, delete it when done); (2) one-time setup: Docker Hub login, `docker build --platform linux/amd64 ... && docker push`; in the RunPod console create a network volume (40 GB, note its datacenter), an S3 API key, and a Serverless endpoint (H100 80GB, max workers 1, container disk 40 GB, the network volume attached, the image from Docker Hub, execution timeout 10800 s), and an API key; export `RUNPOD_API_KEY`, `RUNPOD_ENDPOINT_ID`, `RUNPOD_VOLUME_ID`, `RUNPOD_DATACENTER`, `RUNPOD_S3_ACCESS_KEY`, `RUNPOD_S3_SECRET_KEY` in `.env` (already gitignored); `.venv/bin/pip install runpod boto3`; (3) per run: `volume.py put` the data directory and, for a resume, the checkpoint directory, then `submit.py`, then `volume.py get` the GGUF; (4) how to see logs (endpoint → Requests → the job) and what a Liger fallback looks like in them; (5) the local serve line from READER-STRUCTURE.md.
+
+- [ ] **Step 8: Run the handler tests, build the image, verify the handler starts**
+
+Run: `.venv/bin/python -m pytest benchmarks/runpod/test_handler.py -q && docker build --platform linux/amd64 -f benchmarks/runpod/Dockerfile -t rembero-reader-train:local . && docker run --rm --platform linux/amd64 -e RUNPOD_REALTIME_PORT= rembero-reader-train:local python -c "import benchmarks.runpod.handler as h, liger_kernel, trl; print('handler ok', h.STAGES)"`
+Expected: 3 tests pass; image builds (15 GB is normal); the run prints `handler ok ('train', 'export-text', 'convert-f16', 'quantize')`. The image is not pushed in this task; Task 5 pushes it under the user's Docker Hub name.
+
+- [ ] **Step 9: Commit**
 
 ```bash
 git add benchmarks/runpod
-git commit -m "RunPod runbook: train, resume, export and fetch a reader for a few dollars"
+git commit -m "RunPod Serverless worker: train, resume, export and quantize a reader on a network volume"
 ```
 
 ---
 
-### Task 5: Run A, finish reader v5 from step 50 (≈ $2)
+### Task 5: Run A, finish reader v5 from step 50 on Serverless (≈ $2.50)
 
 **Files:**
 - Modify: `docs/research/run-matrix/training-runs.json` (one row), `docs/research/READER-STRUCTURE.md` (a paragraph under "Reader v5 on the M4 Pro")
 
 **Interfaces:**
-- Consumes: Task 4's scripts; the Modal volume paths `runs/reader-v5-gemma4-e4b/trainer/checkpoint-50` (adapter, optimizer, scheduler, RNG, trainer_state) and `data/reader-v5-gemma4-e4b/conversations.jsonl`.
+- Consumes: Task 4's image, `volume.py`, `submit.py`; the Modal volume paths `runs/reader-v5-gemma4-e4b/trainer/checkpoint-50` and `data/reader-v5-gemma4-e4b/conversations.jsonl`.
 - Produces: `/Volumes/Atlas/models/rembero/reader-v5-gemma4-e4b-Q8_0.gguf`.
+
+This task spends money and needs the user's RunPod account: stop and ask before Step 4 if `RUNPOD_API_KEY` is not in `.env`.
 
 - [ ] **Step 1: Prove the local data is the data the checkpoint was trained on**
 
@@ -635,39 +821,43 @@ Run:
 .venv/bin/modal volume get rembero-finetune data/reader-v5-gemma4-e4b/conversations.jsonl /tmp/v5-volume.jsonl
 shasum -a 256 /tmp/v5-volume.jsonl data/training-reader-v5/conversations.jsonl
 ```
-Expected: identical digests. If they differ, use the volume's file on the pod; resume requires the same rows in the same order.
+Expected: identical digests. If they differ, upload the volume's file; resume requires the same rows in the same order.
 
-- [ ] **Step 2: Fetch the checkpoint from the volume (no compute credit needed)**
+- [ ] **Step 2: Fetch the checkpoint from the Modal volume (no compute credit needed)**
 
-Run: `.venv/bin/modal volume get rembero-finetune runs/reader-v5-gemma4-e4b/trainer/checkpoint-50 /Volumes/Atlas/models/rembero/reader-v5-checkpoint-50/ && du -sh /Volumes/Atlas/models/rembero/reader-v5-checkpoint-50`
-Expected: a directory with `adapter_model.safetensors`, `optimizer.pt`, `scheduler.pt`, `rng_state.pth`, `trainer_state.json`, `training_args.bin`; a few hundred MB.
+Run: `.venv/bin/modal volume get rembero-finetune runs/reader-v5-gemma4-e4b/trainer/checkpoint-50 /Volumes/Atlas/models/rembero/reader-v5-checkpoint-50/ && python3 -c "import json; s=json.load(open('/Volumes/Atlas/models/rembero/reader-v5-checkpoint-50/trainer_state.json')); print(s['global_step'], '/', s['max_steps'])"`
+Expected: the directory with `adapter_model.safetensors`, `optimizer.pt`, `scheduler.pt`, `rng_state.pth`, `trainer_state.json`, `training_args.bin`; prints `50 / 74`.
 
-- [ ] **Step 3: Confirm the resume point**
+- [ ] **Step 3: Push the image and create the endpoint** (README setup section)
 
-Run: `python3 -c "import json; s=json.load(open('/Volumes/Atlas/models/rembero/reader-v5-checkpoint-50/trainer_state.json')); print(s['global_step'], '/', s['max_steps'])"`
-Expected: `50 / 74`.
+`docker tag rembero-reader-train:local <dockerhub-user>/rembero-reader-train:v1 && docker push <dockerhub-user>/rembero-reader-train:v1`; create the volume, S3 key, endpoint and API key in the console; fill `.env`.
 
-- [ ] **Step 4: Create the pod and push data, checkpoint and code** (README steps 2 to 4)
+- [ ] **Step 4: Load the volume**
 
-Push the checkpoint to `/workspace/runs/reader-v5-gemma4-e4b/trainer/checkpoint-50/`. Run `pod-setup.sh`. Note the clock: the pod meter starts at deploy.
-
-- [ ] **Step 5: Resume and export**
-
-Run on the pod: `bash benchmarks/runpod/run.sh reader-v5-gemma4-e4b 2>&1 | tee /workspace/runs/reader-v5.log`
-Expected: `resumed_from: .../checkpoint-50`, 24 more steps, `train_loss` printed, then a 7.5 GiB `reader-v5-gemma4-e4b-Q8_0.gguf`.
-
-- [ ] **Step 6: Fetch, stop the pod, verify locally**
-
-Run the printed `scp` line, then stop the pod in the console. Then locally:
 ```bash
+set -a; source .env; set +a
+.venv/bin/python benchmarks/runpod/volume.py put data/training-reader-v5/conversations.jsonl data/reader-v5-gemma4-e4b/conversations.jsonl
+.venv/bin/python benchmarks/runpod/volume.py put /Volumes/Atlas/models/rembero/reader-v5-checkpoint-50 runs/reader-v5-gemma4-e4b/trainer/checkpoint-50
+```
+Expected: 117 MB and a few hundred MB uploaded, listed file by file.
+
+- [ ] **Step 5: Submit and follow**
+
+Run: `.venv/bin/python benchmarks/runpod/submit.py reader-v5-gemma4-e4b --max-length 8192 2>&1 | tee runs/local/reader-v5-serverless.log`
+Expected: progress lines `train: starting`, several `train: checkpoint saved`, `export-text`, `convert-f16`, `quantize`, then COMPLETED with metrics showing `resumed_from: .../checkpoint-50`, `liger: true` (or a logged fallback), and `gguf_bytes` near 8.0e9. Wall time 30 to 40 minutes including the cold start and the base-model download.
+
+- [ ] **Step 6: Fetch and verify locally**
+
+```bash
+.venv/bin/python benchmarks/runpod/volume.py get runs/reader-v5-gemma4-e4b/reader-v5-gemma4-e4b-Q8_0.gguf /Volumes/Atlas/models/rembero/reader-v5-gemma4-e4b-Q8_0.gguf
 llama-server -m /Volumes/Atlas/models/rembero/reader-v5-gemma4-e4b-Q8_0.gguf --port 8083 -c 12288 -np 1 -ngl 99 --alias rembero-reader-v5 --reasoning-budget 0 --chat-template-kwargs '{"enable_thinking":false}' &
 sleep 60; curl -s http://127.0.0.1:8083/v1/chat/completions -H 'Content-Type: application/json' -d '{"model":"rembero-reader-v5","messages":[{"role":"user","content":"History chats:\n\n### Retrieved session 1\nSession date: 2023-05-15\nUSER: I bought my bike on 3 May.\n\nQuestion (asked 2023-05-24): how many days ago did I buy my bike?"}],"max_tokens":60}' | python3 -c "import json,sys; print(json.load(sys.stdin)['choices'][0]['message']['content'])"
 ```
-Expected: a sentence with "21 days", not noise. Noise means the conversion took the direct q8 path; re-run the f16 then quantize steps.
+Expected: a sentence with "21 days", not noise. Noise means the conversion took the direct q8 path; the handler converts f16 then quantizes, so noise here is a real defect to report.
 
-- [ ] **Step 7: Record the run**
+- [ ] **Step 7: Record the run and the bill**
 
-Append to `docs/research/run-matrix/training-runs.json` a row `{"run": "reader-v5 E4B", "date": "2026-09-14", "base": "Gemma 4 E4B", "platform": "Modal H100 (steps 1-50) + RunPod H100 (51-74)", "data": "4,713 GLM-distilled examples with computed notes and date distances (contract dd+notes@24576), max_length 8192", "tasks": "reader", "minutes": <measured>, "costUsd": <measured>, "heldoutLoss": null, "notes": "resumed from checkpoint-50 off the Modal volume"}` with the measured minutes and the RunPod charge. Commit with the doc paragraph.
+Read the charge from the RunPod billing page. Append to `docs/research/run-matrix/training-runs.json`: `{"run": "reader-v5 E4B", "date": "2026-09-14", "base": "Gemma 4 E4B", "platform": "Modal H100 (steps 1-50) + RunPod Serverless H100 (51-74)", "data": "4,713 GLM-distilled examples with computed notes and date distances (contract dd+notes@24576), max_length 8192", "tasks": "reader", "minutes": <measured>, "costUsd": <measured>, "heldoutLoss": null, "notes": "resumed from checkpoint-50 off the Modal volume; Liger <used|fell back>"}`. Add the paragraph to READER-STRUCTURE.md. Commit. Leave the endpoint (idle costs nothing); delete the network volume only after Task 7 decides whether Run B happens.
 
 ---
 
@@ -702,7 +892,7 @@ Add the v5 row to the "Under the cheaper judge" table with its 266 numbers and t
 
 ---
 
-### Task 7: The v6 gate, and v6 only if it passes (≈ $4, optional)
+### Task 7: The v6 gate, and v6 only if it passes (≈ $6, optional)
 
 **Files:**
 - Create: `data/training-reader-v6/` (only if the gate passes)
@@ -732,7 +922,7 @@ Expected: `manifest.json` with `contract.id` naming the winning flags; about 4,0
 
 - [ ] **Step 4: Train v6 on RunPod**
 
-Push `data/training-reader-v6/` to `/workspace/data/reader-v6-gemma4-e4b/`, run `bash benchmarks/runpod/run.sh reader-v6-gemma4-e4b`, fetch, stop the pod. ≈ 100 minutes ≈ $3.50.
+`volume.py put data/training-reader-v6 data/reader-v6-gemma4-e4b`, then `submit.py reader-v6-gemma4-e4b --max-length 6912`, then `volume.py get` the GGUF. ≈ 80 minutes ≈ $6 at the serverless rate; check the balance first and, if it cannot cover it, say so and stop.
 
 - [ ] **Step 5: Measure v6 exactly as Task 6, with `contractRunnerFlags` of the v6 manifest**
 
@@ -744,4 +934,5 @@ The runner flags come from the manifest: `python3 -c "import json; print(' '.joi
 
 - Spec coverage: the deterministic flow (Tasks 1, 2, 5's contract id, 6 and 7's flag derivation), the cost ceiling (Tasks 4, 5, 7 with figures), the resume from checkpoint-50 (Task 5), the gate for new structure (global constraints, Task 7), the teacher off OpenRouter (Task 7 Step 3). Nothing in the discussion is left without a task.
 - Placeholders: `<ip>`, `<port>`, `<measured>` and `<winning flags>` are the only ones and each is a value the executor obtains in the step before.
-- Type consistency: `readerMessages(haystack, question, type, contract)` in Tasks 1 and 2; `train_lora(data_dir, run_dir, base_model, ...)` in Tasks 3 and 4; `contractRunnerFlags` in Tasks 1, 2, 6, 7; `export_text_only(run_dir)` in Tasks 3 and 4.
+- Type consistency: `readerMessages(haystack, question, type, contract)` in Tasks 1 and 2; `train_lora(data_dir, run_dir, base_model, ..., liger)` in Tasks 3 and 4; `contractRunnerFlags` in Tasks 1, 2, 6, 7; `export_text_only(run_dir)` in Tasks 3 and 4; `job_config`, `STAGES`, `run_job` in Task 4 only.
+- Revision 2026-09-14 16:15: Tasks 4 and 5 rewritten for RunPod Serverless after the user's direction; Liger and the 6912 max length folded into Task 3 and the constraints after the model research.
