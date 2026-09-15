@@ -25,6 +25,7 @@ import urllib.request
 from pathlib import Path
 
 API = "https://rest.runpod.io/v1"
+USER_AGENT = "rembero-runpod/1.0 (+https://github.com/rahult/remembero)"
 # Newest stable vLLM release on 2026-09-15 (v0.29.0, pushed 2026-09-09). The -cu129 build rather
 # than the default CUDA 13.0 one, so community hosts on a CUDA 12.9 driver qualify too; both carry
 # kernels for the RTX 5090 (TORCH_CUDA_ARCH_LIST includes 12.0). Gemma 4 landed in vLLM in spring 2026.
@@ -161,10 +162,19 @@ def setting(name: str, env: dict[str, str]) -> str | None:
     return os.environ.get(name) or env.get(name)
 
 
+def build_request(url: str, key: str, *, method: str = "GET", body: dict | None = None) -> urllib.request.Request:
+    """Every HTTP request pod.py makes is built here. RunPod sits behind Cloudflare, which rejects
+    urllib's default User-Agent with 403 / error code 1010, so each request names this tool."""
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/json", "Authorization": f"Bearer {key}"}
+    data = None
+    if body is not None:
+        data = json.dumps(body).encode()
+        headers["Content-Type"] = "application/json"
+    return urllib.request.Request(url, method=method, data=data, headers=headers)
+
+
 def api(method: str, path: str, key: str, body: dict | None = None) -> dict | list | None:
-    request = urllib.request.Request(f"{API}{path}", method=method,
-                                     data=json.dumps(body).encode() if body is not None else None,
-                                     headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"})
+    request = build_request(f"{API}{path}", key, method=method, body=body)
     try:
         with urllib.request.urlopen(request, timeout=60) as response:
             text = response.read().decode()
@@ -174,8 +184,7 @@ def api(method: str, path: str, key: str, body: dict | None = None) -> dict | li
 
 
 def served_models(url: str, api_key: str) -> list[str]:
-    request = urllib.request.Request(f"{url}/models", headers={"Authorization": f"Bearer {api_key}"})
-    with urllib.request.urlopen(request, timeout=30) as response:
+    with urllib.request.urlopen(build_request(f"{url}/models", api_key), timeout=30) as response:
         return [m.get("id") for m in json.loads(response.read().decode()).get("data", [])]
 
 

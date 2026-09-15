@@ -317,3 +317,46 @@ def test_prepare_refuses_weights_with_no_chat_template(tmp_path, monkeypatch):
     with pytest.raises(SystemExit):
         prepare_reader.prepare(tmp_path, RUN, "google/gemma-4-E4B-it")
     assert not prepare_reader.is_prepared(tmp_path / "runs" / RUN)
+
+
+def test_every_request_carries_a_user_agent_cloudflare_accepts_and_asks_for_json():
+    """Cloudflare answers urllib's default agent with 403 / error code 1010."""
+    from benchmarks.runpod.pod import USER_AGENT, build_request
+
+    request = build_request("https://rest.runpod.io/v1/pods", "k", method="POST", body={"a": 1})
+    assert request.get_header("User-agent") == USER_AGENT == "rembero-runpod/1.0 (+https://github.com/rahult/remembero)"
+    assert request.get_header("Accept") == "application/json"
+    assert request.get_header("Authorization") == "Bearer k"
+    assert request.get_header("Content-type") == "application/json" and json.loads(request.data) == {"a": 1}
+    assert request.get_method() == "POST"
+    bare = build_request("https://pod-8000.proxy.runpod.net/v1/models", "k")
+    assert bare.get_method() == "GET" and bare.data is None and bare.get_header("User-agent") == USER_AGENT
+
+
+def test_the_rest_calls_and_the_wait_poll_both_send_those_headers(monkeypatch):
+    import io
+
+    from benchmarks.runpod import pod
+
+    sent = []
+
+    class Response(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+    def fake_urlopen(request, timeout=None):
+        sent.append(request)
+        return Response(json.dumps({"id": "pod1", "data": [{"id": NAME}]}).encode())
+
+    monkeypatch.setattr(pod.urllib.request, "urlopen", fake_urlopen)
+    pod.api("POST", "/pods", "runpod-key", {"x": 1})
+    pod.api("DELETE", "/pods/pod1", "runpod-key")
+    assert pod.served_models(pod.serve_url("pod1"), "vllm-key") == [NAME]
+    assert [r.full_url for r in sent] == ["https://rest.runpod.io/v1/pods", "https://rest.runpod.io/v1/pods/pod1",
+                                         "https://pod1-8000.proxy.runpod.net/v1/models"]
+    for request in sent:
+        assert request.get_header("User-agent") == pod.USER_AGENT
+        assert request.get_header("Accept") == "application/json"
