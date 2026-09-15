@@ -206,6 +206,24 @@ describe('context tiers', () => {
     );
   });
 
+  it('still splits after ordinary short words, and after the word that follows a title', () => {
+    expect(lastLine(abstractBody('Who is my piano teacher?', 'USER: I love it. My piano teacher said so.'))).toBe(
+      'My piano teacher said so.',
+    );
+    expect(lastLine(abstractBody('What did I ask about pickup?', 'USER: Please pick me up. Then the pickup is done.'))).toBe(
+      'Then the pickup is done.',
+    );
+    expect(lastLine(abstractBody('Who is Chen?', 'USER: The weather is ok. Dr. Chen called. She was kind.'))).toBe(
+      'Dr. Chen called.',
+    );
+    expect(lastLine(abstractBody('Where in Washington did I drive?', 'USER: It rained. We drove to Washington D.C. last week.'))).toBe(
+      'We drove to Washington D.C. last week.',
+    );
+    expect(lastLine(abstractBody('Which recipes use basil?', 'USER: Herbs, e.g. basil and mint, grow fast. Mr. Park sells basil. So do I.'))).toBe(
+      'Herbs, e.g. basil and mint, grow fast. Mr. Park sells basil.',
+    );
+  });
+
   it('abstracts carry no facts line; full sections keep theirs', () => {
     const section = abstractBody('Which guitar did I buy?', 'USER: I bought a guitar.', 320, ['owns(user, guitar).']);
     expect(section).toBe('### Retrieved session 2 (abstract)\nSession date: 2023-05-02T09:00:00.000Z\nI bought a guitar.\n');

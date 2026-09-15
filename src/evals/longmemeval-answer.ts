@@ -420,15 +420,20 @@ function abstractContentWords(question: string): string[] {
   return [...new Set(words)];
 }
 
-/** Short words a period follows without ending a sentence (beyond any one or two letters). */
+/**
+ * Tokens a period follows without ending a sentence, lowercased with their inner periods kept
+ * and the final one dropped (so "e.g." is "e.g"). One-letter tokens are handled by rule.
+ */
 const ABBREVIATIONS: ReadonlySet<string> = new Set([
-  'mrs', 'prof', 'sgt', 'capt', 'gen', 'rev', 'hon', 'etc', 'vs', 'approx', 'dept', 'univ',
+  'dr', 'mr', 'mrs', 'ms', 'st', 'jr', 'sr', 'vs', 'etc', 'e.g', 'i.e',
+  'prof', 'sgt', 'capt', 'gen', 'rev', 'hon', 'approx', 'dept', 'univ',
   'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'oct', 'nov', 'dec',
 ]);
 
 /**
  * One turn's sentences: split after . ! ? and whitespace, and at newlines, but not after a
- * period that closes a one- or two-letter token or a known abbreviation (D.C., U.S., Dr.).
+ * period that closes a one-letter token (an initial, or the pieces of U.S., D.C., p.m.) or a
+ * known abbreviation (Dr., Mrs., e.g.). Ordinary short words (it, up, ok, so) still end one.
  */
 function turnSentences(turn: string): string[] {
   const sentences: string[] = [];
@@ -437,10 +442,13 @@ function turnSentences(turn: string): string[] {
     for (const match of line.matchAll(/[.!?]+(?=\s)/g)) {
       const end = match.index! + match[0].length;
       if (match[0] === '.') {
-        const word = /([A-Za-z]+)$/.exec(line.slice(start, match.index!))?.[1];
+        const token = /([A-Za-z][A-Za-z.]*)$/.exec(
+          line.slice(start, match.index!),
+        )?.[1];
+        const lastPiece = token?.split('.').at(-1);
         if (
-          word !== undefined &&
-          (word.length <= 2 || ABBREVIATIONS.has(word.toLowerCase()))
+          token !== undefined &&
+          (lastPiece!.length === 1 || ABBREVIATIONS.has(token.toLowerCase()))
         )
           continue;
       }
