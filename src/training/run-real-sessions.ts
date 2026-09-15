@@ -13,6 +13,11 @@
  *   node dist/training/run-real-sessions.js rerender --in data/training-reader-v4 \
  *        --out data/training-reader-v6 --date-distances --computed-notes
  *
+ *   node dist/training/run-real-sessions.js think --from data/training-reader-v6 \
+ *        --out data/training-reader-v7-think --date-distances --computed-notes \
+ *        --reading notes --context-bytes 24576 --judge-base-url <url> \
+ *        --judge-model <model> --judge-key-env DEEPSEEK_API_KEY
+ *
  * `label` and `measure` resume: sessions already in the output are skipped.
  */
 import { createHash } from 'node:crypto';
@@ -39,6 +44,7 @@ import { OpenRouterClient, type ChatMessage } from '../llm/client.js';
 import { rememberTranscriptText } from '../llm/pipeline.js';
 import { MemoryStore } from '../store/store.js';
 import { createRng } from './rng.js';
+import { runPool } from './run-pool.js';
 import {
   acceptDistilled,
   assembleHaystack,
@@ -54,8 +60,15 @@ import {
 import type { Rng } from './rng.js';
 import {
   assertRerenderContract,
+  parseMetaRows,
   rerenderMetaFile,
 } from './reader-rerender.js';
+import {
+  TEACHER_MAX_TOKENS,
+  sourceLabels,
+  thinkCounts,
+  thinkFile,
+} from './reader-think.js';
 import {
   generateReaderExamples,
   rewritePrompt,
@@ -184,22 +197,6 @@ async function extractOne(
       completionTokens,
     };
   }
-}
-
-async function runPool<T>(
-  items: readonly T[],
-  concurrency: number,
-  work: (item: T, index: number) => Promise<void>,
-): Promise<void> {
-  let next = 0;
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, async () => {
-      while (next < items.length) {
-        const index = next++;
-        await work(items[index]!, index);
-      }
-    }),
-  );
 }
 
 async function label(): Promise<void> {
@@ -760,6 +757,29 @@ async function distillReader(): Promise<void> {
 }
 
 /**
+ * The same pool the distiller drew from, both halves together: a meta row names its
+ * sessions by id, and train and heldout rows are rebuilt against the one pool.
+ */
+async function labelledSessionPool(
+  labelsPath: string,
+  seed: number,
+): Promise<Map<string, LabelledSession>> {
+  const labels = readRows(labelsPath);
+  const pool = new Map<string, LabelledSession>();
+  for (const s of await orderedSessions(seed)) {
+    const row = labels.get(s.id);
+    if (row === undefined || row.error) continue;
+    pool.set(s.id, {
+      id: s.id,
+      date: s.date.slice(0, 10).replace(/\//g, '-'),
+      facts: row.facts,
+      transcript: realTranscript(s.session),
+    });
+  }
+  return pool;
+}
+
+/**
  * Reader v6 data: v4's examples re-rendered through a reader contract.
  *
  * v4's prompts were built before the contract, so a reader trained on them meets a
@@ -779,20 +799,7 @@ async function rerenderReader(): Promise<void> {
   const seed = Number(flag('--seed', '7'));
   const contract = contractFromFlags(process.argv);
   assertRerenderContract(contract);
-  const labels = readRows(labelsPath);
-  // the same pool the distiller drew from, both halves together: a meta row names its
-  // sessions by id, and train and heldout rows are rebuilt against the one pool
-  const pool = new Map<string, LabelledSession>();
-  for (const s of await orderedSessions(seed)) {
-    const row = labels.get(s.id);
-    if (row === undefined || row.error) continue;
-    pool.set(s.id, {
-      id: s.id,
-      date: s.date.slice(0, 10).replace(/\//g, '-'),
-      facts: row.facts,
-      transcript: realTranscript(s.session),
-    });
-  }
+  const pool = await labelledSessionPool(labelsPath, seed);
   mkdirSync(out, { recursive: true });
   const results: Record<string, { rows: number; skipped: number }> = {};
   for (const [name, file] of [
@@ -838,10 +845,124 @@ async function rerenderReader(): Promise<void> {
       train: results.train?.rows ?? 0,
       heldout: results.heldout?.rows ?? 0,
     },
-    skipped:
-      (results.train?.skipped ?? 0) + (results.heldout?.skipped ?? 0),
+    skipped: (results.train?.skipped ?? 0) + (results.heldout?.skipped ?? 0),
     train: results.train?.rows ?? 0,
     heldout: results.heldout?.rows ?? 0,
+    generatedAt: new Date().toISOString(),
+  };
+  writeFileSync(
+    join(out, 'manifest.json'),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
+  console.log(JSON.stringify(manifest, null, 2));
+}
+
+/**
+ * Reader v7 base data: v6's rows under the thinking contract. Rows of the types the contract
+ * thinks on are answered again by the teacher and kept when the judge finds the final line
+ * agrees with the stored answer; the other rows keep their stored answer (see
+ * reader-think.ts). Resumable through `progress.jsonl` in the output directory.
+ *
+ *   node dist/training/run-real-sessions.js think --from data/training-reader-v6 \
+ *        --out data/training-reader-v7-think --date-distances --computed-notes \
+ *        --reading notes --context-bytes 24576 [--concurrency 8] --model <teacher> \
+ *        --judge-base-url <url> --judge-model <model> --judge-key-env DEEPSEEK_API_KEY
+ */
+async function thinkReader(): Promise<void> {
+  const from = flag('--from', 'data/training-reader-v6')!;
+  const out = flag('--out', 'data/training-reader-v7-think')!;
+  assertDistillReading(process.argv);
+  const contract = contractFromFlags(process.argv);
+  if (!contract.thinking)
+    throw new Error(
+      'think renders the thinking prompt; pass --reading notes (rerender keeps direct answers)',
+    );
+  if (contract.fullSessions !== null)
+    throw new Error('think cannot render tiered contracts (--full-sessions)');
+  const seed = Number(flag('--seed', '7'));
+  const concurrency = Number(flag('--concurrency', '8'));
+  const teacherMaxTokens = Number(
+    flag('--max-tokens', String(TEACHER_MAX_TOKENS)),
+  );
+  const model = flag('--model', 'z-ai/glm-5.3-flash')!;
+  const apiKey = flag('--api-key', process.env.LLM_API_KEY);
+  if (!apiKey) throw new Error('LLM_API_KEY is not set');
+  const judgeBaseUrl = flag('--judge-base-url');
+  const judgeModel = flag('--judge-model');
+  const judgeKeyEnv = flag('--judge-key-env');
+  if (!judgeBaseUrl || !judgeModel || !judgeKeyEnv)
+    throw new Error(
+      'think needs --judge-base-url, --judge-model and --judge-key-env',
+    );
+  const judgeKey = process.env[judgeKeyEnv];
+  if (!judgeKey) throw new Error(`${judgeKeyEnv} is not set`);
+  const teacher = new OpenRouterClient({
+    apiKey,
+    baseUrl: (
+      flag('--base-url', process.env.LLM_BASE_URL) ??
+      'https://openrouter.ai/api/v1'
+    ).replace(/\/$/, ''),
+    model,
+  });
+  const judge = new OpenRouterClient({
+    apiKey: judgeKey,
+    baseUrl: judgeBaseUrl.replace(/\/$/, ''),
+    model: judgeModel,
+  });
+  const base = existsSync(join(from, 'manifest.json'))
+    ? (JSON.parse(readFileSync(join(from, 'manifest.json'), 'utf8')) as {
+        labels?: unknown;
+        parts?: unknown;
+        contract?: { id?: string };
+      })
+    : {};
+  const labelsPath =
+    flag('--labels') ??
+    sourceLabels(base) ??
+    'data/real/labels-glmflash8.jsonl';
+  const pool = await labelledSessionPool(labelsPath, seed);
+  mkdirSync(out, { recursive: true });
+  for (const file of ['conversations.jsonl', 'heldout.jsonl']) {
+    const metaPath = join(from, `${file}.meta.jsonl`);
+    if (!existsSync(metaPath)) {
+      console.error(`no ${metaPath}, skipping ${file}`);
+      continue;
+    }
+    let finished = 0;
+    await thinkFile({
+      file,
+      rows: parseMetaRows(metaPath),
+      pool,
+      contract,
+      clients: { teacher, judge },
+      outDir: out,
+      concurrency,
+      teacherMaxTokens,
+      onRow: (entry) => {
+        finished += 1;
+        if (finished % 100 === 0) console.error(`[${file} ${finished}]`);
+        if (entry.outcome === 'error')
+          console.error(`${file} row ${entry.index} error: ${entry.error}`);
+      },
+    });
+  }
+  const lineCount = (path: string) =>
+    existsSync(path)
+      ? readFileSync(path, 'utf8').split('\n').filter(Boolean).length
+      : 0;
+  const manifest = {
+    from,
+    sourceContract: base.contract?.id ?? null,
+    contract: distillManifestContract(process.argv),
+    labels: labelsPath,
+    seed,
+    poolSessions: pool.size,
+    teacher: model,
+    judge: { model: judgeModel, baseUrl: judgeBaseUrl },
+    byType: thinkCounts(join(out, 'progress.jsonl')),
+    train: lineCount(join(out, 'conversations.jsonl')),
+    heldout: lineCount(join(out, 'heldout.jsonl')),
+    disagreements: lineCount(join(out, 'disagreements.jsonl')),
     generatedAt: new Date().toISOString(),
   };
   writeFileSync(
@@ -865,9 +986,10 @@ if (invokedDirectly) {
   else if (command === 'judge') await judgeUnmatched();
   else if (command === 'distill') await distillReader();
   else if (command === 'rerender') await rerenderReader();
+  else if (command === 'think') await thinkReader();
   else {
     console.error(
-      'usage: run-real-sessions.js label|measure|export|reader|judge|distill|rerender [flags]',
+      'usage: run-real-sessions.js label|measure|export|reader|judge|distill|rerender|think [flags]',
     );
     process.exit(1);
   }

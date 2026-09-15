@@ -246,7 +246,7 @@ const ABSTAINS =
  * question, which under thinking renders as multi-session (LongMemEval's abstention
  * questions keep their aggregation type, so the harness reads them with notes).
  */
-function thinksOn(thinking: boolean, type: string): boolean {
+export function thinksOn(thinking: boolean, type: string): boolean {
   return thinking && (THINKING_TYPES.has(type) || type === 'abstention');
 }
 
