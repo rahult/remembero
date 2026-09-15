@@ -21,7 +21,7 @@ const SMALL_NUMBERS: Record<string, number> = {
   ten: 10, eleven: 11, twelve: 12, fifteen: 15, twenty: 20, thirty: 30, forty: 40, fifty: 50,
   couple: 2, few: 3, several: 3, half: 0.5, dozen: 12,
 };
-const STOPWORDS = new Set(
+export const STOPWORDS: ReadonlySet<string> = new Set(
   'the a an and or of to in on at for with by from as is are was were be been being i me my mine we our you your it its this that these those what which who whom whose how many much long when where did do does done have has had between total combined spent spend take took get got go went ago about into over than then there their they them his her hers he she him days day weeks week months month years year hours hour minutes minute time times number amount percentage percent'.split(' '),
 );
 

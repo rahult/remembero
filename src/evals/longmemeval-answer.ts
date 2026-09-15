@@ -1,4 +1,7 @@
-import { buildComputedNotes } from '../knowledge/computed-notes.js';
+import {
+  buildComputedNotes,
+  STOPWORDS as COMPUTED_NOTES_STOPWORDS,
+} from '../knowledge/computed-notes.js';
 import { buildStructuredEvidence } from '../knowledge/structured-evidence.js';
 import {
   existsSync,
@@ -388,6 +391,69 @@ function sourceWindow(
   return boundedUtf8(boundedSource.slice(bestStart), maxBytes);
 }
 
+/**
+ * Words that say nothing about what a question is after: the computed-notes stopwords plus
+ * the auxiliaries that otherwise dominate abstract matching on real questions. Kept local so
+ * the computed-notes block, part of every reader contract, renders exactly as before.
+ */
+const ABSTRACT_STOPWORDS: ReadonlySet<string> = new Set([
+  ...COMPUTED_NOTES_STOPWORDS,
+  ...'need from since about would could should there their which'.split(' '),
+]);
+
+/** The question's content words for abstract matching, canonical as recallWords makes them. */
+function abstractContentWords(question: string): string[] {
+  const raw = question
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+  const words = raw.flatMap((word) => {
+    if (ABSTRACT_STOPWORDS.has(word)) return [];
+    const canonical = recallWords(word)[0];
+    return canonical === undefined ||
+      canonical.length < 4 ||
+      ABSTRACT_STOPWORDS.has(canonical)
+      ? []
+      : [canonical];
+  });
+  return [...new Set(words)];
+}
+
+/** Short words a period follows without ending a sentence (beyond any one or two letters). */
+const ABBREVIATIONS: ReadonlySet<string> = new Set([
+  'mrs', 'prof', 'sgt', 'capt', 'gen', 'rev', 'hon', 'etc', 'vs', 'approx', 'dept', 'univ',
+  'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'oct', 'nov', 'dec',
+]);
+
+/**
+ * One turn's sentences: split after . ! ? and whitespace, and at newlines, but not after a
+ * period that closes a one- or two-letter token or a known abbreviation (D.C., U.S., Dr.).
+ */
+function turnSentences(turn: string): string[] {
+  const sentences: string[] = [];
+  for (const line of turn.split(/\n+/)) {
+    let start = 0;
+    for (const match of line.matchAll(/[.!?]+(?=\s)/g)) {
+      const end = match.index! + match[0].length;
+      if (match[0] === '.') {
+        const word = /([A-Za-z]+)$/.exec(line.slice(start, match.index!))?.[1];
+        if (
+          word !== undefined &&
+          (word.length <= 2 || ABBREVIATIONS.has(word.toLowerCase()))
+        )
+          continue;
+      }
+      sentences.push(line.slice(start, end));
+      start = end;
+    }
+    sentences.push(line.slice(start));
+  }
+  return sentences
+    .map((sentence) => sentence.replace(/\s+/g, ' ').trim())
+    .filter((sentence) => sentence !== '');
+}
+
 /** The sentences of a session's user turns, in order; assistant turns never contribute. */
 function userSentences(text: string): string[] {
   const turns = [...text.matchAll(/^(user|assistant)[ \t]*:/gim)];
@@ -405,18 +471,22 @@ function userSentences(text: string): string[] {
               ]
             : [],
         );
-  return userText.flatMap((turn) =>
-    turn
-      .split(/(?<=[.!?])\s+|\n+/)
-      .map((sentence) => sentence.replace(/\s+/g, ' ').trim())
-      .filter((sentence) => sentence !== ''),
-  );
+  return userText.flatMap(turnSentences);
+}
+
+/** Cut to maxBytes, backing off to the last word boundary when the cut lands inside a word. */
+function boundedAtWord(value: string, maxBytes: number): string {
+  const bounded = boundedUtf8(value, maxBytes);
+  if (bounded.length === value.length) return bounded;
+  const space = bounded.lastIndexOf(' ');
+  return space > 0 ? bounded.slice(0, space) : bounded;
 }
 
 /**
- * A tiered session's abstract: its header, then the user sentences that contain one of the
- * question's content words, in order, cut at a sentence boundary so the whole section fits
- * maxBytes. With no match, the first user sentence cut to fit.
+ * A tiered session's abstract: its header, then the user sentences that name the question.
+ * Sentences rank by how many distinct content words they contain (ties by position) and are
+ * taken greedily in that order, skipping any that no longer fit, then shown in their original
+ * order. With no matching sentence, the first user sentence cut at a word boundary.
  */
 function abstractSection(
   header: string,
@@ -427,19 +497,39 @@ function abstractSection(
   const room = maxBytes - Buffer.byteLength(header, 'utf8') - 1;
   if (room <= 0) return `${boundedUtf8(header, maxBytes - 1)}\n`;
   const sentences = userSentences(text);
-  const matching = sentences.filter((sentence) => {
-    const low = sentence.toLowerCase();
-    return words.some((word) => low.includes(word));
-  });
-  const candidates = matching.length > 0 ? matching : sentences.slice(0, 1);
+  const ranked = sentences
+    .map((sentence, position) => {
+      const tokens = new Set(recallWords(sentence));
+      return {
+        sentence,
+        position,
+        bytes: Buffer.byteLength(sentence, 'utf8'),
+        score: words.reduce((n, word) => n + (tokens.has(word) ? 1 : 0), 0),
+      };
+    })
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score || a.position - b.position);
   let body = '';
-  for (const sentence of candidates) {
-    const next = body === '' ? sentence : `${body} ${sentence}`;
-    if (Buffer.byteLength(next, 'utf8') > room) break;
-    body = next;
+  if (ranked.length === 0) {
+    if (sentences.length > 0) body = boundedAtWord(sentences[0]!, room);
+  } else {
+    const chosen: typeof ranked = [];
+    let used = 0;
+    for (const candidate of ranked) {
+      const cost = candidate.bytes + (chosen.length === 0 ? 0 : 1);
+      if (used + cost > room) continue;
+      chosen.push(candidate);
+      used += cost;
+    }
+    body =
+      chosen.length === 0
+        ? // every matching sentence is longer than the room: the best one, cut at a word
+          boundedAtWord(ranked[0]!.sentence, room)
+        : chosen
+            .sort((a, b) => a.position - b.position)
+            .map(({ sentence }) => sentence)
+            .join(' ');
   }
-  if (body === '' && candidates.length > 0)
-    body = boundedUtf8(candidates[0]!, room);
   return `${header}${body}\n`;
 }
 
@@ -660,11 +750,8 @@ export function buildLongMemEvalAnswerContext(
     facts !== undefined && facts.length > 0
       ? `Remembered facts (stated in this session): ${facts.join(' ')}\n`
       : '';
-  const abstractWords = [
-    ...new Set(
-      recallWords(instance.question).filter((word) => word.length >= 4),
-    ),
-  ];
+  const abstractWords =
+    tiers === undefined ? [] : abstractContentWords(instance.question);
   const abstracts = new Map<number, string>();
   if (tiers !== undefined)
     for (let rank = fullCount; rank < usable.length; rank += 1) {
@@ -672,7 +759,8 @@ export function buildLongMemEvalAnswerContext(
       abstracts.set(
         rank,
         abstractSection(
-          `### Retrieved session ${rank + 1} (abstract: lines matching the question)\n${dateLineFor(source.ts)}\n${factsLineFor(source.facts)}`,
+          // an abstract is the lines matching the question only: no facts line
+          `### Retrieved session ${rank + 1} (abstract)\n${dateLineFor(source.ts)}\n`,
           source.text!,
           abstractWords,
           tiers.abstractBytes,
@@ -683,6 +771,10 @@ export function buildLongMemEvalAnswerContext(
     (sum, section) => sum + Buffer.byteLength(section, 'utf8'),
     0,
   );
+  if (abstracts.size > 0 && abstractBytesUsed > contextBytes - 256 * fullCount)
+    throw new Error(
+      `abstract sections take ${abstractBytesUsed} bytes, more than the ${contextBytes - 256 * fullCount} bytes the context leaves after 256 per full session; lower abstractBytes or the retrieval depth`,
+    );
   const evenBytes = Math.max(
     256,
     Math.floor((contextBytes - abstractBytesUsed) / Math.max(1, fullCount)),

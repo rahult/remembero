@@ -255,6 +255,12 @@ export function readerMessages(
   type: DistillType,
   contract: ReaderContract = contractFromEnv(),
 ): Conversation['messages'] {
+  // distillation orders a haystack by date, evaluation takes the top lexical ranks: the full
+  // tier would go to different sessions in the two, so tiers wait for rank-ordered haystacks
+  if (contract.fullSessions !== null)
+    throw new Error(
+      'tiered contracts need rank-ordered haystacks; see plan Task 5',
+    );
   const instance = {
     question_id: `distill-${type}`,
     question_type: type === 'abstention' ? 'single-session-user' : type,

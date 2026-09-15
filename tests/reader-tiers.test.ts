@@ -43,7 +43,7 @@ function abstractSections(text: string): string[] {
   const lines = text.split('\n');
   const sections: string[] = [];
   for (let i = 0; i < lines.length; i += 1) {
-    if (!/^### Retrieved session \d+ \(abstract: lines matching the question\)$/.test(lines[i]!)) continue;
+    if (!/^### Retrieved session \d+ \(abstract\)$/.test(lines[i]!)) continue;
     const block: string[] = [];
     for (let j = i; j < lines.length && lines[j] !== ''; j += 1) block.push(lines[j]!);
     sections.push(`${block.join('\n')}\n`);
@@ -64,7 +64,7 @@ describe('context tiers', () => {
     expect(abstracts).toHaveLength(5);
     for (const section of abstracts) expect(Buffer.byteLength(section, 'utf8')).toBeLessThanOrEqual(320);
     expect(abstracts.map((s) => s.split('\n')[0]).sort()).toEqual(
-      [4, 5, 6, 7, 8].map((n) => `### Retrieved session ${n} (abstract: lines matching the question)`),
+      [4, 5, 6, 7, 8].map((n) => `### Retrieved session ${n} (abstract)`),
     );
     // the full sessions get more than the even split's share once the abstracts are paid for
     const even = buildLongMemEvalAnswerContext(instance(QUESTION), sources, 24576, [], 'direct', undefined, true, true);
@@ -93,7 +93,7 @@ describe('context tiers', () => {
     );
     const [section] = abstractSections(text);
     expect(section).toBe(
-      '### Retrieved session 2 (abstract: lines matching the question)\n' +
+      '### Retrieved session 2 (abstract)\n' +
         'Session date: 2023-05-02T09:00:00.000Z\n' +
         'I bought a Fender guitar last week. My guitar teacher is Sam. We will go to the concert together?\n',
     );
@@ -143,26 +143,89 @@ describe('context tiers', () => {
     ).toThrow(/focused budget/);
   });
 
-  it('readerMessages with a tiered contract renders what the builder renders', () => {
+  it('readerMessages refuses a tiered contract until distillation orders sessions by rank', () => {
     const haystack: Haystack = {
       questionDate: '2023-07-10',
       sessions: sources.map((s) => ({ id: s.opId, date: s.ts.slice(0, 10), facts: s.facts, transcript: s.text })),
     };
     const contract = { ...READER_CONTRACT_V5, fullSessions: 3, abstractBytes: 320 };
-    const distilled = readerMessages(haystack, QUESTION, 'multi-session', contract);
-    const distillInstance = {
-      ...instance(QUESTION),
-      question_id: 'distill-multi-session',
-      question_date: '2023/07/10 (Sat) 09:00',
-    } as LongMemEvalInstance;
-    const harness = buildLongMemEvalAnswerContext(
-      distillInstance,
-      haystack.sessions.map((s) => ({ opId: s.id, ts: `${s.date}T09:00:00.000Z`, text: s.transcript, facts: s.facts })),
-      contract.contextBytes, [], 'direct', undefined,
-      contract.dateDistances, contract.computedNotes, contract.focusedBudget, contract.structuredEvidence,
-      { fullSessions: 3, abstractBytes: 320 },
+    expect(() => readerMessages(haystack, QUESTION, 'multi-session', contract)).toThrow(
+      'tiered contracts need rank-ordered haystacks; see plan Task 5',
     );
-    expect(distilled).toEqual(harness.messages);
-    expect(abstractSections(distilled[1]!.content)).toHaveLength(5);
+    expect(() => readerMessages(haystack, QUESTION, 'multi-session', READER_CONTRACT_V5)).not.toThrow();
+  });
+
+  const abstractBody = (question: string, userText: string, abstractBytes = 320, facts: string[] = []) => {
+    const ranked = [
+      { opId: 'top', ts: '2023-05-01T09:00:00.000Z', text: 'USER: Nothing here.' },
+      { opId: 'abs', ts: '2023-05-02T09:00:00.000Z', text: userText, facts },
+    ];
+    const text = userContent(
+      buildLongMemEvalAnswerContext(instance(question), ranked, 24576, [], 'direct', undefined,
+        false, false, false, false, { fullSessions: 1, abstractBytes }),
+    );
+    const [section] = abstractSections(text);
+    return section!;
+  };
+  const lastLine = (section: string) => section.trimEnd().split('\n').at(-1);
+
+  it('a sentence that matches only filler words loses to one that matches a content word', () => {
+    const section = abstractBody(
+      'How many hours have I spent playing the piano since January?',
+      'USER: I have so many things to do this week and need a break from work since Monday. My piano practice took two hours on Sunday.',
+      150,
+    );
+    expect(lastLine(section)).toBe('My piano practice took two hours on Sunday.');
+  });
+
+  it('skips a top-ranked sentence that does not fit in favour of a lower one that does', () => {
+    const long = `The piano recital in the grand concert hall ran late with a long encore and ${'several '.repeat(20)}more piano pieces.`;
+    const section = abstractBody(
+      'When was the piano recital at the concert hall?',
+      `USER: ${long} I booked the piano recital.`,
+      160,
+    );
+    expect(lastLine(section)).toBe('I booked the piano recital.');
+  });
+
+  it('matches whole canonical words, not substrings', () => {
+    const hit = abstractBody('Where did I learn about germs?', 'USER: We toured Germany. I read about germs in class.');
+    expect(lastLine(hit)).toBe('I read about germs in class.');
+    // "germ" is inside "Germany" but is not its word: no match, so the first user sentence
+    const none = abstractBody('How do germs spread?', 'USER: It was cold. We toured Germany.');
+    expect(lastLine(none)).toBe('It was cold.');
+  });
+
+  it('does not split a sentence after an abbreviation', () => {
+    const section = abstractBody(
+      'Where did I see the cherry blossoms?',
+      'USER: It rained. I saw the cherry blossoms in Washington D.C. last week. Dr. Lee said the blossoms peak early.',
+    );
+    expect(lastLine(section)).toBe(
+      'I saw the cherry blossoms in Washington D.C. last week. Dr. Lee said the blossoms peak early.',
+    );
+  });
+
+  it('abstracts carry no facts line; full sections keep theirs', () => {
+    const section = abstractBody('Which guitar did I buy?', 'USER: I bought a guitar.', 320, ['owns(user, guitar).']);
+    expect(section).toBe('### Retrieved session 2 (abstract)\nSession date: 2023-05-02T09:00:00.000Z\nI bought a guitar.\n');
+    const text = userContent(
+      buildLongMemEvalAnswerContext(instance('Which guitar did I buy?'),
+        [{ opId: 'f', ts: '2023-05-02T09:00:00.000Z', text: 'USER: I bought a guitar.', facts: ['owns(user, guitar).'] }],
+        24576, [], 'direct', undefined, false, false, false, false, { fullSessions: 1, abstractBytes: 320 }),
+    );
+    expect(text).toContain('Remembered facts (stated in this session): owns(user, guitar).');
+  });
+
+  it('refuses abstracts that would leave the full sessions less than 256 bytes each', () => {
+    const many = Array.from({ length: 15 }, (_, i) => ({
+      opId: `m${i}`,
+      ts: '2023-05-02T09:00:00.000Z',
+      text: `USER: ${Array.from({ length: 80 }, (_, j) => `My guitar note ${i}-${j} is here.`).join(' ')}`,
+    }));
+    expect(() =>
+      buildLongMemEvalAnswerContext(instance(QUESTION), many, 4096, [], 'direct', undefined,
+        false, false, false, false, { fullSessions: 2, abstractBytes: 2048 }),
+    ).toThrow(/abstract sections take \d+ bytes, more than the 3584 bytes/);
   });
 });
