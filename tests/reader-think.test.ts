@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -11,6 +11,8 @@ import {
 } from '../src/training/reader-rerender.js';
 import {
   agreementPrompt,
+  assertRunIdentity,
+  parseAgreementVerdict,
   sourceLabels,
   thinkCounts,
   thinkFile,
@@ -104,6 +106,19 @@ const throwing: CompletionClient = {
     throw new Error('must not be called');
   },
 };
+
+describe('agreement verdict', () => {
+  it('reads yes or no from the first word, lowercased and without punctuation', () => {
+    expect(parseAgreementVerdict('yes')).toBe(true);
+    expect(parseAgreementVerdict('Yes.')).toBe(true);
+    expect(parseAgreementVerdict('**YES** they match')).toBe(true);
+    expect(parseAgreementVerdict('  No, the counts differ')).toBe(false);
+    expect(parseAgreementVerdict('no.')).toBe(false);
+    expect(() => parseAgreementVerdict('Probably yes')).toThrow();
+    expect(() => parseAgreementVerdict('nope')).toThrow();
+    expect(() => parseAgreementVerdict('')).toThrow();
+  });
+});
 
 describe('agreement prompt', () => {
   it('asks whether the two answers state the same result, yes or no', () => {
@@ -217,12 +232,45 @@ describe('thinking regeneration of one row', () => {
     expect(result).toEqual({ outcome: 'missing', missing: ['gone'] });
   });
 
-  it('records a judge reply that is not yes or no as an error', async () => {
+  it('records a judge reply that is not yes or no as an error, keeping the teacher reply', async () => {
     const result = await thinkRow(multi, pool, THINKING, {
       teacher: stub([[multi.question, 'Notes:\n- x\nAnswer: Two']]),
       judge: stub([['Answer yes or no only.', 'Probably']]),
     });
+    expect(result).toMatchObject({
+      outcome: 'error',
+      reply: 'Notes:\n- x\nAnswer: Two',
+    });
+  });
+
+  it('records a teacher failure as an error without a reply', async () => {
+    const result = await thinkRow(multi, pool, THINKING, {
+      teacher: throwing,
+      judge: throwing,
+    });
     expect(result.outcome).toBe('error');
+    expect('reply' in result).toBe(false);
+  });
+
+  it('accepts a judge reply whose first word is yes or no', async () => {
+    const result = await thinkRow(multi, pool, THINKING, {
+      teacher: stub([[multi.question, 'Notes:\n- x\nAnswer: Two']]),
+      judge: stub([['Answer yes or no only.', 'Yes, both say two.']]),
+    });
+    expect(result.outcome).toBe('kept');
+  });
+
+  it('reuses a stored teacher reply instead of calling the teacher', async () => {
+    const reply = 'Notes:\n- x\nAnswer: Two';
+    const result = await thinkRow(
+      multi,
+      pool,
+      THINKING,
+      { teacher: throwing, judge: stub([['Answer yes or no only.', 'yes']]) },
+      undefined,
+      reply,
+    );
+    expect(result).toMatchObject({ outcome: 'kept', meta: { answer: reply } });
   });
 });
 
@@ -269,6 +317,13 @@ describe('thinking regeneration of a file', () => {
       'multi-session',
       'single-session-user',
     ]);
+    // each meta row names its source row, whatever order the rows finished in
+    for (const m of meta as Array<
+      DistilledMetaRow & { file: string; index: number }
+    >) {
+      expect(m.file).toBe('conversations.jsonl');
+      expect(rows[m.index]!.question).toBe(m.question);
+    }
     const disagreements = lines(join(out, 'disagreements.jsonl')).map(
       (l) => JSON.parse(l) as Record<string, unknown>,
     );
@@ -330,6 +385,70 @@ describe('thinking regeneration of a file', () => {
       outDir: out,
     });
     expect(lines(join(out, 'heldout.jsonl'))).toHaveLength(3);
+  });
+
+  it('resumes a row the judge failed on with the stored teacher reply', async () => {
+    const out = mkdtempSync(join(tmpdir(), 'think-judge-'));
+    await thinkFile({
+      file: 'conversations.jsonl',
+      rows: [multi],
+      pool,
+      contract: THINKING,
+      clients: {
+        teacher: stub(replies),
+        judge: stub([['Answer yes or no only.', 'Probably']]),
+      },
+      outDir: out,
+    });
+    const entry = JSON.parse(lines(join(out, 'progress.jsonl'))[0]!) as {
+      outcome: string;
+      reply?: string;
+    };
+    expect(entry).toMatchObject({
+      outcome: 'error',
+      reply: 'Notes:\n- two sign-ups\nAnswer: Two',
+    });
+    const judged = judge();
+    await thinkFile({
+      file: 'conversations.jsonl',
+      rows: [multi],
+      pool,
+      contract: THINKING,
+      clients: { teacher: throwing, judge: judged },
+      outDir: out,
+    });
+    expect(judged.calls).toHaveLength(1);
+    expect(thinkCounts(join(out, 'progress.jsonl'))).toEqual({
+      'multi-session': { kept: 1 },
+    });
+  });
+});
+
+describe('run identity', () => {
+  const identity = {
+    contract: 'dd+notes+think@24576',
+    from: 'data/training-reader-v6',
+    teacher: 'z-ai/glm-5.3-flash',
+    judge: 'deepseek-chat',
+  };
+
+  it('writes run.json on the first run and accepts the same identity again', () => {
+    const out = mkdtempSync(join(tmpdir(), 'think-run-'));
+    assertRunIdentity(out, identity);
+    expect(existsSync(join(out, 'run.json'))).toBe(true);
+    expect(JSON.parse(readFileSync(join(out, 'run.json'), 'utf8'))).toEqual(
+      identity,
+    );
+    expect(() => assertRunIdentity(out, { ...identity })).not.toThrow();
+  });
+
+  it('refuses to resume a directory begun with a different contract, source, teacher or judge', () => {
+    const out = mkdtempSync(join(tmpdir(), 'think-run-'));
+    assertRunIdentity(out, identity);
+    for (const key of Object.keys(identity) as Array<keyof typeof identity>)
+      expect(() =>
+        assertRunIdentity(out, { ...identity, [key]: 'other' }),
+      ).toThrow(new RegExp(key));
   });
 });
 

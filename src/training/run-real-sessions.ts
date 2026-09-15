@@ -65,6 +65,7 @@ import {
 } from './reader-rerender.js';
 import {
   TEACHER_MAX_TOKENS,
+  assertRunIdentity,
   sourceLabels,
   thinkCounts,
   thinkFile,
@@ -909,6 +910,14 @@ async function thinkReader(): Promise<void> {
     baseUrl: judgeBaseUrl.replace(/\/$/, ''),
     model: judgeModel,
   });
+  const manifestContract = distillManifestContract(process.argv);
+  // before the pool loads or any model is called: a resume must be the same run
+  assertRunIdentity(out, {
+    contract: manifestContract.id,
+    from,
+    teacher: model,
+    judge: judgeModel,
+  });
   const base = existsSync(join(from, 'manifest.json'))
     ? (JSON.parse(readFileSync(join(from, 'manifest.json'), 'utf8')) as {
         labels?: unknown;
@@ -953,7 +962,7 @@ async function thinkReader(): Promise<void> {
   const manifest = {
     from,
     sourceContract: base.contract?.id ?? null,
-    contract: distillManifestContract(process.argv),
+    contract: manifestContract,
     labels: labelsPath,
     seed,
     poolSessions: pool.size,

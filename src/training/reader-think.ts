@@ -16,11 +16,18 @@
  * stored answer and no model calls: the prompt is byte-identical to rerenderRow's.
  *
  * Every row's outcome is appended to `progress.jsonl` keyed by file and row index; a rerun
- * skips indices already decided and retries the ones that errored.
+ * skips indices already decided and retries the ones that errored, reusing the teacher's
+ * reply when only the judge failed. `run.json` pins what a directory was begun with, so a
+ * resume cannot mix contracts, sources, teachers or judges.
  */
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
-import { parseLongMemEvalJudgeLabel } from '../evals/longmemeval-answer.js';
 import type { ReaderContract } from '../evals/reader-contract.js';
 import type { ChatMessage } from '../llm/client.js';
 import type { Conversation } from './export.js';
@@ -71,6 +78,19 @@ Answer B: ${finalLine}
 Answer yes or no only.`;
 }
 
+/**
+ * The judge's verdict from its first word, lowercased and stripped of punctuation: a judge
+ * that says "Yes, both say two." agrees. Anything else is an error, not a disagreement.
+ */
+export function parseAgreementVerdict(reply: string): boolean {
+  const first = (reply.trim().split(/\s+/)[0] ?? '')
+    .toLowerCase()
+    .replace(/[^a-z]/g, '');
+  if (first === 'yes') return true;
+  if (first === 'no') return false;
+  throw new Error(`judge must answer yes or no, got: ${reply.slice(0, 80)}`);
+}
+
 /** A kept row's meta: the thinking reply as the answer, the direct one it replaced beside it. */
 export type ThinkMetaRow = DistilledMetaRow & { storedAnswer?: string };
 
@@ -88,20 +108,27 @@ export type ThinkRowResult =
   | { outcome: 'rejectedFormat'; reply: string }
   | { outcome: 'disagreed'; disagreement: Disagreement }
   | { outcome: 'missing'; missing: string[] }
-  | { outcome: 'error'; error: string };
+  /** `reply` is the teacher's answer when the failure came after it (the judge call). */
+  | { outcome: 'error'; error: string; reply?: string };
 
 export type ThinkOutcome = ThinkRowResult['outcome'];
 
-/** One row through the thinking regeneration. Never throws: a failed call is an error outcome. */
+/**
+ * One row through the thinking regeneration. Never throws: a failed call is an error
+ * outcome. `storedReply`, a teacher reply from an earlier errored attempt, is used instead
+ * of asking the teacher again.
+ */
 export async function thinkRow(
   row: DistilledMetaRow,
   pool: SessionPool,
   contract: ReaderContract,
   clients: ThinkClients,
   teacherMaxTokens = TEACHER_MAX_TOKENS,
+  storedReply?: string,
 ): Promise<ThinkRowResult> {
   const built = haystackFromMeta(row, pool);
   if ('missing' in built) return { outcome: 'missing', missing: built.missing };
+  let reply: string | undefined;
   try {
     // the prompt for a type the contract does not think on is the direct one, so the stored
     // answer stays the assistant turn
@@ -117,10 +144,13 @@ export async function thinkRow(
         conversation: toDistilledConversation({ ...row, messages }),
         meta: row,
       };
-    const answered = await clients.teacher.completeWithUsage(messages, {
-      maxTokens: teacherMaxTokens,
-    });
-    const reply = answered.content.trim();
+    reply =
+      storedReply ??
+      (
+        await clients.teacher.completeWithUsage(messages, {
+          maxTokens: teacherMaxTokens,
+        })
+      ).content.trim();
     if (!acceptDistilled(row.type, reply, contract.thinking))
       return { outcome: 'rejectedFormat', reply };
     const finalLine = completionAnswer(reply, contract.thinking, row.type);
@@ -135,7 +165,7 @@ export async function thinkRow(
         ],
         { maxTokens: JUDGE_MAX_TOKENS },
       );
-      if (!parseLongMemEvalJudgeLabel(verdict.content))
+      if (!parseAgreementVerdict(verdict.content))
         return {
           outcome: 'disagreed',
           disagreement: {
@@ -160,6 +190,7 @@ export async function thinkRow(
     return {
       outcome: 'error',
       error: error instanceof Error ? error.message : String(error),
+      ...(reply === undefined ? {} : { reply }),
     };
   }
 }
@@ -170,6 +201,8 @@ export interface ProgressEntry {
   type: DistilledMetaRow['type'];
   outcome: ThinkOutcome;
   error?: string;
+  /** On an error after the teacher answered: its reply, reused on resume. */
+  reply?: string;
 }
 
 const progressKey = (file: string, index: number) => `${file}#${index}`;
@@ -244,6 +277,7 @@ export async function thinkFile(options: ThinkFileOptions): Promise<void> {
       options.contract,
       options.clients,
       options.teacherMaxTokens,
+      done.get(progressKey(file, index))?.reply,
     );
     if (result.outcome === 'kept' || result.outcome === 'rendered') {
       appendFileSync(
@@ -252,7 +286,8 @@ export async function thinkFile(options: ThinkFileOptions): Promise<void> {
       );
       appendFileSync(
         join(outDir, `${file}.meta.jsonl`),
-        `${JSON.stringify(result.meta)}\n`,
+        // the source file and row index relate an output row to its v6 row in any order
+        `${JSON.stringify({ ...result.meta, file, index })}\n`,
       );
     } else if (result.outcome === 'disagreed') {
       appendFileSync(
@@ -265,11 +300,50 @@ export async function thinkFile(options: ThinkFileOptions): Promise<void> {
       index,
       type: row.type,
       outcome: result.outcome,
-      ...(result.outcome === 'error' ? { error: result.error } : {}),
+      ...(result.outcome === 'error'
+        ? {
+            error: result.error,
+            ...(result.reply === undefined ? {} : { reply: result.reply }),
+          }
+        : {}),
     };
     appendFileSync(progressPath, `${JSON.stringify(entry)}\n`);
     options.onRow?.(entry);
   });
+}
+
+/** What an output directory was begun with; a resume must match it field for field. */
+export interface RunIdentity {
+  contract: string;
+  from: string;
+  teacher: string;
+  judge: string;
+}
+
+/**
+ * Pin the run: write `run.json` on the first run, refuse a resume whose contract id,
+ * source directory, teacher or judge differs. Called before any model call.
+ */
+export function assertRunIdentity(outDir: string, identity: RunIdentity): void {
+  const path = join(outDir, 'run.json');
+  if (!existsSync(path)) {
+    mkdirSync(outDir, { recursive: true });
+    writeFileSync(path, `${JSON.stringify(identity, null, 2)}\n`);
+    return;
+  }
+  const begun = JSON.parse(readFileSync(path, 'utf8')) as Partial<RunIdentity>;
+  const differing = (Object.keys(identity) as Array<keyof RunIdentity>).filter(
+    (key) => begun[key] !== identity[key],
+  );
+  if (differing.length > 0)
+    throw new Error(
+      `${path} was begun with a different run: ${differing
+        .map(
+          (key) =>
+            `${key} ${JSON.stringify(begun[key])} vs ${JSON.stringify(identity[key])}`,
+        )
+        .join(', ')}; use a new --out directory`,
+    );
 }
 
 /**
