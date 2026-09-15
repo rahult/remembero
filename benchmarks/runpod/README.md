@@ -204,3 +204,78 @@ The harness points at it with `--reader-model rembero-reader-v5 --reader-base-ur
 The reader contract pins the prompt but not the retrieval depth, so every paired run must also pass
 `--top-k 4 --multi-session-top-k 15 --temporal-top-k 10` explicitly (the harness default is 5/5) —
 without them the comparison is not paired.
+
+## Reader serving pod
+
+For paired harness runs against a fine-tuned reader without a local GPU: a community pod runs
+vLLM over the reader's merged weights, rebuilt on the pod from the LoRA adapter, and the harness on
+the Mac calls it through RunPod's public proxy. `pod.py` launches and manages the pod;
+`prepare_reader.py` is what the pod runs before it serves.
+
+**Where.** EUR-NO-1 (network volumes and an S3 endpoint both present), one **RTX 5090 32 GB**
+community GPU ($0.69/h on 2026-09-15), the network volume mounted at **`/workspace`**
+(`RUNPOD_VOLUME_ID` / `RUNPOD_DATACENTER` must point at the EUR-NO-1 volume for `volume.py`).
+Stop the pod whenever no arm is running. RunPod has refused to stop pods that have a network
+volume attached; if `stop` is refused, `terminate` and `create-serve` again: everything the pod
+built lives on the volume, so the new pod skips the merge.
+
+**Image.** `vllm/vllm-openai:v0.29.0-cu129`, the newest stable (non-nightly) vLLM release on
+Docker Hub on 2026-09-15, pushed 2026-09-09; Gemma 4 support landed in vLLM in spring 2026. The
+`-cu129` build (CUDA 12.9.1) rather than plain `v0.29.0` (CUDA 13.0.2) so hosts on a 12.9 driver
+qualify as well; the payload sets `allowedCudaVersions` to 12.9 and 13.0 accordingly. Both builds
+compile kernels for the 5090 (`TORCH_CUDA_ARCH_LIST` includes 12.0). The image's entrypoint is
+`vllm serve`, so the pod overrides it with `dockerEntrypoint ["bash","-lc"]` and puts the whole
+start command in `dockerStartCmd`. If the tag is gone, pin the newest `vX.Y.Z-cu129` from
+https://hub.docker.com/r/vllm/vllm-openai/tags and record it here and in `pod.py` (`IMAGE`).
+
+**What lives on the volume.** `code/benchmarks/{train,runpod}/*` (the code the pod imports,
+`PYTHONPATH=/workspace/code`), `runs/<run>/adapter/` (uploaded from the Mac), `hf/` (the public
+`google/gemma-4-E4B-it` base, downloaded on the first boot; `HF_HOME=/workspace/hf`), and after
+the first boot `runs/<run>/merged-text/` with its `.prepared` marker. No Hugging Face or Modal
+credential goes to the pod; the only secret in its env is its own `VLLM_API_KEY`.
+
+**The three Gemma 4 steps.** `prepare_reader.py --root /workspace --run <run>` merges the adapter
+into the base (`reader_lora.merge_adapter`, writing `merged/`), exports the text-only causal LM
+(`export_text_only`, writing `merged-text/`), puts back the KV-sharing `self_attn` tensors
+transformers drops on save (`restore_dropped_weights`; vLLM refuses the checkpoint without them),
+copies any tokenizer file the export did not write from the adapter, refuses to finish without a
+chat template, writes `merged-text/.prepared` and deletes `merged/`. With the marker present it
+exits at once, so every boot runs it; an unmarked `merged-text/` from a boot that died halfway is
+deleted and rebuilt. Expect the first boot to take the base download plus the merge (tens of
+minutes); later boots go straight to vLLM.
+
+**Serve flags.** The Modal serve of record, flag for flag: `--dtype bfloat16 --max-model-len 8192
+--max-num-seqs 32 --gpu-memory-utilization 0.92 --reasoning-parser gemma4
+--default-chat-template-kwargs '{"enable_thinking":false}'`, plus `--served-model-name`, and
+`--api-key "$VLLM_API_KEY"` because the proxy URL is public (the start command stops if the key
+is empty).
+
+### Setup and use
+
+```sh
+# code and adapter onto the volume (S3 keys as in "One-time setup")
+touch /tmp/empty-init.py && .venv/bin/python benchmarks/runpod/volume.py put /tmp/empty-init.py code/benchmarks/__init__.py
+.venv/bin/python benchmarks/runpod/volume.py put benchmarks/train  code/benchmarks/train
+.venv/bin/python benchmarks/runpod/volume.py put benchmarks/runpod code/benchmarks/runpod
+.venv/bin/python benchmarks/runpod/volume.py put <local adapter dir> runs/reader-v4-gemma4-e4b/adapter
+
+.venv/bin/python benchmarks/runpod/pod.py create-serve --run reader-v4-gemma4-e4b --served-name rembero-reader-v4
+.venv/bin/python benchmarks/runpod/pod.py wait --served-name rembero-reader-v4   # polls /v1/models every 20 s, up to 30 min
+.venv/bin/python benchmarks/runpod/pod.py status                                  # the serving pod, or every pod if none is recorded
+.venv/bin/python benchmarks/runpod/pod.py stop      # between arms
+.venv/bin/python benchmarks/runpod/pod.py start     # prepare is a no-op now; vLLM loads in a few minutes
+.venv/bin/python benchmarks/runpod/pod.py terminate
+```
+
+`create-serve` takes `--gpu`, `--datacenter` (default EUR-NO-1) and `--volume` (default
+`RUNPOD_VOLUME_ID`). It reads `RUNPOD_API_KEY` from the environment or `.env`, generates a
+`VLLM_API_KEY` once (`secrets.token_urlsafe(32)`) if `.env` has none, passes
+`~/.ssh/id_ed25519.pub` as `PUBLIC_KEY` if it exists, prints the pod id and
+`https://<pod>-8000.proxy.runpod.net/v1`, and writes both to `.env` as `RUNPOD_SERVE_POD_ID` and
+`RUNPOD_SERVE_URL`; the other subcommands default `--pod` to that id. The harness points at the
+pod with `--reader-model rembero-reader-v4 --reader-base-url "$RUNPOD_SERVE_URL"` and the
+`--reader-api-key "$VLLM_API_KEY"`, plus the retrieval-depth flags every paired run passes.
+
+Logs: console → **Pods** → the pod → **Logs** (the `prepare_reader` lines, then vLLM's startup).
+The vLLM image runs no SSH daemon, so `22/tcp` and `PUBLIC_KEY` only help if one is added later;
+use the web terminal or the logs.

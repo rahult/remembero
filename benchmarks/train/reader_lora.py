@@ -207,6 +207,55 @@ def export_text_only(run_dir: Path) -> Path:
     return text_dir
 
 
+def merge_adapter(run_dir: Path, base_model: str) -> Path:
+    """Fold run_dir/adapter into the base model and save run_dir/merged with the adapter's
+    tokenizer: the same merge train_lora does at the end of a run, for a run whose adapter was
+    trained elsewhere (only the adapter travels; the base comes from the hub)."""
+    from peft import PeftModel
+    from transformers import AutoTokenizer
+
+    adapter_dir, merged_dir = run_dir / "adapter", run_dir / "merged"
+    base = load_base_model(base_model)
+    PeftModel.from_pretrained(base, str(adapter_dir)).merge_and_unload().save_pretrained(str(merged_dir), safe_serialization=True)
+    AutoTokenizer.from_pretrained(str(adapter_dir)).save_pretrained(str(merged_dir))
+    return merged_dir
+
+
+def restore_dropped_weights(run_dir: Path, base_model: str) -> int:
+    """Put back tensors transformers drops on save but vLLM requires; returns how many.
+
+    Gemma 4's KV-sharing layers carry k_proj/v_proj/k_norm in Google's checkpoint; the
+    transformers implementation has no such parameters there, so a re-saved model lacks them
+    and vLLM refuses to load. LoRA never touched those layers, so the originals are exact.
+    Ported from benchmarks/modal/train_lora.py, which keeps its own copy.
+    """
+    import glob
+
+    import huggingface_hub
+    from safetensors import safe_open
+    from safetensors.torch import load_file, save_file
+
+    target = run_dir / "merged-text" / "model.safetensors"
+    if not target.exists():
+        raise FileNotFoundError(f"{target} missing (a sharded export is not handled); run export_text_only first")
+    exported = load_file(str(target))
+    prefix = "model.language_model."
+    added = []
+    snapshot = huggingface_hub.snapshot_download(base_model, allow_patterns=["*.safetensors"])
+    for shard in sorted(glob.glob(f"{snapshot}/*.safetensors")):
+        with safe_open(shard, "pt") as st:
+            for key in st.keys():
+                if not key.startswith(prefix):
+                    continue
+                new_key = "model." + key[len(prefix):]
+                if new_key not in exported and ".self_attn." in new_key:
+                    exported[new_key] = st.get_tensor(key)
+                    added.append(new_key)
+    save_file(exported, str(target), metadata={"format": "pt"})
+    print(f"restored {len(added)} tensors, e.g. {added[:3]}")
+    return len(added)
+
+
 if __name__ == "__main__":
     import argparse
 
