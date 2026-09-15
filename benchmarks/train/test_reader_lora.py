@@ -78,3 +78,50 @@ def test_restore_dropped_weights_puts_back_only_missing_attention_tensors(tmp_pa
     assert sorted(restored) == ["model.layers.0.self_attn.q_proj.weight", "model.layers.20.self_attn.k_norm.weight",
                                 "model.layers.20.self_attn.k_proj.weight"]
     assert torch.equal(restored["model.layers.0.self_attn.q_proj.weight"], fine_tuned)
+
+
+def test_default_dtype_is_bf16_inside_the_block_and_restored_after_an_error():
+    import torch
+
+    from benchmarks.train.reader_lora import default_dtype
+
+    before = torch.get_default_dtype()
+    with pytest.raises(RuntimeError):
+        with default_dtype(torch.bfloat16):
+            assert torch.empty(1).dtype == torch.bfloat16
+            raise RuntimeError("construction failed")
+    assert torch.get_default_dtype() == before
+
+
+def test_merge_adapter_loads_the_base_in_bf16_whatever_the_device(tmp_path, monkeypatch):
+    import peft
+    import torch
+    import transformers
+
+    from benchmarks.train import reader_lora
+
+    asked, saved = {}, []
+
+    def fake_load(model_id, dtype=None):
+        asked.update(model_id=model_id, dtype=dtype)
+        return "base"
+
+    class Merged:
+        def save_pretrained(self, path, safe_serialization):
+            saved.append(("weights", path, safe_serialization))
+
+    class Peft:
+        def merge_and_unload(self):
+            return Merged()
+
+    class Tokenizer:
+        def save_pretrained(self, path):
+            saved.append(("tokenizer", path))
+
+    monkeypatch.setattr(reader_lora, "load_base_model", fake_load)
+    monkeypatch.setattr(peft.PeftModel, "from_pretrained", staticmethod(lambda base, path: Peft()))
+    monkeypatch.setattr(transformers.AutoTokenizer, "from_pretrained", staticmethod(lambda path: Tokenizer()))
+
+    assert reader_lora.merge_adapter(tmp_path, "google/gemma-4-E4B-it") == tmp_path / "merged"
+    assert asked == {"model_id": "google/gemma-4-E4B-it", "dtype": torch.bfloat16}
+    assert saved == [("weights", str(tmp_path / "merged"), True), ("tokenizer", str(tmp_path / "merged"))]

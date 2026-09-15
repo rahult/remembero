@@ -10,6 +10,7 @@ from __future__ import annotations
 import inspect
 import json
 import time
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Callable
 
@@ -31,12 +32,16 @@ def to_prompt_completion(path: str) -> list[dict]:
     return rows
 
 
-def load_base_model(model_id: str):
-    """Text-only causal LM where the checkpoint offers one; multimodal wrapper (Gemma 4) otherwise."""
+def load_base_model(model_id: str, dtype=None):
+    """Text-only causal LM where the checkpoint offers one; multimodal wrapper (Gemma 4) otherwise.
+    dtype defaults to bf16 on CUDA and float32 on CPU (training); pass it to pin the weights'
+    precision whatever the device (merging)."""
     import torch
     from transformers import AutoModelForCausalLM
 
-    kwargs = dict(dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32, attn_implementation="sdpa")
+    if dtype is None:
+        dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
+    kwargs = dict(dtype=dtype, attn_implementation="sdpa")
     try:
         return AutoModelForCausalLM.from_pretrained(model_id, **kwargs)
     except (ValueError, KeyError, OSError) as error:
@@ -180,6 +185,19 @@ def train_lora(
     return metrics
 
 
+@contextmanager
+def default_dtype(dtype):
+    """torch's default floating dtype set to `dtype` inside the block, restored afterwards."""
+    import torch
+
+    previous = torch.get_default_dtype()
+    torch.set_default_dtype(dtype)
+    try:
+        yield
+    finally:
+        torch.set_default_dtype(previous)
+
+
 def export_text_only(run_dir: Path) -> Path:
     """Re-save a merged multimodal checkpoint (Gemma 4) as its text-only causal LM, the layout
     llama.cpp's converter reads."""
@@ -195,7 +213,11 @@ def export_text_only(run_dir: Path) -> Path:
     full = AutoModelForImageTextToText.from_pretrained(str(merged_dir), dtype=torch.bfloat16)
     language_model = getattr(full.model, "language_model", None) or getattr(full, "language_model")
     text_cls = getattr(transformers, text_config.architectures[0] if getattr(text_config, "architectures", None) else "Gemma4ForCausalLM")
-    text_model = text_cls(text_config)
+    # Built under a bf16 default: the float32 default would allocate ~30 GB for ~8B parameters
+    # next to the loaded bf16 multimodal model. The saved weights are the same, since the model
+    # was cast to bf16 before saving either way.
+    with default_dtype(torch.bfloat16):
+        text_model = text_cls(text_config)
     # Gemma 4's KV-sharing layers have no counterpart here, so a non-empty list is expected
     # rather than an error (restore_dropped_weights puts those tensors back); print, never raise.
     missing, unexpected = text_model.model.load_state_dict(language_model.state_dict(), strict=False)
@@ -214,8 +236,11 @@ def merge_adapter(run_dir: Path, base_model: str) -> Path:
     from peft import PeftModel
     from transformers import AutoTokenizer
 
+    import torch
+
     adapter_dir, merged_dir = run_dir / "adapter", run_dir / "merged"
-    base = load_base_model(base_model)
+    # bf16 explicitly: load_base_model's CPU default is float32, which would double the merged size
+    base = load_base_model(base_model, dtype=torch.bfloat16)
     PeftModel.from_pretrained(base, str(adapter_dir)).merge_and_unload().save_pretrained(str(merged_dir), safe_serialization=True)
     AutoTokenizer.from_pretrained(str(adapter_dir)).save_pretrained(str(merged_dir))
     return merged_dir

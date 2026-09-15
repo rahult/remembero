@@ -239,10 +239,29 @@ into the base (`reader_lora.merge_adapter`, writing `merged/`), exports the text
 (`export_text_only`, writing `merged-text/`), puts back the KV-sharing `self_attn` tensors
 transformers drops on save (`restore_dropped_weights`; vLLM refuses the checkpoint without them),
 copies any tokenizer file the export did not write from the adapter, refuses to finish without a
-chat template, writes `merged-text/.prepared` and deletes `merged/`. With the marker present it
+chat template, writes `merged-text/fingerprint.json` and then `merged-text/.prepared`, and deletes
+`merged/`. The merge loads the base in bf16 whatever the device, and the text-only model is built
+under a bf16 default dtype, so host memory peaks near two bf16 copies (~32 GB); the pod asks for
+`minRAMPerGPU` 48. With the marker present it
 exits at once, so every boot runs it; an unmarked `merged-text/` from a boot that died halfway is
 deleted and rebuilt. Expect the first boot to take the base download plus the merge (tens of
 minutes); later boots go straight to vLLM.
+
+**Where it runs from.** The start command changes into `/workspace/code` before
+`python3 -m benchmarks.runpod.prepare_reader` (and the pod keeps `PYTHONPATH=/workspace/code`):
+the image's `WORKDIR /vllm-workspace` holds vLLM's own `benchmarks/` package, which would shadow
+this one from there.
+
+**Fidelity.** `fingerprint.py <dir>` prints the tensor count, parameter count, sha256 of the sorted
+tensor names, sha256 of the raw bytes of five tensors (first, last and three evenly spaced by
+sorted name), and sha256 of `config.json`, `tokenizer_config.json` and `chat_template.jinja` where
+present. Compare the pod's against the local copy of Modal's reader v4:
+
+```sh
+.venv/bin/python benchmarks/runpod/volume.py get runs/reader-v4-gemma4-e4b/merged-text/fingerprint.json /tmp/pod-fingerprint.json
+.venv/bin/python benchmarks/runpod/fingerprint.py /Volumes/Atlas/models/rembero/reader-v4-merged-text/merged-text > /tmp/modal-fingerprint.json
+diff /tmp/pod-fingerprint.json /tmp/modal-fingerprint.json
+```
 
 **Serve flags.** The Modal serve of record, flag for flag: `--dtype bfloat16 --max-model-len 8192
 --max-num-seqs 32 --gpu-memory-utilization 0.92 --reasoning-parser gemma4
@@ -267,8 +286,9 @@ touch /tmp/empty-init.py && .venv/bin/python benchmarks/runpod/volume.py put /tm
 .venv/bin/python benchmarks/runpod/pod.py terminate
 ```
 
-`create-serve` takes `--gpu`, `--datacenter` (default EUR-NO-1) and `--volume` (default
-`RUNPOD_VOLUME_ID`). It reads `RUNPOD_API_KEY` from the environment or `.env`, generates a
+`create-serve` takes `--gpu`, `--datacenter` (default EUR-NO-1), `--volume` (default
+`RUNPOD_VOLUME_ID`) and `--cloud COMMUNITY|SECURE` (default COMMUNITY; network volumes may be
+Secure Cloud only, so retry with `--cloud SECURE` if community placement is refused). It reads `RUNPOD_API_KEY` from the environment or `.env`, generates a
 `VLLM_API_KEY` once (`secrets.token_urlsafe(32)`) if `.env` has none, passes
 `~/.ssh/id_ed25519.pub` as `PUBLIC_KEY` if it exists, prints the pod id and
 `https://<pod>-8000.proxy.runpod.net/v1`, and writes both to `.env` as `RUNPOD_SERVE_POD_ID` and
@@ -276,6 +296,17 @@ touch /tmp/empty-init.py && .venv/bin/python benchmarks/runpod/volume.py put /tm
 pod with `--reader-model rembero-reader-v4 --reader-base-url "$RUNPOD_SERVE_URL"` and the
 `--reader-api-key "$VLLM_API_KEY"`, plus the retrieval-depth flags every paired run passes.
 
-Logs: console → **Pods** → the pod → **Logs** (the `prepare_reader` lines, then vLLM's startup).
-The vLLM image runs no SSH daemon, so `22/tcp` and `PUBLIC_KEY` only help if one is added later;
-use the web terminal or the logs.
+**Logs and failures.** The vLLM image runs no SSH daemon (`22/tcp` and `PUBLIC_KEY` do nothing
+today), so everything is written to the volume and fetched with `volume.py get`:
+
+```sh
+.venv/bin/python benchmarks/runpod/volume.py get runs/reader-v4-gemma4-e4b/prepare.log /tmp/prepare.log   # install + prepare, appended per boot
+.venv/bin/python benchmarks/runpod/volume.py get runs/reader-v4-gemma4-e4b/serve.log   /tmp/serve.log     # vLLM's output
+.venv/bin/python benchmarks/runpod/volume.py get runs/reader-v4-gemma4-e4b/PREPARE_FAILED /tmp/PREPARE_FAILED  # exists only after a failure
+```
+
+If the install or prepare fails (or `VLLM_API_KEY` is empty), the start command writes
+`runs/<run>/PREPARE_FAILED` and parks the container on `sleep infinity` instead of exiting, because
+RunPod restarts an exited container and each restart would redo the merge. `wait` then times out;
+read `prepare.log`, fix, and terminate the pod (a new boot removes the marker and tries again).
+The console's pod **Logs** tab shows the same lines while the pod runs.

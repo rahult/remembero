@@ -1,5 +1,7 @@
 import json
 import shlex
+import subprocess
+import time
 
 import pytest
 
@@ -22,13 +24,33 @@ def test_the_pod_payload_asks_for_a_community_5090_on_the_volume():
     assert p["gpuTypeIds"] == ["NVIDIA GeForce RTX 5090"] and p["gpuTypePriority"] == "availability"
     assert p["dataCenterIds"] == ["EUR-NO-1"]
     assert p["networkVolumeId"] == "vol-abc" and p["volumeMountPath"] == "/workspace"
-    assert p["containerDiskInGb"] == 40
+    assert p["containerDiskInGb"] == 40 and p["minRAMPerGPU"] == 48
     assert p["ports"] == ["8000/http", "22/tcp"]
     assert p["imageName"] == IMAGE and IMAGE.startswith("vllm/vllm-openai:v")
     assert p["dockerEntrypoint"] == ["bash", "-lc"]
     assert p["dockerStartCmd"] == [serve_command(RUN, NAME)]
     assert p["env"] == {"VLLM_API_KEY": "vllm-key-123", "HF_HOME": "/workspace/hf",
                         "PYTHONPATH": "/workspace/code", "PUBLIC_KEY": "ssh-ed25519 AAAA me@mac"}
+
+
+def test_the_pod_payload_can_ask_for_secure_cloud():
+    assert payload(cloud_type="SECURE")["cloudType"] == "SECURE"
+    with pytest.raises(ValueError):
+        payload(cloud_type="SPOT")
+
+
+def test_create_serve_takes_a_cloud_option_defaulting_to_community(monkeypatch):
+    from benchmarks.runpod import pod
+
+    seen = {}
+    monkeypatch.setattr(pod, "read_env", lambda path: {"RUNPOD_API_KEY": "k"})
+    monkeypatch.setattr(pod, "create_serve", lambda a, env, key: seen.update(cloud=a.cloud))
+    pod.main(["create-serve", "--run", RUN, "--served-name", NAME])
+    assert seen == {"cloud": "COMMUNITY"}
+    pod.main(["create-serve", "--run", RUN, "--served-name", NAME, "--cloud", "SECURE"])
+    assert seen == {"cloud": "SECURE"}
+    with pytest.raises(SystemExit):
+        pod.main(["create-serve", "--run", RUN, "--served-name", NAME, "--cloud", "SPOT"])
 
 
 def test_the_pod_payload_leaves_public_key_out_when_there_is_none():
@@ -74,6 +96,75 @@ def test_the_serve_command_prepares_the_weights_first_and_never_serves_without_a
     assert "vllm-key" not in command  # the key travels in env, not in the start command
 
 
+def test_the_serve_command_runs_prepare_from_the_code_directory_not_the_vllm_workdir():
+    """The image's WORKDIR /vllm-workspace holds vLLM's own `benchmarks` package, which would
+    shadow ours for `python3 -m benchmarks...` run from there."""
+    command = serve_command(RUN, NAME)
+    assert "cd /workspace/code" in command
+    assert command.index("cd /workspace/code") < command.index("python3 -m benchmarks.runpod.prepare_reader")
+
+
+def test_the_serve_command_logs_prepare_and_serve_to_the_volume_and_parks_on_failure():
+    command = serve_command(RUN, NAME)
+    run_dir = f"/workspace/runs/{RUN}"
+    assert f"{run_dir}/prepare.log" in command or ("prepare.log" in command and run_dir in command)
+    assert "serve.log" in command and "PREPARE_FAILED" in command and "sleep infinity" in command
+    assert "pipefail" in command
+
+
+def test_the_serve_command_is_valid_bash():
+    subprocess.run(["bash", "-n", "-c", serve_command(RUN, NAME)], check=True)
+
+
+def fake_bin(directory, name, body):
+    path = directory / name
+    path.write_text("#!/bin/bash\n" + body + "\n")
+    path.chmod(0o755)
+
+
+def boot(tmp_path, prepare_exit, key="test-key"):
+    """Run the start command with stub python3/uv/vllm/sleep on PATH and the volume in tmp_path."""
+    bin_dir, root = tmp_path / "bin", tmp_path / "volume"
+    bin_dir.mkdir()
+    (root / "code").mkdir(parents=True)
+    calls = tmp_path / "calls.txt"
+    fake_bin(bin_dir, "uv", f'echo "uv $*" >> {calls}')
+    fake_bin(bin_dir, "python3", f'echo "python3 $* (cwd $PWD)" >> {calls}; echo "prepare says hello"; echo "prepare error" >&2; exit {prepare_exit}')
+    fake_bin(bin_dir, "vllm", f'echo "vllm $*" >> {calls}; echo "vllm is serving"')
+    fake_bin(bin_dir, "sleep", f'echo "sleep $*" >> {calls}')
+    env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "VLLM_API_KEY": key}
+    subprocess.run(["bash", "-c", serve_command(RUN, NAME, root=str(root))], env=env, cwd=tmp_path, timeout=30)
+    run_dir = root / "runs" / RUN
+    for _ in range(50):  # the serve log is written by a tee that may outlive bash by a moment
+        if prepare_exit or (run_dir / "serve.log").exists() and (run_dir / "serve.log").read_text():
+            break
+        time.sleep(0.05)
+    return calls.read_text(), run_dir
+
+
+def test_a_failed_prepare_is_logged_marked_and_parked_instead_of_restarting(tmp_path):
+    calls, run_dir = boot(tmp_path, prepare_exit=1)
+    assert (run_dir / "PREPARE_FAILED").exists()
+    log = (run_dir / "prepare.log").read_text()
+    assert "prepare says hello" in log and "prepare error" in log
+    assert "sleep infinity" in calls and "vllm" not in calls
+
+
+def test_a_good_prepare_serves_and_logs_vllm(tmp_path):
+    calls, run_dir = boot(tmp_path, prepare_exit=0)
+    assert "prepare says hello" in (run_dir / "prepare.log").read_text()
+    assert not (run_dir / "PREPARE_FAILED").exists()
+    assert f"(cwd {tmp_path / 'volume' / 'code'})" in calls
+    assert "vllm serve" in calls and "sleep" not in calls
+    assert "vllm is serving" in (run_dir / "serve.log").read_text()
+
+
+def test_an_empty_key_parks_the_pod_before_anything_runs(tmp_path):
+    calls, run_dir = boot(tmp_path, prepare_exit=0, key="")
+    assert (run_dir / "PREPARE_FAILED").exists() and "VLLM_API_KEY is empty" in (run_dir / "prepare.log").read_text()
+    assert calls.splitlines() == ["sleep infinity"]
+
+
 def test_the_serve_command_refuses_a_run_name_that_escapes_the_volume():
     with pytest.raises(ValueError):
         serve_command("../etc", NAME)
@@ -107,6 +198,14 @@ def test_read_env_of_a_missing_file_is_empty(tmp_path):
     assert read_env(tmp_path / "absent.env") == {}
 
 
+def tiny_weights(directory):
+    import torch
+    from safetensors.torch import save_file
+
+    save_file({"model.layers.0.self_attn.q_proj.weight": torch.ones(2, 2, dtype=torch.bfloat16)},
+              str(directory / "model.safetensors"))
+
+
 def fake_steps(monkeypatch, calls):
     def merge(run_dir, base_model):
         calls.append("merge")
@@ -120,6 +219,7 @@ def fake_steps(monkeypatch, calls):
         text.mkdir()
         (text / "config.json").write_text("{}")
         (text / "tokenizer_config.json").write_text(json.dumps({"chat_template": "{{ messages }}"}))
+        tiny_weights(text)
         return text
 
     def restore(run_dir, base_model):
@@ -151,6 +251,7 @@ def test_prepare_runs_merge_export_restore_then_marks_and_drops_merged(tmp_path,
     assert calls == ["merge", "export", "restore"]
     assert text_dir == run_dir / "merged-text"
     assert prepare_reader.is_prepared(run_dir)
+    assert json.loads((text_dir / "fingerprint.json").read_text())["tensor_count"] == 1
     assert not (run_dir / "merged").exists()
     assert (text_dir / "tokenizer.json").exists() and (text_dir / "chat_template.jinja").exists()
     assert (run_dir / "adapter" / "adapter_config.json").exists()

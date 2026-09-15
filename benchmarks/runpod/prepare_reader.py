@@ -4,7 +4,8 @@ Gemma 4 needs three steps before vLLM loads a fine-tune: merge the adapter into 
 the text-only causal LM, and put back the KV-sharing tensors transformers drops on save. The result
 is <root>/runs/<run>/merged-text with a .prepared marker; a second call finds the marker and exits
 at once, so the pod's start command can run this on every boot. The multimodal merged/ directory
-(~16 GB) is deleted afterwards to save volume space. HF_HOME defaults to <root>/hf, where the
+(~16 GB) is deleted afterwards to save volume space; merged-text/fingerprint.json
+(see fingerprint.py) is written just before the marker. HF_HOME defaults to <root>/hf, where the
 public base model is cached after the first download."""
 
 from __future__ import annotations
@@ -16,6 +17,7 @@ import shutil
 import time
 from pathlib import Path
 
+from benchmarks.runpod.fingerprint import fingerprint
 from benchmarks.train import reader_lora
 
 MARKER = ".prepared"
@@ -73,6 +75,9 @@ def prepare(root: Path, run: str, base_model: str) -> Path:
     print(f"tokenizer files copied from the adapter: {copy_tokenizer_files(adapter_dir, text_dir)}")
     if not has_chat_template(text_dir):
         raise SystemExit(f"{text_dir} has no chat template; refusing to mark it prepared")
+    fp = fingerprint(text_dir)
+    (text_dir / "fingerprint.json").write_text(json.dumps(fp, indent=2) + "\n")
+    print(f"fingerprint: {fp['tensor_count']} tensors, {fp['parameter_count']} parameters, keys {fp['keys_sha256'][:12]}")
     (text_dir / MARKER).write_text(json.dumps({"base_model": base_model, "restored_tensors": restored,
                                                "seconds": round(time.time() - started, 1)}) + "\n")
     shutil.rmtree(run_dir / "merged", ignore_errors=True)

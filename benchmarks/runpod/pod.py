@@ -30,6 +30,8 @@ API = "https://rest.runpod.io/v1"
 # kernels for the RTX 5090 (TORCH_CUDA_ARCH_LIST includes 12.0). Gemma 4 landed in vLLM in spring 2026.
 IMAGE = "vllm/vllm-openai:v0.29.0-cu129"
 CUDA_VERSIONS = ["12.9", "13.0"]
+# network volumes may be Secure Cloud only; --cloud SECURE retries there without a code change
+CLOUD_TYPES = ("COMMUNITY", "SECURE")
 ROOT = "/workspace"
 BASE_MODEL = "google/gemma-4-E4B-it"
 RUN_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$")
@@ -52,41 +54,63 @@ def serve_url(pod_id: str) -> str:
 
 def serve_command(run: str, served_name: str, *, root: str = ROOT, base_model: str = BASE_MODEL) -> str:
     """The pod's whole start command, for `bash -lc`: install PEFT (the image has transformers but
-    not PEFT), rebuild the weights once, then hand the process to vLLM. The API key is read from
-    the pod's env, never written into the command, and an empty key stops the pod from serving."""
+    not PEFT), rebuild the weights once, then hand the process to vLLM.
+
+    - Prepare runs from <root>/code: the image's WORKDIR /vllm-workspace holds vLLM's own
+      `benchmarks` package, which `python3 -m benchmarks...` would import from there instead.
+    - Prepare's output goes to runs/<run>/prepare.log and vLLM's to runs/<run>/serve.log, on the
+      volume, so both can be fetched with volume.py get (the image has no SSH).
+    - A failed prepare (or an empty key) writes runs/<run>/PREPARE_FAILED and parks the container
+      on `sleep infinity`: an exited container is restarted by RunPod and would redo the merge.
+    - The API key is read from the pod's env, never written into the command."""
     if not RUN_NAME.match(run):
         raise ValueError(f"run must match {RUN_NAME.pattern}, got {run!r}")
     if not SERVED_NAME.match(served_name):
         raise ValueError(f"served name must match {SERVED_NAME.pattern}, got {served_name!r}")
-    model_dir = f"{root}/runs/{run}/merged-text"
+    run_dir, code_dir = f"{root}/runs/{run}", f"{root}/code"
     prepare = ["python3", "-m", "benchmarks.runpod.prepare_reader", "--root", root, "--run", run, "--base-model", base_model]
-    vllm = ["vllm", "serve", model_dir, *SERVE_FLAGS, "--served-model-name", served_name, "--host", "0.0.0.0", "--port", "8000"]
-    return " && ".join([
-        "set -e",
-        'test -n "$VLLM_API_KEY"',
+    vllm = ["vllm", "serve", f"{run_dir}/merged-text", *SERVE_FLAGS, "--served-model-name", served_name,
+            "--host", "0.0.0.0", "--port", "8000"]
+    steps = " && ".join([
+        'echo "=== boot $(date -u +%Y-%m-%dT%H:%M:%SZ)"',
+        f"cd {shlex.quote(code_dir)}",
         # uv respects the image's /etc/uv-overrides.txt pins; plain pip is the fallback
         '(uv pip install --system -q "peft>=0.17" || python3 -m pip install -q "peft>=0.17")',
         shlex.join(prepare),
-        f'exec {shlex.join(vllm)} --api-key "$VLLM_API_KEY"',
+    ])
+    return "; ".join([
+        "set -o pipefail",
+        "export PYTHONUNBUFFERED=1",
+        f"RUN_DIR={shlex.quote(run_dir)}",
+        'mkdir -p "$RUN_DIR"',
+        'rm -f "$RUN_DIR/PREPARE_FAILED"',
+        'fail() { echo "$1" | tee -a "$RUN_DIR/prepare.log"; touch "$RUN_DIR/PREPARE_FAILED"; exec sleep infinity; }',
+        'test -n "$VLLM_API_KEY" || fail "VLLM_API_KEY is empty; refusing to serve on a public URL without a key"',
+        f'{{ {steps}; }} 2>&1 | tee -a "$RUN_DIR/prepare.log" || fail "prepare failed; see $RUN_DIR/prepare.log"',
+        f'exec {shlex.join(vllm)} --api-key "$VLLM_API_KEY" > >(tee -a "$RUN_DIR/serve.log") 2>&1',
     ])
 
 
 def build_pod_payload(*, run: str, served_name: str, api_key: str, volume_id: str,
                       gpu: str = "NVIDIA GeForce RTX 5090", datacenter: str = "EUR-NO-1",
-                      public_key: str | None = None, image: str = IMAGE, min_ram_gb: int = 32) -> dict:
+                      public_key: str | None = None, image: str = IMAGE, min_ram_gb: int = 48,
+                      cloud_type: str = "COMMUNITY") -> dict:
     """PodCreateInput for the serving pod. Pure: everything it sends is in its arguments."""
+    if cloud_type not in CLOUD_TYPES:
+        raise ValueError(f"cloud type must be one of {CLOUD_TYPES}, got {cloud_type!r}")
     env = {"VLLM_API_KEY": api_key, "HF_HOME": f"{ROOT}/hf", "PYTHONPATH": f"{ROOT}/code"}
     if public_key:
         env["PUBLIC_KEY"] = public_key
     return {
         "name": f"rembero-serve-{run}"[:60],
-        "cloudType": "COMMUNITY",
+        "cloudType": cloud_type,
         "computeType": "GPU",
         "gpuTypeIds": [gpu],
         "gpuTypePriority": "availability",
         "gpuCount": 1,
         "allowedCudaVersions": CUDA_VERSIONS,
-        # the merge loads the 16 GB multimodal checkpoint into host memory before vLLM starts
+        # the merge holds the 16 GB bf16 multimodal checkpoint in host memory, and the text-only
+        # export builds a second (bf16) copy next to it, before vLLM starts
         "minRAMPerGPU": min_ram_gb,
         "dataCenterIds": [datacenter],
         "networkVolumeId": volume_id,
@@ -167,7 +191,7 @@ def create_serve(a, env: dict[str, str], key: str) -> None:
     public_key_path = Path.home() / ".ssh" / "id_ed25519.pub"
     public_key = public_key_path.read_text().strip() if public_key_path.exists() else None
     payload = build_pod_payload(run=a.run, served_name=a.served_name, api_key=api_key, volume_id=volume,
-                                gpu=a.gpu, datacenter=a.datacenter, public_key=public_key)
+                                gpu=a.gpu, datacenter=a.datacenter, public_key=public_key, cloud_type=a.cloud)
     pod = api("POST", "/pods", key, payload)
     pod_id = pod["id"]
     url = serve_url(pod_id)
@@ -209,7 +233,7 @@ def main(argv: list[str] | None = None) -> None:
     create = sub.add_parser("create-serve")
     create.add_argument("--run", required=True); create.add_argument("--served-name", required=True)
     create.add_argument("--gpu", default="NVIDIA GeForce RTX 5090"); create.add_argument("--datacenter", default="EUR-NO-1")
-    create.add_argument("--volume")
+    create.add_argument("--volume"); create.add_argument("--cloud", choices=CLOUD_TYPES, default="COMMUNITY")
     waiting = sub.add_parser("wait")
     waiting.add_argument("--pod"); waiting.add_argument("--served-name"); waiting.add_argument("--timeout", type=int, default=30 * 60)
     for name in ("stop", "start", "terminate", "status"):
