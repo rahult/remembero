@@ -349,17 +349,22 @@ export function reviewReader(options: ReviewOptions) {
   const runContract = runContractId(run);
   const baselineContract =
     baseline === undefined ? null : runContractId(baseline);
-  // the drop list compares a thinking run with a direct baseline; refuse any other pairing
-  if (runContract !== null && baselineContract !== null) {
-    if (!isThinkingContract(runContract))
-      throw new Error(
-        `--run ${options.run} reads under ${runContract}, not a thinking contract; dropTypesFromThinking pairs a thinking run with a direct baseline`,
-      );
-    if (isThinkingContract(baselineContract))
-      throw new Error(
-        `--baseline ${options.baseline} reads under ${baselineContract}, which is a thinking contract; dropTypesFromThinking pairs a thinking run with a direct baseline`,
-      );
-  }
+  // the drop list compares a thinking run with a direct baseline. A direct run against a
+  // thinking baseline is the pair written the wrong way round and is refused; two runs of
+  // the same reading still get deltas, with the drop check skipped
+  let dropCheck: string;
+  if (baseline === undefined) dropCheck = 'skipped: no baseline';
+  else if (runContract === null || baselineContract === null)
+    dropCheck = 'compared: a run without a recorded contract';
+  else if (
+    isThinkingContract(runContract) === isThinkingContract(baselineContract)
+  )
+    dropCheck = 'skipped: same reading on both runs';
+  else if (!isThinkingContract(runContract))
+    throw new Error(
+      `--run ${options.run} reads under ${runContract} and --baseline ${options.baseline} under ${baselineContract}; dropTypesFromThinking pairs a thinking run with a direct baseline, so swap them`,
+    );
+  else dropCheck = 'compared: thinking run against direct baseline';
 
   const accuracy: Record<
     string,
@@ -465,12 +470,13 @@ export function reviewReader(options: ReviewOptions) {
       typeWeightsRaw: weights.weights,
       missShare: recommendMissShare(conversationsAsked, conversationsMisses),
       dropTypesFromThinking:
-        baseline === undefined
+        baseline === undefined || dropCheck.startsWith('skipped')
           ? []
           : dropTypesFromThinking(
               run.byQuestionType ?? {},
               baseline.byQuestionType ?? {},
             ),
+      dropCheck,
     },
   };
 }

@@ -516,25 +516,48 @@ describe('reviewReader', () => {
     );
   });
 
-  it('refuses a drop comparison whose run does not think or whose baseline does', () => {
+  it('refuses only a direct run against a thinking baseline; a same-reading pair skips the drop check', () => {
     const dir = mkdtempSync(join(tmpdir(), 'review-'));
     const mined = minedDir(dir, false, []);
     const direct = join(dir, 'direct.json');
+    const direct2 = join(dir, 'direct2.json');
     const notes = join(dir, 'notes.json');
+    const notes2 = join(dir, 'notes2.json');
     runJson(direct, { 'multi-session': 10 }, [], { readingStrategy: 'direct' });
+    runJson(direct2, { 'multi-session': 17 }, [], {
+      readingStrategy: 'direct',
+    });
     runJson(notes, { 'multi-session': 10 }, [], { readingStrategy: 'notes' });
+    runJson(notes2, { 'multi-session': 17 }, [], { readingStrategy: 'notes' });
+    // the inverted pair: a direct run against a thinking baseline
     expect(() =>
-      reviewReader({ run: direct, baseline: direct, mined }),
-    ).toThrow(/--run .*dd\+notes@24576.* not a thinking contract/);
-    expect(() => reviewReader({ run: notes, baseline: notes, mined })).toThrow(
-      /--baseline .*dd\+notes\+think@24576.* is a thinking contract/,
+      reviewReader({ run: direct, baseline: notes, mined }),
+    ).toThrow(
+      /--run .*dd\+notes@24576.*--baseline .*dd\+notes\+think@24576/,
     );
-    expect(
-      reviewReader({ run: notes, baseline: direct, mined }).recommend
-        .dropTypesFromThinking,
-    ).toEqual([]);
+    // same reading on both runs: deltas computed, nothing dropped, the check named as skipped
+    for (const [run, baseline] of [
+      [direct, direct2],
+      [notes, notes2],
+    ] as const) {
+      const review = reviewReader({ run, baseline, mined });
+      expect(review.accuracy['multi-session']!.delta).toEqual({
+        correct: -7,
+        accuracy: expect.closeTo(-0.35, 10),
+      });
+      expect(review.recommend.dropTypesFromThinking).toEqual([]);
+      expect(review.recommend.dropCheck).toBe(
+        'skipped: same reading on both runs',
+      );
+    }
+    const paired = reviewReader({ run: notes, baseline: direct2, mined });
+    expect(paired.recommend.dropTypesFromThinking).toEqual(['multi-session']);
+    expect(paired.recommend.dropCheck).toBe(
+      'compared: thinking run against direct baseline',
+    );
     // no baseline: nothing to pair, a direct run is fine
-    expect(() => reviewReader({ run: direct, mined })).not.toThrow();
+    const alone = reviewReader({ run: direct, mined });
+    expect(alone.recommend.dropCheck).toBe('skipped: no baseline');
   });
 
   it('mined rows: format from the token cap, and the first copy of a duplicate row counts', () => {
