@@ -11,7 +11,7 @@ function metaRow(tag: string, i: number) {
     type: TYPES[i % TYPES.length],
     question: `question ${tag} ${i}?`,
     questionDate: '2023-07-01',
-    sessionIds: ['s1'],
+    sessionIds: [`${tag}-s${i}`],
     evidence: [1],
     answer: `Notes:\n- ${tag} ${i}\nAnswer: ${tag}-${i}`,
   };
@@ -333,5 +333,203 @@ describe('composeTraining', () => {
         seed: 1,
       }),
     ).toThrow(/already/);
+  });
+
+  describe('held-out session overlap', () => {
+    /** Base rows 2 and 5 share a session with base heldout row 1; miss index 4 with heldout row 0. */
+    function overlapFixture(
+      options: { allMissesOverlap?: boolean } = {},
+    ): Fixture {
+      const f = fixture();
+      const withSession = (
+        dir: string,
+        file: string,
+        pick: (row: Record<string, unknown>, i: number) => string | undefined,
+      ) => {
+        const metaPath = join(dir, `${file}.meta.jsonl`);
+        const rows = readLines(metaPath).map(
+          (l) => JSON.parse(l) as Record<string, unknown>,
+        );
+        const next = rows.map((row, i) => {
+          const extra = pick(row, i);
+          return extra === undefined
+            ? row
+            : {
+                ...row,
+                sessionIds: [...(row.sessionIds as string[]), extra],
+              };
+        });
+        writeTwins(
+          dir,
+          file,
+          next as Array<
+            Record<string, unknown> & { question: string; answer: string }
+          >,
+        );
+      };
+      withSession(f.base, 'conversations.jsonl', (_, i) =>
+        i === 2 || i === 5 ? 'base-heldout-s1' : undefined,
+      );
+      withSession(f.misses, 'misses.jsonl', (row) =>
+        options.allMissesOverlap || row.index === 4
+          ? 'base-heldout-s0'
+          : undefined,
+      );
+      return f;
+    }
+
+    const composedMeta = (out: string) =>
+      readLines(join(out, 'conversations.jsonl.meta.jsonl')).map(
+        (l) => JSON.parse(l) as { sessionIds: string[]; [k: string]: unknown },
+      );
+
+    const heldoutSessions = (dir: string) =>
+      new Set(
+        readLines(join(dir, 'heldout.jsonl.meta.jsonl')).flatMap(
+          (l) => (JSON.parse(l) as { sessionIds: string[] }).sessionIds,
+        ),
+      );
+
+    it('drops base and miss rows sharing a held-out session, counts them and still writes --rows', () => {
+      const f = overlapFixture();
+      const out = join(f.root, 'out');
+      const stderr = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const manifest = composeTraining({
+        base: f.base,
+        misses: f.misses,
+        out,
+        share: 0.25,
+        rows: 8,
+        seed: 3,
+      });
+      const meta = composedMeta(out);
+      expect(meta).toHaveLength(8);
+      const held = heldoutSessions(f.base);
+      expect(meta.some((m) => m.sessionIds.some((id) => held.has(id)))).toBe(
+        false,
+      );
+      expect(manifest.heldoutOverlapDropped).toEqual({
+        base: 2,
+        miss: 1,
+      });
+      expect(manifest.train).toEqual({ base: 6, miss: 2 });
+      expect(manifest.written).toBe(8);
+      const missRows = meta.filter((m) => m.source === 'miss');
+      expect(new Set(missRows.map((m) => m.index))).toEqual(new Set([0, 7]));
+      expect(stderr).toHaveBeenCalledTimes(1);
+      expect(String(stderr.mock.calls[0]![0])).toMatch(
+        /2 base rows and 1 miss row.*held-out/,
+      );
+    });
+
+    it('prints nothing and counts zero when no row shares a held-out session', () => {
+      const f = fixture();
+      const stderr = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const manifest = composeTraining({
+        base: f.base,
+        misses: f.misses,
+        out: join(f.root, 'out'),
+        share: 0.25,
+        rows: 8,
+        seed: 3,
+      });
+      expect(manifest.heldoutOverlapDropped).toEqual({
+        base: 0,
+        miss: 0,
+      });
+      expect(stderr).not.toHaveBeenCalled();
+    });
+
+    it('checks overlap against the --heldout source', () => {
+      const f = fixture();
+      writeTwins(
+        f.other,
+        'heldout.jsonl',
+        [0, 1].map((i) => ({
+          ...metaRow('other-heldout', i),
+          sessionIds: [`base-s${i}`],
+        })),
+      );
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const out = join(f.root, 'out');
+      const manifest = composeTraining({
+        base: f.base,
+        misses: f.misses,
+        heldout: f.other,
+        out,
+        share: 0.25,
+        rows: 8,
+        seed: 3,
+      });
+      expect(manifest.heldoutOverlapDropped).toEqual({
+        base: 2,
+        miss: 0,
+      });
+      expect(
+        composedMeta(out).some((m) =>
+          m.sessionIds.some((id) => id === 'base-s0' || id === 'base-s1'),
+        ),
+      ).toBe(false);
+    });
+
+    it('draws more base rows when every miss shares a held-out session', () => {
+      const f = overlapFixture({ allMissesOverlap: true });
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const out = join(f.root, 'out');
+      const manifest = composeTraining({
+        base: f.base,
+        misses: f.misses,
+        out,
+        share: 0.25,
+        rows: 8,
+        seed: 3,
+      });
+      expect(manifest.heldoutOverlapDropped).toEqual({
+        base: 2,
+        miss: 3,
+      });
+      expect(manifest.train).toEqual({ base: 8, miss: 0 });
+      expect(composedMeta(out)).toHaveLength(8);
+    });
+
+    it('writes fewer rows and says so when the sources cannot fill --rows', () => {
+      const f = overlapFixture({ allMissesOverlap: true });
+      const stderr = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const out = join(f.root, 'out');
+      const manifest = composeTraining({
+        base: f.base,
+        misses: f.misses,
+        out,
+        share: 0.25,
+        rows: 20,
+        seed: 3,
+      });
+      expect(manifest.train).toEqual({ base: 8, miss: 0 });
+      expect(manifest.rows).toBe(20);
+      expect(manifest.written).toBe(8);
+      expect(readLines(join(out, 'conversations.jsonl'))).toHaveLength(8);
+      expect(
+        stderr.mock.calls.some((call) =>
+          /writes 8 of the 20 rows/.test(String(call[0])),
+        ),
+      ).toBe(true);
+    });
+
+    it('refuses a held-out row without session ids', () => {
+      const f = fixture();
+      writeTwins(f.base, 'heldout.jsonl', [
+        { ...metaRow('base-heldout', 0), sessionIds: undefined },
+      ]);
+      expect(() =>
+        composeTraining({
+          base: f.base,
+          misses: f.misses,
+          out: join(f.root, 'out'),
+          share: 0.25,
+          rows: 8,
+          seed: 3,
+        }),
+      ).toThrow(/heldout\.jsonl.*row 0.*sessionIds/);
+    });
   });
 });

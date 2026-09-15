@@ -5,7 +5,10 @@
  * Every source must be rendered under one contract: a miss row is the teacher's line as
  * written, so mixing it with base rows of another contract would train two prompts at
  * once. Misses mined from `heldout.jsonl` never enter training rows, and a miss written
- * twice (a resumed mine) counts once. Row counts come from the files, never from a
+ * twice (a resumed mine) counts once. A base or miss row whose haystack shares a session
+ * with any held-out row is left out and counted (`heldoutOverlapDropped`); more base rows
+ * and cycled misses take its place, and when the sources cannot fill `rows` compose writes
+ * fewer and says so. Row counts come from the files, never from a
  * manifest. The seed fixes which base rows are kept, the order misses are cycled in, and
  * the final order; meta twins stay line-aligned and each composed meta row names its source.
  */
@@ -59,6 +62,24 @@ function typeCounts(
 
 type MissMetaRow = DistilledMetaRow & { file?: unknown; index?: unknown };
 
+function sessionIdsOf(
+  row: { sessionIds?: unknown },
+  path: string,
+  index: number,
+): string[] {
+  if (
+    !Array.isArray(row.sessionIds) ||
+    !row.sessionIds.every((id) => typeof id === 'string')
+  )
+    throw new Error(
+      `${path} row ${index} has no sessionIds; compose cannot check it against the held-out sessions`,
+    );
+  return row.sessionIds as string[];
+}
+
+const plural = (count: number, noun: string) =>
+  `${count} ${noun}${count === 1 ? '' : 's'}`;
+
 export function composeTraining(options: ComposeOptions) {
   const { base, misses, out, share, rows, seed } = options;
   const heldout = options.heldout ?? base;
@@ -102,10 +123,22 @@ export function composeTraining(options: ComposeOptions) {
   const missFile = readDistilledFile(misses, 'misses.jsonl');
   const heldoutFile = readDistilledFile(heldout, 'heldout.jsonl');
 
+  // no training row may read a session a held-out row reads
+  const heldoutSessions = new Set(
+    heldoutFile.rows.flatMap((row, i) =>
+      sessionIdsOf(row, join(heldout, 'heldout.jsonl.meta.jsonl'), i),
+    ),
+  );
+  const sharesHeldout = (
+    row: { sessionIds?: unknown },
+    path: string,
+    index: number,
+  ) => sessionIdsOf(row, path, index).some((id) => heldoutSessions.has(id));
+
   const seen = new Set<string>();
   let heldoutDropped = 0;
   let duplicatesDropped = 0;
-  const usable: Array<{ line: string; meta: MissMetaRow }> = [];
+  const usable: Array<{ line: string; meta: MissMetaRow; row: number }> = [];
   missFile.rows.forEach((meta: MissMetaRow, i) => {
     if (typeof meta.file !== 'string' || !Number.isInteger(meta.index))
       throw new Error(
@@ -121,22 +154,43 @@ export function composeTraining(options: ComposeOptions) {
       return;
     }
     seen.add(key);
-    usable.push({ line: missFile.lines[i]!, meta });
+    usable.push({ line: missFile.lines[i]!, meta, row: i });
   });
+  const eligibleMisses = usable.filter(
+    ({ meta, row }) =>
+      !sharesHeldout(meta, join(misses, 'misses.jsonl.meta.jsonl'), row),
+  );
+  const baseMetaPath = join(base, 'conversations.jsonl.meta.jsonl');
+  const eligibleBase = baseFile.rows
+    .map((_, i) => i)
+    .filter((i) => !sharesHeldout(baseFile.rows[i]!, baseMetaPath, i));
+  const heldoutOverlapDropped = {
+    base: baseFile.rows.length - eligibleBase.length,
+    miss: usable.length - eligibleMisses.length,
+  };
+  if (heldoutOverlapDropped.base + heldoutOverlapDropped.miss > 0)
+    console.error(
+      `compose: left out ${plural(heldoutOverlapDropped.base, 'base row')} and ${plural(heldoutOverlapDropped.miss, 'miss row')} that share a session with the held-out rows of ${heldout}`,
+    );
 
   const rng = createRng(seed);
   const baseTarget = Math.round(rows * (1 - share));
-  const baseIndices = baseFile.rows.map((_, i) => i);
-  const keptIndices =
-    baseIndices.length > baseTarget
-      ? rng.shuffle(baseIndices).slice(0, baseTarget)
-      : baseIndices;
-  const missCount = rows - keptIndices.length;
-  if (missCount > 0 && usable.length === 0)
+  const baseOrder =
+    eligibleBase.length > baseTarget ? rng.shuffle(eligibleBase) : eligibleBase;
+  let keptIndices = baseOrder.slice(0, baseTarget);
+  if (rows - keptIndices.length > 0 && usable.length === 0)
     throw new Error(
-      `compose needs ${missCount} miss rows but ${misses} has no usable misses`,
+      `compose needs ${rows - keptIndices.length} miss rows but ${misses} has no usable misses`,
     );
-  const missOrder = rng.shuffle(usable);
+  // every miss shares a held-out session: more base rows take the miss rows' place
+  if (eligibleMisses.length === 0) keptIndices = baseOrder.slice(0, rows);
+  const missCount = eligibleMisses.length === 0 ? 0 : rows - keptIndices.length;
+  const written = keptIndices.length + missCount;
+  if (written < rows)
+    console.error(
+      `compose: writes ${written} of the ${rows} rows asked for; after the held-out overlap the base has ${eligibleBase.length} rows and the misses ${eligibleMisses.length}`,
+    );
+  const missOrder = rng.shuffle(eligibleMisses);
   const composed = [
     ...keptIndices.map((i) => ({
       line: baseFile.lines[i]!,
@@ -167,10 +221,10 @@ export function composeTraining(options: ComposeOptions) {
     join(out, 'heldout.jsonl.meta.jsonl'),
   );
 
-  const realisedShare = missCount / rows;
+  const realisedShare = written === 0 ? 0 : missCount / written;
   if (Math.abs(realisedShare - share) > 0.01)
     console.error(
-      `compose: the realised miss share is ${realisedShare} (${missCount} of ${rows} rows), not the ${share} asked for; the base has ${baseFile.rows.length} rows`,
+      `compose: the realised miss share is ${realisedShare} (${missCount} of ${written} rows), not the ${share} asked for; the base has ${eligibleBase.length} usable rows`,
     );
   const metaOf = (source: 'base' | 'miss') =>
     composed.filter((row) => row.meta.source === source).map((row) => row.meta);
@@ -187,9 +241,11 @@ export function composeTraining(options: ComposeOptions) {
       },
       heldout: { path: heldout, contract: contract.id },
     },
+    heldoutOverlapDropped,
     share,
     realisedShare,
     rows,
+    written,
     train: { base: keptIndices.length, miss: missCount },
     heldout: heldoutFile.rows.length,
     byType: {
