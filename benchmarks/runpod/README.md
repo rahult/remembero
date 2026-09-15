@@ -234,18 +234,35 @@ https://hub.docker.com/r/vllm/vllm-openai/tags and record it here and in `pod.py
 the first boot `runs/<run>/merged-text/` with its `.prepared` marker. No Hugging Face or Modal
 credential goes to the pod; the only secret in its env is its own `VLLM_API_KEY`.
 
-**The three Gemma 4 steps.** `prepare_reader.py --root /workspace --run <run>` merges the adapter
-into the base (`reader_lora.merge_adapter`, writing `merged/`), exports the text-only causal LM
-(`export_text_only`, writing `merged-text/`), puts back the KV-sharing `self_attn` tensors
-transformers drops on save (`restore_dropped_weights`; vLLM refuses the checkpoint without them),
-copies any tokenizer file the export did not write from the adapter, refuses to finish without a
-chat template, writes `merged-text/fingerprint.json` and then `merged-text/.prepared`, and deletes
-`merged/`. The merge loads the base in bf16 whatever the device, and the text-only model is built
-under a bf16 default dtype, so host memory peaks near two bf16 copies (~32 GB); the pod asks for
-`minRAMPerGPU` 48. With the marker present it
-exits at once, so every boot runs it; an unmarked `merged-text/` from a boot that died halfway is
-deleted and rebuilt. Expect the first boot to take the base download plus the merge (tens of
-minutes); later boots go straight to vLLM.
+**The three Gemma 4 steps.** `prepare_reader.py --root /workspace --run <run>` first checks the
+volume's free space: it needs two copies of the base weights, plus the Hugging Face cache if that
+isn't there yet (48 GB for Gemma 4 E4B on a fresh volume). If there is less, it fails in seconds and
+names both numbers, before any model loads. It then:
+
+1. merges the adapter into the base (`reader_lora.merge_adapter`, writing `merged/` and a
+   `merged/.merged` marker when done);
+2. exports the text-only causal LM (`export_text_only`, writing `merged-text/`), then deletes
+   `merged/` right away;
+3. puts back the KV-sharing `self_attn` tensors transformers drops on save
+   (`restore_dropped_weights`; vLLM refuses the checkpoint without them). The restore writes to a
+   temporary file beside `model.safetensors` and swaps it in only once the write completes, so a
+   full disk leaves the export intact.
+
+After that it copies any tokenizer file the export did not write from the adapter, refuses to
+finish without a chat template, and writes `merged-text/fingerprint.json` and then
+`merged-text/.prepared`. At most three weight-sized files are on the volume at once: cache, merged
+and merged-text during the export, then cache, merged-text and the restore's temporary file. A 60 GB
+volume ran out of quota when `merged/` was still kept through the restore.
+
+The merge loads the base in bf16 whatever the device, and the text-only model is built under a bf16
+default dtype, so host memory peaks near two bf16 copies (~32 GB); the pod asks for `minRAMPerGPU`
+48.
+
+With the marker present, prepare exits at once, so every boot runs it. After a boot that died
+halfway, an unmarked `merged-text/` is deleted. A finished `merged/` (with its marker) is kept, so
+only export and restore run again; any other `merged/` is deleted and the merge is redone. Expect
+the first boot to take the base download plus the merge (tens of minutes); later boots go straight
+to vLLM.
 
 **Where it runs from.** The start command changes into `/workspace/code` before
 `python3 -m benchmarks.runpod.prepare_reader` (and the pod keeps `PYTHONPATH=/workspace/code`):

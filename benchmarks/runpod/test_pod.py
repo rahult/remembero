@@ -223,9 +223,10 @@ def fake_steps(monkeypatch, calls):
         return text
 
     def restore(run_dir, base_model):
-        calls.append("restore")
+        calls.append("restore" if not (run_dir / "merged").exists() else "restore-with-merged-still-on-disk")
         return 42
 
+    monkeypatch.setattr(prepare_reader, "base_model_size", lambda base_model: (10**6, True))
     monkeypatch.setattr(prepare_reader.reader_lora, "merge_adapter", merge)
     monkeypatch.setattr(prepare_reader.reader_lora, "export_text_only", export)
     monkeypatch.setattr(prepare_reader.reader_lora, "restore_dropped_weights", restore)
@@ -297,6 +298,79 @@ def test_prepare_without_an_adapter_fails_before_loading_anything(tmp_path, monk
     with pytest.raises(SystemExit):
         prepare_reader.prepare(tmp_path, RUN, "google/gemma-4-E4B-it")
     assert calls == []
+
+
+def test_merged_is_deleted_before_the_restore_rewrites_the_weights(tmp_path, monkeypatch):
+    calls: list[str] = []
+    fake_steps(monkeypatch, calls)
+    adapter(tmp_path)
+    prepare_reader.prepare(tmp_path, RUN, "google/gemma-4-E4B-it")
+    assert calls == ["merge", "export", "restore"]
+
+
+def completed_merge(root):
+    merged = root / "runs" / RUN / "merged"
+    merged.mkdir(parents=True)
+    (merged / "config.json").write_text("{}")
+    (merged / "model.safetensors").write_text("weights")
+    (merged / prepare_reader.MERGED_MARKER).write_text("")
+    return merged
+
+
+def test_a_run_that_died_after_the_merge_reruns_only_export_and_restore(tmp_path, monkeypatch):
+    calls: list[str] = []
+    fake_steps(monkeypatch, calls)
+    adapter(tmp_path)
+    completed_merge(tmp_path)
+    stale = tmp_path / "runs" / RUN / "merged-text"
+    stale.mkdir(parents=True)
+    (stale / "config.json").write_text("{}")
+
+    prepare_reader.prepare(tmp_path, RUN, "google/gemma-4-E4B-it")
+
+    assert calls == ["export", "restore"]
+    assert prepare_reader.is_prepared(tmp_path / "runs" / RUN)
+
+
+def test_a_merge_that_never_finished_is_redone(tmp_path, monkeypatch):
+    calls: list[str] = []
+    fake_steps(monkeypatch, calls)
+    adapter(tmp_path)
+    merged = completed_merge(tmp_path)
+    (merged / prepare_reader.MERGED_MARKER).unlink()
+
+    prepare_reader.prepare(tmp_path, RUN, "google/gemma-4-E4B-it")
+
+    assert calls == ["merge", "export", "restore"]
+
+
+def test_too_little_disk_fails_fast_naming_free_and_needed_space(tmp_path, monkeypatch):
+    import collections
+
+    calls: list[str] = []
+    fake_steps(monkeypatch, calls)
+    adapter(tmp_path)
+    usage = collections.namedtuple("usage", "total used free")
+    asked = []
+    monkeypatch.setattr(prepare_reader, "base_model_size", lambda base_model: (16 * 10**9, False))
+    monkeypatch.setattr(prepare_reader.shutil, "disk_usage", lambda path: asked.append(path) or usage(60 * 10**9, 50 * 10**9, 10 * 10**9))
+
+    with pytest.raises(SystemExit) as error:
+        prepare_reader.prepare(tmp_path, RUN, "google/gemma-4-E4B-it")
+
+    message = str(error.value)
+    assert "10.0 GB free" in message and "48.0 GB needed" in message
+    assert calls == [] and asked == [tmp_path]
+    assert not prepare_reader.is_prepared(tmp_path / "runs" / RUN)
+
+
+def test_the_space_needed_counts_a_cached_base_once_and_a_finished_merge_as_already_written():
+    gb = 10**9
+    # a fresh volume: cache + merged + merged-text at the peak; the 60 GB volume that ran out held a
+    # fourth copy (merged/ kept through the restore), which prepare no longer does
+    assert prepare_reader.space_needed(16 * gb, cached=False, merged_on_disk=0) == 48 * gb
+    assert prepare_reader.space_needed(16 * gb, cached=True, merged_on_disk=0) == 32 * gb
+    assert prepare_reader.space_needed(16 * gb, cached=True, merged_on_disk=16 * gb) == 16 * gb
 
 
 def test_prepare_refuses_weights_with_no_chat_template(tmp_path, monkeypatch):

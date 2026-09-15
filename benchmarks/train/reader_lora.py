@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import os
 import time
 from contextlib import contextmanager
 from pathlib import Path
@@ -276,7 +277,15 @@ def restore_dropped_weights(run_dir: Path, base_model: str) -> int:
                 if new_key not in exported and ".self_attn." in new_key:
                     exported[new_key] = st.get_tensor(key)
                     added.append(new_key)
-    save_file(exported, str(target), metadata={"format": "pt"})
+    # Written beside the original and swapped in only once complete: a full disk mid-write
+    # (it happened on a 60 GB volume) must leave the export intact, not a truncated file.
+    temporary = target.with_name(target.name + ".restoring")
+    try:
+        save_file(exported, str(temporary), metadata={"format": "pt"})
+        os.replace(temporary, target)
+    except BaseException:
+        temporary.unlink(missing_ok=True)
+        raise
     print(f"restored {len(added)} tensors, e.g. {added[:3]}")
     return len(added)
 
