@@ -50,7 +50,10 @@ export interface CompletionClient {
   completeWithUsage(
     messages: ChatMessage[],
     options?: { maxTokens?: number },
-  ): Promise<{ content: string }>;
+  ): Promise<{
+    content: string;
+    usage?: { completionTokens?: number | null } | null;
+  }>;
 }
 
 export interface ThinkClients {

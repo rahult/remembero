@@ -112,6 +112,20 @@ function stub(replies: Array<[string, string]>): CompletionClient & {
   };
 }
 
+/** The client's replies carrying a completion-token count, as the real client's usage does. */
+function withUsage<C extends CompletionClient>(
+  client: C,
+  completionTokens: number,
+): C {
+  return {
+    ...client,
+    async completeWithUsage(messages, options) {
+      const completion = await client.completeWithUsage(messages, options);
+      return { ...completion, usage: { completionTokens } };
+    },
+  };
+}
+
 const throwing: CompletionClient = {
   async completeWithUsage() {
     throw new Error('must not be called');
@@ -379,6 +393,8 @@ describe('mining a file', () => {
       expected: 'Two',
       hypothesis: 'Three.',
       reply: 'Three.',
+      completionTokens: null,
+      maxTokens: 1024,
       correct: false,
     });
     expect(results).toContainEqual(
@@ -400,7 +416,7 @@ describe('mining a file', () => {
   it("judges a thinking student's final answer line and keeps its whole reply", async () => {
     const out = mkdtempSync(join(tmpdir(), 'mine-think-'));
     const reply = 'Notes:\n- 2023-06-19: second marathon\nAnswer: Two';
-    const student = stub([[multi.question, reply]]);
+    const student = withUsage(stub([[multi.question, reply]]), 37);
     await mineFile({
       file: 'heldout.jsonl',
       rows: [multi],
@@ -422,6 +438,8 @@ describe('mining a file', () => {
       file: 'heldout.jsonl',
       hypothesis: 'Two',
       reply,
+      completionTokens: 37,
+      maxTokens: 2048,
       correct: true,
     });
   });
@@ -456,7 +474,10 @@ describe('mining a file', () => {
     };
     await mineFile({
       ...base,
-      clients: { student: stub(studentReplies), judge: flakyJudge },
+      clients: {
+        student: withUsage(stub(studentReplies), 55),
+        judge: flakyJudge,
+      },
     });
     expect(mineCounts(join(out, 'progress.jsonl'))).toMatchObject({
       errors: 1,
@@ -473,6 +494,12 @@ describe('mining a file', () => {
     expect(lines(join(out, 'misses.jsonl'))).toHaveLength(2);
     expect(lines(join(out, 'misses.jsonl.meta.jsonl'))).toHaveLength(2);
     expect(lines(join(out, 'results.jsonl'))).toHaveLength(4);
+    // the retried row keeps the completion tokens of its stored reply
+    expect(
+      lines(join(out, 'results.jsonl'))
+        .map((l) => JSON.parse(l) as Record<string, unknown>)
+        .find((r) => r.type === 'abstention'),
+    ).toMatchObject({ completionTokens: 55, maxTokens: 1024 });
     expect(mineCounts(join(out, 'progress.jsonl'))).toMatchObject({
       errors: 0,
       byType: { abstention: { asked: 1, correct: 0, misses: 1 } },

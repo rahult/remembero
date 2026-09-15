@@ -182,6 +182,10 @@ export interface MineResult {
   hypothesis: string;
   /** The student's whole reply. */
   reply: string;
+  /** The student's completion tokens, from the client's usage; null when not reported. */
+  completionTokens: number | null;
+  /** The student's token cap for the call. */
+  maxTokens: number;
   correct: boolean;
 }
 
@@ -195,6 +199,8 @@ export interface MineProgressEntry {
   error?: string;
   /** On an error after the student answered: its reply, reused on resume. */
   reply?: string;
+  /** With a stored reply: its completion tokens, null when not reported. */
+  completionTokens?: number | null;
 }
 
 export interface MineFileOptions {
@@ -246,7 +252,9 @@ export async function mineFile(options: MineFileOptions): Promise<void> {
       });
       return;
     }
-    let reply = done.get(progressKey(file, index))?.reply;
+    const stored = done.get(progressKey(file, index));
+    let reply = stored?.reply;
+    let completionTokens = stored?.completionTokens ?? null;
     try {
       if (reply === undefined) {
         const messages = readerMessages(
@@ -255,11 +263,12 @@ export async function mineFile(options: MineFileOptions): Promise<void> {
           row.type,
           studentContract,
         );
-        reply = (
-          await clients.student.completeWithUsage(messages, {
-            maxTokens: options.studentMaxTokens,
-          })
-        ).content;
+        const completion = await clients.student.completeWithUsage(messages, {
+          maxTokens: options.studentMaxTokens,
+        });
+        reply = completion.content;
+        const tokens = completion.usage?.completionTokens;
+        completionTokens = typeof tokens === 'number' ? tokens : null;
       }
       const expected = completionAnswer(
         row.answer,
@@ -289,6 +298,8 @@ export async function mineFile(options: MineFileOptions): Promise<void> {
         expected,
         hypothesis,
         reply,
+        completionTokens,
+        maxTokens: options.studentMaxTokens,
         correct,
       };
       appendFileSync(
@@ -310,7 +321,7 @@ export async function mineFile(options: MineFileOptions): Promise<void> {
       record({
         outcome: 'error',
         error: error instanceof Error ? error.message : String(error),
-        ...(reply === undefined ? {} : { reply }),
+        ...(reply === undefined ? {} : { reply, completionTokens }),
       });
     }
   });

@@ -336,6 +336,27 @@ function runJson(
   );
 }
 
+function minedDir(
+  dir: string,
+  studentThinking: boolean,
+  results: unknown[],
+): string {
+  const mined = join(dir, `mined-${Math.random().toString(36).slice(2)}`);
+  mkdirSync(mined);
+  writeFileSync(
+    join(mined, 'manifest.json'),
+    JSON.stringify({
+      contract: { id: 'dd+notes+think@24576', thinking: true },
+      studentContract: {
+        id: studentThinking ? 'dd+notes+think@24576' : 'dd+notes@24576',
+        thinking: studentThinking,
+      },
+    }),
+  );
+  jsonl(join(mined, 'results.jsonl'), results);
+  return mined;
+}
+
 describe('reviewReader', () => {
   it('writes accuracy deltas, class counts and the recommendation', () => {
     const dir = mkdtempSync(join(tmpdir(), 'review-'));
@@ -484,14 +505,86 @@ describe('reviewReader', () => {
     expect(review.mined.missRate).toBe(0.4);
     expect(review.recommend.missShare).toBe(0.25);
     expect(review.recommend.dropTypesFromThinking).toEqual(['multi-session']);
-    // 2/3, 1/3, max(0, 0.05): sum 1.05
+    // conversations only: 1/2, 1/2, max(0, 0.05), sum 1.05; the heldout multi-session miss
+    // (which would make it 2/3, 1/3) does not count
     expect(review.recommend.typeWeights).toBe(
-      'multi-session=63,temporal-reasoning=32,abstention=5',
+      'multi-session=48,temporal-reasoning=48,abstention=5',
     );
     expect(review.recommend.typeWeightsRaw.abstention).toBeCloseTo(
       0.05 / 1.05,
       10,
     );
+  });
+
+  it('refuses a drop comparison whose run does not think or whose baseline does', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'review-'));
+    const mined = minedDir(dir, false, []);
+    const direct = join(dir, 'direct.json');
+    const notes = join(dir, 'notes.json');
+    runJson(direct, { 'multi-session': 10 }, [], { readingStrategy: 'direct' });
+    runJson(notes, { 'multi-session': 10 }, [], { readingStrategy: 'notes' });
+    expect(() =>
+      reviewReader({ run: direct, baseline: direct, mined }),
+    ).toThrow(/--run .*dd\+notes@24576.* not a thinking contract/);
+    expect(() => reviewReader({ run: notes, baseline: notes, mined })).toThrow(
+      /--baseline .*dd\+notes\+think@24576.* is a thinking contract/,
+    );
+    expect(
+      reviewReader({ run: notes, baseline: direct, mined }).recommend
+        .dropTypesFromThinking,
+    ).toEqual([]);
+    // no baseline: nothing to pair, a direct run is fine
+    expect(() => reviewReader({ run: direct, mined })).not.toThrow();
+  });
+
+  it('mined rows: format from the token cap, and the first copy of a duplicate row counts', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'review-'));
+    const row = {
+      type: 'temporal-reasoning',
+      question: 'how long ago did I run?',
+      expected: '2 weeks',
+      hypothesis: '3 weeks',
+      reply: 'Notes:\n- 2023-06-01: ran\nAnswer: 3 weeks',
+      correct: false,
+    };
+    const mined = minedDir(dir, true, [
+      {
+        ...row,
+        file: 'conversations.jsonl',
+        index: 0,
+        completionTokens: 2048,
+        maxTokens: 2048,
+      },
+      {
+        ...row,
+        file: 'conversations.jsonl',
+        index: 1,
+        completionTokens: 900,
+        maxTokens: 2048,
+      },
+      { ...row, file: 'conversations.jsonl', index: 2 },
+      // a later copy of index 0 answered correctly: the first copy stands
+      {
+        ...row,
+        file: 'conversations.jsonl',
+        index: 0,
+        correct: true,
+        completionTokens: 10,
+        maxTokens: 2048,
+      },
+    ]);
+    const run = join(dir, 'run.json');
+    runJson(run, { 'temporal-reasoning': 10 }, [], {
+      readingStrategy: 'notes',
+    });
+    const review = reviewReader({ run, mined });
+    expect(review.mined.byType).toEqual({
+      'temporal-reasoning': { asked: 3, correct: 0, misses: 3 },
+    });
+    expect(review.mined.classes).toMatchObject({
+      format: 1,
+      'date-arithmetic': 2,
+    });
   });
 
   it('without a baseline: no deltas and nothing dropped', () => {

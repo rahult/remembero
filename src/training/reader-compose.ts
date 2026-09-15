@@ -167,6 +167,11 @@ export function composeTraining(options: ComposeOptions) {
     join(out, 'heldout.jsonl.meta.jsonl'),
   );
 
+  const realisedShare = missCount / rows;
+  if (Math.abs(realisedShare - share) > 0.01)
+    console.error(
+      `compose: the realised miss share is ${realisedShare} (${missCount} of ${rows} rows), not the ${share} asked for; the base has ${baseFile.rows.length} rows`,
+    );
   const metaOf = (source: 'base' | 'miss') =>
     composed.filter((row) => row.meta.source === source).map((row) => row.meta);
   const manifest = {
@@ -183,6 +188,7 @@ export function composeTraining(options: ComposeOptions) {
       heldout: { path: heldout, contract: contract.id },
     },
     share,
+    realisedShare,
     rows,
     train: { base: keptIndices.length, miss: missCount },
     heldout: heldoutFile.rows.length,

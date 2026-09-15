@@ -254,6 +254,10 @@ export function runContractId(result: LongMemEvalResult): string | null {
   });
 }
 
+function isThinkingContract(id: string): boolean {
+  return id.includes('+think');
+}
+
 function accuracyOf(entry: TypeAccuracy): Required<TypeAccuracy> {
   return {
     questions: entry.questions,
@@ -301,7 +305,7 @@ export function observationClasses(
   return summary;
 }
 
-/** results.jsonl of a mine directory, one row per (file, index), the last written kept. */
+/** results.jsonl of a mine directory, one row per (file, index), the first written kept. */
 export function readMineResults(minedDir: string): MineResult[] {
   const path = join(minedDir, 'results.jsonl');
   if (!existsSync(path))
@@ -310,7 +314,8 @@ export function readMineResults(minedDir: string): MineResult[] {
   for (const line of readFileSync(path, 'utf8').split('\n')) {
     if (!line.trim()) continue;
     const row = JSON.parse(line) as MineResult;
-    rows.set(`${row.file}#${row.index}`, row);
+    const key = `${row.file}#${row.index}`;
+    if (!rows.has(key)) rows.set(key, row);
   }
   return [...rows.values()];
 }
@@ -341,6 +346,20 @@ export function reviewReader(options: ReviewOptions) {
     studentContract?: { id?: unknown; thinking?: unknown };
   }>(join(options.mined, 'manifest.json'));
   const studentThinking = minedManifest.studentContract?.thinking === true;
+  const runContract = runContractId(run);
+  const baselineContract =
+    baseline === undefined ? null : runContractId(baseline);
+  // the drop list compares a thinking run with a direct baseline; refuse any other pairing
+  if (runContract !== null && baselineContract !== null) {
+    if (!isThinkingContract(runContract))
+      throw new Error(
+        `--run ${options.run} reads under ${runContract}, not a thinking contract; dropTypesFromThinking pairs a thinking run with a direct baseline`,
+      );
+    if (isThinkingContract(baselineContract))
+      throw new Error(
+        `--baseline ${options.baseline} reads under ${baselineContract}, which is a thinking contract; dropTypesFromThinking pairs a thinking run with a direct baseline`,
+      );
+  }
 
   const accuracy: Record<
     string,
@@ -374,33 +393,52 @@ export function reviewReader(options: ReviewOptions) {
     string,
     { asked: number; correct: number; misses: number }
   > = {};
+  // the recipe reads the conversations file only: heldout misses never become training rows
+  const conversationsByType: Record<string, TypeMissCounts> = {};
   let conversationsAsked = 0;
   let conversationsMisses = 0;
   for (const row of results) {
     const counts = (byType[row.type] ??= { asked: 0, correct: 0, misses: 0 });
+    const training =
+      row.file === 'conversations.jsonl'
+        ? (conversationsByType[row.type] ??= { asked: 0, misses: 0 })
+        : undefined;
     counts.asked += 1;
-    if (row.file === 'conversations.jsonl') conversationsAsked += 1;
+    if (training !== undefined) {
+      training.asked += 1;
+      conversationsAsked += 1;
+    }
     if (row.correct) {
       counts.correct += 1;
       continue;
     }
     counts.misses += 1;
-    if (row.file === 'conversations.jsonl') conversationsMisses += 1;
-    const kind = classifyMiss({ ...row, thinking: studentThinking });
+    if (training !== undefined) {
+      training.misses += 1;
+      conversationsMisses += 1;
+    }
+    const kind = classifyMiss({
+      ...row,
+      thinking: studentThinking,
+      cutAtLimit:
+        typeof row.completionTokens === 'number' &&
+        typeof row.maxTokens === 'number' &&
+        row.completionTokens >= row.maxTokens,
+    });
     classes[kind] += 1;
     const typeClasses = (classesByType[row.type] ??= {});
     typeClasses[kind] = (typeClasses[kind] ?? 0) + 1;
   }
-  const weights = recommendTypeWeights(byType);
+  const weights = recommendTypeWeights(conversationsByType);
 
   return {
     generatedAt: (options.now ?? new Date()).toISOString(),
     inputs: {
-      run: { path: options.run, contract: runContractId(run) },
+      run: { path: options.run, contract: runContract },
       baseline:
         options.baseline === undefined || baseline === undefined
           ? null
-          : { path: options.baseline, contract: runContractId(baseline) },
+          : { path: options.baseline, contract: baselineContract },
       mined: {
         path: options.mined,
         contract: contractIdOf(minedManifest.contract),

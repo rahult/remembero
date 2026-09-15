@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { composeTraining } from '../src/training/reader-compose.js';
 
 const TYPES = ['multi-session', 'temporal-reasoning', 'abstention'];
@@ -85,7 +85,12 @@ function fixture(
     miss('conversations.jsonl', 0),
     miss('heldout.jsonl', 0),
     miss('conversations.jsonl', 4),
-    miss('conversations.jsonl', 0),
+    // a second copy of index 0 (a resumed mine): the first copy is the one kept
+    {
+      ...miss('conversations.jsonl', 0),
+      question: 'second copy?',
+      answer: 'Answer: second copy',
+    },
     miss('conversations.jsonl', 7),
   ]);
   writeFileSync(
@@ -113,9 +118,14 @@ function readLines(path: string): string[] {
 }
 
 describe('composeTraining', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('keeps round(rows × (1 − share)) sampled base rows and fills the rest with misses', () => {
     const f = fixture();
     const out = join(f.root, 'out');
+    const stderr = vi.spyOn(console, 'error').mockImplementation(() => {});
     const manifest = composeTraining({
       base: f.base,
       misses: f.misses,
@@ -130,6 +140,8 @@ describe('composeTraining', () => {
       (l) => JSON.parse(l) as Record<string, unknown>,
     );
     expect(lines).toHaveLength(8);
+    // 2 / 8 is the share asked for: no note
+    expect(stderr).not.toHaveBeenCalled();
     expect(meta).toHaveLength(8);
     // twins aligned
     lines.forEach((l, i) => {
@@ -194,6 +206,7 @@ describe('composeTraining', () => {
   it('keeps every base row when the base is short and cycles the misses to fill', () => {
     const f = fixture();
     const out = join(f.root, 'out');
+    const stderr = vi.spyOn(console, 'error').mockImplementation(() => {});
     const manifest = composeTraining({
       base: f.base,
       misses: f.misses,
@@ -202,6 +215,9 @@ describe('composeTraining', () => {
       rows: 20,
       seed: 3,
     });
+    expect(manifest.realisedShare).toBe(0.5);
+    expect(stderr).toHaveBeenCalledTimes(1);
+    expect(String(stderr.mock.calls[0]![0])).toMatch(/0\.5.*0\.25/);
     const meta = readLines(join(out, 'conversations.jsonl.meta.jsonl')).map(
       (l) => JSON.parse(l) as Record<string, unknown>,
     );
@@ -210,6 +226,7 @@ describe('composeTraining', () => {
     const uses = new Map<unknown, number>();
     const missRows = meta.filter((row) => row.source === 'miss');
     expect(missRows.every((m) => m.file === 'conversations.jsonl')).toBe(true);
+    expect(missRows.some((m) => m.question === 'second copy?')).toBe(false);
     for (const m of missRows) uses.set(m.index, (uses.get(m.index) ?? 0) + 1);
     expect([...uses.keys()].sort()).toEqual([0, 4, 7]);
     expect([...uses.values()].sort()).toEqual([3, 3, 4]);
