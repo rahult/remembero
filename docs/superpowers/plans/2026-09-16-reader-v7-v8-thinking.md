@@ -109,7 +109,7 @@
 
 - [ ] Upload `data/training-reader-v7` to the volume; `submit.py reader-v7-gemma4-e4b --max-length 8192`; fetch metrics.
 - [ ] Pod with v4 and v7; paired 266 (v4 direct, v7 thinking); paired 500 when the 266 gap is inside noise or better; stop the pod between arms that wait on a local step.
-- [ ] A second fresh distill (`--seed 19 --split-seed 7`, 3000 examples, 300 held-out) into `data/distill-v8-fresh` before the pod starts; `mine --from data/distill-v8-fresh` with v7 as student (thinking contract flags, `--student-max-tokens 1024`) into `data/mined-v7`, on the same pod session; stop the pod.
+- [ ] `mine --from data/distill-v7-fresh --files conversations` with v7 as student (thinking contract flags, `--student-max-tokens 1024`) into `data/mined-v7`, on the same pod session, over the rows past the ones v4 was mined on (v7 trained only on misses from rows 0-643, so rows 644+ are unseen); stop the pod.
 - [ ] `review --run <v7 500> --baseline <v4 500> --mined data/mined-v7`; record the table, the failure classes and the recommendation in READER-STRUCTURE.md; commit.
 
 ### Task 10: Build, train and measure v8 (needs a top-up; stop and ask when short)
