@@ -48,7 +48,7 @@ import {
   interleaveSessions,
 } from '../knowledge/entity-retrieval.js';
 import { MemoryStore } from '../store/store.js';
-import type { ContextTiers } from './reader-contract.js';
+import { THINKING_TYPES, type ContextTiers } from './reader-contract.js';
 import {
   longMemEvalSessionText,
   LONGMEMEVAL_S_COMMIT,
@@ -1734,8 +1734,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       topScore,
     );
     const aggregationType = (
-      options.notesQuestionTypes ??
-      new Set(['multi-session', 'temporal-reasoning', 'knowledge-update'])
+      options.notesQuestionTypes ?? THINKING_TYPES
     ).has(instance.question_type);
     const notes = options.readingStrategy === 'notes' && aggregationType;
     const twoCall = options.readingStrategy === 'two-call' && aggregationType;

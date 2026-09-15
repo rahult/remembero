@@ -241,15 +241,22 @@ export function parseQuestionReply(
 const ABSTAINS =
   /(does not|doesn't|don't|do not|no) (say|mention|know|have|contain|record|information|indicate)|not (mentioned|recorded|in (the|your) history)|i do not know|i don't know|no information/i;
 
-/** The text the evaluation judges: the final answer line on a thinking type, else the reply. */
+/**
+ * Whether the row is rendered with the notes prompt: a thinking type, or an abstention
+ * question, which under thinking renders as multi-session (LongMemEval's abstention
+ * questions keep their aggregation type, so the harness reads them with notes).
+ */
+function thinksOn(thinking: boolean, type: string): boolean {
+  return thinking && (THINKING_TYPES.has(type) || type === 'abstention');
+}
+
+/** The text the evaluation judges: the final answer line on a notes-rendered row, else the reply. */
 export function completionAnswer(
   reply: string,
   thinking: boolean,
   type: string,
 ): string {
-  return thinking && THINKING_TYPES.has(type)
-    ? finalAnswerLine(reply)
-    : reply.trim();
+  return thinksOn(thinking, type) ? finalAnswerLine(reply) : reply.trim();
 }
 
 /** A last "Answer:" marker with text after it, as finalAnswerLine reads one. */
@@ -262,8 +269,9 @@ function hasAnswerLine(reply: string): boolean {
  * An abstention example is kept only when the reader abstained; any other type
  * is dropped when the reader abstained (the teacher could not answer its own
  * question, so the example teaches nothing) or answered nothing at all. Under the
- * thinking step a thinking type must end in an answer line, and only that line is
- * tested: notes may well say what the history does not mention.
+ * thinking step a notes-rendered row (a thinking type or abstention) must end in an
+ * answer line, and only that line is tested: notes may well say what the history does
+ * not mention.
  */
 export function acceptDistilled(
   type: DistillType,
@@ -271,8 +279,7 @@ export function acceptDistilled(
   thinking = false,
 ): boolean {
   if (answer.trim().length === 0) return false;
-  if (thinking && THINKING_TYPES.has(type) && !hasAnswerLine(answer))
-    return false;
+  if (thinksOn(thinking, type) && !hasAnswerLine(answer)) return false;
   const abstained = ABSTAINS.test(completionAnswer(answer, thinking, type));
   return type === 'abstention' ? abstained : !abstained;
 }
@@ -290,7 +297,14 @@ export function readerMessages(
     throw new Error(
       'tiered contracts need rank-ordered haystacks; see plan Task 5',
     );
-  const instanceType = type === 'abstention' ? 'single-session-user' : type;
+  // abstention renders as an aggregation question under thinking, as LongMemEval's do; a
+  // direct contract keeps single-session-user so its prompts stay byte-identical
+  const instanceType =
+    type === 'abstention'
+      ? contract.thinking
+        ? 'multi-session'
+        : 'single-session-user'
+      : type;
   const instance = {
     question_id: `distill-${type}`,
     question_type: instanceType,

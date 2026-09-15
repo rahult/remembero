@@ -52,7 +52,10 @@ import {
   type DistilledExample,
 } from './reader-distill.js';
 import type { Rng } from './rng.js';
-import { rerenderMetaFile } from './reader-rerender.js';
+import {
+  assertRerenderContract,
+  rerenderMetaFile,
+} from './reader-rerender.js';
 import {
   generateReaderExamples,
   rewritePrompt,
@@ -775,6 +778,7 @@ async function rerenderReader(): Promise<void> {
   const labelsPath = flag('--labels', 'data/real/labels-glmflash8.jsonl')!;
   const seed = Number(flag('--seed', '7'));
   const contract = contractFromFlags(process.argv);
+  assertRerenderContract(contract);
   const labels = readRows(labelsPath);
   // the same pool the distiller drew from, both halves together: a meta row names its
   // sessions by id, and train and heldout rows are rebuilt against the one pool

@@ -78,6 +78,27 @@ describe('reader contract', () => {
     expect(distilled[1]!.content).toContain('Computed');
   });
 
+  it('renders a thinking prompt byte-for-byte as the harness renders it with notes', () => {
+    const contract = { ...READER_CONTRACT_V5, thinking: true };
+    const sessions = haystack.sessions.map((s) => ({ opId: s.id, ts: `${s.date}T09:00:00.000Z`, text: s.transcript, facts: s.facts }));
+    const base = {
+      question: 'How long ago did I see John Mulaney?', question_date: '2023/07/10 (Sat) 09:00',
+      answer: '', haystack_session_ids: [], haystack_dates: [], haystack_sessions: [], answer_session_ids: [],
+    };
+    const distilled = readerMessages(haystack, base.question, 'temporal-reasoning', contract);
+    const harness = buildLongMemEvalAnswerContext(
+      { ...base, question_id: 'distill-temporal-reasoning', question_type: 'temporal-reasoning' } as never,
+      sessions, contract.contextBytes, [], 'notes', undefined, ...contractBuilderArgs(contract),
+    );
+    expect(distilled).toEqual(harness.messages);
+    const abstention = readerMessages(haystack, base.question, 'abstention', contract);
+    const harnessAbstention = buildLongMemEvalAnswerContext(
+      { ...base, question_id: 'distill-abstention', question_type: 'multi-session' } as never,
+      sessions, contract.contextBytes, [], 'notes', undefined, ...contractBuilderArgs(contract),
+    );
+    expect(abstention).toEqual(harnessAbstention.messages);
+  });
+
   it('the distill manifest records the contract it rendered with', () => {
     const entry = distillManifestContract(['--computed-notes', '--date-distances']);
     expect(entry.id).toBe('dd+notes@24576');
