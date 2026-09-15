@@ -391,3 +391,24 @@ rank-ordered haystacks) is built, and `data/training-reader-v6` is already rende
 winning contract. Tiers would need a better ranker (evidence in the top few) or abstracts written
 for the question, not a smaller budget, before they are worth another arm. Cost: about $1.50 of
 H100 time for the sweep, plus the pod's prepare.
+
+## Teacher gate for the thinking step (2026-09-16)
+
+Plan: `docs/superpowers/plans/2026-09-16-reader-v7-v8-thinking.md`, Task 7. Before a student is
+trained to write a thinking step (the dated items and the arithmetic, then a final `Answer:`
+line that alone is judged), the teacher has to be at least as right when it writes one. GLM 5.3
+Flash read the 266 under the contract flags of record (`--date-distances --computed-notes
+--context-bytes 24576`, depth 4/15/10, DeepSeek judge), direct and with `--reading notes`.
+
+| Arm | Correct / 266 | Multi-session / 133 | Temporal / 133 |
+|---|---|---|---|
+| Direct | 217 | 100 | 117 |
+| Thinking step | 214 (1 judge error) | 99 | 115 |
+
+Paired flips: multi-session 3 gained, 4 lost; temporal 3 gained, 5 lost. The difference is
+inside noise and neither type falls by more than 5, so every aggregation type keeps the
+thinking step in the v7 data. As with Luna, writing the items out does not make a large reader
+more accurate; the bet for the student is different, that a small model which cannot hold
+fifteen sessions' worth of items in one step can when it writes them down first. The teacher's
+completions run long (p50 571 tokens including its hidden reasoning), so the length audit's
+768-token completion cap will drop the longest thinking rows before training.
