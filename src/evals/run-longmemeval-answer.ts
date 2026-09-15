@@ -24,6 +24,7 @@ import {
   type LongMemEvalSplit,
 } from './longmemeval-semantic.js';
 import { mapConcurrent } from './map-concurrent.js';
+import { DEFAULT_ABSTRACT_BYTES, tiersFromFlags } from './reader-contract.js';
 import {
   assertBuiltinMemorySystemScope,
   openMemorySystem,
@@ -72,6 +73,8 @@ interface Args {
   computedNotes: boolean;
   focusedBudget: boolean;
   structuredEvidence: boolean;
+  fullSessions: number | null;
+  abstractBytes: number;
   engineRecallQuestionTypes: Set<string> | undefined;
   extractionCacheDir: string | undefined;
   temporalRangeModel: string | undefined;
@@ -145,6 +148,11 @@ Options:
                          quantities with units totalled, each with its source sentence
   --focused-budget       Weight each retrieved session's share of the context by the question's
                          content words it contains, instead of an even split
+  --full-sessions <n>    Context tiers: the n top-ranked sessions get their full text, every other
+                         retrieved session a code-built abstract of its user sentences naming the
+                         question (not combinable with --focused-budget)
+  --abstract-bytes <n>   Byte cap of one abstract section, 120-2048 (default: 320; needs
+                         --full-sessions)
   --structured-evidence  Before the chats, the extracted facts about the question, dated by their
                          session or a date inside them, grounded, deduplicated, later values current
   --no-facts-in-context  Do not list a retrieved session's matched extracted facts to the reader
@@ -240,6 +248,8 @@ function parseArgs(argv: string[]): Args {
     computedNotes: false,
     focusedBudget: false,
     structuredEvidence: false,
+    fullSessions: null,
+    abstractBytes: DEFAULT_ABSTRACT_BYTES,
     engineRecallQuestionTypes: undefined,
     extractionCacheDir: undefined,
     temporalRangeModel: undefined,
@@ -436,6 +446,9 @@ function parseArgs(argv: string[]): Args {
       args.focusedBudget = true;
     } else if (arg === '--structured-evidence') {
       args.structuredEvidence = true;
+    } else if (arg === '--full-sessions' || arg === '--abstract-bytes') {
+      // validated with the reader contract's own rules once every flag is read
+      requiredValue(argv, index++, arg);
     } else if (arg === '--engine-recall-question-types') {
       args.engineRecallQuestionTypes = new Set(
         requiredValue(argv, index++, arg)
@@ -469,6 +482,11 @@ function parseArgs(argv: string[]): Args {
       process.exit(0);
     } else throw new Error(`unknown option: ${arg}`);
   }
+  // the reader contract's rules: positive --full-sessions, --abstract-bytes 120-2048 and only
+  // with tiers, and never tiers with --focused-budget (two budget policies are not a pair)
+  const tiers = tiersFromFlags(argv);
+  args.fullSessions = tiers.fullSessions;
+  args.abstractBytes = tiers.abstractBytes;
   return args;
 }
 
@@ -714,6 +732,14 @@ async function main(): Promise<void> {
             computedNotes: args.computedNotes,
             focusedBudget: args.focusedBudget,
             structuredEvidence: args.structuredEvidence,
+            ...(args.fullSessions === null
+              ? {}
+              : {
+                  tiers: {
+                    fullSessions: args.fullSessions,
+                    abstractBytes: args.abstractBytes,
+                  },
+                }),
             ...(memorySystems.length === 0
               ? {}
               : {
@@ -787,6 +813,8 @@ async function main(): Promise<void> {
       computedNotes: args.computedNotes,
       focusedBudget: args.focusedBudget,
       structuredEvidence: args.structuredEvidence,
+      fullSessions: args.fullSessions,
+      abstractBytes: args.fullSessions === null ? null : args.abstractBytes,
       engineRecallQuestionTypes:
         args.engineRecallQuestionTypes === undefined
           ? null

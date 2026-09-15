@@ -14,9 +14,25 @@ export interface ReaderContract {
   /** The writer's own facts, dated, grounded and deduplicated, before the chats. */
   structuredEvidence: boolean;
   contextBytes: number;
+  /**
+   * Context tiers: this many top-ranked sessions get their full text and every other
+   * retrieved session a short code-built abstract. Null is the even split.
+   */
+  fullSessions: number | null;
+  /** The byte cap of one abstract section, header included (tiers only). */
+  abstractBytes: number;
 }
 
 export const DEFAULT_READER_CONTEXT_BYTES = 24 * 1024;
+export const DEFAULT_ABSTRACT_BYTES = 320;
+export const MIN_ABSTRACT_BYTES = 120;
+export const MAX_ABSTRACT_BYTES = 2048;
+
+/** The trailing tiers argument of buildLongMemEvalAnswerContext. */
+export interface ContextTiers {
+  fullSessions: number;
+  abstractBytes: number;
+}
 
 /** What reader v5 was distilled with: the two blocks with a measured gain. */
 export const READER_CONTRACT_V5: ReaderContract = {
@@ -25,10 +41,16 @@ export const READER_CONTRACT_V5: ReaderContract = {
   focusedBudget: false,
   structuredEvidence: false,
   contextBytes: DEFAULT_READER_CONTEXT_BYTES,
+  fullSessions: null,
+  abstractBytes: DEFAULT_ABSTRACT_BYTES,
 };
 
 const FLAGS: Array<
-  [keyof Omit<ReaderContract, 'contextBytes'>, string, string]
+  [
+    keyof Omit<ReaderContract, 'contextBytes' | 'fullSessions' | 'abstractBytes'>,
+    string,
+    string,
+  ]
 > = [
   ['dateDistances', '--date-distances', 'dd'],
   ['computedNotes', '--computed-notes', 'notes'],
@@ -40,7 +62,11 @@ export function contractId(contract: ReaderContract): string {
   const parts = FLAGS.filter(([key]) => contract[key]).map(
     ([, , short]) => short,
   );
-  return `${parts.length === 0 ? 'plain' : parts.join('+')}@${contract.contextBytes}`;
+  const tiers =
+    contract.fullSessions === null
+      ? ''
+      : `+full${contract.fullSessions}${contract.abstractBytes === DEFAULT_ABSTRACT_BYTES ? '' : `a${contract.abstractBytes}`}`;
+  return `${parts.length === 0 ? 'plain' : parts.join('+')}${tiers}@${contract.contextBytes}`;
 }
 
 export function contractFromFlags(
@@ -66,7 +92,53 @@ export function contractFromFlags(
       throw new Error(`--context-bytes must be a positive integer, got ${value}`);
     contract.contextBytes = parsed;
   }
+  const tiers = tiersFromFlags(argv, contract.abstractBytes);
+  contract.fullSessions = tiers.fullSessions;
+  contract.abstractBytes = tiers.abstractBytes;
   return contract;
+}
+
+function flagValue(argv: readonly string[], flag: string): string | undefined {
+  const index = argv.indexOf(flag);
+  return index >= 0 ? argv[index + 1] : undefined;
+}
+
+/**
+ * `--full-sessions <n>` and `--abstract-bytes <n>`, validated, as the contract and the
+ * evaluation runner both read them. Tiers and the focused budget are two budget policies;
+ * an arm with both would not pair against either.
+ */
+export function tiersFromFlags(
+  argv: readonly string[],
+  baseAbstractBytes: number = DEFAULT_ABSTRACT_BYTES,
+): { fullSessions: number | null; abstractBytes: number } {
+  const full = flagValue(argv, '--full-sessions');
+  const abstract = flagValue(argv, '--abstract-bytes');
+  let fullSessions: number | null = null;
+  let abstractBytes = baseAbstractBytes;
+  if (full !== undefined) {
+    const parsed = Number(full);
+    if (!Number.isInteger(parsed) || parsed <= 0)
+      throw new Error(`--full-sessions must be a positive integer, got ${full}`);
+    fullSessions = parsed;
+  }
+  if (abstract !== undefined) {
+    if (fullSessions === null)
+      throw new Error('--abstract-bytes needs --full-sessions');
+    const parsed = Number(abstract);
+    if (
+      !Number.isInteger(parsed) ||
+      parsed < MIN_ABSTRACT_BYTES ||
+      parsed > MAX_ABSTRACT_BYTES
+    )
+      throw new Error(
+        `--abstract-bytes must be an integer from ${MIN_ABSTRACT_BYTES} to ${MAX_ABSTRACT_BYTES}, got ${abstract}`,
+      );
+    abstractBytes = parsed;
+  }
+  if (fullSessions !== null && argv.includes('--focused-budget'))
+    throw new Error('--full-sessions cannot be combined with --focused-budget');
+  return { fullSessions, abstractBytes };
 }
 
 /** The environment the distiller has honoured so far, kept so old commands still work. */
@@ -86,6 +158,13 @@ export function contractFromEnv(
  */
 export function contractRunnerFlags(contract: ReaderContract): string[] {
   const flags = FLAGS.filter(([key]) => contract[key]).map(([, flag]) => flag);
+  if (contract.fullSessions !== null)
+    flags.push(
+      '--full-sessions',
+      String(contract.fullSessions),
+      '--abstract-bytes',
+      String(contract.abstractBytes),
+    );
   flags.push('--context-bytes', String(contract.contextBytes));
   return flags;
 }
@@ -93,12 +172,18 @@ export function contractRunnerFlags(contract: ReaderContract): string[] {
 /** The trailing positional arguments of buildLongMemEvalAnswerContext, in its order. */
 export function contractBuilderArgs(
   contract: ReaderContract,
-): [boolean, boolean, boolean, boolean] {
+): [boolean, boolean, boolean, boolean, ContextTiers | undefined] {
   return [
     contract.dateDistances,
     contract.computedNotes,
     contract.focusedBudget,
     contract.structuredEvidence,
+    contract.fullSessions === null
+      ? undefined
+      : {
+          fullSessions: contract.fullSessions,
+          abstractBytes: contract.abstractBytes,
+        },
   ];
 }
 

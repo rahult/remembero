@@ -4,6 +4,7 @@ import {
   contractFromEnv,
   contractFromFlags,
   contractId,
+  contractBuilderArgs,
   contractRunnerFlags,
   distillManifestContract,
 } from '../src/evals/reader-contract.js';
@@ -59,6 +60,39 @@ describe('reader contract', () => {
     const entry = distillManifestContract(['--computed-notes', '--date-distances']);
     expect(entry.id).toBe('dd+notes@24576');
     expect(entry.runnerFlags).toEqual(['--date-distances', '--computed-notes', '--context-bytes', '24576']);
+  });
+
+  it('names, reads and emits context tiers', () => {
+    expect(READER_CONTRACT_V5.fullSessions).toBeNull();
+    expect(READER_CONTRACT_V5.abstractBytes).toBe(320);
+    const c = contractFromFlags(['--date-distances', '--computed-notes', '--full-sessions', '3']);
+    expect(c).toEqual({ ...READER_CONTRACT_V5, fullSessions: 3 });
+    expect(contractId(c)).toBe('dd+notes+full3@24576');
+    expect(contractRunnerFlags(c)).toEqual([
+      '--date-distances', '--computed-notes', '--full-sessions', '3', '--abstract-bytes', '320', '--context-bytes', '24576',
+    ]);
+    expect(contractFromFlags(contractRunnerFlags(c))).toEqual(c);
+    expect(contractBuilderArgs(c)).toEqual([true, true, false, false, { fullSessions: 3, abstractBytes: 320 }]);
+    expect(contractBuilderArgs(READER_CONTRACT_V5)).toEqual([true, true, false, false, undefined]);
+    const a = contractFromFlags(['--full-sessions', '5', '--abstract-bytes', '200']);
+    expect(contractId(a)).toBe('plain+full5a200@24576');
+    expect(contractFromFlags(contractRunnerFlags(a))).toEqual(a);
+    const entry = distillManifestContract(['--date-distances', '--computed-notes', '--full-sessions', '2']);
+    expect(entry.id).toBe('dd+notes+full2@24576');
+    expect(entry.runnerFlags).toContain('--full-sessions');
+  });
+
+  it('refuses malformed tier flags and tiers combined with the focused budget', () => {
+    expect(() => contractFromFlags(['--full-sessions', '0'])).toThrow('--full-sessions must be a positive integer, got 0');
+    expect(() => contractFromFlags(['--full-sessions', 'x'])).toThrow('--full-sessions must be a positive integer, got x');
+    expect(() => contractFromFlags(['--full-sessions', '3', '--abstract-bytes', '100'])).toThrow(
+      '--abstract-bytes must be an integer from 120 to 2048, got 100',
+    );
+    expect(() => contractFromFlags(['--full-sessions', '3', '--abstract-bytes', '4096'])).toThrow(/--abstract-bytes/);
+    expect(() => contractFromFlags(['--abstract-bytes', '200'])).toThrow('--abstract-bytes needs --full-sessions');
+    expect(() => contractFromFlags(['--full-sessions', '3', '--focused-budget'])).toThrow(
+      '--full-sessions cannot be combined with --focused-budget',
+    );
   });
 
   it('reads the one environment variable the old distill commands set', () => {

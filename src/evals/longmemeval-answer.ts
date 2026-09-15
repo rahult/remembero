@@ -45,6 +45,7 @@ import {
   interleaveSessions,
 } from '../knowledge/entity-retrieval.js';
 import { MemoryStore } from '../store/store.js';
+import type { ContextTiers } from './reader-contract.js';
 import {
   longMemEvalSessionText,
   LONGMEMEVAL_S_COMMIT,
@@ -266,6 +267,9 @@ export interface LongMemEvalAnswerRun {
     computedNotes?: boolean;
     focusedBudget?: boolean;
     structuredEvidence?: boolean;
+    /** Context tiers: full-text sessions (null: even split) and the abstract byte cap. */
+    fullSessions?: number | null;
+    abstractBytes?: number | null;
     hybridQuestionTypes: string[] | null;
     factsInContext: boolean;
     readerMaxTokens: number;
@@ -382,6 +386,61 @@ function sourceWindow(
     if (start + approximateCharacters >= boundedSource.length) break;
   }
   return boundedUtf8(boundedSource.slice(bestStart), maxBytes);
+}
+
+/** The sentences of a session's user turns, in order; assistant turns never contribute. */
+function userSentences(text: string): string[] {
+  const turns = [...text.matchAll(/^(user|assistant)[ \t]*:/gim)];
+  // a source with no role markers (a memory layer's own text) is the user's words throughout
+  const userText =
+    turns.length === 0
+      ? [text]
+      : turns.flatMap((turn, index) =>
+          turn[1]!.toLowerCase() === 'user'
+            ? [
+                text.slice(
+                  turn.index! + turn[0].length,
+                  turns[index + 1]?.index ?? text.length,
+                ),
+              ]
+            : [],
+        );
+  return userText.flatMap((turn) =>
+    turn
+      .split(/(?<=[.!?])\s+|\n+/)
+      .map((sentence) => sentence.replace(/\s+/g, ' ').trim())
+      .filter((sentence) => sentence !== ''),
+  );
+}
+
+/**
+ * A tiered session's abstract: its header, then the user sentences that contain one of the
+ * question's content words, in order, cut at a sentence boundary so the whole section fits
+ * maxBytes. With no match, the first user sentence cut to fit.
+ */
+function abstractSection(
+  header: string,
+  text: string,
+  words: readonly string[],
+  maxBytes: number,
+): string {
+  const room = maxBytes - Buffer.byteLength(header, 'utf8') - 1;
+  if (room <= 0) return `${boundedUtf8(header, maxBytes - 1)}\n`;
+  const sentences = userSentences(text);
+  const matching = sentences.filter((sentence) => {
+    const low = sentence.toLowerCase();
+    return words.some((word) => low.includes(word));
+  });
+  const candidates = matching.length > 0 ? matching : sentences.slice(0, 1);
+  let body = '';
+  for (const sentence of candidates) {
+    const next = body === '' ? sentence : `${body} ${sentence}`;
+    if (Buffer.byteLength(next, 'utf8') > room) break;
+    body = next;
+  }
+  if (body === '' && candidates.length > 0)
+    body = boundedUtf8(candidates[0]!, room);
+  return `${header}${body}\n`;
 }
 
 /** USER:/ASSISTANT: blocks, the shape the product's transcript capture and its training data use. */
@@ -565,14 +624,68 @@ export function buildLongMemEvalAnswerContext(
   computedNotes = false,
   focusedBudget = false,
   structuredEvidence = false,
+  tiers?: ContextTiers,
 ): AnswerContext {
   validateOptions(Math.max(1, rankedSources.length), contextBytes);
+  if (tiers !== undefined) {
+    if (focusedBudget)
+      throw new Error(
+        'context tiers cannot be combined with the focused budget: two budget policies in one prompt',
+      );
+    if (!Number.isInteger(tiers.fullSessions) || tiers.fullSessions <= 0)
+      throw new Error(
+        `context tiers need a positive integer fullSessions, got ${tiers.fullSessions}`,
+      );
+    if (!Number.isInteger(tiers.abstractBytes) || tiers.abstractBytes <= 0)
+      throw new Error(
+        `context tiers need a positive integer abstractBytes, got ${tiers.abstractBytes}`,
+      );
+  }
   const usable = rankedSources.filter(
     (source) => source.redacted !== true && source.text !== undefined,
   );
+  // tiers: the first fullSessions by rank keep a sourceWindow body; the rest become abstracts,
+  // and the full sessions split what the abstracts leave, exactly as the even split divides
+  const fullCount =
+    tiers === undefined
+      ? usable.length
+      : Math.min(usable.length, tiers.fullSessions);
+  const abstractFor = (rank: number) =>
+    tiers !== undefined && rank >= fullCount;
+  const dateLineFor = (ts: string) =>
+    dateDistances
+      ? `Session date: ${ts.slice(0, 10)} (${describeDistance(ts, instance.question_date)})`
+      : `Session date: ${ts}`;
+  const factsLineFor = (facts: string[] | undefined) =>
+    facts !== undefined && facts.length > 0
+      ? `Remembered facts (stated in this session): ${facts.join(' ')}\n`
+      : '';
+  const abstractWords = [
+    ...new Set(
+      recallWords(instance.question).filter((word) => word.length >= 4),
+    ),
+  ];
+  const abstracts = new Map<number, string>();
+  if (tiers !== undefined)
+    for (let rank = fullCount; rank < usable.length; rank += 1) {
+      const source = usable[rank]!;
+      abstracts.set(
+        rank,
+        abstractSection(
+          `### Retrieved session ${rank + 1} (abstract: lines matching the question)\n${dateLineFor(source.ts)}\n${factsLineFor(source.facts)}`,
+          source.text!,
+          abstractWords,
+          tiers.abstractBytes,
+        ),
+      );
+    }
+  const abstractBytesUsed = [...abstracts.values()].reduce(
+    (sum, section) => sum + Buffer.byteLength(section, 'utf8'),
+    0,
+  );
   const evenBytes = Math.max(
     256,
-    Math.floor(contextBytes / Math.max(1, usable.length)),
+    Math.floor((contextBytes - abstractBytesUsed) / Math.max(1, fullCount)),
   );
   // focused budget: a session's share of the context grows with the number of the question's
   // content words it contains, so fifteen retrieved sessions do not each get a 1.6 KB sliver
@@ -591,13 +704,10 @@ export function buildLongMemEvalAnswerContext(
       ? Math.max(256, Math.floor((contextBytes * weights[index]!) / weightSum))
       : evenBytes;
   const selected = usable.map((source, rank) => {
-    const facts =
-      source.facts !== undefined && source.facts.length > 0
-        ? `Remembered facts (stated in this session): ${source.facts.join(' ')}\n`
-        : '';
-    const dateLine = dateDistances
-      ? `Session date: ${source.ts.slice(0, 10)} (${describeDistance(source.ts, instance.question_date)})`
-      : `Session date: ${source.ts}`;
+    if (abstractFor(rank))
+      return { ...source, rank, section: abstracts.get(rank)! };
+    const facts = factsLineFor(source.facts);
+    const dateLine = dateLineFor(source.ts);
     const header = `### Retrieved session ${rank + 1}\n${dateLine}\n${facts}`;
     const body = sourceWindow(
       source.text!,
@@ -780,6 +890,8 @@ export async function evaluateLongMemEvalAnswerInstance(
     focusedBudget?: boolean;
     /** Dated, grounded, deduplicated extracted facts placed before the chats. */
     structuredEvidence?: boolean;
+    /** Context tiers: full text for the top-ranked few, code-built abstracts for the rest. */
+    tiers?: ContextTiers;
     engineRecall?: {
       /** The writer: authors the Datalog query (usage is accounted with extraction). */
       llm: LongMemEvalCompletionClient;
@@ -1601,6 +1713,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       options.computedNotes === true,
       options.focusedBudget === true,
       options.structuredEvidence === true,
+      options.tiers,
     );
     contextSessionIds = [
       ...answerContext.contextSessionIds,
