@@ -49,6 +49,16 @@ in `docs/adr/`.
 - **Arm** — one run of a benchmark under one setting. A **paired run** is two arms
   that differ in exactly one setting with identical retrieval, so a difference in
   score is attributable to that setting.
+- **Reader contract** — the fixed shape of what a reader is given: which deterministic
+  blocks are present and the byte budget. Distillation, training and evaluation share one
+  contract, so a reader is always measured on the prompt it learned from. The contract fixes
+  the prompt, not the retrieval depth; a paired run must hold both.
+- **Lane** — which side of a memory layer the reader reads from. The **retrieval lane**
+  gives the reader raw sessions the memory layer found; the **memories lane** gives it only
+  the memory layer's own text. Rows in different lanes are not ranked against each other.
+- **Context tier** — how much of a retrieved session the reader sees. Every retrieved
+  session gets a short **abstract** built by code; only the highest-ranked few get their
+  **full text**. Tiering replaces cutting every session to the same sliver.
 - **Judge** — the model that grades a reader's answer against the gold answer.
   Judges differ in leniency, so a score always names its judge and rows in one
   table share one judge.
