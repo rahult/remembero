@@ -13,10 +13,15 @@
  * Contamination: the session pool is the 3,400 haystack sessions that are
  * evidence for no LongMemEval question; questions are written fresh over them.
  */
-import { buildLongMemEvalAnswerContext } from '../evals/longmemeval-answer.js';
 import {
+  buildLongMemEvalAnswerContext,
+  finalAnswerLine,
+} from '../evals/longmemeval-answer.js';
+import {
+  THINKING_TYPES,
   contractBuilderArgs,
   contractFromEnv,
+  readingFor,
   type ReaderContract,
 } from '../evals/reader-contract.js';
 import type { LongMemEvalInstance } from '../evals/longmemeval.js';
@@ -236,15 +241,39 @@ export function parseQuestionReply(
 const ABSTAINS =
   /(does not|doesn't|don't|do not|no) (say|mention|know|have|contain|record|information|indicate)|not (mentioned|recorded|in (the|your) history)|i do not know|i don't know|no information/i;
 
+/** The text the evaluation judges: the final answer line on a thinking type, else the reply. */
+export function completionAnswer(
+  reply: string,
+  thinking: boolean,
+  type: string,
+): string {
+  return thinking && THINKING_TYPES.has(type)
+    ? finalAnswerLine(reply)
+    : reply.trim();
+}
+
+/** A last "Answer:" marker with text after it, as finalAnswerLine reads one. */
+function hasAnswerLine(reply: string): boolean {
+  const index = reply.lastIndexOf('Answer:');
+  return index >= 0 && reply.slice(index + 'Answer:'.length).trim() !== '';
+}
+
 /**
  * An abstention example is kept only when the reader abstained; any other type
  * is dropped when the reader abstained (the teacher could not answer its own
- * question, so the example teaches nothing) or answered nothing at all.
+ * question, so the example teaches nothing) or answered nothing at all. Under the
+ * thinking step a thinking type must end in an answer line, and only that line is
+ * tested: notes may well say what the history does not mention.
  */
-export function acceptDistilled(type: DistillType, answer: string): boolean {
-  const text = answer.trim();
-  if (text.length === 0) return false;
-  const abstained = ABSTAINS.test(text);
+export function acceptDistilled(
+  type: DistillType,
+  answer: string,
+  thinking = false,
+): boolean {
+  if (answer.trim().length === 0) return false;
+  if (thinking && THINKING_TYPES.has(type) && !hasAnswerLine(answer))
+    return false;
+  const abstained = ABSTAINS.test(completionAnswer(answer, thinking, type));
   return type === 'abstention' ? abstained : !abstained;
 }
 
@@ -261,9 +290,10 @@ export function readerMessages(
     throw new Error(
       'tiered contracts need rank-ordered haystacks; see plan Task 5',
     );
+  const instanceType = type === 'abstention' ? 'single-session-user' : type;
   const instance = {
     question_id: `distill-${type}`,
-    question_type: type === 'abstention' ? 'single-session-user' : type,
+    question_type: instanceType,
     question,
     question_date: `${haystack.questionDate.replace(/-/g, '/')} (Sat) 09:00`,
     answer: '',
@@ -282,7 +312,7 @@ export function readerMessages(
     })),
     contract.contextBytes,
     [],
-    'direct',
+    readingFor(contract, instanceType),
     undefined,
     ...contractBuilderArgs(contract),
   );

@@ -21,6 +21,11 @@ export interface ReaderContract {
   fullSessions: number | null;
   /** The byte cap of one abstract section, header included (tiers only). */
   abstractBytes: number;
+  /**
+   * The thinking step: on the thinking types the reader lists its dated items under
+   * "Notes:" and ends with an "Answer:" line, which alone is judged (`--reading notes`).
+   */
+  thinking: boolean;
 }
 
 export const DEFAULT_READER_CONTEXT_BYTES = 24 * 1024;
@@ -43,11 +48,32 @@ export const READER_CONTRACT_V5: ReaderContract = {
   contextBytes: DEFAULT_READER_CONTEXT_BYTES,
   fullSessions: null,
   abstractBytes: DEFAULT_ABSTRACT_BYTES,
+  thinking: false,
 };
+
+/** The question types a thinking reader thinks on: the harness default notesQuestionTypes. */
+export const THINKING_TYPES: ReadonlySet<string> = new Set([
+  'multi-session',
+  'temporal-reasoning',
+  'knowledge-update',
+]);
+
+/** The builder's reading for a question of this LongMemEval type under the contract. */
+export function readingFor(
+  contract: ReaderContract,
+  questionType: string,
+): 'direct' | 'notes' {
+  return contract.thinking && THINKING_TYPES.has(questionType)
+    ? 'notes'
+    : 'direct';
+}
 
 const FLAGS: Array<
   [
-    keyof Omit<ReaderContract, 'contextBytes' | 'fullSessions' | 'abstractBytes'>,
+    keyof Omit<
+      ReaderContract,
+      'contextBytes' | 'fullSessions' | 'abstractBytes' | 'thinking'
+    >,
     string,
     string,
   ]
@@ -66,7 +92,8 @@ export function contractId(contract: ReaderContract): string {
     contract.fullSessions === null
       ? ''
       : `+full${contract.fullSessions}${contract.abstractBytes === DEFAULT_ABSTRACT_BYTES ? '' : `a${contract.abstractBytes}`}`;
-  return `${parts.length === 0 ? 'plain' : parts.join('+')}${tiers}@${contract.contextBytes}`;
+  const think = contract.thinking ? '+think' : '';
+  return `${parts.length === 0 ? 'plain' : parts.join('+')}${think}${tiers}@${contract.contextBytes}`;
 }
 
 export function contractFromFlags(
@@ -79,6 +106,8 @@ export function contractFromFlags(
     computedNotes: false,
     focusedBudget: false,
     structuredEvidence: false,
+    // the evaluation runner's other readings (two-call) are not a trained contract
+    thinking: flagValue(argv, '--reading') === 'notes',
   };
   for (const [key, flag] of FLAGS)
     if (argv.includes(flag)) contract[key] = true;
@@ -141,6 +170,13 @@ export function tiersFromFlags(
   return { fullSessions, abstractBytes };
 }
 
+/** The distiller renders one prompt per example, so a reading it cannot train is an error. */
+export function assertDistillReading(argv: readonly string[]): void {
+  const reading = flagValue(argv, '--reading');
+  if (reading !== undefined && reading !== 'direct' && reading !== 'notes')
+    throw new Error(`--reading must be direct or notes, got ${reading}`);
+}
+
 /** The environment the distiller has honoured so far, kept so old commands still work. */
 export function contractFromEnv(
   env: NodeJS.ProcessEnv = process.env,
@@ -165,6 +201,7 @@ export function contractRunnerFlags(contract: ReaderContract): string[] {
       '--abstract-bytes',
       String(contract.abstractBytes),
     );
+  if (contract.thinking) flags.push('--reading', 'notes');
   flags.push('--context-bytes', String(contract.contextBytes));
   return flags;
 }

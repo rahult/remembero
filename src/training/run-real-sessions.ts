@@ -31,6 +31,7 @@ import { loadEnv } from '../env.js';
 import { loadLongMemEvalS } from '../evals/longmemeval.js';
 import { longMemEvalSplit } from '../evals/longmemeval-semantic.js';
 import {
+  assertDistillReading,
   contractFromFlags,
   distillManifestContract,
 } from '../evals/reader-contract.js';
@@ -590,6 +591,7 @@ async function judgeUnmatched(): Promise<void> {
 async function distillReader(): Promise<void> {
   const labelsPath = flag('--labels', 'data/real/labels-glmflash8.jsonl')!;
   const out = flag('--out', 'data/training-reader-v3')!;
+  assertDistillReading(process.argv);
   const contract = contractFromFlags(process.argv);
   const trainCount = Number(flag('--train-count', '3000'));
   const target = Number(flag('--examples', '4000'));
@@ -679,7 +681,8 @@ async function distillReader(): Promise<void> {
         const answered = await client.completeWithUsage(messages, {
           maxTokens: 4_000,
         });
-        if (!acceptDistilled(type, answered.content)) {
+        // the whole reply, notes included, is the assistant turn; acceptance reads the answer line
+        if (!acceptDistilled(type, answered.content, contract.thinking)) {
           stats.rejected += 1;
           return;
         }

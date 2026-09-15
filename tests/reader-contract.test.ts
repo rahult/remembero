@@ -31,6 +31,28 @@ describe('reader contract', () => {
     expect(contractRunnerFlags(c)).toEqual(['--date-distances', '--computed-notes', '--structured-evidence', '--context-bytes', '24576']);
   });
 
+  it('names, reads and emits the thinking step', () => {
+    expect(READER_CONTRACT_V5.thinking).toBe(false);
+    expect(contractId(READER_CONTRACT_V5)).toBe('dd+notes@24576');
+    const argv = ['--date-distances', '--computed-notes', '--reading', 'notes', '--context-bytes', '24576'];
+    const c = contractFromFlags(argv);
+    expect(c).toEqual({ ...READER_CONTRACT_V5, thinking: true });
+    expect(contractId(c)).toBe('dd+notes+think@24576');
+    expect(contractRunnerFlags(c)).toEqual(['--date-distances', '--computed-notes', '--reading', 'notes', '--context-bytes', '24576']);
+    expect(contractFromFlags(contractRunnerFlags(c))).toEqual(c);
+    expect(distillManifestContract(argv).id).toBe('dd+notes+think@24576');
+    expect(contractFromFlags(['--reading', 'two-call']).thinking).toBe(false);
+    expect(contractFromFlags(['--reading', 'direct']).thinking).toBe(false);
+    expect(contractFromFlags(['--reading', 'notes'], { ...READER_CONTRACT_V5, thinking: true }).thinking).toBe(true);
+    expect(contractFromFlags([], { ...READER_CONTRACT_V5, thinking: true }).thinking).toBe(false);
+    const tiered = contractFromFlags(['--date-distances', '--computed-notes', '--reading', 'notes', '--full-sessions', '3']);
+    expect(contractId(tiered)).toBe('dd+notes+think+full3@24576');
+    expect(contractRunnerFlags(tiered)).toEqual([
+      '--date-distances', '--computed-notes', '--full-sessions', '3', '--abstract-bytes', '320', '--reading', 'notes', '--context-bytes', '24576',
+    ]);
+    expect(contractFromFlags(contractRunnerFlags(tiered))).toEqual(tiered);
+  });
+
   it('refuses a --context-bytes that is not a positive integer', () => {
     expect(() => contractFromFlags(['--context-bytes', 'abc'])).toThrow(
       '--context-bytes must be a positive integer, got abc',
