@@ -354,3 +354,40 @@ Add the row to the run matrix (`docs/research/run-matrix/training-runs.json`, pl
 `rembero-finetune` volume (`modal volume ls rembero-finetune runs/`); `train()` resumes from the
 latest checkpoint in a run directory on relaunch. Two v5 readers trained from the same data on
 different hardware are a free reproducibility check, not a conflict.
+
+## Context tiers (2026-09-15): null result
+
+Plan: `docs/superpowers/plans/2026-09-15-reader-tiers-runpod.md`, Task 4. The question was
+whether a small reader does better when only the top-ranked retrieved sessions reach it in full
+and the rest arrive as short code-built abstracts (`--full-sessions N --abstract-bytes 480`),
+the "retrieve wide, rerank narrow, read full" shape from OpenViking. Every arm ran on one H100
+pod (RunPod, US-GA-2) serving the merged reader v4, whose fingerprint matched the Modal
+checkpoint of record, against the 266 multi-session and temporal questions with the flags of
+the v4 183 row (`--top-k 4 --multi-session-top-k 15 --temporal-top-k 10 --context-bytes 24576
+--date-distances --computed-notes`, DeepSeek judge). Arms differ only in the tier flags.
+
+| Arm | Correct / 266 | Multi-session / 133 | Temporal / 133 | Gained vs untiered | Lost vs untiered |
+|---|---|---|---|---|---|
+| Untiered (`dd+notes@24576`) | 183 | 84 | 99 | | |
+| Top 5 full | 178 | 85 | 93 | 14 | 19 |
+| Top 3 full | 172 | 80 | 92 | 13 | 24 |
+| Top 2 full | 162 | 75 | 87 | 9 | 30 |
+
+The untiered pod run landed exactly on the stored 183, so the pod serves the reader of record.
+Context recall is unchanged across arms (0.91 / 0.90): tiering never removes a session, it
+shortens it.
+
+Why it loses. Classify each lost question by where its evidence sessions sat: with 2 full, 25 of
+the 30 losses had evidence ranked below the full tier, so the abstract held it; with 3 full, 17
+of 24. With 5 full the abstract-tier losses fall to 7 and the remaining flips (11 lost, 9 gained
+with all evidence in full text) look like run-to-run churn. Lexical rank puts evidence deep:
+108 of the 266 questions have an evidence session at rank 4 or lower, 63 at rank 6 or lower.
+A 480-byte content-word abstract keeps the topic and drops the detail a question turns on
+(the date, the count, the second item), and temporal questions pay for it most (-6 even at 5).
+
+Decision (plan rule "no arm clears the band: record the null and stop for review"): the reader
+contract stays `dd+notes@24576`. No paired 500 is run, no tiered distillation (Task 5's
+rank-ordered haystacks) is built, and `data/training-reader-v6` is already rendered under the
+winning contract. Tiers would need a better ranker (evidence in the top few) or abstracts written
+for the question, not a smaller budget, before they are worth another arm. Cost: about $1.50 of
+H100 time for the sweep, plus the pod's prepare.

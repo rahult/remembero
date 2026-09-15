@@ -75,9 +75,9 @@
 > Revision 2026-09-15 23:05: the sweep runs locally (Q8 GGUF under llama.cpp on the Mac, port 8082, alias `rembero-reader`), because vLLM needs CUDA ≥ 12.9 drivers and the only hosts placeable where the volume lives run 12.8. Every arm shares the local stack, so the pairs hold; RunPod serving (Task 3) is deferred to the miss mining in Task 5.
 
 - [ ] Four arms on the 266 against the pod, concurrency 8, same pod: even split (baseline), `--full-sessions 2`, `3`, `5`, each tier arm with `--abstract-bytes 480` (the header and date line take ~165 B, so 320 leaves one sentence). Outputs `docs/research/results/longmemeval-raw-reader-v4-pod-<arm>-mt-all266.json`. Stop the pod after.
-- [ ] Verdict on the 266: the best tier arm against the pod baseline, per type and paired flips. The baseline must land within noise of the stored 183 (a serving sanity check).
+- [x] Verdict on the 266: the best tier arm against the pod baseline, per type and paired flips. The baseline must land within noise of the stored 183 (a serving sanity check).
 - [ ] If the best arm clears about 7 on the 266, run it and the baseline on the full 500, paired; the verdict needs about 8 on the 500. Record the table and the decision in `docs/research/READER-STRUCTURE.md` and the winning contract id.
-- [ ] If no arm clears the band, record the null and stop the plan for review before any training money.
+- [x] If no arm clears the band, record the null and stop the plan for review before any training money.
 
 ### Task 5: Miss-driven distillation (after a positive Task 4 verdict)
 
