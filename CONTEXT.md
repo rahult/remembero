@@ -59,6 +59,16 @@ in `docs/adr/`.
 - **Context tier** — how much of a retrieved session the reader sees. Every retrieved
   session gets a short **abstract** built by code; only the highest-ranked few get their
   **full text**. Tiering replaces cutting every session to the same sliver.
+- **Thinking step** — what a reader writes before its answer on the question types that
+  combine or compute: the dated items it relies on and the arithmetic, then one final answer
+  line. Only the final line is judged. Part of the reader contract, so a reader trained with
+  it is always measured with it. Distinct from computed notes, which code writes into the
+  prompt; the thinking step is the reader's own output.
+- **Miss mining** — keeping, as training data, the teacher-answered questions the current
+  best reader gets wrong. Questions come from the distillation session pool, never from a
+  benchmark.
+- **Data review** — the step after every trained reader: its misses counted by question type
+  and failure class, turned into the next reader's type weights and miss share.
 - **Judge** — the model that grades a reader's answer against the gold answer.
   Judges differ in leniency, so a score always names its judge and rows in one
   table share one judge.
