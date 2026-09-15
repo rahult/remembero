@@ -205,15 +205,17 @@ export interface ProgressEntry {
   reply?: string;
 }
 
-const progressKey = (file: string, index: number) => `${file}#${index}`;
+export const progressKey = (file: string, index: number) => `${file}#${index}`;
 
 /** The latest entry per file and row index; a retried row's later outcome wins. */
-export function readProgress(path: string): Map<string, ProgressEntry> {
-  const entries = new Map<string, ProgressEntry>();
+export function readProgress<
+  Entry extends { file: string; index: number } = ProgressEntry,
+>(path: string): Map<string, Entry> {
+  const entries = new Map<string, Entry>();
   if (!existsSync(path)) return entries;
   for (const line of readFileSync(path, 'utf8').split('\n')) {
     if (!line.trim()) continue;
-    const entry = JSON.parse(line) as ProgressEntry;
+    const entry = JSON.parse(line) as Entry;
     entries.set(progressKey(entry.file, entry.index), entry);
   }
   return entries;
@@ -321,18 +323,22 @@ export interface RunIdentity {
 }
 
 /**
- * Pin the run: write `run.json` on the first run, refuse a resume whose contract id,
- * source directory, teacher or judge differs. Called before any model call.
+ * Pin the run: write `run.json` on the first run, refuse a resume where any field of the
+ * identity (think: contract id, source directory, teacher, judge) differs. Called before
+ * any model call.
  */
-export function assertRunIdentity(outDir: string, identity: RunIdentity): void {
+export function assertRunIdentity<Identity extends object = RunIdentity>(
+  outDir: string,
+  identity: Identity,
+): void {
   const path = join(outDir, 'run.json');
   if (!existsSync(path)) {
     mkdirSync(outDir, { recursive: true });
     writeFileSync(path, `${JSON.stringify(identity, null, 2)}\n`);
     return;
   }
-  const begun = JSON.parse(readFileSync(path, 'utf8')) as Partial<RunIdentity>;
-  const differing = (Object.keys(identity) as Array<keyof RunIdentity>).filter(
+  const begun = JSON.parse(readFileSync(path, 'utf8')) as Partial<Identity>;
+  const differing = (Object.keys(identity) as Array<keyof Identity>).filter(
     (key) => begun[key] !== identity[key],
   );
   if (differing.length > 0)
@@ -340,7 +346,7 @@ export function assertRunIdentity(outDir: string, identity: RunIdentity): void {
       `${path} was begun with a different run: ${differing
         .map(
           (key) =>
-            `${key} ${JSON.stringify(begun[key])} vs ${JSON.stringify(identity[key])}`,
+            `${String(key)} ${JSON.stringify(begun[key])} vs ${JSON.stringify(identity[key])}`,
         )
         .join(', ')}; use a new --out directory`,
     );

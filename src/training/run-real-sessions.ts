@@ -18,6 +18,12 @@
  *        --reading notes --context-bytes 24576 --judge-base-url <url> \
  *        --judge-model <model> --judge-key-env DEEPSEEK_API_KEY
  *
+ *   node dist/training/run-real-sessions.js mine --from data/training-reader-v7-think \
+ *        --out data/training-reader-v8-misses --student-model <m> --student-base-url <url> \
+ *        --student-key-env READER_API_KEY --student-max-tokens 4096 \
+ *        --student-date-distances --student-computed-notes --student-context-bytes 24576 \
+ *        --judge-base-url <url> --judge-model <model> --judge-key-env DEEPSEEK_API_KEY
+ *
  * `label` and `measure` resume: sessions already in the output are skipped.
  */
 import { createHash } from 'node:crypto';
@@ -63,6 +69,14 @@ import {
   parseMetaRows,
   rerenderMetaFile,
 } from './reader-rerender.js';
+import {
+  mineCounts,
+  mineFile,
+  parseMineFiles,
+  readDistilledFile,
+  studentContractFromFlags,
+  teacherContractFromManifest,
+} from './reader-mine.js';
 import {
   TEACHER_MAX_TOKENS,
   assertRunIdentity,
@@ -981,6 +995,173 @@ async function thinkReader(): Promise<void> {
   console.log(JSON.stringify(manifest, null, 2));
 }
 
+/**
+ * Miss mining: the distilled rows the student reader gets wrong (see reader-mine.ts). The
+ * teacher's contract is the distilled manifest's; the student's comes from the `--student-`
+ * contract flags only. Resumable through `progress.jsonl` in the output directory.
+ *
+ *   node dist/training/run-real-sessions.js mine --from <distilled dir> --out <dir> \
+ *        --student-model <m> --student-base-url <url> --student-key-env READER_API_KEY \
+ *        --student-max-tokens <n> [--student-date-distances --student-computed-notes \
+ *        --student-reading notes --student-context-bytes 24576 ...] \
+ *        --judge-base-url <url> --judge-model <model> --judge-key-env DEEPSEEK_API_KEY \
+ *        [--files conversations,heldout] [--limit N] [--concurrency 8]
+ */
+async function mineReader(): Promise<void> {
+  const from = flag('--from');
+  const out = flag('--out');
+  if (!from || !out) throw new Error('mine needs --from and --out');
+  const studentContract = studentContractFromFlags(process.argv);
+  const manifestPath = join(from, 'manifest.json');
+  if (!existsSync(manifestPath))
+    throw new Error(
+      `${manifestPath} does not exist; mine reads a distilled directory`,
+    );
+  const base = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
+    labels?: unknown;
+    parts?: unknown;
+    contract?: unknown;
+  };
+  const teacherContract = teacherContractFromManifest(base);
+  const files = parseMineFiles(flag('--files'));
+  const limitFlag = flag('--limit');
+  const limit = limitFlag === undefined ? undefined : Number(limitFlag);
+  if (limit !== undefined && (!Number.isInteger(limit) || limit <= 0))
+    throw new Error(`--limit must be a positive integer, got ${limitFlag}`);
+  const concurrency = Number(flag('--concurrency', '8'));
+  if (!Number.isInteger(concurrency) || concurrency <= 0)
+    throw new Error(`--concurrency must be a positive integer`);
+  const seed = Number(flag('--seed', '7'));
+  const studentModel = flag('--student-model');
+  const studentBaseUrl = flag('--student-base-url');
+  const studentKeyEnv = flag('--student-key-env');
+  const studentMaxTokensFlag = flag('--student-max-tokens');
+  if (
+    !studentModel ||
+    !studentBaseUrl ||
+    !studentKeyEnv ||
+    !studentMaxTokensFlag
+  )
+    throw new Error(
+      'mine needs --student-model, --student-base-url, --student-key-env and --student-max-tokens',
+    );
+  const studentMaxTokens = Number(studentMaxTokensFlag);
+  if (
+    !Number.isInteger(studentMaxTokens) ||
+    studentMaxTokens < 1 ||
+    studentMaxTokens > 16_384
+  )
+    throw new Error(
+      `--student-max-tokens must be an integer from 1 to 16384, got ${studentMaxTokensFlag}`,
+    );
+  const judgeBaseUrl = flag('--judge-base-url');
+  const judgeModel = flag('--judge-model');
+  const judgeKeyEnv = flag('--judge-key-env');
+  if (!judgeBaseUrl || !judgeModel || !judgeKeyEnv)
+    throw new Error(
+      'mine needs --judge-base-url, --judge-model and --judge-key-env',
+    );
+  const studentKey = process.env[studentKeyEnv];
+  if (!studentKey) throw new Error(`${studentKeyEnv} is not set`);
+  const judgeKey = process.env[judgeKeyEnv];
+  if (!judgeKey) throw new Error(`${judgeKeyEnv} is not set`);
+  // built as the evaluation harness builds its reader client for a vLLM endpoint
+  const student = new OpenRouterClient({
+    apiKey: studentKey,
+    baseUrl: studentBaseUrl.replace(/\/$/, ''),
+    model: studentModel,
+  });
+  const judge = new OpenRouterClient({
+    apiKey: judgeKey,
+    baseUrl: judgeBaseUrl.replace(/\/$/, ''),
+    model: judgeModel,
+  });
+  // before the pool loads or any model is called: a resume must be the same run
+  assertRunIdentity(out, {
+    from,
+    teacherContract: teacherContract.id,
+    studentContract: studentContract.id,
+    studentModel,
+    judge: judgeModel,
+  });
+  const labelsPath =
+    flag('--labels') ??
+    sourceLabels(base) ??
+    'data/real/labels-glmflash8.jsonl';
+  const sources = files.flatMap((file) => {
+    if (!existsSync(join(from, file))) {
+      console.error(`no ${join(from, file)}, skipping ${file}`);
+      return [];
+    }
+    // read and alignment-checked before the pool loads, so a broken directory fails fast
+    const read = readDistilledFile(from, file);
+    return [
+      {
+        file,
+        rows: limit === undefined ? read.rows : read.rows.slice(0, limit),
+        lines: read.lines,
+      },
+    ];
+  });
+  const pool = await labelledSessionPool(labelsPath, seed);
+  mkdirSync(out, { recursive: true });
+  for (const source of sources) {
+    let finished = 0;
+    await mineFile({
+      ...source,
+      pool,
+      teacherThinking: teacherContract.thinking,
+      studentContract,
+      clients: { student, judge },
+      outDir: out,
+      studentMaxTokens,
+      concurrency,
+      onRow: (entry) => {
+        finished += 1;
+        if (finished % 100 === 0) console.error(`[${source.file} ${finished}]`);
+        if (entry.outcome === 'error' || entry.outcome === 'missing')
+          console.error(
+            `${source.file} row ${entry.index} ${entry.outcome}: ${entry.error}`,
+          );
+      },
+    });
+  }
+  const counts = mineCounts(join(out, 'progress.jsonl'));
+  const lineCount = (path: string) =>
+    existsSync(path)
+      ? readFileSync(path, 'utf8').split('\n').filter(Boolean).length
+      : 0;
+  const summary = {
+    from,
+    ...counts,
+    misses: lineCount(join(out, 'misses.jsonl')),
+  };
+  writeFileSync(
+    join(out, 'summary.json'),
+    `${JSON.stringify(summary, null, 2)}\n`,
+  );
+  const manifest = {
+    from,
+    contract: base.contract,
+    studentContract,
+    student: { model: studentModel, baseUrl: studentBaseUrl },
+    judge: { model: judgeModel, baseUrl: judgeBaseUrl },
+    labels: labelsPath,
+    seed,
+    poolSessions: pool.size,
+    files,
+    ...(limit === undefined ? {} : { limit }),
+    ...counts,
+    misses: summary.misses,
+    generatedAt: new Date().toISOString(),
+  };
+  writeFileSync(
+    join(out, 'manifest.json'),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
+  console.log(JSON.stringify(summary, null, 2));
+}
+
 const invokedDirectly =
   process.argv[1] !== undefined &&
   fileURLToPath(import.meta.url) === process.argv[1];
@@ -996,9 +1177,10 @@ if (invokedDirectly) {
   else if (command === 'distill') await distillReader();
   else if (command === 'rerender') await rerenderReader();
   else if (command === 'think') await thinkReader();
+  else if (command === 'mine') await mineReader();
   else {
     console.error(
-      'usage: run-real-sessions.js label|measure|export|reader|judge|distill|rerender|think [flags]',
+      'usage: run-real-sessions.js label|measure|export|reader|judge|distill|rerender|think|mine [flags]',
     );
     process.exit(1);
   }
