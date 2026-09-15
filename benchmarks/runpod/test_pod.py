@@ -89,10 +89,10 @@ def test_the_serve_command_carries_every_serving_flag_of_record():
 
 def test_the_serve_command_prepares_the_weights_first_and_never_serves_without_a_key():
     command = serve_command(RUN, NAME)
-    assert command.index("peft>=0.17") < command.index("benchmarks.runpod.prepare_reader") < command.index("exec vllm serve")
+    assert command.index("peft>=0.17") < command.index("benchmarks.runpod.prepare_reader") < command.index("vllm serve")
     assert f"--root /workspace --run {RUN}" in command
     assert '--api-key "$VLLM_API_KEY"' in command
-    assert command.index('test -n "$VLLM_API_KEY"') < command.index("exec vllm serve")
+    assert command.index('test -n "$VLLM_API_KEY"') < command.index("vllm serve")
     assert "vllm-key" not in command  # the key travels in env, not in the start command
 
 
@@ -122,21 +122,23 @@ def fake_bin(directory, name, body):
     path.chmod(0o755)
 
 
-def boot(tmp_path, prepare_exit, key="test-key"):
-    """Run the start command with stub python3/uv/vllm/sleep on PATH and the volume in tmp_path."""
+def boot(tmp_path, prepare_exit, key="test-key", vllm_then="", healthy=True):
+    """Run the start command with stub python3/uv/vllm/sleep on PATH and the volume in tmp_path.
+    vllm_then is shell run by the vllm stub after it logs; healthy=False fails the /health probe."""
     bin_dir, root = tmp_path / "bin", tmp_path / "volume"
     bin_dir.mkdir()
     (root / "code").mkdir(parents=True)
     calls = tmp_path / "calls.txt"
     fake_bin(bin_dir, "uv", f'echo "uv $*" >> {calls}')
-    fake_bin(bin_dir, "python3", f'echo "python3 $* (cwd $PWD)" >> {calls}; echo "prepare says hello"; echo "prepare error" >&2; exit {prepare_exit}')
-    fake_bin(bin_dir, "vllm", f'echo "vllm $*" >> {calls}; echo "vllm is serving"')
+    probe = 'case "$1" in -c) exit 1;; esac; ' if not healthy else ""
+    fake_bin(bin_dir, "python3", f'echo "python3 $* (cwd $PWD)" >> {calls}; {probe}echo "prepare says hello"; echo "prepare error" >&2; exit {prepare_exit}')
+    fake_bin(bin_dir, "vllm", f'echo "vllm $*" >> {calls}; echo "vllm is serving"; {vllm_then}')
     fake_bin(bin_dir, "sleep", f'echo "sleep $*" >> {calls}')
     env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "VLLM_API_KEY": key}
     subprocess.run(["bash", "-c", serve_command(RUN, NAME, root=str(root))], env=env, cwd=tmp_path, timeout=30)
     run_dir = root / "runs" / RUN
     for _ in range(50):  # the serve log is written by a tee that may outlive bash by a moment
-        if prepare_exit or (run_dir / "serve.log").exists() and (run_dir / "serve.log").read_text():
+        if prepare_exit or not key or (run_dir / "serve.log").exists() and "vllm is serving" in (run_dir / "serve.log").read_text():
             break
         time.sleep(0.05)
     return calls.read_text(), run_dir
@@ -151,12 +153,45 @@ def test_a_failed_prepare_is_logged_marked_and_parked_instead_of_restarting(tmp_
 
 
 def test_a_good_prepare_serves_and_logs_vllm(tmp_path):
-    calls, run_dir = boot(tmp_path, prepare_exit=0)
+    calls, run_dir = boot(tmp_path, prepare_exit=0, vllm_then="/bin/sleep 1")
     assert "prepare says hello" in (run_dir / "prepare.log").read_text()
     assert not (run_dir / "PREPARE_FAILED").exists()
     assert f"(cwd {tmp_path / 'volume' / 'code'})" in calls
-    assert "vllm serve" in calls and "sleep" not in calls
+    assert "vllm serve" in calls and "8000/health" in calls
     assert "vllm is serving" in (run_dir / "serve.log").read_text()
+
+
+def one_run_failures(run_dir):
+    return [line for line in (run_dir / "serve.log").read_text().splitlines() if line.startswith("SERVE_FAILED")]
+
+
+def test_one_run_never_exits_the_container_it_parks_with_a_serve_failed_reason():
+    command = serve_command(RUN, NAME)
+    assert "exec vllm" not in command and "exit 1" not in command and "SERVE_FAILED" in command
+    assert command.endswith(f'wait "$SERVE_PID"; serve_fail "{RUN} exited with $?"')  # nothing after but parking
+    assert command.count("SERVE_DEADLINE=$((SECONDS + 1800))") == 1  # the server gets 30 minutes to answer /health
+    subprocess.run(["bash", "-n", "-c", command], check=True)
+
+
+def test_one_run_server_that_exits_before_healthy_is_logged_and_parks(tmp_path):
+    calls, run_dir = boot(tmp_path, prepare_exit=0, healthy=False, vllm_then="exit 3")
+    assert one_run_failures(run_dir) == [f"SERVE_FAILED: {RUN} exited with 3 before it was healthy on 8000"]
+    assert calls.splitlines()[-1] == "sleep infinity"
+
+
+def test_one_run_server_not_healthy_within_the_cap_is_logged_and_parks(tmp_path, monkeypatch):
+    from benchmarks.runpod import pod
+
+    monkeypatch.setattr(pod, "SERVE_HEALTH_TIMEOUT_S", 0)
+    calls, run_dir = boot(tmp_path, prepare_exit=0, healthy=False, vllm_then="/bin/sleep 3")
+    assert one_run_failures(run_dir) == [f"SERVE_FAILED: {RUN} was not healthy on 8000 within 0 s"]
+    assert calls.splitlines()[-1] == "sleep infinity"
+
+
+def test_one_run_server_that_exits_later_is_logged_with_its_code_and_parks(tmp_path):
+    calls, run_dir = boot(tmp_path, prepare_exit=0, vllm_then="exit 7")
+    assert one_run_failures(run_dir) == [f"SERVE_FAILED: {RUN} exited with 7"]
+    assert calls.splitlines()[-1] == "sleep infinity"
 
 
 def test_an_empty_key_parks_the_pod_before_anything_runs(tmp_path):
@@ -187,15 +222,20 @@ def vllm_invocations(command):
     return [words[start:words.index("2>&1", start)] for start in starts]
 
 
-def test_the_one_run_command_is_todays_with_only_the_longer_context():
+def test_the_one_run_command_keeps_todays_vllm_arguments_inside_the_park_wrapper():
     command = serve_command(RUN, NAME)
     assert command.count("vllm serve") == 1 and "8001" not in command and "RUN_DIR_2" not in command
     assert command.count("benchmarks.runpod.prepare_reader") == 1
     [vllm] = vllm_invocations(command)
-    assert vllm[vllm.index("--max-model-len") + 1] == "12288"
-    assert vllm[vllm.index("--gpu-memory-utilization") + 1] == "0.92"
+    assert vllm[:vllm.index(">")] == [
+        "vllm", "serve", f"/workspace/runs/{RUN}/merged-text",
+        "--dtype", "bfloat16", "--max-model-len", "12288", "--max-num-seqs", "32",
+        "--gpu-memory-utilization", "0.92", "--reasoning-parser", "gemma4",
+        "--default-chat-template-kwargs", '{"enable_thinking":false}',
+        "--served-model-name", NAME, "--host", "0.0.0.0", "--port", "8000", "--api-key", "$VLLM_API_KEY",
+    ]
     assert command.startswith(f"set -o pipefail; export PYTHONUNBUFFERED=1; RUN_DIR=/workspace/runs/{RUN}; ")
-    assert f"exec vllm serve /workspace/runs/{RUN}/merged-text" in command
+    assert f'vllm serve /workspace/runs/{RUN}/merged-text' in command and "& SERVE_PID=$!" in command
 
 
 def test_two_runs_serve_one_vllm_each_on_8000_and_8001_with_the_same_flags_and_key():
@@ -239,7 +279,7 @@ def test_two_runs_refuse_a_bad_or_repeated_second_run():
         serve_command(RUN, NAME, second=(RUN_2, NAME))
 
 
-def boot_two(tmp_path, failing_run=None, key="test-key", vllm_then="", healthy=True):
+def boot_two(tmp_path, failing_run=None, key="test-key", vllm_then="", healthy=True, unhealthy_port=None):
     """Boot the two-run command with stubs; the python3 stub fails when its arguments name failing_run.
     vllm_then is shell run by the vllm stub after it logs (e.g. stay up, or exit with a code);
     healthy=False makes the /health probe (python3 -c) fail."""
@@ -250,6 +290,8 @@ def boot_two(tmp_path, failing_run=None, key="test-key", vllm_then="", healthy=T
     calls.write_text("")
     fail_on = f'case "$* " in *"--run {failing_run} "*) exit 1;; esac; ' if failing_run else ""
     probe = 'case "$1" in -c) exit 1;; esac; ' if not healthy else ""
+    if unhealthy_port:
+        probe = f'case "$*" in -c*{unhealthy_port}/health*) exit 1;; esac; '
     fake_bin(bin_dir, "uv", f'echo "uv $*" >> {calls}')
     fake_bin(bin_dir, "python3", f'echo "python3 $*" >> {calls}; {probe}echo "prepare says $*"; {fail_on}exit 0')
     fake_bin(bin_dir, "vllm", f'echo "vllm $*" >> {calls}; echo "vllm is serving $*"; {vllm_then}')
@@ -310,7 +352,8 @@ def test_two_runs_never_exit_the_container_they_park_with_a_serve_failed_reason(
     command = serve_command(RUN, NAME, second=(RUN_2, NAME_2))
     assert "exit 1" not in command and "SERVE_FAILED" in command
     assert command.rsplit("; ", 1)[-1].startswith("serve_fail ")  # nothing after the watch but parking
-    assert "1800" in command  # the first server gets 30 minutes to answer /health
+    assert command.count("SERVE_DEADLINE=$((SECONDS + 1800))") == 2  # each server gets 30 minutes to answer /health
+    assert "8001/health" in command
     subprocess.run(["bash", "-n", "-c", command], check=True)
 
 
@@ -327,6 +370,22 @@ def test_a_first_server_not_healthy_within_the_cap_is_logged_to_both_runs_and_pa
     calls, dirs = boot_two(tmp_path, healthy=False, vllm_then="/bin/sleep 3")
     assert serve_failures(dirs) == [[f"SERVE_FAILED: {RUN} was not healthy on 8000 within 0 s"]] * 2
     assert "--port 8001" not in calls and calls.splitlines()[-1] == "sleep infinity"
+
+
+def test_a_second_server_not_healthy_within_the_cap_is_logged_to_both_runs_and_parks(tmp_path, monkeypatch):
+    from benchmarks.runpod import pod
+
+    monkeypatch.setattr(pod, "SERVE_HEALTH_TIMEOUT_S", 0)
+    calls, dirs = boot_two(tmp_path, unhealthy_port=8001, vllm_then="/bin/sleep 3")
+    assert serve_failures(dirs) == [[f"SERVE_FAILED: {RUN_2} was not healthy on 8001 within 0 s"]] * 2
+    assert "8001/health" in calls and calls.splitlines()[-1] == "sleep infinity"
+
+
+def test_a_second_server_that_exits_before_healthy_is_logged_to_both_runs_and_parks(tmp_path):
+    calls, dirs = boot_two(tmp_path, unhealthy_port=8001,
+                           vllm_then='case "$*" in *"--port 8001"*) exit 5;; *) /bin/sleep 3;; esac')
+    assert serve_failures(dirs) == [[f"SERVE_FAILED: {RUN_2} exited with 5 before it was healthy on 8001"]] * 2
+    assert calls.splitlines()[-1] == "sleep infinity"
 
 
 def test_a_server_that_exits_later_is_logged_to_both_runs_with_its_code_and_parks(tmp_path):
@@ -418,11 +477,93 @@ def test_wait_can_poll_the_second_readers_port(monkeypatch):
     from benchmarks.runpod import pod
 
     polled = []
-    monkeypatch.setattr(pod, "read_env", lambda path: {"VLLM_API_KEY": "v", "RUNPOD_SERVE_POD_ID": "pod9"})
+    monkeypatch.setattr(pod, "read_env", lambda path: {"VLLM_API_KEY": "v", "RUNPOD_SERVE_POD_ID": "pod9",
+                                                       "RUNPOD_API_KEY": "k"})
     monkeypatch.setattr(pod, "served_models", lambda url, key: polled.append(url) or [NAME_2])
     pod.main(["wait", "--served-name", NAME_2, "--port", "8001"])
     pod.main(["wait", "--served-name", NAME_2])
     assert polled == ["https://pod9-8001.proxy.runpod.net/v1", "https://pod9-8000.proxy.runpod.net/v1"]
+
+
+def never_up(monkeypatch, pod, env):
+    calls = []
+    monkeypatch.delenv("RUNPOD_API_KEY", raising=False)
+    monkeypatch.setattr(pod, "read_env", lambda path: env)
+    monkeypatch.setattr(pod.time, "sleep", lambda s: None)
+
+    def down(url, key):
+        calls.append(("poll", url))
+        raise pod.urllib.error.URLError("refused")
+
+    monkeypatch.setattr(pod, "served_models", down)
+    monkeypatch.setattr(pod, "api", lambda method, path, key, body=None: calls.append((method, path, key)))
+    return calls
+
+
+WAIT_ENV = {"VLLM_API_KEY": "v", "RUNPOD_SERVE_POD_ID": "pod9", "RUNPOD_API_KEY": "k"}
+
+
+def test_wait_stops_the_pod_on_timeout_and_exits_non_zero_saying_so(monkeypatch, capsys):
+    from benchmarks.runpod import pod
+
+    calls = never_up(monkeypatch, pod, WAIT_ENV)
+    with pytest.raises(SystemExit) as timed_out:
+        pod.main(["wait", "--served-name", NAME, "--timeout", "1"])
+    assert timed_out.value.code not in (0, None)
+    assert calls[-1] == ("POST", "/pods/pod9/stop", "k")
+    assert ("poll", "https://pod9-8000.proxy.runpod.net/v1") in calls
+    said = str(timed_out.value.code) + capsys.readouterr().out
+    assert "stopped pod pod9" in said
+
+
+def test_wait_with_no_stop_on_timeout_leaves_the_pod_running(monkeypatch, capsys):
+    from benchmarks.runpod import pod
+
+    calls = never_up(monkeypatch, pod, {k: v for k, v in WAIT_ENV.items() if k != "RUNPOD_API_KEY"})
+    with pytest.raises(SystemExit) as timed_out:
+        pod.main(["wait", "--served-name", NAME, "--timeout", "1", "--no-stop-on-timeout"])
+    assert timed_out.value.code not in (0, None)
+    assert [c for c in calls if c[0] != "poll"] == []
+    assert "still running" in str(timed_out.value.code)
+
+
+def test_wait_that_would_stop_on_timeout_needs_a_runpod_key_before_polling(monkeypatch):
+    from benchmarks.runpod import pod
+
+    calls = never_up(monkeypatch, pod, {k: v for k, v in WAIT_ENV.items() if k != "RUNPOD_API_KEY"})
+    with pytest.raises(SystemExit) as refused:
+        pod.main(["wait", "--served-name", NAME, "--timeout", "1"])
+    assert "RUNPOD_API_KEY" in str(refused.value.code) and calls == []
+
+
+def test_wait_does_not_stop_a_pod_that_comes_up(monkeypatch):
+    from benchmarks.runpod import pod
+
+    calls = []
+    monkeypatch.setattr(pod, "read_env", lambda path: WAIT_ENV)
+    monkeypatch.setattr(pod, "served_models", lambda url, key: [NAME])
+    monkeypatch.setattr(pod, "api", lambda *args, **kwargs: calls.append(args))
+    pod.main(["wait", "--served-name", NAME])
+    assert calls == []
+
+
+def test_create_serve_prints_the_pod_id_before_writing_env(monkeypatch, tmp_path, capsys):
+    from argparse import Namespace
+
+    from benchmarks.runpod import pod
+
+    monkeypatch.setenv("VLLM_API_KEY", "vllm-key-123")
+    monkeypatch.setattr(pod, "api", lambda method, path, key, body=None: {"id": "pod9", "costPerHr": 2.59})
+
+    def broken(path, updates):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(pod, "upsert_env", broken)
+    a = Namespace(run=[RUN], served_name=[NAME], volume="vol-abc", gpu="NVIDIA H100 NVL",
+                  datacenter="US-GA-2", cloud="COMMUNITY")
+    with pytest.raises(OSError):
+        pod.create_serve(a, {}, "runpod-key")
+    assert "pod9" in capsys.readouterr().out
 
 
 def test_upsert_env_replaces_existing_keys_and_appends_new_ones(tmp_path):

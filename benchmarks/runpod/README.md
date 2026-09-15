@@ -297,7 +297,7 @@ touch /tmp/empty-init.py && .venv/bin/python benchmarks/runpod/volume.py put /tm
 .venv/bin/python benchmarks/runpod/volume.py put <local adapter dir> runs/reader-v4-gemma4-e4b/adapter
 
 .venv/bin/python benchmarks/runpod/pod.py create-serve --run reader-v4-gemma4-e4b --served-name rembero-reader-v4
-.venv/bin/python benchmarks/runpod/pod.py wait --served-name rembero-reader-v4   # polls /v1/models every 20 s, up to 30 min
+.venv/bin/python benchmarks/runpod/pod.py wait --served-name rembero-reader-v4   # polls /v1/models every 20 s, up to 30 min; stops the pod on timeout
 .venv/bin/python benchmarks/runpod/pod.py status                                  # the serving pod, or every pod if none is recorded
 .venv/bin/python benchmarks/runpod/pod.py stop      # between arms
 .venv/bin/python benchmarks/runpod/pod.py start     # prepare is a no-op now; vLLM loads in a few minutes
@@ -309,9 +309,16 @@ touch /tmp/empty-init.py && .venv/bin/python benchmarks/runpod/volume.py put /tm
 `RUNPOD_VOLUME_ID`) and `--cloud COMMUNITY|SECURE` (default COMMUNITY; network volumes may be
 Secure Cloud only, so retry with `--cloud SECURE` if community placement is refused). It reads `RUNPOD_API_KEY` from the environment or `.env`, generates a
 `VLLM_API_KEY` once (`secrets.token_urlsafe(32)`) if `.env` has none, passes
-`~/.ssh/id_ed25519.pub` as `PUBLIC_KEY` if it exists, prints the pod id and
-`https://<pod>-8000.proxy.runpod.net/v1`, and writes both to `.env` as `RUNPOD_SERVE_POD_ID` and
-`RUNPOD_SERVE_URL`; the other subcommands default `--pod` to that id. The harness points at the
+`~/.ssh/id_ed25519.pub` as `PUBLIC_KEY` if it exists, prints the pod id (to stdout, as soon as the
+pod is created and before `.env` is touched, so a failed `.env` write never loses a billing pod),
+writes it and `https://<pod>-8000.proxy.runpod.net/v1` to `.env` as `RUNPOD_SERVE_POD_ID` and
+`RUNPOD_SERVE_URL`, then prints the URL; the other subcommands default `--pod` to that id.
+
+`wait` polls the pod's `/v1/models` until the served name is listed. When it times out
+(`--timeout`, default 30 min) it stops the pod, prints that it did, and exits non-zero, so a pod
+that never comes up does not bill idle; it therefore needs `RUNPOD_API_KEY` and refuses to start
+polling without it. `--no-stop-on-timeout` leaves the pod running (and billing) and still exits
+non-zero. The harness points at the
 pod with `--reader-model rembero-reader-v4 --reader-base-url "$RUNPOD_SERVE_URL"` and the
 `--reader-api-key "$VLLM_API_KEY"`, plus the retrieval-depth flags every paired run passes.
 
@@ -329,7 +336,8 @@ pod with `--reader-model rembero-reader-v4 --reader-base-url "$RUNPOD_SERVE_URL"
 
 The start command installs PEFT once, prepares the first run and then the second (one after the
 other, so the two merges never hold host memory at once), then starts vLLM for the first run on
-port 8000 and, once that answers `/health`, vLLM for the second on port 8001 (two servers
+port 8000 and, once that answers `/health`, vLLM for the second on port 8001, which gets its own
+30 minutes to answer `/health` on 8001 (two servers
 profiling GPU memory at the same moment can misjudge each other's usage). Both use the same
 `VLLM_API_KEY`, `--max-model-len 12288` and `--gpu-memory-utilization 0.44`; each writes its own
 `runs/<run>/prepare.log` and `runs/<run>/serve.log`. The pod exposes `8000/http` and `8001/http`,
@@ -339,15 +347,16 @@ and `.env` gets `RUNPOD_SERVE_URL` (`https://<pod>-8000.proxy.runpod.net/v1`, th
 either prepare fails, that run gets `PREPARE_FAILED` and the pod parks as below with neither
 server started (an empty key marks both runs).
 
-The two-run start command never lets the container exit, because RunPod would restart it into a
-loop that bills for every attempt. It parks on `sleep infinity` in two more cases:
+Neither start command lets the container exit, because RunPod would restart it into a loop that
+bills for every attempt. Besides a failed prepare, each parks on `sleep infinity` when:
 
-- the first server does not answer `/health` within 30 minutes;
-- either server exits, before it is healthy or later.
+- a server does not answer `/health` within 30 minutes of its start (on a two-run pod, the first
+  on 8000 and then the second on 8001);
+- a server exits, before it is healthy or later.
 
-In both cases it writes `SERVE_FAILED: <reason>` (for example `SERVE_FAILED: reader-v8-gemma4-e4b
-exited with 1`) to **both** runs' `serve.log` on the volume and stops the server that is still up.
-The lines above it in that run's `serve.log` show vLLM's own error.
+It writes `SERVE_FAILED: <reason>` (for example `SERVE_FAILED: reader-v8-gemma4-e4b exited with 1`)
+to `serve.log` on the volume (on a two-run pod, to **both** runs' `serve.log`) and stops any
+server that is still up. The lines above it in that run's `serve.log` show vLLM's own error.
 
 0.44 of the GPU is about 14 GB on a 32 GB RTX 5090, no more than the text-only bf16 weights
 alone. So a two-run `create-serve` refuses, before any API call, unless `--gpu` is one of the
@@ -366,19 +375,17 @@ today), so everything is written to the volume and fetched with `volume.py get`:
 
 If the install or prepare fails (or `VLLM_API_KEY` is empty), the start command writes
 `runs/<run>/PREPARE_FAILED` and parks the container on `sleep infinity` instead of exiting, because
-RunPod restarts an exited container and each restart would redo the merge. `wait` then times out;
-read `prepare.log`, fix, and terminate the pod (a new boot removes the marker and tries again).
+RunPod restarts an exited container and each restart would redo the merge. `wait` then times out
+and stops the pod; read `prepare.log`, fix, and terminate the pod (a new boot removes the marker and
+tries again).
 The console's pod **Logs** tab shows the same lines while the pod runs.
 
 **A parked pod still bills.** `sleep infinity` keeps the GPU reserved and charged at the pod's
-hourly rate until you stop it. When `wait` times out, check the logs first:
+hourly rate until it is stopped. `wait` stops it on timeout (unless `--no-stop-on-timeout`); a pod
+that parks after `wait` returned (a server that exits mid-run) bills until you stop it. Check the
+logs:
 
 - `runs/<run>/PREPARE_FAILED` and `prepare.log` for a failed prepare;
-- `runs/<run>/serve.log` for a `SERVE_FAILED: <reason>` line on a two-run pod.
+- `runs/<run>/serve.log` for a `SERVE_FAILED: <reason>` line.
 
-Then run `pod.py stop`, or `pod.py terminate`.
-
-The one-run start command is unchanged: it still ends in `exec vllm serve ...`, so if that one
-vLLM exits, the container exits and RunPod restarts it (prepare is a no-op), and it keeps
-restarting and billing if vLLM fails the same way each time. `serve.log` has one boot's output
-after another; `pod.py stop` ends the loop.
+Then run `pod.py stop` (if `wait` has not), or `pod.py terminate`.

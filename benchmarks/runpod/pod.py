@@ -1,7 +1,7 @@
 """Launch and manage the pod that serves a reader with vLLM, for the harness on the Mac.
   python benchmarks/runpod/pod.py create-serve --run reader-v4-gemma4-e4b --served-name rembero-reader-v4
   python benchmarks/runpod/pod.py create-serve --run <a> --served-name <n> --run <b> --served-name <m>
-  python benchmarks/runpod/pod.py wait [--pod <id>] [--served-name rembero-reader-v4] [--port 8001]
+  python benchmarks/runpod/pod.py wait [--pod <id>] [--served-name rembero-reader-v4] [--port 8001] [--no-stop-on-timeout]
   python benchmarks/runpod/pod.py stop|start|terminate [--pod <id>]
   python benchmarks/runpod/pod.py status [--pod <id>]
 The pod runs the official vLLM image on a community GPU with the network volume at /workspace:
@@ -10,7 +10,8 @@ its start command rebuilds the reader's merged weights from runs/<run>/adapter o
 the first is served on port 8000 and the second on 8001. Env or .env: RUNPOD_API_KEY,
 RUNPOD_VOLUME_ID. create-serve writes VLLM_API_KEY (once), RUNPOD_SERVE_POD_ID, RUNPOD_SERVE_URL
 and RUNPOD_SERVE_URL_2 (empty for one run) to .env; the other subcommands default --pod to
-RUNPOD_SERVE_POD_ID. No Hugging Face or Modal credential goes
+RUNPOD_SERVE_POD_ID. `wait` stops the pod when it times out (it needs RUNPOD_API_KEY for that) unless
+--no-stop-on-timeout is given. No Hugging Face or Modal credential goes
 to the pod: the base model is public and the adapter is already on the volume."""
 
 from __future__ import annotations
@@ -53,7 +54,7 @@ SERVE_FLAGS = [
 # two readers side by side on one GPU each take this share of its memory
 SHARED_GPU_MEMORY_UTILIZATION = "0.44"
 PORTS = (8000, 8001)
-# how long the two-run start command waits for the first server's /health before it parks
+# how long the start command waits for each server's /health before it parks
 SERVE_HEALTH_TIMEOUT_S = 30 * 60
 # two readers at 0.44 each need an 80 GB+ GPU: 0.44 of a 32 GB card is about the weights alone
 LARGE_GPUS = ("NVIDIA H100 NVL", "NVIDIA H100 80GB HBM3", "NVIDIA H100 PCIe", "NVIDIA A100-SXM4-80GB",
@@ -84,10 +85,28 @@ def _prepare_steps(run: str, *, root: str, base_model: str, install: bool) -> st
     ])
 
 
+def _health_wait(run: str, port: int, pid_var: str, *, watch: tuple[tuple[str, str], ...] = ()) -> list[str]:
+    """Wait for the server in $pid_var to answer /health on `port`, within SERVE_HEALTH_TIMEOUT_S.
+    It parks through serve_fail when that server exits first, when a server in `watch` (run, pid
+    variable) exits meanwhile, or at the deadline."""
+    health = f"import urllib.request; urllib.request.urlopen('http://127.0.0.1:{port}/health', timeout=5)"
+    timeout = int(SERVE_HEALTH_TIMEOUT_S)
+    watched = "".join(f' kill -0 "${var}" 2>/dev/null || {{ wait "${var}"; serve_fail "{name} exited with $?"; }};'
+                      for name, var in watch)
+    return [
+        f"SERVE_DEADLINE=$((SECONDS + {timeout}))",
+        f'until python3 -c {shlex.quote(health)} >/dev/null 2>&1; do'
+        f' kill -0 "${pid_var}" 2>/dev/null || {{ wait "${pid_var}"; serve_fail "{run} exited with $? before it was healthy on {port}"; }};'
+        f"{watched}"
+        f' [ "$SECONDS" -lt "$SERVE_DEADLINE" ] || serve_fail "{run} was not healthy on {port} within {timeout} s";'
+        " sleep 5; done",
+    ]
+
+
 def serve_command(run: str, served_name: str, *, second: tuple[str, str] | None = None,
                   root: str = ROOT, base_model: str = BASE_MODEL) -> str:
     """The pod's whole start command, for `bash -lc`: install PEFT (the image has transformers but
-    not PEFT), rebuild the weights once, then hand the process to vLLM.
+    not PEFT), rebuild the weights once, then serve with vLLM without ever letting the container exit.
 
     - Prepare runs from <root>/code: the image's WORKDIR /vllm-workspace holds vLLM's own
       `benchmarks` package, which `python3 -m benchmarks...` would import from there instead.
@@ -95,6 +114,9 @@ def serve_command(run: str, served_name: str, *, second: tuple[str, str] | None 
       volume, so both can be fetched with volume.py get (the image has no SSH).
     - A failed prepare (or an empty key) writes runs/<run>/PREPARE_FAILED and parks the container
       on `sleep infinity`: an exited container is restarted by RunPod and would redo the merge.
+    - vLLM runs in the background. If it is not healthy within SERVE_HEALTH_TIMEOUT_S, or it exits
+      (before healthy or later), `serve_fail` writes "SERVE_FAILED: <reason>" to serve.log, stops
+      the server if it is still up and parks on `sleep infinity`, as the two-run command does.
     - The API key is read from the pod's env, never written into the command.
 
     `second=(run, served_name)` serves a second reader on the same GPU: see _two_run_command."""
@@ -119,7 +141,11 @@ def serve_command(run: str, served_name: str, *, second: tuple[str, str] | None 
         'fail() { echo "$1" | tee -a "$RUN_DIR/prepare.log"; touch "$RUN_DIR/PREPARE_FAILED"; exec sleep infinity; }',
         'test -n "$VLLM_API_KEY" || fail "VLLM_API_KEY is empty; refusing to serve on a public URL without a key"',
         f'{{ {steps}; }} 2>&1 | tee -a "$RUN_DIR/prepare.log" || fail "prepare failed; see $RUN_DIR/prepare.log"',
-        f'exec {shlex.join(vllm)} --api-key "$VLLM_API_KEY" > >(tee -a "$RUN_DIR/serve.log") 2>&1',
+        # serve_fail <reason>: SERVE_FAILED to serve.log, stop the server if it is still up, park
+        'serve_fail() { echo "SERVE_FAILED: $1" | tee -a "$RUN_DIR/serve.log"; kill "$SERVE_PID" 2>/dev/null; exec sleep infinity; }',
+        f'{shlex.join(vllm)} --api-key "$VLLM_API_KEY" > >(tee -a "$RUN_DIR/serve.log") 2>&1 & SERVE_PID=$!',
+        *_health_wait(run, PORTS[0], "SERVE_PID"),
+        f'wait "$SERVE_PID"; serve_fail "{run} exited with $?"',
     ])
 
 
@@ -131,9 +157,9 @@ def _two_run_command(first: tuple[str, str], second: tuple[str, str], *, root: s
       marks that run PREPARE_FAILED and parks the pod (an empty key marks both).
     - The first vLLM starts on 8000 and the second on 8001 only once the first answers /health, so
       the two never profile GPU memory at the same moment; each logs to its own run's serve.log.
-    - The container never exits, because RunPod would restart it into a billed loop. If the first
-      server is not healthy within SERVE_HEALTH_TIMEOUT_S, or either server exits (before healthy or
-      later), `serve_fail` writes "SERVE_FAILED: <reason>" to both runs' serve.log, stops whatever
+    - The container never exits, because RunPod would restart it into a billed loop. If either
+      server is not healthy within SERVE_HEALTH_TIMEOUT_S of its start, or either server exits
+      (before healthy or later), `serve_fail` writes "SERVE_FAILED: <reason>" to both runs' serve.log, stops whatever
       server is still up and parks on `sleep infinity`, like PREPARE_FAILED. A parked pod still
       bills until it is stopped."""
     (run_1, name_1), (run_2, name_2) = first, second
@@ -142,8 +168,6 @@ def _two_run_command(first: tuple[str, str], second: tuple[str, str], *, root: s
     vllm_2 = _vllm(dir_2, name_2, PORTS[1], SHARED_GPU_MEMORY_UTILIZATION)
     steps_1 = _prepare_steps(run_1, root=root, base_model=base_model, install=True)
     steps_2 = _prepare_steps(run_2, root=root, base_model=base_model, install=False)
-    health = f"import urllib.request; urllib.request.urlopen('http://127.0.0.1:{PORTS[0]}/health', timeout=5)"
-    timeout = int(SERVE_HEALTH_TIMEOUT_S)
     return "; ".join([
         "set -o pipefail",
         "export PYTHONUNBUFFERED=1",
@@ -161,12 +185,9 @@ def _two_run_command(first: tuple[str, str], second: tuple[str, str], *, root: s
         'serve_fail() { local dir pid; for dir in "$RUN_DIR" "$RUN_DIR_2"; do echo "SERVE_FAILED: $1" | tee -a "$dir/serve.log"; done;'
         ' for pid in $SERVE_PID $SERVE_PID_2; do kill "$pid" 2>/dev/null; done; exec sleep infinity; }',
         f'{shlex.join(vllm_1)} --api-key "$VLLM_API_KEY" > >(tee -a "$RUN_DIR/serve.log") 2>&1 & SERVE_PID=$!',
-        f"SERVE_DEADLINE=$((SECONDS + {timeout}))",
-        f'until python3 -c {shlex.quote(health)} >/dev/null 2>&1; do'
-        f' kill -0 "$SERVE_PID" 2>/dev/null || {{ wait "$SERVE_PID"; serve_fail "{run_1} exited with $? before it was healthy on {PORTS[0]}"; }};'
-        f' [ "$SECONDS" -lt "$SERVE_DEADLINE" ] || serve_fail "{run_1} was not healthy on {PORTS[0]} within {timeout} s";'
-        " sleep 5; done",
+        *_health_wait(run_1, PORTS[0], "SERVE_PID"),
         f'{shlex.join(vllm_2)} --api-key "$VLLM_API_KEY" > >(tee -a "$RUN_DIR_2/serve.log") 2>&1 & SERVE_PID_2=$!',
+        *_health_wait(run_2, PORTS[1], "SERVE_PID_2", watch=((run_1, "SERVE_PID"),)),
         'while kill -0 "$SERVE_PID" 2>/dev/null && kill -0 "$SERVE_PID_2" 2>/dev/null; do sleep 30; done',
         f'kill -0 "$SERVE_PID" 2>/dev/null || {{ wait "$SERVE_PID"; serve_fail "{run_1} exited with $?"; }}',
         f'wait "$SERVE_PID_2"; serve_fail "{run_2} exited with $?"',
@@ -289,20 +310,31 @@ def create_serve(a, env: dict[str, str], key: str) -> None:
                                 second=second)
     pod = api("POST", "/pods", key, payload)
     pod_id = pod["id"]
+    # the pod bills from here: its id reaches stdout before anything else can fail
+    print(f"pod {pod_id} ({pod.get('costPerHr', '?')} $/h, {pod.get('desiredStatus', '?')})", flush=True)
     url = serve_url(pod_id)
     # a one-run pod blanks RUNPOD_SERVE_URL_2 so a stale second URL never points at a dead pod
     url_2 = serve_url(pod_id, PORTS[1]) if second else ""
     upsert_env(ENV_FILE, {"RUNPOD_SERVE_POD_ID": pod_id, "RUNPOD_SERVE_URL": url, "RUNPOD_SERVE_URL_2": url_2})
-    print(f"pod {pod_id} ({pod.get('costPerHr', '?')} $/h, {pod.get('desiredStatus', '?')})")
     print(f"{url}  ({a.served_name[0]})")
     if second:
         print(f"{url_2}  ({second[1]})")
+
+
+def stop_pod(pod_id: str, key: str) -> None:
+    api("POST", f"/pods/{pod_id}/stop", key)
+    print(f"stop requested for {pod_id}")
 
 
 def wait(a, env: dict[str, str]) -> None:
     api_key = setting("VLLM_API_KEY", env)
     if not api_key:
         raise SystemExit("no VLLM_API_KEY in the environment or .env")
+    # a pod that never comes up still bills: wait stops it at the timeout, so it needs the key up front
+    runpod_key = setting("RUNPOD_API_KEY", env)
+    if a.stop_on_timeout and not runpod_key:
+        raise SystemExit("no RUNPOD_API_KEY in the environment or .env; wait stops the pod on timeout "
+                         "(pass --no-stop-on-timeout to wait without stopping it)")
     url, started, last = serve_url(a.pod, a.port), time.time(), None
     while time.time() - started < a.timeout:
         try:
@@ -317,7 +349,12 @@ def wait(a, env: dict[str, str]) -> None:
             print(f"[{(time.time() - started) / 60:5.1f} min] {state}")
             last = state
         time.sleep(20)
-    raise SystemExit(f"{url} did not list {a.served_name or 'a model'} within {a.timeout / 60:.0f} min")
+    missed = f"{url} did not list {a.served_name or 'a model'} within {a.timeout / 60:.0f} min"
+    if not a.stop_on_timeout:
+        raise SystemExit(f"{missed}; pod {a.pod} is still running and billing (--no-stop-on-timeout)")
+    print(f"{missed}; stopping pod {a.pod}")
+    stop_pod(a.pod, runpod_key)
+    raise SystemExit(f"{missed}; stopped pod {a.pod} (check runs/<run>/prepare.log and serve.log, then start it)")
 
 
 def show(pod: dict) -> None:
@@ -338,6 +375,8 @@ def main(argv: list[str] | None = None) -> None:
     waiting = sub.add_parser("wait")
     waiting.add_argument("--pod"); waiting.add_argument("--served-name"); waiting.add_argument("--timeout", type=int, default=30 * 60)
     waiting.add_argument("--port", type=int, choices=PORTS, default=PORTS[0])
+    waiting.add_argument("--no-stop-on-timeout", dest="stop_on_timeout", action="store_false",
+                         help="leave the pod running (and billing) when it does not come up in time")
     for name in ("stop", "start", "terminate", "status"):
         sub.add_parser(name).add_argument("--pod")
     a = ap.parse_args(argv)
@@ -359,9 +398,11 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit("no RUNPOD_API_KEY in the environment or .env")
     if a.command == "create-serve":
         create_serve(a, env, key)
-    elif a.command in ("stop", "start"):
-        api("POST", f"/pods/{a.pod}/{a.command}", key)
-        print(f"{a.command} requested for {a.pod}")
+    elif a.command == "stop":
+        stop_pod(a.pod, key)
+    elif a.command == "start":
+        api("POST", f"/pods/{a.pod}/start", key)
+        print(f"start requested for {a.pod}")
     elif a.command == "terminate":
         api("DELETE", f"/pods/{a.pod}", key)
         print(f"terminated {a.pod}")
