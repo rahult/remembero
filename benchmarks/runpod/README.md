@@ -280,11 +280,12 @@ present. Compare the pod's against the local copy of Modal's reader v4:
 diff /tmp/pod-fingerprint.json /tmp/modal-fingerprint.json
 ```
 
-**Serve flags.** The Modal serve of record, flag for flag: `--dtype bfloat16 --max-model-len 8192
---max-num-seqs 32 --gpu-memory-utilization 0.92 --reasoning-parser gemma4
+**Serve flags.** The Modal serve of record, flag for flag, except the context: `--dtype bfloat16
+--max-model-len 12288 --max-num-seqs 32 --gpu-memory-utilization 0.92 --reasoning-parser gemma4
 --default-chat-template-kwargs '{"enable_thinking":false}'`, plus `--served-model-name`, and
 `--api-key "$VLLM_API_KEY"` because the proxy URL is public (the start command stops if the key
-is empty).
+is empty). 12288 rather than 8192 because thinking completions on 7k-token prompts overflow 8192.
+Two readers on one pod each take `--gpu-memory-utilization 0.44` instead of 0.92.
 
 ### Setup and use
 
@@ -303,7 +304,8 @@ touch /tmp/empty-init.py && .venv/bin/python benchmarks/runpod/volume.py put /tm
 .venv/bin/python benchmarks/runpod/pod.py terminate
 ```
 
-`create-serve` takes `--gpu`, `--datacenter` (default EUR-NO-1), `--volume` (default
+`create-serve` takes `--run` and `--served-name` (once each, or twice for two readers, below),
+`--gpu`, `--datacenter` (default EUR-NO-1), `--volume` (default
 `RUNPOD_VOLUME_ID`) and `--cloud COMMUNITY|SECURE` (default COMMUNITY; network volumes may be
 Secure Cloud only, so retry with `--cloud SECURE` if community placement is refused). It reads `RUNPOD_API_KEY` from the environment or `.env`, generates a
 `VLLM_API_KEY` once (`secrets.token_urlsafe(32)`) if `.env` has none, passes
@@ -312,6 +314,34 @@ Secure Cloud only, so retry with `--cloud SECURE` if community placement is refu
 `RUNPOD_SERVE_URL`; the other subcommands default `--pod` to that id. The harness points at the
 pod with `--reader-model rembero-reader-v4 --reader-base-url "$RUNPOD_SERVE_URL"` and the
 `--reader-api-key "$VLLM_API_KEY"`, plus the retrieval-depth flags every paired run passes.
+
+**Two readers on one pod.** A paired verdict needs both readers served by the same pod, so
+`create-serve` takes a second `--run`/`--served-name` pair (pairs match up in order; one or two):
+
+```sh
+.venv/bin/python benchmarks/runpod/pod.py create-serve \
+  --run reader-v7-gemma4-e4b --served-name rembero-reader-v7 \
+  --run reader-v8-gemma4-e4b --served-name rembero-reader-v8 \
+  --gpu "NVIDIA H100 NVL" --datacenter US-GA-2
+.venv/bin/python benchmarks/runpod/pod.py wait --served-name rembero-reader-v7              # port 8000
+.venv/bin/python benchmarks/runpod/pod.py wait --served-name rembero-reader-v8 --port 8001  # port 8001
+```
+
+The start command installs PEFT once, prepares the first run and then the second (one after the
+other, so the two merges never hold host memory at once), then starts vLLM for the first run on
+port 8000 and, once that answers `/health`, vLLM for the second on port 8001 (two servers
+profiling GPU memory at the same moment can misjudge each other's usage). Both use the same
+`VLLM_API_KEY`, `--max-model-len 12288` and `--gpu-memory-utilization 0.44`; each writes its own
+`runs/<run>/prepare.log` and `runs/<run>/serve.log`. The pod exposes `8000/http` and `8001/http`,
+and `.env` gets `RUNPOD_SERVE_URL` (`https://<pod>-8000.proxy.runpod.net/v1`, the first run) and
+`RUNPOD_SERVE_URL_2` (`https://<pod>-8001.proxy.runpod.net/v1`, the second); a one-run
+`create-serve` writes `RUNPOD_SERVE_URL_2` empty so a stale second URL is never left behind. If
+either prepare fails, that run gets `PREPARE_FAILED` and the pod parks as below with neither
+server started (an empty key marks both runs). If either server exits later, the start command
+exits too and RunPod restarts the pod, where prepare is a no-op. 0.44 of the GPU is about 14 GB on
+a 32 GB RTX 5090, no more than the text-only bf16 weights alone, so two readers need a larger GPU
+such as the H100 NVL of the plan (about 41 GB each); the volume also holds two `merged-text`
+copies.
 
 **Logs and failures.** The vLLM image runs no SSH daemon (`22/tcp` and `PUBLIC_KEY` do nothing
 today), so everything is written to the volume and fetched with `volume.py get`:

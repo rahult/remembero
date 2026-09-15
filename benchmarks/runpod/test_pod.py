@@ -77,7 +77,7 @@ def test_the_serve_command_carries_every_serving_flag_of_record():
         return vllm[vllm.index(name) + 1]
 
     assert flag("--dtype") == "bfloat16"
-    assert flag("--max-model-len") == "8192"
+    assert flag("--max-model-len") == "12288"
     assert flag("--max-num-seqs") == "32"
     assert flag("--gpu-memory-utilization") == "0.92"
     assert flag("--reasoning-parser") == "gemma4"
@@ -174,6 +174,196 @@ def test_the_serve_command_refuses_a_run_name_that_escapes_the_volume():
 
 def test_the_proxy_url_is_the_pods_port_8000():
     assert serve_url("abc123") == "https://abc123-8000.proxy.runpod.net/v1"
+
+
+RUN_2 = "reader-v8-gemma4-e4b"
+NAME_2 = "rembero-reader-v8"
+
+
+def vllm_invocations(command):
+    """Each `vllm serve ...` in the command as its words, up to its redirection."""
+    words = shlex.split(command)
+    starts = [i for i, word in enumerate(words) if word == "vllm" and words[i + 1] == "serve"]
+    return [words[start:words.index("2>&1", start)] for start in starts]
+
+
+def test_the_one_run_command_is_todays_with_only_the_longer_context():
+    command = serve_command(RUN, NAME)
+    assert command.count("vllm serve") == 1 and "8001" not in command and "RUN_DIR_2" not in command
+    assert command.count("benchmarks.runpod.prepare_reader") == 1
+    [vllm] = vllm_invocations(command)
+    assert vllm[vllm.index("--max-model-len") + 1] == "12288"
+    assert vllm[vllm.index("--gpu-memory-utilization") + 1] == "0.92"
+    assert command.startswith(f"set -o pipefail; export PYTHONUNBUFFERED=1; RUN_DIR=/workspace/runs/{RUN}; ")
+    assert f"exec vllm serve /workspace/runs/{RUN}/merged-text" in command
+
+
+def test_two_runs_serve_one_vllm_each_on_8000_and_8001_with_the_same_flags_and_key():
+    command = serve_command(RUN, NAME, second=(RUN_2, NAME_2))
+    first, second = vllm_invocations(command)
+    for vllm, run, name, port in ((first, RUN, NAME, "8000"), (second, RUN_2, NAME_2, "8001")):
+        def flag(option):
+            return vllm[vllm.index(option) + 1]
+
+        assert vllm[:3] == ["vllm", "serve", f"/workspace/runs/{run}/merged-text"]
+        assert flag("--dtype") == "bfloat16" and flag("--max-model-len") == "12288"
+        assert flag("--max-num-seqs") == "32" and flag("--gpu-memory-utilization") == "0.44"
+        assert flag("--reasoning-parser") == "gemma4"
+        assert json.loads(flag("--default-chat-template-kwargs")) == {"enable_thinking": False}
+        assert flag("--served-model-name") == name
+        assert flag("--host") == "0.0.0.0" and flag("--port") == port
+        assert flag("--api-key") == "$VLLM_API_KEY"
+    assert command.count('--api-key "$VLLM_API_KEY"') == 2 and "vllm-key" not in command
+
+
+def test_two_runs_prepare_both_before_either_server_starts_each_with_its_own_logs():
+    command = serve_command(RUN, NAME, second=(RUN_2, NAME_2))
+    first_serve = command.index("vllm serve")
+    assert command.index(f"--run {RUN} ") < command.index(f"--run {RUN_2} ") < first_serve
+    assert command.index('test -n "$VLLM_API_KEY"') < command.index("benchmarks.runpod.prepare_reader")
+    assert command.count("uv pip install") == 1  # PEFT is installed once, before the first prepare
+    assert 'tee -a "$RUN_DIR/prepare.log"' in command and 'tee -a "$RUN_DIR_2/prepare.log"' in command
+    assert 'tee -a "$RUN_DIR/serve.log"' in command and 'tee -a "$RUN_DIR_2/serve.log"' in command
+    assert f"RUN_DIR=/workspace/runs/{RUN};" in command and f"RUN_DIR_2=/workspace/runs/{RUN_2};" in command
+    subprocess.run(["bash", "-n", "-c", command], check=True)
+
+
+def test_two_runs_refuse_a_bad_or_repeated_second_run():
+    with pytest.raises(ValueError):
+        serve_command(RUN, NAME, second=("../etc", NAME_2))
+    with pytest.raises(ValueError):
+        serve_command(RUN, NAME, second=(RUN_2, "name; rm -rf /"))
+    with pytest.raises(ValueError):
+        serve_command(RUN, NAME, second=(RUN, NAME_2))
+    with pytest.raises(ValueError):
+        serve_command(RUN, NAME, second=(RUN_2, NAME))
+
+
+def boot_two(tmp_path, failing_run=None, key="test-key"):
+    """Boot the two-run command with stubs; the python3 stub fails when its arguments name failing_run."""
+    bin_dir, root = tmp_path / "bin", tmp_path / "volume"
+    bin_dir.mkdir()
+    (root / "code").mkdir(parents=True)
+    calls = tmp_path / "calls.txt"
+    calls.write_text("")
+    fail_on = f'case "$* " in *"--run {failing_run} "*) exit 1;; esac; ' if failing_run else ""
+    fake_bin(bin_dir, "uv", f'echo "uv $*" >> {calls}')
+    fake_bin(bin_dir, "python3", f'echo "python3 $*" >> {calls}; echo "prepare says $*"; {fail_on}exit 0')
+    fake_bin(bin_dir, "vllm", f'echo "vllm $*" >> {calls}; echo "vllm is serving $*"')
+    fake_bin(bin_dir, "sleep", f'echo "sleep $*" >> {calls}')
+    env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "VLLM_API_KEY": key}
+    command = serve_command(RUN, NAME, second=(RUN_2, NAME_2), root=str(root))
+    subprocess.run(["bash", "-c", command], env=env, cwd=tmp_path, timeout=30)
+    dirs = root / "runs" / RUN, root / "runs" / RUN_2
+    for _ in range(50):  # the serve logs are written by tees that may outlive bash by a moment
+        logs = [d / "serve.log" for d in dirs]
+        if failing_run or not key or all(log.exists() and "vllm is serving" in log.read_text() for log in logs):
+            break
+        time.sleep(0.05)
+    return calls.read_text(), dirs
+
+
+def test_two_runs_boot_prepares_both_then_serves_both_logging_each_to_its_run(tmp_path):
+    calls, (dir_1, dir_2) = boot_two(tmp_path)
+    lines = calls.splitlines()
+    prepares = [i for i, line in enumerate(lines) if "benchmarks.runpod.prepare_reader" in line]
+    serves = [i for i, line in enumerate(lines) if line.startswith("vllm serve")]
+    assert len(prepares) == 2 and len(serves) == 2 and max(prepares) < min(serves)
+    assert f"--run {RUN} " in lines[prepares[0]] and f"--run {RUN_2} " in lines[prepares[1]]
+    assert f"--run {RUN} " in (dir_1 / "prepare.log").read_text()
+    second_prepare = (dir_2 / "prepare.log").read_text()
+    assert f"--run {RUN_2} " in second_prepare and f"--run {RUN} " not in second_prepare
+    assert "--port 8000" in (dir_1 / "serve.log").read_text() and "--port 8001" in (dir_2 / "serve.log").read_text()
+    assert "--port 8001" not in (dir_1 / "serve.log").read_text()
+    assert not (dir_1 / "PREPARE_FAILED").exists() and not (dir_2 / "PREPARE_FAILED").exists()
+
+
+def test_two_runs_park_when_the_second_prepare_fails_without_serving_either(tmp_path):
+    calls, (dir_1, dir_2) = boot_two(tmp_path, failing_run=RUN_2)
+    assert (dir_2 / "PREPARE_FAILED").exists() and not (dir_1 / "PREPARE_FAILED").exists()
+    assert "prepare failed" in (dir_2 / "prepare.log").read_text()
+    assert "sleep infinity" in calls and "vllm" not in calls
+
+
+def test_two_runs_park_when_the_first_prepare_fails_before_the_second_starts(tmp_path):
+    calls, (dir_1, dir_2) = boot_two(tmp_path, failing_run=RUN)
+    assert (dir_1 / "PREPARE_FAILED").exists() and not (dir_2 / "PREPARE_FAILED").exists()
+    assert f"--run {RUN_2} " not in calls and "vllm" not in calls and "sleep infinity" in calls
+
+
+def test_two_runs_with_an_empty_key_mark_both_runs_and_park(tmp_path):
+    calls, dirs = boot_two(tmp_path, key="")
+    for run_dir in dirs:
+        assert (run_dir / "PREPARE_FAILED").exists() and "VLLM_API_KEY is empty" in (run_dir / "prepare.log").read_text()
+    assert calls.splitlines() == ["sleep infinity"]
+
+
+def test_the_two_run_payload_exposes_both_ports_and_starts_the_two_run_command():
+    p = payload(second=(RUN_2, NAME_2))
+    assert p["ports"] == ["8000/http", "8001/http", "22/tcp"]
+    assert p["dockerStartCmd"] == [serve_command(RUN, NAME, second=(RUN_2, NAME_2))]
+    assert p["name"].startswith("rembero-serve-") and len(p["name"]) <= 60
+    assert payload()["ports"] == ["8000/http", "22/tcp"]
+
+
+def test_the_second_readers_proxy_url_is_port_8001():
+    assert serve_url("abc123", 8001) == "https://abc123-8001.proxy.runpod.net/v1"
+
+
+def test_create_serve_takes_one_or_two_run_and_name_pairs(monkeypatch):
+    from benchmarks.runpod import pod
+
+    seen = []
+    monkeypatch.setattr(pod, "read_env", lambda path: {"RUNPOD_API_KEY": "k"})
+    monkeypatch.setattr(pod, "create_serve", lambda a, env, key: seen.append((a.run, a.served_name, a.gpu)))
+    pod.main(["create-serve", "--run", RUN, "--served-name", NAME])
+    pod.main(["create-serve", "--run", RUN, "--served-name", NAME, "--run", RUN_2, "--served-name", NAME_2,
+              "--gpu", "NVIDIA H100 NVL"])
+    assert seen == [([RUN], [NAME], "NVIDIA GeForce RTX 5090"), ([RUN, RUN_2], [NAME, NAME_2], "NVIDIA H100 NVL")]
+    for bad in (["--run", RUN, "--served-name", NAME, "--run", RUN_2],
+                ["--run", RUN, "--served-name", NAME, "--run", RUN_2, "--served-name", NAME_2,
+                 "--run", "c", "--served-name", "d"]):
+        with pytest.raises(SystemExit):
+            pod.main(["create-serve", *bad])
+    assert len(seen) == 2
+
+
+def test_create_serve_with_two_runs_records_both_urls(monkeypatch, tmp_path):
+    from argparse import Namespace
+
+    from benchmarks.runpod import pod
+
+    env_file, bodies = tmp_path / ".env", []
+    env_file.write_text("VLLM_API_KEY=vllm-key-123\n")
+    monkeypatch.setattr(pod, "ENV_FILE", env_file)
+    monkeypatch.delenv("VLLM_API_KEY", raising=False)
+    monkeypatch.setattr(pod, "api", lambda method, path, key, body=None: bodies.append(body) or {"id": "pod9"})
+    a = Namespace(run=[RUN, RUN_2], served_name=[NAME, NAME_2], volume="vol-abc", gpu="NVIDIA H100 NVL",
+                  datacenter="EUR-NO-1", cloud="COMMUNITY")
+    pod.create_serve(a, read_env(env_file), "runpod-key")
+    [body] = bodies
+    assert body["ports"] == ["8000/http", "8001/http", "22/tcp"] and body["gpuTypeIds"] == ["NVIDIA H100 NVL"]
+    assert body["dockerStartCmd"] == [serve_command(RUN, NAME, second=(RUN_2, NAME_2))]
+    values = read_env(env_file)
+    assert values["RUNPOD_SERVE_POD_ID"] == "pod9"
+    assert values["RUNPOD_SERVE_URL"] == "https://pod9-8000.proxy.runpod.net/v1"
+    assert values["RUNPOD_SERVE_URL_2"] == "https://pod9-8001.proxy.runpod.net/v1"
+
+    a.run, a.served_name = [RUN], [NAME]
+    pod.create_serve(a, read_env(env_file), "runpod-key")
+    assert bodies[-1]["dockerStartCmd"] == [serve_command(RUN, NAME)]
+    assert read_env(env_file)["RUNPOD_SERVE_URL_2"] == ""  # a one-run pod leaves no stale second URL
+
+
+def test_wait_can_poll_the_second_readers_port(monkeypatch):
+    from benchmarks.runpod import pod
+
+    polled = []
+    monkeypatch.setattr(pod, "read_env", lambda path: {"VLLM_API_KEY": "v", "RUNPOD_SERVE_POD_ID": "pod9"})
+    monkeypatch.setattr(pod, "served_models", lambda url, key: polled.append(url) or [NAME_2])
+    pod.main(["wait", "--served-name", NAME_2, "--port", "8001"])
+    pod.main(["wait", "--served-name", NAME_2])
+    assert polled == ["https://pod9-8001.proxy.runpod.net/v1", "https://pod9-8000.proxy.runpod.net/v1"]
 
 
 def test_upsert_env_replaces_existing_keys_and_appends_new_ones(tmp_path):

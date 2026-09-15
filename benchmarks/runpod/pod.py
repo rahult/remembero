@@ -1,13 +1,16 @@
 """Launch and manage the pod that serves a reader with vLLM, for the harness on the Mac.
   python benchmarks/runpod/pod.py create-serve --run reader-v4-gemma4-e4b --served-name rembero-reader-v4
-  python benchmarks/runpod/pod.py wait [--pod <id>] [--served-name rembero-reader-v4]
+  python benchmarks/runpod/pod.py create-serve --run <a> --served-name <n> --run <b> --served-name <m>
+  python benchmarks/runpod/pod.py wait [--pod <id>] [--served-name rembero-reader-v4] [--port 8001]
   python benchmarks/runpod/pod.py stop|start|terminate [--pod <id>]
   python benchmarks/runpod/pod.py status [--pod <id>]
 The pod runs the official vLLM image on a community GPU with the network volume at /workspace:
 its start command rebuilds the reader's merged weights from runs/<run>/adapter once
-(prepare_reader.py) and then serves them. Env or .env: RUNPOD_API_KEY, RUNPOD_VOLUME_ID.
-create-serve writes VLLM_API_KEY (once), RUNPOD_SERVE_POD_ID and RUNPOD_SERVE_URL to .env; the
-other subcommands default --pod to RUNPOD_SERVE_POD_ID. No Hugging Face or Modal credential goes
+(prepare_reader.py) and then serves them. Two runs share one GPU: both are prepared first, then
+the first is served on port 8000 and the second on 8001. Env or .env: RUNPOD_API_KEY,
+RUNPOD_VOLUME_ID. create-serve writes VLLM_API_KEY (once), RUNPOD_SERVE_POD_ID, RUNPOD_SERVE_URL
+and RUNPOD_SERVE_URL_2 (empty for one run) to .env; the other subcommands default --pod to
+RUNPOD_SERVE_POD_ID. No Hugging Face or Modal credential goes
 to the pod: the base model is public and the adapter is already on the volume."""
 
 from __future__ import annotations
@@ -37,23 +40,47 @@ ROOT = "/workspace"
 BASE_MODEL = "google/gemma-4-E4B-it"
 RUN_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$")
 SERVED_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/:-]{0,120}$")
-# The Modal serve of record (benchmarks/modal/train_lora.py `serve`), flag for flag.
+# The Modal serve of record (benchmarks/modal/train_lora.py `serve`), flag for flag, except the
+# context: thinking completions on 7k-token prompts overflow 8192.
 SERVE_FLAGS = [
     "--dtype", "bfloat16",
-    "--max-model-len", "8192",
+    "--max-model-len", "12288",
     "--max-num-seqs", "32",
     "--gpu-memory-utilization", "0.92",
     "--reasoning-parser", "gemma4",
     "--default-chat-template-kwargs", json.dumps({"enable_thinking": False}, separators=(",", ":")),
 ]
+# two readers side by side on one GPU each take this share of its memory
+SHARED_GPU_MEMORY_UTILIZATION = "0.44"
+PORTS = (8000, 8001)
 ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
 
-def serve_url(pod_id: str) -> str:
-    return f"https://{pod_id}-8000.proxy.runpod.net/v1"
+def serve_url(pod_id: str, port: int = PORTS[0]) -> str:
+    return f"https://{pod_id}-{port}.proxy.runpod.net/v1"
 
 
-def serve_command(run: str, served_name: str, *, root: str = ROOT, base_model: str = BASE_MODEL) -> str:
+def _vllm(run_dir: str, served_name: str, port: int, gpu_memory_utilization: str | None = None) -> list[str]:
+    flags = list(SERVE_FLAGS)
+    if gpu_memory_utilization:
+        flags[flags.index("--gpu-memory-utilization") + 1] = gpu_memory_utilization
+    return ["vllm", "serve", f"{run_dir}/merged-text", *flags, "--served-model-name", served_name,
+            "--host", "0.0.0.0", "--port", str(port)]
+
+
+def _prepare_steps(run: str, *, root: str, base_model: str, install: bool) -> str:
+    prepare = ["python3", "-m", "benchmarks.runpod.prepare_reader", "--root", root, "--run", run, "--base-model", base_model]
+    return " && ".join([
+        'echo "=== boot $(date -u +%Y-%m-%dT%H:%M:%SZ)"',
+        f"cd {shlex.quote(f'{root}/code')}",
+        # uv respects the image's /etc/uv-overrides.txt pins; plain pip is the fallback
+        *(['(uv pip install --system -q "peft>=0.17" || python3 -m pip install -q "peft>=0.17")'] if install else []),
+        shlex.join(prepare),
+    ])
+
+
+def serve_command(run: str, served_name: str, *, second: tuple[str, str] | None = None,
+                  root: str = ROOT, base_model: str = BASE_MODEL) -> str:
     """The pod's whole start command, for `bash -lc`: install PEFT (the image has transformers but
     not PEFT), rebuild the weights once, then hand the process to vLLM.
 
@@ -63,22 +90,21 @@ def serve_command(run: str, served_name: str, *, root: str = ROOT, base_model: s
       volume, so both can be fetched with volume.py get (the image has no SSH).
     - A failed prepare (or an empty key) writes runs/<run>/PREPARE_FAILED and parks the container
       on `sleep infinity`: an exited container is restarted by RunPod and would redo the merge.
-    - The API key is read from the pod's env, never written into the command."""
-    if not RUN_NAME.match(run):
-        raise ValueError(f"run must match {RUN_NAME.pattern}, got {run!r}")
-    if not SERVED_NAME.match(served_name):
-        raise ValueError(f"served name must match {SERVED_NAME.pattern}, got {served_name!r}")
-    run_dir, code_dir = f"{root}/runs/{run}", f"{root}/code"
-    prepare = ["python3", "-m", "benchmarks.runpod.prepare_reader", "--root", root, "--run", run, "--base-model", base_model]
-    vllm = ["vllm", "serve", f"{run_dir}/merged-text", *SERVE_FLAGS, "--served-model-name", served_name,
-            "--host", "0.0.0.0", "--port", "8000"]
-    steps = " && ".join([
-        'echo "=== boot $(date -u +%Y-%m-%dT%H:%M:%SZ)"',
-        f"cd {shlex.quote(code_dir)}",
-        # uv respects the image's /etc/uv-overrides.txt pins; plain pip is the fallback
-        '(uv pip install --system -q "peft>=0.17" || python3 -m pip install -q "peft>=0.17")',
-        shlex.join(prepare),
-    ])
+    - The API key is read from the pod's env, never written into the command.
+
+    `second=(run, served_name)` serves a second reader on the same GPU: see _two_run_command."""
+    for name, served in [(run, served_name), *([second] if second else [])]:
+        if not RUN_NAME.match(name):
+            raise ValueError(f"run must match {RUN_NAME.pattern}, got {name!r}")
+        if not SERVED_NAME.match(served):
+            raise ValueError(f"served name must match {SERVED_NAME.pattern}, got {served!r}")
+    if second:
+        if second[0] == run or second[1] == served_name:
+            raise ValueError(f"the two readers need different runs and served names, got {run!r}/{served_name!r} twice")
+        return _two_run_command((run, served_name), second, root=root, base_model=base_model)
+    run_dir = f"{root}/runs/{run}"
+    vllm = _vllm(run_dir, served_name, PORTS[0])
+    steps = _prepare_steps(run, root=root, base_model=base_model, install=True)
     return "; ".join([
         "set -o pipefail",
         "export PYTHONUNBUFFERED=1",
@@ -92,18 +118,61 @@ def serve_command(run: str, served_name: str, *, root: str = ROOT, base_model: s
     ])
 
 
+def _two_run_command(first: tuple[str, str], second: tuple[str, str], *, root: str, base_model: str) -> str:
+    """Two readers on one GPU, each with SHARED_GPU_MEMORY_UTILIZATION of its memory.
+
+    - Both runs are prepared, one after the other, before either server starts, so the two merges
+      never hold host memory at once. Each prepare logs to its own run's prepare.log; a failure
+      marks that run PREPARE_FAILED and parks the pod (an empty key marks both).
+    - The first vLLM starts on 8000 and the second on 8001 only once the first answers /health, so
+      the two never profile GPU memory at the same moment; each logs to its own run's serve.log.
+    - With no single process to `exec`, the command watches both and exits as soon as either
+      server dies, so RunPod restarts the pod (prepare is a no-op by then) instead of serving half."""
+    (run_1, name_1), (run_2, name_2) = first, second
+    dir_1, dir_2 = f"{root}/runs/{run_1}", f"{root}/runs/{run_2}"
+    vllm_1 = _vllm(dir_1, name_1, PORTS[0], SHARED_GPU_MEMORY_UTILIZATION)
+    vllm_2 = _vllm(dir_2, name_2, PORTS[1], SHARED_GPU_MEMORY_UTILIZATION)
+    steps_1 = _prepare_steps(run_1, root=root, base_model=base_model, install=True)
+    steps_2 = _prepare_steps(run_2, root=root, base_model=base_model, install=False)
+    health = f"import urllib.request; urllib.request.urlopen('http://127.0.0.1:{PORTS[0]}/health', timeout=5)"
+    return "; ".join([
+        "set -o pipefail",
+        "export PYTHONUNBUFFERED=1",
+        f"RUN_DIR={shlex.quote(dir_1)}",
+        f"RUN_DIR_2={shlex.quote(dir_2)}",
+        'mkdir -p "$RUN_DIR" "$RUN_DIR_2"',
+        'rm -f "$RUN_DIR/PREPARE_FAILED" "$RUN_DIR_2/PREPARE_FAILED"',
+        # fail <message> <run dir>...: log and mark each named run, then park
+        'fail() { local message="$1" dir; shift; for dir in "$@"; do echo "$message" | tee -a "$dir/prepare.log";'
+        ' touch "$dir/PREPARE_FAILED"; done; exec sleep infinity; }',
+        'test -n "$VLLM_API_KEY" || fail "VLLM_API_KEY is empty; refusing to serve on a public URL without a key" "$RUN_DIR" "$RUN_DIR_2"',
+        f'{{ {steps_1}; }} 2>&1 | tee -a "$RUN_DIR/prepare.log" || fail "prepare failed; see $RUN_DIR/prepare.log" "$RUN_DIR"',
+        f'{{ {steps_2}; }} 2>&1 | tee -a "$RUN_DIR_2/prepare.log" || fail "prepare failed; see $RUN_DIR_2/prepare.log" "$RUN_DIR_2"',
+        f'{shlex.join(vllm_1)} --api-key "$VLLM_API_KEY" > >(tee -a "$RUN_DIR/serve.log") 2>&1 & SERVE_PID=$!',
+        f'until python3 -c {shlex.quote(health)} >/dev/null 2>&1; do'
+        f' kill -0 "$SERVE_PID" 2>/dev/null || {{ echo "vLLM on {PORTS[0]} exited before it was healthy; see $RUN_DIR/serve.log"; exit 1; }};'
+        " sleep 5; done",
+        f'{shlex.join(vllm_2)} --api-key "$VLLM_API_KEY" > >(tee -a "$RUN_DIR_2/serve.log") 2>&1 & SERVE_PID_2=$!',
+        'while kill -0 "$SERVE_PID" 2>/dev/null && kill -0 "$SERVE_PID_2" 2>/dev/null; do sleep 30; done',
+        'echo "a vLLM server exited; see $RUN_DIR/serve.log and $RUN_DIR_2/serve.log"',
+        "exit 1",
+    ])
+
+
 def build_pod_payload(*, run: str, served_name: str, api_key: str, volume_id: str,
                       gpu: str = "NVIDIA GeForce RTX 5090", datacenter: str = "EUR-NO-1",
                       public_key: str | None = None, image: str = IMAGE, min_ram_gb: int = 48,
-                      cloud_type: str = "COMMUNITY") -> dict:
-    """PodCreateInput for the serving pod. Pure: everything it sends is in its arguments."""
+                      cloud_type: str = "COMMUNITY", second: tuple[str, str] | None = None) -> dict:
+    """PodCreateInput for the serving pod. Pure: everything it sends is in its arguments.
+    `second=(run, served_name)` adds a second reader on port 8001 (serve_command)."""
     if cloud_type not in CLOUD_TYPES:
         raise ValueError(f"cloud type must be one of {CLOUD_TYPES}, got {cloud_type!r}")
     env = {"VLLM_API_KEY": api_key, "HF_HOME": f"{ROOT}/hf", "PYTHONPATH": f"{ROOT}/code"}
     if public_key:
         env["PUBLIC_KEY"] = public_key
+    ports = [f"{port}/http" for port in PORTS[:2 if second else 1]]
     return {
-        "name": f"rembero-serve-{run}"[:60],
+        "name": (f"rembero-serve-{run}-{second[0]}" if second else f"rembero-serve-{run}")[:60],
         "cloudType": cloud_type,
         "computeType": "GPU",
         "gpuTypeIds": [gpu],
@@ -117,11 +186,11 @@ def build_pod_payload(*, run: str, served_name: str, api_key: str, volume_id: st
         "networkVolumeId": volume_id,
         "volumeMountPath": ROOT,
         "containerDiskInGb": 40,
-        "ports": ["8000/http", "22/tcp"],
+        "ports": [*ports, "22/tcp"],
         "env": env,
         "imageName": image,
         "dockerEntrypoint": ["bash", "-lc"],
-        "dockerStartCmd": [serve_command(run, served_name)],
+        "dockerStartCmd": [serve_command(run, served_name, second=second)],
     }
 
 
@@ -199,21 +268,28 @@ def create_serve(a, env: dict[str, str], key: str) -> None:
         raise SystemExit("no network volume: pass --volume or set RUNPOD_VOLUME_ID")
     public_key_path = Path.home() / ".ssh" / "id_ed25519.pub"
     public_key = public_key_path.read_text().strip() if public_key_path.exists() else None
-    payload = build_pod_payload(run=a.run, served_name=a.served_name, api_key=api_key, volume_id=volume,
-                                gpu=a.gpu, datacenter=a.datacenter, public_key=public_key, cloud_type=a.cloud)
+    # a.run and a.served_name are parallel lists of one or two (main checks)
+    second = (a.run[1], a.served_name[1]) if len(a.run) == 2 else None
+    payload = build_pod_payload(run=a.run[0], served_name=a.served_name[0], api_key=api_key, volume_id=volume,
+                                gpu=a.gpu, datacenter=a.datacenter, public_key=public_key, cloud_type=a.cloud,
+                                second=second)
     pod = api("POST", "/pods", key, payload)
     pod_id = pod["id"]
     url = serve_url(pod_id)
-    upsert_env(ENV_FILE, {"RUNPOD_SERVE_POD_ID": pod_id, "RUNPOD_SERVE_URL": url})
+    # a one-run pod blanks RUNPOD_SERVE_URL_2 so a stale second URL never points at a dead pod
+    url_2 = serve_url(pod_id, PORTS[1]) if second else ""
+    upsert_env(ENV_FILE, {"RUNPOD_SERVE_POD_ID": pod_id, "RUNPOD_SERVE_URL": url, "RUNPOD_SERVE_URL_2": url_2})
     print(f"pod {pod_id} ({pod.get('costPerHr', '?')} $/h, {pod.get('desiredStatus', '?')})")
-    print(url)
+    print(f"{url}  ({a.served_name[0]})")
+    if second:
+        print(f"{url_2}  ({second[1]})")
 
 
 def wait(a, env: dict[str, str]) -> None:
     api_key = setting("VLLM_API_KEY", env)
     if not api_key:
         raise SystemExit("no VLLM_API_KEY in the environment or .env")
-    url, started, last = serve_url(a.pod), time.time(), None
+    url, started, last = serve_url(a.pod, a.port), time.time(), None
     while time.time() - started < a.timeout:
         try:
             models = served_models(url, api_key)
@@ -240,14 +316,19 @@ def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="command", required=True)
     create = sub.add_parser("create-serve")
-    create.add_argument("--run", required=True); create.add_argument("--served-name", required=True)
+    # --run/--served-name pair up in order; a second pair serves a second reader on port 8001
+    create.add_argument("--run", action="append", required=True)
+    create.add_argument("--served-name", action="append", required=True)
     create.add_argument("--gpu", default="NVIDIA GeForce RTX 5090"); create.add_argument("--datacenter", default="EUR-NO-1")
     create.add_argument("--volume"); create.add_argument("--cloud", choices=CLOUD_TYPES, default="COMMUNITY")
     waiting = sub.add_parser("wait")
     waiting.add_argument("--pod"); waiting.add_argument("--served-name"); waiting.add_argument("--timeout", type=int, default=30 * 60)
+    waiting.add_argument("--port", type=int, choices=PORTS, default=PORTS[0])
     for name in ("stop", "start", "terminate", "status"):
         sub.add_parser(name).add_argument("--pod")
     a = ap.parse_args(argv)
+    if a.command == "create-serve" and not (len(a.run) == len(a.served_name) <= 2):
+        create.error("give one or two --run, each with its own --served-name")
 
     env = read_env(ENV_FILE)
     if a.command != "create-serve":
