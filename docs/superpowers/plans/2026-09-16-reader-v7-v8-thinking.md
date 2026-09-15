@@ -101,15 +101,15 @@
 ### Task 8: Build v7 data (pod about $3)
 
 - [ ] `think` over v6 into `data/training-reader-v7-think`.
-- [ ] `distill --reading notes ... --examples 6000 --heldout-examples 300 --type-weights multi-session=40,temporal-reasoning=35,knowledge-update=15,abstention=10 --seed 17` into `data/distill-v7-fresh`.
-- [ ] Pod: `create-serve --run reader-v4-gemma4-e4b --served-name rembero-reader-v4`; smoke; `mine` with v4 as student (direct contract, max tokens 300) into `data/mined-v4`; stop the pod.
+- [ ] `distill --reading notes ... --examples 3000 --heldout-examples 300 --type-weights multi-session=40,temporal-reasoning=35,knowledge-update=15,abstention=10 --seed 17 --split-seed 7` into `data/distill-v7-fresh` (split seed 7 keeps held-out sessions disjoint from v6's training sessions; 3000 because Ollama Cloud rate-limits concurrent teacher calls).
+- [ ] Pod: `create-serve --run reader-v4-gemma4-e4b --served-name rembero-reader-v4 --gpu "NVIDIA H100 NVL" --datacenter US-GA-2`; smoke; `mine --from data/distill-v7-fresh --files conversations` with v4 as student under `--student-date-distances --student-computed-notes --student-reading direct --student-context-bytes 24576 --student-max-tokens 300` into `data/mined-v4`; stop the pod.
 - [ ] `compose --base data/training-reader-v7-think --misses data/mined-v4 --out data/training-reader-v7 --miss-share 0.25 --rows 6000 --seed 7 --heldout data/distill-v7-fresh`; length audit with `--max-length 8192 --max-completion 768 --write`; commit manifests (not rows).
 
 ### Task 9: Train and measure v7 (about $6 training, $3 measurement)
 
 - [ ] Upload `data/training-reader-v7` to the volume; `submit.py reader-v7-gemma4-e4b --max-length 8192`; fetch metrics.
 - [ ] Pod with v4 and v7; paired 266 (v4 direct, v7 thinking); paired 500 when the 266 gap is inside noise or better; stop the pod between arms that wait on a local step.
-- [ ] `mine` with v7 as student over the fresh held-out distilled set and a second fresh distill (`--seed 19`, 4000 examples) into `data/mined-v7`, on the same pod session; stop the pod.
+- [ ] A second fresh distill (`--seed 19 --split-seed 7`, 3000 examples, 300 held-out) into `data/distill-v8-fresh` before the pod starts; `mine --from data/distill-v8-fresh` with v7 as student (thinking contract flags, `--student-max-tokens 1024`) into `data/mined-v7`, on the same pod session; stop the pod.
 - [ ] `review --run <v7 500> --baseline <v4 500> --mined data/mined-v7`; record the table, the failure classes and the recommendation in READER-STRUCTURE.md; commit.
 
 ### Task 10: Build, train and measure v8 (needs a top-up; stop and ask when short)
