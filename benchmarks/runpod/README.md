@@ -188,6 +188,71 @@ including the per-stage progress and every line `reader_lora.py` prints. What to
   new checkpoint has been copied back to the volume and the previous one deleted there — that is the
   state a re-submitted job resumes from if the worker dies.
 
+## Training on a pod (when serverless is throttled)
+
+When the serverless endpoint has no GPU capacity (`IN_QUEUE` forever, no worker assigned), the
+same training runs on an ordinary **pod** instead. It is the same pipeline — `handler.run_job`:
+train → export text-only → GGUF → quantize — driven by `train_pod.py` on the pod instead of by
+the serverless worker, on the same public image with the same bootstrap. Only the layout differs:
+a pod mounts the network volume at **`/workspace`**, not `/runpod-volume`, so `train_pod.py`
+passes `handler.run_job` its paths explicitly — `data/<run>` and `runs/<run>` on the volume,
+`/root/runs/<run>` (the 80 GB **container disk**) for the trainer's working directory, `merged/`,
+`merged-text/` and the f16 GGUF.
+
+First put the code and the data on the volume (S3 keys as in "One-time setup"; `benchmarks/runpod`
+has to include `train_pod.py` and `handler.py`):
+
+```sh
+touch /tmp/empty-init.py && .venv/bin/python benchmarks/runpod/volume.py put /tmp/empty-init.py code/benchmarks/__init__.py
+.venv/bin/python benchmarks/runpod/volume.py put benchmarks/train  code/benchmarks/train
+.venv/bin/python benchmarks/runpod/volume.py put benchmarks/runpod code/benchmarks/runpod
+.venv/bin/python benchmarks/runpod/volume.py put data/training-reader-v7 data/reader-v7-gemma4-e4b
+```
+
+Then create the pod, follow it, and pull the result back:
+
+```sh
+.venv/bin/python benchmarks/runpod/pod.py create-train --run reader-v7-gemma4-e4b \
+  --gpu "NVIDIA H100 NVL" --datacenter US-GA-2 --max-length 8192
+.venv/bin/python benchmarks/runpod/pod.py train-log --run reader-v7-gemma4-e4b            # last 40 lines
+.venv/bin/python benchmarks/runpod/pod.py train-log --run reader-v7-gemma4-e4b --tail 200
+.venv/bin/python benchmarks/runpod/volume.py get runs/reader-v7-gemma4-e4b/reader-v7-gemma4-e4b-Q8_0.gguf \
+  /Volumes/Atlas/models/rembero/reader-v7-gemma4-e4b-Q8_0.gguf
+.venv/bin/python benchmarks/runpod/pod.py stop --pod "$RUNPOD_TRAIN_POD_ID"
+```
+
+`create-train` takes `--run`, `--gpu` (default `NVIDIA H100 80GB HBM3`), `--datacenter` (default
+`US-GA-2`, where the training volume lives), `--volume` (default `RUNPOD_VOLUME_ID`),
+`--cloud COMMUNITY|SECURE`, and the run flags `--max-length`, `--batch-size`, `--grad-accum`,
+`--quant` and `--no-liger`, which are `submit.py`'s flags and default to the same values. It
+creates the pod on `runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04` with an 80 GB
+container disk, the volume at `/workspace`, `HF_HOME=/workspace/hf` and
+`PYTHONPATH=/workspace/code`, and no HTTP port (only `22/tcp`, for a shell if
+`~/.ssh/id_ed25519.pub` exists — nothing is served from a training pod). It prints the pod id
+first, then writes it to `.env` as **`RUNPOD_TRAIN_POD_ID`** — `stop`, `start`, `status` and
+`terminate` still default `--pod` to the *serving* pod, so pass `--pod "$RUNPOD_TRAIN_POD_ID"`.
+
+The start command makes `runs/<run>/` on the volume, runs the bootstrap of record above (the pip
+installs and the llama.cpp build), then `cd /workspace/code && python3 -u -m
+benchmarks.runpod.train_pod --run <run> ...`. Every line of both stages is tee'd to
+**`runs/<run>/train.log` on the volume**, which is what `train-log` reads over the S3 API — no SSH
+and no console needed. The run ends with one marker line in that log:
+
+- `TRAIN_DONE {...}` from `train_pod` (the metrics, also written to `runs/<run>/metrics.json`),
+  then `TRAIN_DONE: <run>; the pod is parked ...` from the start command;
+- `TRAIN_FAILED <error>` from `train_pod`, with the traceback above it, or
+  `TRAIN_FAILED: bootstrap failed ...` if the install or the llama.cpp build died.
+
+**The pod is never stopped for you.** Whatever the outcome, the container parks on
+`exec sleep infinity` rather than exiting, because RunPod restarts an exited container and each
+restart would train again from the last checkpoint. A parked pod keeps the GPU reserved and
+**bills at its hourly rate until `pod.py stop --pod "$RUNPOD_TRAIN_POD_ID"`** (or `terminate`).
+Check `train-log` for the `TRAIN_DONE`/`TRAIN_FAILED` line, pull the GGUF, then stop it.
+
+Checkpointing is the serverless one, unchanged: the newest `runs/<run>/trainer/checkpoint-N` is
+kept on the volume and replaced at each save, so a pod that dies (or is stopped) is resumed by
+creating another `create-train` pod for the same run.
+
 ## Serving the result locally
 
 Same line as reader v4 (docs/research/READER-STRUCTURE.md, "Running the reader locally"):

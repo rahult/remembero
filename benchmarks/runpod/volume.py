@@ -39,6 +39,13 @@ def put(local: Path, remote: str) -> None:
         s3.upload_file(str(f), bucket, key)
 
 
+def read_text(remote: str) -> str:
+    """The object's bytes as text, without saving a file: for logs that are read, not kept
+    (`pod.py train-log`). Small objects only — it holds the whole thing in memory."""
+    s3, bucket = client(), os.environ["RUNPOD_VOLUME_ID"]
+    return s3.get_object(Bucket=bucket, Key=remote)["Body"].read().decode("utf-8", "replace")
+
+
 def get(remote: str, local: Path) -> None:
     s3, bucket = client(), os.environ["RUNPOD_VOLUME_ID"]
     local.parent.mkdir(parents=True, exist_ok=True)

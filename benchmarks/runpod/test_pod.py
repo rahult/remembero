@@ -1,4 +1,5 @@
 import json
+import os
 import shlex
 import subprocess
 import time
@@ -824,3 +825,207 @@ def test_the_rest_calls_and_the_wait_poll_both_send_those_headers(monkeypatch):
     for request in sent:
         assert request.get_header("User-agent") == pod.USER_AGENT
         assert request.get_header("Accept") == "application/json"
+
+
+TRAIN_RUN = "reader-v7-gemma4-e4b"
+
+
+def readme_bootstrap_line():
+    """The `sh` block under "Bootstrap template (no image push)" in README.md, as one line."""
+    from pathlib import Path
+
+    readme = (Path(__file__).parent / "README.md").read_text()
+    blocks = [b.split("```")[0] for b in readme.split("```sh\n")]
+    [bootstrap] = [b.strip() for b in blocks if "llama-quantize" in b and "pip install" in b]
+    return bootstrap
+
+
+def train_command(**overrides):
+    from benchmarks.runpod.pod import train_command as build
+
+    return build(overrides.pop("run", TRAIN_RUN), **overrides)
+
+
+def test_the_training_defaults_are_the_handlers_defaults():
+    from benchmarks.runpod import handler, pod
+
+    assert pod.QUANTS == handler.QUANTS
+    assert pod.TRAIN_DEFAULTS == {k: handler.DEFAULTS[k] for k in pod.TRAIN_DEFAULTS}
+
+
+def test_the_train_command_bootstraps_then_trains_then_parks():
+    from benchmarks.runpod import pod
+
+    command = train_command()
+    assert pod.TRAIN_BOOTSTRAP in readme_bootstrap_line()  # the bootstrap of record, unchanged
+    assert pod.TRAIN_BOOTSTRAP in command
+    assert (command.index("mkdir -p") < command.index("pip install -q")
+            < command.index("llama-quantize") < command.index("benchmarks.runpod.train_pod"))
+    assert command.endswith("exec sleep infinity")  # the pod parks whatever the outcome
+    assert "TRAIN_FAILED" in command and "TRAIN_DONE" in command
+    assert command.index("TRAIN_FAILED") < command.index("benchmarks.runpod.train_pod")
+
+
+def test_the_train_command_runs_train_pod_from_the_code_directory_with_the_run_flags():
+    command = train_command(max_length=4096, batch_size=2, grad_accum=8, quant="Q6_K", liger=False)
+    words = shlex.split(command)
+    # the last word of the group carries bash's `;`, which shlex keeps attached
+    train = [word.rstrip(";") for word in words[words.index("-m") - 2:]]
+    assert train[:6] == ["python3", "-u", "-m", "benchmarks.runpod.train_pod", "--run", TRAIN_RUN]
+
+    def flag(name):
+        return train[train.index(name) + 1]
+
+    assert flag("--root") == "/workspace" and flag("--local-root") == "/root"
+    assert flag("--max-length") == "4096" and flag("--batch-size") == "2" and flag("--grad-accum") == "8"
+    assert flag("--quant") == "Q6_K" and "--no-liger" in train
+    assert "cd /workspace/code" in command
+    assert command.index("cd /workspace/code") < command.index("python3 -u -m benchmarks.runpod.train_pod")
+    assert "--no-liger" not in train_command()
+    assert "--max-length 8192" in train_command()
+
+
+def test_the_train_command_tees_everything_to_the_runs_log_on_the_volume():
+    command = train_command()
+    assert f"RUN_DIR=/workspace/runs/{TRAIN_RUN};" in command
+    assert command.count('tee -a "$RUN_DIR/train.log"') >= 3  # bootstrap, training, and the final marker
+    assert 'mkdir -p "$RUN_DIR"' in command
+    assert "pipefail" in command
+
+
+def test_the_train_command_is_valid_bash_and_refuses_a_bad_run_or_quant():
+    subprocess.run(["bash", "-n", "-c", train_command()], check=True)
+    for bad in ("../etc", "run; rm -rf /"):
+        with pytest.raises(ValueError):
+            train_command(run=bad)
+    with pytest.raises(ValueError):
+        train_command(quant="Q3_K_S")
+
+
+def train_payload(**overrides):
+    from benchmarks.runpod.pod import build_train_payload
+
+    args = dict(run=TRAIN_RUN, volume_id="vol-abc", gpu="NVIDIA H100 NVL", datacenter="US-GA-2",
+                public_key="ssh-ed25519 AAAA me@mac")
+    return build_train_payload(**{**args, **overrides})
+
+
+def test_the_train_payload_asks_for_the_training_image_80_gb_of_disk_and_the_volume():
+    from benchmarks.runpod import pod
+
+    p = train_payload()
+    assert p["imageName"] == pod.TRAIN_IMAGE == "runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04"
+    assert p["containerDiskInGb"] == 80  # merged/, merged-text/ and the f16 GGUF are built there
+    assert p["networkVolumeId"] == "vol-abc" and p["volumeMountPath"] == "/workspace"
+    assert p["gpuTypeIds"] == ["NVIDIA H100 NVL"] and p["dataCenterIds"] == ["US-GA-2"]
+    assert p["computeType"] == "GPU" and p["gpuCount"] == 1 and p["cloudType"] == "COMMUNITY"
+    assert p["ports"] == ["22/tcp"]  # nothing is served from the training pod
+    assert p["env"] == {"HF_HOME": "/workspace/hf", "PYTHONPATH": "/workspace/code",
+                        "PUBLIC_KEY": "ssh-ed25519 AAAA me@mac"}
+    assert p["dockerEntrypoint"] == ["bash", "-lc"]
+    assert p["dockerStartCmd"] == [train_command()]
+    assert p["name"].startswith("rembero-train-") and len(p["name"]) <= 60
+    assert "VLLM_API_KEY" not in json.dumps(p)
+
+
+def test_the_train_payload_takes_the_run_flags_and_refuses_a_bad_cloud():
+    assert "--max-length 4096" in train_payload(max_length=4096)["dockerStartCmd"][0]
+    assert train_payload(cloud_type="SECURE")["cloudType"] == "SECURE"
+    assert "PUBLIC_KEY" not in train_payload(public_key=None)["env"]
+    with pytest.raises(ValueError):
+        train_payload(cloud_type="SPOT")
+
+
+def test_no_hugging_face_or_modal_credential_reaches_the_train_payload(monkeypatch):
+    for name, value in {"HF_TOKEN": "hf-secret-1", "MODAL_TOKEN_ID": "modal-secret-1",
+                        "RUNPOD_API_KEY": "runpod-secret"}.items():
+        monkeypatch.setenv(name, value)
+    text = json.dumps(train_payload())
+    for secret in ("hf-secret", "modal-secret", "runpod-secret", "HF_TOKEN", "MODAL"):
+        assert secret not in text
+
+
+def test_create_train_prints_the_pod_id_before_writing_env_and_says_to_stop_the_pod(monkeypatch, tmp_path, capsys):
+    from argparse import Namespace
+
+    from benchmarks.runpod import pod
+
+    bodies, env_file = [], tmp_path / ".env"
+    monkeypatch.setattr(pod, "ENV_FILE", env_file)
+    monkeypatch.setattr(pod, "api", lambda method, path, key, body=None: bodies.append((method, path, body)) or {"id": "pod9", "costPerHr": 3.29})
+    a = Namespace(run=TRAIN_RUN, volume="vol-abc", gpu="NVIDIA H100 NVL", datacenter="US-GA-2", cloud="COMMUNITY",
+                  max_length=8192, batch_size=4, grad_accum=16, quant="Q8_0", no_liger=False)
+    pod.create_train(a, {}, "runpod-key")
+    [(method, path, body)] = bodies
+    assert (method, path) == ("POST", "/pods")
+    assert body["dockerStartCmd"] == [train_command()]
+    said = capsys.readouterr().out
+    assert "pod9" in said and "stop" in said and "train-log" in said
+    assert read_env(env_file)["RUNPOD_TRAIN_POD_ID"] == "pod9"
+
+    def broken(path, updates):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(pod, "upsert_env", broken)
+    with pytest.raises(OSError):
+        pod.create_train(a, {}, "runpod-key")
+    assert "pod9" in capsys.readouterr().out  # the id reaches stdout before .env can fail
+
+
+def test_create_train_needs_a_volume_and_makes_no_call_without_one(monkeypatch):
+    from argparse import Namespace
+
+    from benchmarks.runpod import pod
+
+    called = []
+    monkeypatch.setattr(pod, "api", lambda *args, **kwargs: called.append(args))
+    a = Namespace(run=TRAIN_RUN, volume=None, gpu="NVIDIA H100 NVL", datacenter="US-GA-2", cloud="COMMUNITY",
+                  max_length=8192, batch_size=4, grad_accum=16, quant="Q8_0", no_liger=False)
+    monkeypatch.delenv("RUNPOD_VOLUME_ID", raising=False)
+    with pytest.raises(SystemExit):
+        pod.create_train(a, {}, "runpod-key")
+    assert called == []
+
+
+def test_create_train_passes_its_flags_through_main(monkeypatch):
+    from benchmarks.runpod import pod
+
+    seen = []
+    monkeypatch.setattr(pod, "read_env", lambda path: {"RUNPOD_API_KEY": "k"})
+    monkeypatch.setattr(pod, "create_train", lambda a, env, key: seen.append(vars(a)))
+    pod.main(["create-train", "--run", TRAIN_RUN])
+    pod.main(["create-train", "--run", TRAIN_RUN, "--gpu", "NVIDIA H100 NVL", "--datacenter", "US-GA-2",
+              "--max-length", "4096", "--batch-size", "2", "--grad-accum", "8", "--quant", "Q6_K", "--no-liger"])
+    first, second = seen
+    assert first["run"] == TRAIN_RUN and first["max_length"] == 8192 and first["no_liger"] is False
+    assert first["quant"] == "Q8_0" and first["cloud"] == "COMMUNITY"
+    assert second["gpu"] == "NVIDIA H100 NVL" and second["datacenter"] == "US-GA-2"
+    assert second["max_length"] == 4096 and second["batch_size"] == 2 and second["grad_accum"] == 8
+    assert second["quant"] == "Q6_K" and second["no_liger"] is True
+
+
+def test_train_log_prints_the_tail_of_the_volume_log(monkeypatch, capsys):
+    from benchmarks.runpod import pod, volume
+
+    asked = []
+    monkeypatch.setattr(volume, "read_text", lambda remote: asked.append(remote) or "\n".join(f"line {i}" for i in range(100)))
+    monkeypatch.setattr(pod, "read_env", lambda path: {"RUNPOD_VOLUME_ID": "vol-abc", "RUNPOD_DATACENTER": "US-GA-2"})
+    pod.main(["train-log", "--run", TRAIN_RUN])
+    out = capsys.readouterr().out.splitlines()
+    assert asked == [f"runs/{TRAIN_RUN}/train.log"]
+    assert out[-1] == "line 99" and len(out) == 40  # --tail defaults to 40
+    pod.main(["train-log", "--run", TRAIN_RUN, "--tail", "3"])
+    assert capsys.readouterr().out.splitlines() == ["line 97", "line 98", "line 99"]
+    assert os.environ["RUNPOD_VOLUME_ID"] == "vol-abc"  # the .env settings reach volume.py
+    with pytest.raises(SystemExit):
+        pod.main(["train-log", "--run", "../etc"])
+
+
+def test_train_log_needs_no_runpod_api_key(monkeypatch, capsys):
+    from benchmarks.runpod import pod, volume
+
+    monkeypatch.delenv("RUNPOD_API_KEY", raising=False)
+    monkeypatch.setattr(volume, "read_text", lambda remote: "training\n")
+    monkeypatch.setattr(pod, "read_env", lambda path: {"RUNPOD_VOLUME_ID": "vol-abc"})
+    pod.main(["train-log", "--run", TRAIN_RUN])
+    assert "training" in capsys.readouterr().out

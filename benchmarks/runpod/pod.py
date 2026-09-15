@@ -4,6 +4,8 @@
   python benchmarks/runpod/pod.py wait [--pod <id>] [--served-name rembero-reader-v4] [--port 8001] [--no-stop-on-timeout]
   python benchmarks/runpod/pod.py stop|start|terminate [--pod <id>]
   python benchmarks/runpod/pod.py status [--pod <id>]
+  python benchmarks/runpod/pod.py create-train --run reader-v7-gemma4-e4b [--gpu ...] [--max-length 8192]
+  python benchmarks/runpod/pod.py train-log --run reader-v7-gemma4-e4b [--tail 40]
 The pod runs the official vLLM image on a community GPU with the network volume at /workspace:
 its start command rebuilds the reader's merged weights from runs/<run>/adapter once
 (prepare_reader.py) and then serves them. Two runs share one GPU: both are prepared first, then
@@ -12,7 +14,13 @@ RUNPOD_VOLUME_ID. create-serve writes VLLM_API_KEY (once), RUNPOD_SERVE_POD_ID, 
 and RUNPOD_SERVE_URL_2 (empty for one run) to .env; the other subcommands default --pod to
 RUNPOD_SERVE_POD_ID. `wait` stops the pod when it times out (it needs RUNPOD_API_KEY for that) unless
 --no-stop-on-timeout is given. No Hugging Face or Modal credential goes
-to the pod: the base model is public and the adapter is already on the volume."""
+to the pod: the base model is public and the adapter is already on the volume.
+
+`create-train` is the other job this file does: when the serverless endpoint has no GPU capacity,
+it trains a reader on a pod instead, on the public PyTorch image, with the same pipeline the
+serverless worker runs (benchmarks.runpod.train_pod -> handler.run_job). It writes
+RUNPOD_TRAIN_POD_ID to .env; `train-log` tails runs/<run>/train.log off the volume. A training pod
+is never stopped for you — it parks on `sleep infinity` when the run ends, so `stop` it by hand."""
 
 from __future__ import annotations
 
@@ -60,6 +68,37 @@ SERVE_HEALTH_TIMEOUT_S = 30 * 60
 LARGE_GPUS = ("NVIDIA H100 NVL", "NVIDIA H100 80GB HBM3", "NVIDIA H100 PCIe", "NVIDIA A100-SXM4-80GB",
               "NVIDIA A100 80GB PCIe", "NVIDIA H200", "NVIDIA B200")
 ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+
+# --- training on a pod (create-train) -------------------------------------------------------
+# The image the serverless endpoint bootstraps from (benchmarks/runpod/README.md, "Bootstrap
+# template"); confirmed on Docker Hub 2026-09-14. A pod runs it the same way, with the network
+# volume at /workspace instead of /runpod-volume.
+TRAIN_IMAGE = "runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04"
+# The image is built for CUDA 12.8.1, so a 12.8 host qualifies as well as the serving pod's two.
+TRAIN_CUDA_VERSIONS = ["12.8", "12.9", "13.0"]
+# merged/, merged-text/ (~14 GB each) and the f16 GGUF (~9 GB) are built on the container disk
+TRAIN_CONTAINER_DISK_GB = 80
+TRAIN_GPU = "NVIDIA H100 80GB HBM3"
+# the training volume lives in US-GA-2 (80 GB stock and an S3 endpoint both)
+TRAIN_DATACENTER = "US-GA-2"
+TRAIN_LOCAL_ROOT = "/root"
+QUANTS = ("Q8_0", "Q6_K", "Q5_K_M", "F16")
+# mirrors handler.DEFAULTS, which pod.py cannot import (it runs as a script, off sys.path);
+# test_pod.py keeps the two in step
+TRAIN_DEFAULTS = {"max_length": 8192, "batch_size": 4, "grad_accum": 16, "quant": "Q8_0"}
+# The serverless bootstrap of record, copied verbatim from README.md "Bootstrap template" (a test
+# asserts it is still a substring of that line): the pip installs and the llama.cpp build the
+# handler's convert/quantize stages need. Everything around it — the exports, where the code is
+# imported from, what is run — belongs to train_command.
+TRAIN_BOOTSTRAP = (
+    'pip install -q "transformers>=5.0,<6" "trl>=0.24" "peft>=0.17" "datasets>=3.0" "accelerate>=1.0" '
+    '"liger-kernel>=0.8.2" sentencepiece protobuf runpod gguf; '
+    'if [ ! -x /opt/llama.cpp/build/bin/llama-quantize ]; then apt-get update -qq && '
+    'apt-get install -y -qq --no-install-recommends git cmake build-essential >/dev/null && '
+    'git clone --depth 1 https://github.com/ggml-org/llama.cpp /opt/llama.cpp && '
+    'cmake -S /opt/llama.cpp -B /opt/llama.cpp/build -DGGML_CUDA=OFF -DLLAMA_CURL=OFF >/dev/null && '
+    'cmake --build /opt/llama.cpp/build --target llama-quantize -j "$(nproc)" >/dev/null; fi'
+)
 
 
 def serve_url(pod_id: str, port: int = PORTS[0]) -> str:
@@ -194,6 +233,52 @@ def _two_run_command(first: tuple[str, str], second: tuple[str, str], *, root: s
     ])
 
 
+def train_command(run: str, *, root: str = ROOT, local_root: str = TRAIN_LOCAL_ROOT,
+                  max_length: int = TRAIN_DEFAULTS["max_length"],
+                  batch_size: int = TRAIN_DEFAULTS["batch_size"],
+                  grad_accum: int = TRAIN_DEFAULTS["grad_accum"],
+                  quant: str = TRAIN_DEFAULTS["quant"], liger: bool = True) -> str:
+    """The training pod's whole start command, for `bash -lc`: make the run directory on the
+    volume, bootstrap the image, train, then park.
+
+    - Every line of both stages is tee'd to <root>/runs/<run>/train.log **on the volume**, so
+      `pod.py train-log` can follow the run without SSH and the log outlives the pod.
+    - The bootstrap runs in a subshell under `set -e` so that a failed pip or llama.cpp build
+      stops there instead of training against half an environment.
+    - Training runs from <root>/code (PYTHONPATH is set to the same place) as
+      `python3 -u -m benchmarks.runpod.train_pod`, which supplies handler.run_job with the pod's
+      paths: data and outputs on the volume, everything heavy on the container disk.
+    - Whatever the outcome, the container parks on `exec sleep infinity` after a TRAIN_FAILED or
+      TRAIN_DONE line: an exited container is restarted by RunPod, which would redo the training.
+      **A parked pod bills until it is stopped by hand.**"""
+    if not RUN_NAME.match(run):
+        raise ValueError(f"run must match {RUN_NAME.pattern}, got {run!r}")
+    if quant not in QUANTS:
+        raise ValueError(f"quant must be one of {QUANTS}, got {quant!r}")
+    run_dir = f"{root}/runs/{run}"
+    train = ["python3", "-u", "-m", "benchmarks.runpod.train_pod", "--run", run,
+             "--root", root, "--local-root", local_root, "--max-length", str(max_length),
+             "--batch-size", str(batch_size), "--grad-accum", str(grad_accum), "--quant", quant,
+             *([] if liger else ["--no-liger"])]
+    return "; ".join([
+        "set -o pipefail",
+        "export PYTHONUNBUFFERED=1 DEBIAN_FRONTEND=noninteractive TOKENIZERS_PARALLELISM=false"
+        " PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True",
+        f"export PYTHONPATH={shlex.quote(f'{root}/code')} HF_HOME={shlex.quote(f'{root}/hf')}",
+        f"RUN_DIR={shlex.quote(run_dir)}",
+        'mkdir -p "$RUN_DIR"',
+        # fail <reason>: TRAIN_FAILED to the log on the volume, then park instead of exiting
+        'fail() { echo "TRAIN_FAILED: $1" | tee -a "$RUN_DIR/train.log"; exec sleep infinity; }',
+        f'( set -e; {TRAIN_BOOTSTRAP} ) 2>&1 | tee -a "$RUN_DIR/train.log"'
+        ' || fail "bootstrap failed; see $RUN_DIR/train.log"',
+        f'{{ cd {shlex.quote(f"{root}/code")} && {shlex.join(train)}; }} 2>&1 | tee -a "$RUN_DIR/train.log"'
+        ' || fail "training failed; see $RUN_DIR/train.log"',
+        f'echo "TRAIN_DONE: {run}; the pod is parked and still billing until you stop it"'
+        ' | tee -a "$RUN_DIR/train.log"',
+        "exec sleep infinity",
+    ])
+
+
 def build_pod_payload(*, run: str, served_name: str, api_key: str, volume_id: str,
                       gpu: str = "NVIDIA GeForce RTX 5090", datacenter: str = "EUR-NO-1",
                       public_key: str | None = None, image: str = IMAGE, min_ram_gb: int = 48,
@@ -226,6 +311,41 @@ def build_pod_payload(*, run: str, served_name: str, api_key: str, volume_id: st
         "imageName": image,
         "dockerEntrypoint": ["bash", "-lc"],
         "dockerStartCmd": [serve_command(run, served_name, second=second)],
+    }
+
+
+def build_train_payload(*, run: str, volume_id: str, gpu: str = TRAIN_GPU,
+                        datacenter: str = TRAIN_DATACENTER, public_key: str | None = None,
+                        image: str = TRAIN_IMAGE, min_ram_gb: int = 48, cloud_type: str = "COMMUNITY",
+                        **train_flags) -> dict:
+    """PodCreateInput for a training pod. Pure: everything it sends is in its arguments.
+    No key of any kind goes to it — the base model is public and the data is on the volume."""
+    if cloud_type not in CLOUD_TYPES:
+        raise ValueError(f"cloud type must be one of {CLOUD_TYPES}, got {cloud_type!r}")
+    env = {"HF_HOME": f"{ROOT}/hf", "PYTHONPATH": f"{ROOT}/code"}
+    if public_key:
+        env["PUBLIC_KEY"] = public_key
+    return {
+        "name": f"rembero-train-{run}"[:60],
+        "cloudType": cloud_type,
+        "computeType": "GPU",
+        "gpuTypeIds": [gpu],
+        "gpuTypePriority": "availability",
+        "gpuCount": 1,
+        "allowedCudaVersions": TRAIN_CUDA_VERSIONS,
+        # the merge holds a bf16 copy of the checkpoint in host memory and the text-only export
+        # builds a second one next to it, as on the serving pod
+        "minRAMPerGPU": min_ram_gb,
+        "dataCenterIds": [datacenter],
+        "networkVolumeId": volume_id,
+        "volumeMountPath": ROOT,
+        "containerDiskInGb": TRAIN_CONTAINER_DISK_GB,
+        # nothing is served from a training pod; 22/tcp is there for a shell if PUBLIC_KEY is set
+        "ports": ["22/tcp"],
+        "env": env,
+        "imageName": image,
+        "dockerEntrypoint": ["bash", "-lc"],
+        "dockerStartCmd": [train_command(run, **train_flags)],
     }
 
 
@@ -321,6 +441,51 @@ def create_serve(a, env: dict[str, str], key: str) -> None:
         print(f"{url_2}  ({second[1]})")
 
 
+def create_train(a, env: dict[str, str], key: str) -> None:
+    """Create the training pod and record its id. Nothing waits for it and nothing stops it:
+    the run is followed with `train-log` and the pod is stopped by hand when it is done."""
+    volume = a.volume or setting("RUNPOD_VOLUME_ID", env)
+    if not volume:
+        raise SystemExit("no network volume: pass --volume or set RUNPOD_VOLUME_ID")
+    public_key_path = Path.home() / ".ssh" / "id_ed25519.pub"
+    public_key = public_key_path.read_text().strip() if public_key_path.exists() else None
+    payload = build_train_payload(run=a.run, volume_id=volume, gpu=a.gpu, datacenter=a.datacenter,
+                                  public_key=public_key, cloud_type=a.cloud, max_length=a.max_length,
+                                  batch_size=a.batch_size, grad_accum=a.grad_accum, quant=a.quant,
+                                  liger=not a.no_liger)
+    pod = api("POST", "/pods", key, payload)
+    pod_id = pod["id"]
+    # the pod bills from here: its id reaches stdout before anything else can fail
+    print(f"pod {pod_id} ({pod.get('costPerHr', '?')} $/h, {pod.get('desiredStatus', '?')})", flush=True)
+    upsert_env(ENV_FILE, {"RUNPOD_TRAIN_POD_ID": pod_id})
+    print(f"follow it with: pod.py train-log --run {a.run}")
+    print(f"it parks when the run ends and bills until you stop it: pod.py stop --pod {pod_id}")
+
+
+def train_log(a, env: dict[str, str]) -> None:
+    """Print the tail of runs/<run>/train.log off the network volume, over the S3 API — the
+    training pod's own console is the only other place these lines appear."""
+    if not RUN_NAME.match(a.run):
+        raise SystemExit(f"run must match {RUN_NAME.pattern}, got {a.run!r}")
+    # volume.py reads its settings from the environment; .env is where they usually live
+    for name in ("RUNPOD_VOLUME_ID", "RUNPOD_DATACENTER", "RUNPOD_S3_ACCESS_KEY", "RUNPOD_S3_SECRET_KEY",
+                 "S3_ACCESS_KEY", "S3_SECRET_KEY"):
+        value = setting(name, env)
+        if value:
+            os.environ[name] = value
+    # pod.py is run as a script, so the repository root is not on sys.path by itself
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from benchmarks.runpod import volume
+
+    remote = f"runs/{a.run}/train.log"
+    try:
+        text = volume.read_text(remote)
+    except Exception as error:  # noqa: BLE001 - boto3 raises a family of errors; the message is what matters
+        raise SystemExit(f"could not read {remote} from the volume: {type(error).__name__}: {error}")
+    lines = text.splitlines()
+    print("\n".join(lines[-a.tail:] if a.tail else lines))
+
+
 def stop_pod(pod_id: str, key: str) -> None:
     api("POST", f"/pods/{pod_id}/stop", key)
     print(f"stop requested for {pod_id}")
@@ -372,6 +537,18 @@ def main(argv: list[str] | None = None) -> None:
     create.add_argument("--served-name", action="append", required=True)
     create.add_argument("--gpu", default="NVIDIA GeForce RTX 5090"); create.add_argument("--datacenter", default="EUR-NO-1")
     create.add_argument("--volume"); create.add_argument("--cloud", choices=CLOUD_TYPES, default="COMMUNITY")
+    training = sub.add_parser("create-train")
+    training.add_argument("--run", required=True)
+    training.add_argument("--gpu", default=TRAIN_GPU); training.add_argument("--datacenter", default=TRAIN_DATACENTER)
+    training.add_argument("--volume"); training.add_argument("--cloud", choices=CLOUD_TYPES, default="COMMUNITY")
+    training.add_argument("--max-length", type=int, default=TRAIN_DEFAULTS["max_length"])
+    training.add_argument("--batch-size", type=int, default=TRAIN_DEFAULTS["batch_size"])
+    training.add_argument("--grad-accum", type=int, default=TRAIN_DEFAULTS["grad_accum"])
+    training.add_argument("--quant", choices=QUANTS, default=TRAIN_DEFAULTS["quant"])
+    training.add_argument("--no-liger", action="store_true")
+    tailing = sub.add_parser("train-log")
+    tailing.add_argument("--run", required=True)
+    tailing.add_argument("--tail", type=int, default=40, help="0 prints the whole log")
     waiting = sub.add_parser("wait")
     waiting.add_argument("--pod"); waiting.add_argument("--served-name"); waiting.add_argument("--timeout", type=int, default=30 * 60)
     waiting.add_argument("--port", type=int, choices=PORTS, default=PORTS[0])
@@ -387,7 +564,9 @@ def main(argv: list[str] | None = None) -> None:
                      f"80 GB+ GPU; --gpu {a.gpu!r} is not one of: {', '.join(LARGE_GPUS)}")
 
     env = read_env(ENV_FILE)
-    if a.command != "create-serve":
+    if a.command == "train-log":
+        return train_log(a, env)  # reads the volume over S3; no RunPod API key needed
+    if a.command not in ("create-serve", "create-train"):
         a.pod = a.pod or setting("RUNPOD_SERVE_POD_ID", env)
         if not a.pod and a.command != "status":
             raise SystemExit("no pod: pass --pod or set RUNPOD_SERVE_POD_ID")
@@ -398,6 +577,8 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit("no RUNPOD_API_KEY in the environment or .env")
     if a.command == "create-serve":
         create_serve(a, env, key)
+    elif a.command == "create-train":
+        create_train(a, env, key)
     elif a.command == "stop":
         stop_pod(a.pod, key)
     elif a.command == "start":
