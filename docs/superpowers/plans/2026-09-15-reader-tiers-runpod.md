@@ -72,13 +72,14 @@
 
 ### Task 4: The tier sweep on the 266, then the 500
 
-- [ ] Four arms on the 266 against the pod, concurrency 8, same pod: even split (baseline), `--full-sessions 2`, `3`, `5`. Outputs `docs/research/results/longmemeval-raw-reader-v4-pod-<arm>-mt-all266.json`. Stop the pod after.
+- [ ] Four arms on the 266 against the pod, concurrency 8, same pod: even split (baseline), `--full-sessions 2`, `3`, `5`, each tier arm with `--abstract-bytes 480` (the header and date line take ~165 B, so 320 leaves one sentence). Outputs `docs/research/results/longmemeval-raw-reader-v4-pod-<arm>-mt-all266.json`. Stop the pod after.
 - [ ] Verdict on the 266: the best tier arm against the pod baseline, per type and paired flips. The baseline must land within noise of the stored 183 (a serving sanity check).
 - [ ] If the best arm clears about 7 on the 266, run it and the baseline on the full 500, paired; the verdict needs about 8 on the 500. Record the table and the decision in `docs/research/READER-STRUCTURE.md` and the winning contract id.
 - [ ] If no arm clears the band, record the null and stop the plan for review before any training money.
 
 ### Task 5: Miss-driven distillation (after a positive Task 4 verdict)
 
+- [ ] First make distillation rank-ordered under a tiered contract: order each haystack's sessions by the harness's own lexical retrieval score for the question (the same search the evaluation uses), so the full-text sessions in training are chosen as in evaluation; `readerMessages` refuses tiered contracts until this lands.
 - [ ] Generate fresh distillation questions with the existing `distill` command under the winning contract, teacher `glm-5.3-flash:cloud` through Ollama, at least 6,000 attempts, type weights multi-session 40 / temporal 35 / knowledge-update 15 / abstention 10.
 - [ ] Answer each with v4 on the pod under the same contract; judge v4's answer against the teacher's with DeepSeek; keep the rows v4 got wrong (the misses).
 - [ ] Build `data/training-reader-v7`: `data/training-reader-v6` re-rendered under the winning contract plus the misses, misses weighted by duplication to a quarter of the rows; manifest records the contract, the miss count and the weighting.
