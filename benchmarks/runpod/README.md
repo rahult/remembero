@@ -337,11 +337,23 @@ and `.env` gets `RUNPOD_SERVE_URL` (`https://<pod>-8000.proxy.runpod.net/v1`, th
 `RUNPOD_SERVE_URL_2` (`https://<pod>-8001.proxy.runpod.net/v1`, the second); a one-run
 `create-serve` writes `RUNPOD_SERVE_URL_2` empty so a stale second URL is never left behind. If
 either prepare fails, that run gets `PREPARE_FAILED` and the pod parks as below with neither
-server started (an empty key marks both runs). If either server exits later, the start command
-exits too and RunPod restarts the pod, where prepare is a no-op. 0.44 of the GPU is about 14 GB on
-a 32 GB RTX 5090, no more than the text-only bf16 weights alone, so two readers need a larger GPU
-such as the H100 NVL of the plan (about 41 GB each); the volume also holds two `merged-text`
-copies.
+server started (an empty key marks both runs).
+
+The two-run start command never lets the container exit, because RunPod would restart it into a
+loop that bills for every attempt. It parks on `sleep infinity` in two more cases:
+
+- the first server does not answer `/health` within 30 minutes;
+- either server exits, before it is healthy or later.
+
+In both cases it writes `SERVE_FAILED: <reason>` (for example `SERVE_FAILED: reader-v8-gemma4-e4b
+exited with 1`) to **both** runs' `serve.log` on the volume and stops the server that is still up.
+The lines above it in that run's `serve.log` show vLLM's own error.
+
+0.44 of the GPU is about 14 GB on a 32 GB RTX 5090, no more than the text-only bf16 weights
+alone. So a two-run `create-serve` refuses, before any API call, unless `--gpu` is one of the
+80 GB+ types: `NVIDIA H100 NVL` (the plan's, about 41 GB per reader), `NVIDIA H100 80GB HBM3`,
+`NVIDIA H100 PCIe`, `NVIDIA A100-SXM4-80GB`, `NVIDIA A100 80GB PCIe`, `NVIDIA H200` or
+`NVIDIA B200`. The volume also holds two `merged-text` copies.
 
 **Logs and failures.** The vLLM image runs no SSH daemon (`22/tcp` and `PUBLIC_KEY` do nothing
 today), so everything is written to the volume and fetched with `volume.py get`:
@@ -357,3 +369,16 @@ If the install or prepare fails (or `VLLM_API_KEY` is empty), the start command 
 RunPod restarts an exited container and each restart would redo the merge. `wait` then times out;
 read `prepare.log`, fix, and terminate the pod (a new boot removes the marker and tries again).
 The console's pod **Logs** tab shows the same lines while the pod runs.
+
+**A parked pod still bills.** `sleep infinity` keeps the GPU reserved and charged at the pod's
+hourly rate until you stop it. When `wait` times out, check the logs first:
+
+- `runs/<run>/PREPARE_FAILED` and `prepare.log` for a failed prepare;
+- `runs/<run>/serve.log` for a `SERVE_FAILED: <reason>` line on a two-run pod.
+
+Then run `pod.py stop`, or `pod.py terminate`.
+
+The one-run start command is unchanged: it still ends in `exec vllm serve ...`, so if that one
+vLLM exits, the container exits and RunPod restarts it (prepare is a no-op), and it keeps
+restarting and billing if vLLM fails the same way each time. `serve.log` has one boot's output
+after another; `pod.py stop` ends the loop.

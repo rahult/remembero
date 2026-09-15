@@ -239,17 +239,20 @@ def test_two_runs_refuse_a_bad_or_repeated_second_run():
         serve_command(RUN, NAME, second=(RUN_2, NAME))
 
 
-def boot_two(tmp_path, failing_run=None, key="test-key"):
-    """Boot the two-run command with stubs; the python3 stub fails when its arguments name failing_run."""
+def boot_two(tmp_path, failing_run=None, key="test-key", vllm_then="", healthy=True):
+    """Boot the two-run command with stubs; the python3 stub fails when its arguments name failing_run.
+    vllm_then is shell run by the vllm stub after it logs (e.g. stay up, or exit with a code);
+    healthy=False makes the /health probe (python3 -c) fail."""
     bin_dir, root = tmp_path / "bin", tmp_path / "volume"
     bin_dir.mkdir()
     (root / "code").mkdir(parents=True)
     calls = tmp_path / "calls.txt"
     calls.write_text("")
     fail_on = f'case "$* " in *"--run {failing_run} "*) exit 1;; esac; ' if failing_run else ""
+    probe = 'case "$1" in -c) exit 1;; esac; ' if not healthy else ""
     fake_bin(bin_dir, "uv", f'echo "uv $*" >> {calls}')
-    fake_bin(bin_dir, "python3", f'echo "python3 $*" >> {calls}; echo "prepare says $*"; {fail_on}exit 0')
-    fake_bin(bin_dir, "vllm", f'echo "vllm $*" >> {calls}; echo "vllm is serving $*"')
+    fake_bin(bin_dir, "python3", f'echo "python3 $*" >> {calls}; {probe}echo "prepare says $*"; {fail_on}exit 0')
+    fake_bin(bin_dir, "vllm", f'echo "vllm $*" >> {calls}; echo "vllm is serving $*"; {vllm_then}')
     fake_bin(bin_dir, "sleep", f'echo "sleep $*" >> {calls}')
     env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "VLLM_API_KEY": key}
     command = serve_command(RUN, NAME, second=(RUN_2, NAME_2), root=str(root))
@@ -296,6 +299,62 @@ def test_two_runs_with_an_empty_key_mark_both_runs_and_park(tmp_path):
     for run_dir in dirs:
         assert (run_dir / "PREPARE_FAILED").exists() and "VLLM_API_KEY is empty" in (run_dir / "prepare.log").read_text()
     assert calls.splitlines() == ["sleep infinity"]
+
+
+def serve_failures(dirs):
+    return [[line for line in (d / "serve.log").read_text().splitlines() if line.startswith("SERVE_FAILED")]
+            for d in dirs]
+
+
+def test_two_runs_never_exit_the_container_they_park_with_a_serve_failed_reason():
+    command = serve_command(RUN, NAME, second=(RUN_2, NAME_2))
+    assert "exit 1" not in command and "SERVE_FAILED" in command
+    assert command.rsplit("; ", 1)[-1].startswith("serve_fail ")  # nothing after the watch but parking
+    assert "1800" in command  # the first server gets 30 minutes to answer /health
+    subprocess.run(["bash", "-n", "-c", command], check=True)
+
+
+def test_a_first_server_that_exits_before_healthy_is_logged_to_both_runs_and_parks(tmp_path):
+    calls, dirs = boot_two(tmp_path, healthy=False, vllm_then='case "$*" in *"--port 8000"*) exit 3;; esac')
+    assert serve_failures(dirs) == [[f"SERVE_FAILED: {RUN} exited with 3 before it was healthy on 8000"]] * 2
+    assert "--port 8001" not in calls and calls.splitlines()[-1] == "sleep infinity"
+
+
+def test_a_first_server_not_healthy_within_the_cap_is_logged_to_both_runs_and_parks(tmp_path, monkeypatch):
+    from benchmarks.runpod import pod
+
+    monkeypatch.setattr(pod, "SERVE_HEALTH_TIMEOUT_S", 0)
+    calls, dirs = boot_two(tmp_path, healthy=False, vllm_then="/bin/sleep 3")
+    assert serve_failures(dirs) == [[f"SERVE_FAILED: {RUN} was not healthy on 8000 within 0 s"]] * 2
+    assert "--port 8001" not in calls and calls.splitlines()[-1] == "sleep infinity"
+
+
+def test_a_server_that_exits_later_is_logged_to_both_runs_with_its_code_and_parks(tmp_path):
+    calls, dirs = boot_two(tmp_path, vllm_then='case "$*" in *"--port 8001"*) exit 7;; *) /bin/sleep 3;; esac')
+    assert serve_failures(dirs) == [[f"SERVE_FAILED: {RUN_2} exited with 7"]] * 2
+    assert calls.splitlines()[-1] == "sleep infinity"
+
+
+def test_create_serve_with_two_runs_refuses_a_gpu_under_80_gb_before_any_api_call(monkeypatch, capsys):
+    from benchmarks.runpod import pod
+
+    called = []
+    monkeypatch.setattr(pod, "read_env", lambda path: {"RUNPOD_API_KEY": "k", "VLLM_API_KEY": "v", "RUNPOD_VOLUME_ID": "vol"})
+    monkeypatch.setattr(pod, "api", lambda *args, **kwargs: called.append(args) or {"id": "pod9"})
+    monkeypatch.setattr(pod, "upsert_env", lambda path, updates: called.append(("upsert", updates)))
+    two = ["create-serve", "--run", RUN, "--served-name", NAME, "--run", RUN_2, "--served-name", NAME_2]
+    for gpu in (None, "NVIDIA GeForce RTX 5090", "NVIDIA L40S", "NVIDIA RTX A6000"):
+        with pytest.raises(SystemExit) as refused:
+            pod.main(two + ([] if gpu is None else ["--gpu", gpu]))
+        assert refused.value.code != 0
+        assert "80 GB" in capsys.readouterr().err
+    assert called == []
+    assert pod.LARGE_GPUS == ("NVIDIA H100 NVL", "NVIDIA H100 80GB HBM3", "NVIDIA H100 PCIe", "NVIDIA A100-SXM4-80GB",
+                              "NVIDIA A100 80GB PCIe", "NVIDIA H200", "NVIDIA B200")
+    for gpu in pod.LARGE_GPUS:
+        pod.main(two + ["--gpu", gpu])
+    assert [c[0] for c in called if c[0] == "POST"] == ["POST"] * len(pod.LARGE_GPUS)
+    pod.main(["create-serve", "--run", RUN, "--served-name", NAME])  # one run keeps the 5090 default
 
 
 def test_the_two_run_payload_exposes_both_ports_and_starts_the_two_run_command():

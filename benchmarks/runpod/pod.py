@@ -53,6 +53,11 @@ SERVE_FLAGS = [
 # two readers side by side on one GPU each take this share of its memory
 SHARED_GPU_MEMORY_UTILIZATION = "0.44"
 PORTS = (8000, 8001)
+# how long the two-run start command waits for the first server's /health before it parks
+SERVE_HEALTH_TIMEOUT_S = 30 * 60
+# two readers at 0.44 each need an 80 GB+ GPU: 0.44 of a 32 GB card is about the weights alone
+LARGE_GPUS = ("NVIDIA H100 NVL", "NVIDIA H100 80GB HBM3", "NVIDIA H100 PCIe", "NVIDIA A100-SXM4-80GB",
+              "NVIDIA A100 80GB PCIe", "NVIDIA H200", "NVIDIA B200")
 ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
 
@@ -126,8 +131,11 @@ def _two_run_command(first: tuple[str, str], second: tuple[str, str], *, root: s
       marks that run PREPARE_FAILED and parks the pod (an empty key marks both).
     - The first vLLM starts on 8000 and the second on 8001 only once the first answers /health, so
       the two never profile GPU memory at the same moment; each logs to its own run's serve.log.
-    - With no single process to `exec`, the command watches both and exits as soon as either
-      server dies, so RunPod restarts the pod (prepare is a no-op by then) instead of serving half."""
+    - The container never exits, because RunPod would restart it into a billed loop. If the first
+      server is not healthy within SERVE_HEALTH_TIMEOUT_S, or either server exits (before healthy or
+      later), `serve_fail` writes "SERVE_FAILED: <reason>" to both runs' serve.log, stops whatever
+      server is still up and parks on `sleep infinity`, like PREPARE_FAILED. A parked pod still
+      bills until it is stopped."""
     (run_1, name_1), (run_2, name_2) = first, second
     dir_1, dir_2 = f"{root}/runs/{run_1}", f"{root}/runs/{run_2}"
     vllm_1 = _vllm(dir_1, name_1, PORTS[0], SHARED_GPU_MEMORY_UTILIZATION)
@@ -135,6 +143,7 @@ def _two_run_command(first: tuple[str, str], second: tuple[str, str], *, root: s
     steps_1 = _prepare_steps(run_1, root=root, base_model=base_model, install=True)
     steps_2 = _prepare_steps(run_2, root=root, base_model=base_model, install=False)
     health = f"import urllib.request; urllib.request.urlopen('http://127.0.0.1:{PORTS[0]}/health', timeout=5)"
+    timeout = int(SERVE_HEALTH_TIMEOUT_S)
     return "; ".join([
         "set -o pipefail",
         "export PYTHONUNBUFFERED=1",
@@ -148,14 +157,19 @@ def _two_run_command(first: tuple[str, str], second: tuple[str, str], *, root: s
         'test -n "$VLLM_API_KEY" || fail "VLLM_API_KEY is empty; refusing to serve on a public URL without a key" "$RUN_DIR" "$RUN_DIR_2"',
         f'{{ {steps_1}; }} 2>&1 | tee -a "$RUN_DIR/prepare.log" || fail "prepare failed; see $RUN_DIR/prepare.log" "$RUN_DIR"',
         f'{{ {steps_2}; }} 2>&1 | tee -a "$RUN_DIR_2/prepare.log" || fail "prepare failed; see $RUN_DIR_2/prepare.log" "$RUN_DIR_2"',
+        # serve_fail <reason>: SERVE_FAILED to both runs' serve.log, stop any server still up, park
+        'serve_fail() { local dir pid; for dir in "$RUN_DIR" "$RUN_DIR_2"; do echo "SERVE_FAILED: $1" | tee -a "$dir/serve.log"; done;'
+        ' for pid in $SERVE_PID $SERVE_PID_2; do kill "$pid" 2>/dev/null; done; exec sleep infinity; }',
         f'{shlex.join(vllm_1)} --api-key "$VLLM_API_KEY" > >(tee -a "$RUN_DIR/serve.log") 2>&1 & SERVE_PID=$!',
+        f"SERVE_DEADLINE=$((SECONDS + {timeout}))",
         f'until python3 -c {shlex.quote(health)} >/dev/null 2>&1; do'
-        f' kill -0 "$SERVE_PID" 2>/dev/null || {{ echo "vLLM on {PORTS[0]} exited before it was healthy; see $RUN_DIR/serve.log"; exit 1; }};'
+        f' kill -0 "$SERVE_PID" 2>/dev/null || {{ wait "$SERVE_PID"; serve_fail "{run_1} exited with $? before it was healthy on {PORTS[0]}"; }};'
+        f' [ "$SECONDS" -lt "$SERVE_DEADLINE" ] || serve_fail "{run_1} was not healthy on {PORTS[0]} within {timeout} s";'
         " sleep 5; done",
         f'{shlex.join(vllm_2)} --api-key "$VLLM_API_KEY" > >(tee -a "$RUN_DIR_2/serve.log") 2>&1 & SERVE_PID_2=$!',
         'while kill -0 "$SERVE_PID" 2>/dev/null && kill -0 "$SERVE_PID_2" 2>/dev/null; do sleep 30; done',
-        'echo "a vLLM server exited; see $RUN_DIR/serve.log and $RUN_DIR_2/serve.log"',
-        "exit 1",
+        f'kill -0 "$SERVE_PID" 2>/dev/null || {{ wait "$SERVE_PID"; serve_fail "{run_1} exited with $?"; }}',
+        f'wait "$SERVE_PID_2"; serve_fail "{run_2} exited with $?"',
     ])
 
 
@@ -329,6 +343,9 @@ def main(argv: list[str] | None = None) -> None:
     a = ap.parse_args(argv)
     if a.command == "create-serve" and not (len(a.run) == len(a.served_name) <= 2):
         create.error("give one or two --run, each with its own --served-name")
+    if a.command == "create-serve" and len(a.run) == 2 and a.gpu not in LARGE_GPUS:
+        create.error(f"two readers at --gpu-memory-utilization {SHARED_GPU_MEMORY_UTILIZATION} each need an "
+                     f"80 GB+ GPU; --gpu {a.gpu!r} is not one of: {', '.join(LARGE_GPUS)}")
 
     env = read_env(ENV_FILE)
     if a.command != "create-serve":
