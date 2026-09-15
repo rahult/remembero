@@ -62,12 +62,15 @@ import { runPool } from './run-pool.js';
 import {
   acceptDistilled,
   assembleHaystack,
+  distillRunIdentity,
+  distillSeeds,
   parseQuestionReply,
   parseTypeWeights,
   pickType,
   predicateGroups,
   questionWriterPrompt,
   readerMessages,
+  splitDistillPools,
   toDistilledConversation,
   type DistilledExample,
 } from './reader-distill.js';
@@ -138,12 +141,16 @@ function readRows(path: string): Map<string, LabelRow> {
   return rows;
 }
 
-async function orderedSessions(seed: number): Promise<SelectedSession[]> {
+async function trainingSessions(): Promise<SelectedSession[]> {
   const data = flag('--data', '.cache/longmemeval/longmemeval_s_cleaned.json')!;
   const { instances } = await loadLongMemEvalS(resolve(data));
   const chosen = selectTrainingSessions(instances, longMemEvalSplit);
   chosen.sort((a, b) => a.id.localeCompare(b.id));
-  return createRng(seed).shuffle(chosen);
+  return chosen;
+}
+
+async function orderedSessions(seed: number): Promise<SelectedSession[]> {
+  return createRng(seed).shuffle(await trainingSessions());
 }
 
 /** Run the product's transcript extraction on one session with a fresh, empty store. */
@@ -611,7 +618,10 @@ async function judgeUnmatched(): Promise<void> {
  * sessions, have the teacher write a question of a drawn type, then answer it through
  * the evaluation's reader prompt; keep the pair when the answer is consistent with
  * the type (an abstention question got an abstention, any other got an answer).
- * Resumable: examples are appended to the output as they finish.
+ * Resumable: examples are appended to the output as they finish, and `run.json` pins the
+ * contract, teacher, seeds, type weights, train count and labels a resume must repeat.
+ * `--split-seed <n>` (default `--seed`) fixes which sessions are train and held-out;
+ * `--seed` draws the questions.
  */
 async function distillReader(): Promise<void> {
   const labelsPath = flag('--labels', 'data/real/labels-glmflash8.jsonl')!;
@@ -621,9 +631,28 @@ async function distillReader(): Promise<void> {
   const trainCount = Number(flag('--train-count', '3000'));
   const target = Number(flag('--examples', '4000'));
   const heldoutTarget = Number(flag('--heldout-examples', '200'));
-  const seed = Number(flag('--seed', '7'));
+  // --seed draws questions; --split-seed (default --seed) fixes the train/held-out sessions
+  const { seed, splitSeed } = distillSeeds(process.argv);
   const concurrency = Number(flag('--concurrency', '8'));
   const model = flag('--model', 'z-ai/glm-5.3-flash')!;
+  // --type-weights multi-session=40,temporal-reasoning=35,… reweights the draw; multi-session
+  // and knowledge-update haystacks are seeded with sessions that carry the material
+  const weightsFlag = flag('--type-weights');
+  const weights =
+    weightsFlag === undefined ? undefined : parseTypeWeights(weightsFlag);
+  // before the pool loads or any model is called: a resume must be the same run
+  assertRunIdentity(
+    out,
+    distillRunIdentity({
+      contract: distillManifestContract(process.argv).id,
+      teacher: model,
+      seed,
+      splitSeed,
+      typeWeights: weightsFlag ?? 'default',
+      trainCount,
+      labels: labelsPath,
+    }),
+  );
   const apiKey = flag('--api-key', process.env.LLM_API_KEY);
   if (!apiKey) throw new Error('LLM_API_KEY is not set');
   const client = new OpenRouterClient({
@@ -635,22 +664,20 @@ async function distillReader(): Promise<void> {
     model,
   });
   const labels = readRows(labelsPath);
-  const ordered = (await orderedSessions(seed)).filter(
-    (s) => labels.has(s.id) && !labels.get(s.id)!.error,
-  );
   const toLabelled = (s: SelectedSession): LabelledSession => ({
     id: s.id,
     date: s.date.slice(0, 10).replace(/\//g, '-'),
     facts: labels.get(s.id)!.facts,
     transcript: realTranscript(s.session),
   });
-  const trainPool = ordered.slice(0, trainCount).map(toLabelled);
-  const heldPool = ordered.slice(trainCount).map(toLabelled);
-  // --type-weights multi-session=40,temporal-reasoning=35,… reweights the draw; multi-session
-  // and knowledge-update haystacks are seeded with sessions that carry the material
-  const weightsFlag = flag('--type-weights');
-  const weights =
-    weightsFlag === undefined ? undefined : parseTypeWeights(weightsFlag);
+  const split = splitDistillPools(
+    await trainingSessions(),
+    splitSeed,
+    trainCount,
+    (s) => labels.has(s.id) && !labels.get(s.id)!.error,
+  );
+  const trainPool = split.train.map(toLabelled);
+  const heldPool = split.held.map(toLabelled);
   mkdirSync(out, { recursive: true });
   const stats = {
     attempted: 0,
@@ -760,6 +787,7 @@ async function distillReader(): Promise<void> {
     teacher: model,
     typeWeights: weightsFlag ?? 'default',
     seed,
+    splitSeed,
     trainSessions: trainPool.length,
     heldoutSessions: heldPool.length,
     train: readFileSync(join(out, 'conversations.jsonl'), 'utf8')

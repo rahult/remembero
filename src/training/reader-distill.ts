@@ -27,7 +27,7 @@ import {
 import type { LongMemEvalInstance } from '../evals/longmemeval.js';
 import type { Conversation } from './export.js';
 import type { LabelledSession } from './reader-data.js';
-import type { Rng } from './rng.js';
+import { createRng, type Rng } from './rng.js';
 
 export type DistillType =
   | 'single-session-user'
@@ -48,6 +48,74 @@ const TYPE_WEIGHTS: Array<[DistillType, number]> = [
   ['single-session-preference', 8],
   ['abstention', 14],
 ];
+
+/**
+ * The two seeds of a distill run. `--seed` draws questions and haystacks; `--split-seed`
+ * (default: `--seed`) orders the session pool that `--train-count` cuts into train and
+ * held-out sessions, so a fresh distill can draw new questions over an earlier run's split.
+ */
+export function distillSeeds(argv: readonly string[]): {
+  seed: number;
+  splitSeed: number;
+} {
+  const read = (name: string, fallback: string): number => {
+    const index = argv.indexOf(name);
+    const raw =
+      index >= 0 && argv[index + 1] !== undefined ? argv[index + 1] : fallback;
+    const value = Number(raw);
+    if (!Number.isInteger(value))
+      throw new Error(`${name} must be an integer, got ${raw}`);
+    return value;
+  };
+  const seed = read('--seed', '7');
+  return { seed, splitSeed: read('--split-seed', String(seed)) };
+}
+
+/**
+ * Train and held-out session pools: sessions in id order, shuffled by the split seed, kept
+ * sessions only, cut at `trainCount`. The order (shuffle, then filter) is the one earlier
+ * distill runs used with their `--seed`, so `--split-seed 7` reproduces a `--seed 7` split.
+ */
+export function splitDistillPools<T extends { id: string }>(
+  sessions: readonly T[],
+  splitSeed: number,
+  trainCount: number,
+  keep: (session: T) => boolean = () => true,
+): { train: T[]; held: T[] } {
+  const ordered = createRng(splitSeed)
+    .shuffle([...sessions].sort((a, b) => a.id.localeCompare(b.id)))
+    .filter(keep);
+  return {
+    train: ordered.slice(0, trainCount),
+    held: ordered.slice(trainCount),
+  };
+}
+
+/** What a distill output directory is pinned to in `run.json`; a resume must match it. */
+export interface DistillRunIdentity {
+  contract: string;
+  teacher: string;
+  seed: number;
+  splitSeed: number;
+  typeWeights: string;
+  trainCount: number;
+  labels: string;
+}
+
+export function distillRunIdentity(
+  identity: DistillRunIdentity,
+): DistillRunIdentity {
+  const {
+    contract,
+    teacher,
+    seed,
+    splitSeed,
+    typeWeights,
+    trainCount,
+    labels,
+  } = identity;
+  return { contract, teacher, seed, splitSeed, typeWeights, trainCount, labels };
+}
 
 export function pickType(
   rng: Rng,
