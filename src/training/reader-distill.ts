@@ -238,7 +238,8 @@ export function parseQuestionReply(
   }
 }
 
-const ABSTAINS =
+/** A reply that abstains: says the history does not answer the question. */
+export const ABSTAINS =
   /(does not|doesn't|don't|do not|no) (say|mention|know|have|contain|record|information|indicate)|not (mentioned|recorded|in (the|your) history)|i do not know|i don't know|no information/i;
 
 /**
@@ -260,7 +261,7 @@ export function completionAnswer(
 }
 
 /** A last "Answer:" marker with text after it, as finalAnswerLine reads one. */
-function hasAnswerLine(reply: string): boolean {
+export function hasAnswerLine(reply: string): boolean {
   const index = reply.lastIndexOf('Answer:');
   return index >= 0 && reply.slice(index + 'Answer:'.length).trim() !== '';
 }

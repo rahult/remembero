@@ -24,6 +24,14 @@
  *        --student-date-distances --student-computed-notes --student-context-bytes 24576 \
  *        --judge-base-url <url> --judge-model <model> --judge-key-env DEEPSEEK_API_KEY
  *
+ *   node dist/training/run-real-sessions.js review \
+ *        --run docs/research/results/<thinking run>.json --baseline <direct run>.json \
+ *        --mined data/training-reader-v8-misses --out docs/research/results/<review>.json
+ *
+ *   node dist/training/run-real-sessions.js compose --base data/training-reader-v7-think \
+ *        --misses data/training-reader-v8-misses --out data/training-reader-v8 \
+ *        --miss-share 0.25 --rows 6000 --seed 7 [--heldout <dir>]
+ *
  * `label` and `measure` resume: sessions already in the output are skipped.
  */
 import { createHash } from 'node:crypto';
@@ -69,6 +77,8 @@ import {
   parseMetaRows,
   rerenderMetaFile,
 } from './reader-rerender.js';
+import { composeTraining } from './reader-compose.js';
+import { reviewReader } from './reader-review.js';
 import {
   mineCounts,
   mineFile,
@@ -1162,6 +1172,54 @@ async function mineReader(): Promise<void> {
   console.log(JSON.stringify(summary, null, 2));
 }
 
+/**
+ * Data review (see reader-review.ts): per-type accuracy and deltas, failure classes from a
+ * LongMemEval run and a mine directory, and the next reader's data recipe.
+ *
+ *   node dist/training/run-real-sessions.js review --run <result.json> \
+ *        [--baseline <result.json>] --mined <mine dir> --out <review.json>
+ */
+async function reviewData(): Promise<void> {
+  const run = flag('--run');
+  const mined = flag('--mined');
+  const out = flag('--out');
+  if (!run || !mined || !out)
+    throw new Error('review needs --run, --mined and --out');
+  const review = reviewReader({ run, baseline: flag('--baseline'), mined });
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, `${JSON.stringify(review, null, 2)}\n`);
+  console.log(JSON.stringify(review.recommend, null, 2));
+}
+
+/**
+ * Training-data composer (see reader-compose.ts): base rows with mined misses at a share.
+ *
+ *   node dist/training/run-real-sessions.js compose --base <dir> --misses <mine dir> \
+ *        --out <dir> --miss-share 0.25 --rows 6000 --seed <n> [--heldout <dir>]
+ */
+async function composeData(): Promise<void> {
+  const base = flag('--base');
+  const misses = flag('--misses');
+  const out = flag('--out');
+  const share = flag('--miss-share');
+  const rows = flag('--rows');
+  const seed = flag('--seed');
+  if (!base || !misses || !out || !share || !rows || !seed)
+    throw new Error(
+      'compose needs --base, --misses, --out, --miss-share, --rows and --seed',
+    );
+  const manifest = composeTraining({
+    base,
+    misses,
+    out,
+    heldout: flag('--heldout'),
+    share: Number(share),
+    rows: Number(rows),
+    seed: Number(seed),
+  });
+  console.log(JSON.stringify(manifest, null, 2));
+}
+
 const invokedDirectly =
   process.argv[1] !== undefined &&
   fileURLToPath(import.meta.url) === process.argv[1];
@@ -1178,9 +1236,11 @@ if (invokedDirectly) {
   else if (command === 'rerender') await rerenderReader();
   else if (command === 'think') await thinkReader();
   else if (command === 'mine') await mineReader();
+  else if (command === 'review') await reviewData();
+  else if (command === 'compose') await composeData();
   else {
     console.error(
-      'usage: run-real-sessions.js label|measure|export|reader|judge|distill|rerender|think|mine [flags]',
+      'usage: run-real-sessions.js label|measure|export|reader|judge|distill|rerender|think|mine|review|compose [flags]',
     );
     process.exit(1);
   }
