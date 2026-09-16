@@ -412,3 +412,45 @@ more accurate; the bet for the student is different, that a small model which ca
 fifteen sessions' worth of items in one step can when it writes them down first. The teacher's
 completions run long (p50 571 tokens including its hidden reasoning), so the length audit's
 768-token completion cap will drop the longest thinking rows before training.
+
+## Reader v7: the thinking step, trained (2026-09-16)
+
+Plan: `docs/superpowers/plans/2026-09-16-reader-v7-v8-thinking.md`. Under the thinking contract
+`dd+notes+think@24576` the reader writes the dated items it relies on and the arithmetic under
+`Notes:`, then one `Answer:` line, and only that line is judged; the three aggregation types and
+abstention questions get it, single-session questions keep the direct prompt. Data: v6's 6,000
+rows re-answered by GLM 5.3 Flash under the thinking prompt and kept only where the judge said
+the new final line matched the stored answer (4,484 kept, 569 disagreed, 278 without an
+`Answer:` line), plus 578 rows built from the 210 questions reader v4 got wrong out of 644
+freshly distilled ones (each miss about three times). The length audit dropped 26 rows the
+trainer would have truncated: 5,754 train, 248 held out. Training: one H100 NVL pod (the
+serverless endpoint had no GPU capacity in the volume's datacenter), recipe of record, 90 steps,
+4.5 hours, train loss 0.518, held-out loss 0.504, about $14.
+
+Paired against v4 on one pod, both arms at depth 4/15/10 with the DeepSeek judge:
+
+| Questions | v4 (direct) | v7 (thinking step) | Difference |
+|---|---|---|---|
+| 500 (verdict) | 381 | 391 | +10 |
+| 266 multi-session + temporal | 182 | 203 | +21 |
+
+Per type on the 500: multi-session 85 → 93, temporal 99 → 104, preference 19 → 20,
+single-session-user 66 → 66, single-session-assistant 52 → 50, knowledge-update 60 → 58.
+Paired flips: multi-session +21/-13, temporal +17/-12, knowledge-update +9/-11.
+
+**v7 is the best reader measured.** The gain is where the reader had to combine sessions, and it
+comes from writing the items down before answering: a temporal answer now reads "7 days. The MoMA
+visit was on or just before 2023-01-08 and the Met visit was on 2023-01-15, so the gap is 7 days."
+The cost is length: completions run a median 231 tokens against v4's few words, so serving needs
+`--reading notes --reader-max-tokens 1024` and `--max-model-len 12288`.
+
+Knowledge-update is the one type that fell (60 → 58, 9 gained against 11 lost). Writing every
+dated mention out invites the reader to compose from the superseded value as well as the current
+one. That is the first thing the v8 data review reweights.
+
+Two measurement notes for the runbook. A first paired attempt was thrown away: the local
+distillation job and the harness's time-range model share one Ollama Cloud quota, and the
+resulting rate limits errored 89 and 78 questions per arm. No local teacher job may run while an
+arm runs. And the serverless training endpoint reported GPU stock it could not place, flapping
+between running and throttled for twenty minutes without starting the job; training moved to a
+pod (`pod.py create-train`), which starts only on `--cloud SECURE` when community capacity is out.
