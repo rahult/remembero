@@ -454,3 +454,37 @@ resulting rate limits errored 89 and 78 questions per arm. No local teacher job 
 arm runs. And the serverless training endpoint reported GPU stock it could not place, flapping
 between running and throttled for twenty minutes without starting the job; training moved to a
 pod (`pod.py create-train`), which starts only on `--cloud SECURE` when community capacity is out.
+
+## Reader v8: built, halted at step 16 (2026-09-16)
+
+The data review of v7 (`docs/research/results/reader-v7-review.json`) ran v7 over 2,210 freshly
+distilled questions it had never trained on: 466 misses, 348 of them multi-session, and 230 of
+those are counts ("how many …"). Counting across sessions is what the computed-notes block never
+touched and what the thinking step does not fix by itself; the review's recommended weights were
+multi-session 71, temporal 19, knowledge-update 5, abstention 5, miss share 0.25. `compose` built
+`data/training-reader-v8` accordingly: 5,748 rows, 4,316 from v7's set and 1,438 mined misses
+(1,071 multi-session), held-out set unchanged, every source under `dd+notes+think@24576`.
+
+Training stopped at step 16 of 90 because the RunPod balance could not cover the run. Nothing was
+lost that has to be rebuilt: the data is on the volume as `data/reader-v8-gemma4-e4b` and in
+`data/training-reader-v8` locally, and the first trainer checkpoint lands at step 25, so a resume
+starts the run again rather than continuing it. To finish it later:
+
+```sh
+.venv/bin/python benchmarks/runpod/pod.py create-train --run reader-v8-gemma4-e4b \
+  --gpu "NVIDIA H100 NVL" --datacenter US-GA-2 --cloud SECURE --max-length 8192   # ≈ $15, 4.5 h
+.venv/bin/python benchmarks/runpod/pod.py train-log --run reader-v8-gemma4-e4b --tail 20
+.venv/bin/python benchmarks/runpod/pod.py stop --pod "$RUNPOD_TRAIN_POD_ID"
+```
+
+Reader v7 is the reader of record until then. Its Q8_0 GGUF and its adapter are on the Mac at
+`/Volumes/Atlas/models/rembero/reader-v7-gemma4-e4b-Q8_0.gguf` and
+`/Volumes/Atlas/models/rembero/reader-v7-adapter/`, so the network volume holds nothing unique.
+Serve it locally the way v4 and v5 are served, with the thinking flags:
+
+```sh
+llama-server -m /Volumes/Atlas/models/rembero/reader-v7-gemma4-e4b-Q8_0.gguf --port 8084 \
+  -c 12288 -np 1 -ngl 99 --alias rembero-reader-v7 --reasoning-budget 0 \
+  --chat-template-kwargs '{"enable_thinking":false}'
+# harness: --reader-model rembero-reader-v7 --reading notes --reader-max-tokens 1024
+```
