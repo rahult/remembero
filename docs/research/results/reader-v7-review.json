@@ -1,0 +1,254 @@
+{
+  "generatedAt": "2026-09-16T06:19:39.491Z",
+  "inputs": {
+    "run": {
+      "path": "docs/research/results/longmemeval-raw-reader-v7-think-all500.json",
+      "contract": "dd+notes+think@24576"
+    },
+    "baseline": {
+      "path": "docs/research/results/longmemeval-raw-reader-v4-pod-pair-all500.json",
+      "contract": "dd+notes@24576"
+    },
+    "mined": {
+      "path": "data/mined-v7-tail",
+      "contract": "dd+notes+think@24576",
+      "studentContract": "dd+notes+think@24576"
+    }
+  },
+  "accuracy": {
+    "knowledge-update": {
+      "questions": 78,
+      "correct": 58,
+      "accuracy": 0.7435897435897436,
+      "baseline": {
+        "questions": 78,
+        "correct": 60,
+        "accuracy": 0.7692307692307693
+      },
+      "delta": {
+        "correct": -2,
+        "accuracy": -0.02564102564102566
+      }
+    },
+    "multi-session": {
+      "questions": 133,
+      "correct": 93,
+      "accuracy": 0.6992481203007519,
+      "baseline": {
+        "questions": 133,
+        "correct": 85,
+        "accuracy": 0.6390977443609023
+      },
+      "delta": {
+        "correct": 8,
+        "accuracy": 0.06015037593984962
+      }
+    },
+    "single-session-assistant": {
+      "questions": 56,
+      "correct": 50,
+      "accuracy": 0.8928571428571429,
+      "baseline": {
+        "questions": 56,
+        "correct": 52,
+        "accuracy": 0.9285714285714286
+      },
+      "delta": {
+        "correct": -2,
+        "accuracy": -0.0357142857142857
+      }
+    },
+    "single-session-preference": {
+      "questions": 30,
+      "correct": 20,
+      "accuracy": 0.6666666666666666,
+      "baseline": {
+        "questions": 30,
+        "correct": 19,
+        "accuracy": 0.6333333333333333
+      },
+      "delta": {
+        "correct": 1,
+        "accuracy": 0.033333333333333326
+      }
+    },
+    "single-session-user": {
+      "questions": 70,
+      "correct": 66,
+      "accuracy": 0.9428571428571428,
+      "baseline": {
+        "questions": 70,
+        "correct": 66,
+        "accuracy": 0.9428571428571428
+      },
+      "delta": {
+        "correct": 0,
+        "accuracy": 0
+      }
+    },
+    "temporal-reasoning": {
+      "questions": 133,
+      "correct": 104,
+      "accuracy": 0.7819548872180451,
+      "baseline": {
+        "questions": 133,
+        "correct": 99,
+        "accuracy": 0.7443609022556391
+      },
+      "delta": {
+        "correct": 5,
+        "accuracy": 0.03759398496240596
+      }
+    }
+  },
+  "longMemEval": {
+    "run": {
+      "misses": 109,
+      "classes": {
+        "format": 0,
+        "false-abstain": 47,
+        "missed-abstain": 0,
+        "unclassified": 62
+      },
+      "byType": {
+        "single-session-user": {
+          "false-abstain": 4
+        },
+        "multi-session": {
+          "unclassified": 22,
+          "false-abstain": 18
+        },
+        "single-session-preference": {
+          "unclassified": 10
+        },
+        "temporal-reasoning": {
+          "unclassified": 19,
+          "false-abstain": 10
+        },
+        "knowledge-update": {
+          "unclassified": 10,
+          "false-abstain": 10
+        },
+        "single-session-assistant": {
+          "false-abstain": 5,
+          "unclassified": 1
+        }
+      },
+      "unavailable": [
+        "count",
+        "date-arithmetic",
+        "other"
+      ]
+    },
+    "baseline": {
+      "misses": 119,
+      "classes": {
+        "format": 0,
+        "false-abstain": 34,
+        "missed-abstain": 1,
+        "unclassified": 84
+      },
+      "byType": {
+        "single-session-user": {
+          "false-abstain": 3,
+          "unclassified": 1
+        },
+        "multi-session": {
+          "unclassified": 32,
+          "false-abstain": 16
+        },
+        "single-session-preference": {
+          "false-abstain": 1,
+          "unclassified": 10
+        },
+        "temporal-reasoning": {
+          "unclassified": 28,
+          "false-abstain": 6
+        },
+        "knowledge-update": {
+          "unclassified": 13,
+          "false-abstain": 4,
+          "missed-abstain": 1
+        },
+        "single-session-assistant": {
+          "false-abstain": 4
+        }
+      },
+      "unavailable": [
+        "count",
+        "date-arithmetic",
+        "other"
+      ]
+    }
+  },
+  "mined": {
+    "byType": {
+      "multi-session": {
+        "asked": 927,
+        "correct": 579,
+        "misses": 348
+      },
+      "abstention": {
+        "asked": 289,
+        "correct": 286,
+        "misses": 3
+      },
+      "temporal-reasoning": {
+        "asked": 879,
+        "correct": 784,
+        "misses": 95
+      },
+      "knowledge-update": {
+        "asked": 115,
+        "correct": 95,
+        "misses": 20
+      }
+    },
+    "classes": {
+      "format": 9,
+      "false-abstain": 19,
+      "missed-abstain": 2,
+      "count": 291,
+      "date-arithmetic": 29,
+      "other": 116
+    },
+    "classesByType": {
+      "multi-session": {
+        "other": 106,
+        "count": 230,
+        "format": 9,
+        "false-abstain": 3
+      },
+      "knowledge-update": {
+        "false-abstain": 11,
+        "other": 9
+      },
+      "temporal-reasoning": {
+        "count": 61,
+        "date-arithmetic": 29,
+        "false-abstain": 5
+      },
+      "abstention": {
+        "other": 1,
+        "missed-abstain": 2
+      }
+    },
+    "conversations": {
+      "asked": 2210,
+      "misses": 466
+    },
+    "missRate": 0.21085972850678733
+  },
+  "recommend": {
+    "typeWeights": "multi-session=71,temporal-reasoning=19,abstention=5,knowledge-update=5",
+    "typeWeightsRaw": {
+      "multi-session": 0.7107843137254901,
+      "abstention": 0.04758986928104575,
+      "temporal-reasoning": 0.1940359477124183,
+      "knowledge-update": 0.04758986928104575
+    },
+    "missShare": 0.25,
+    "dropTypesFromThinking": [],
+    "dropCheck": "compared: thinking run against direct baseline"
+  }
+}

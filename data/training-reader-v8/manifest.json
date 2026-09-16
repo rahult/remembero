@@ -1,0 +1,113 @@
+{
+  "sources": {
+    "base": {
+      "path": "data/training-reader-v7",
+      "contract": "dd+notes+think@24576",
+      "rows": 5754
+    },
+    "misses": {
+      "path": "data/mined-v7-tail",
+      "contract": "dd+notes+think@24576",
+      "rows": 466,
+      "heldoutDropped": 0,
+      "duplicatesDropped": 0,
+      "usable": 466
+    },
+    "heldout": {
+      "path": "data/training-reader-v7",
+      "contract": "dd+notes+think@24576"
+    }
+  },
+  "heldoutOverlapDropped": {
+    "base": 0,
+    "miss": 0
+  },
+  "share": 0.25,
+  "realisedShare": 0.24991310392770247,
+  "rows": 5754,
+  "written": 5754,
+  "train": {
+    "base": 4316,
+    "miss": 1438
+  },
+  "heldout": 248,
+  "byType": {
+    "base": {
+      "single-session-user": 332,
+      "multi-session": 1260,
+      "temporal-reasoning": 1547,
+      "single-session-preference": 200,
+      "abstention": 666,
+      "knowledge-update": 147,
+      "single-session-assistant": 164
+    },
+    "miss": {
+      "knowledge-update": 61,
+      "temporal-reasoning": 296,
+      "multi-session": 1071,
+      "abstention": 10
+    }
+  },
+  "seed": 19,
+  "contract": {
+    "dateDistances": true,
+    "computedNotes": true,
+    "focusedBudget": false,
+    "structuredEvidence": false,
+    "contextBytes": 24576,
+    "fullSessions": null,
+    "abstractBytes": 320,
+    "thinking": true,
+    "id": "dd+notes+think@24576",
+    "runnerFlags": [
+      "--date-distances",
+      "--computed-notes",
+      "--reading",
+      "notes",
+      "--context-bytes",
+      "24576"
+    ]
+  },
+  "generatedAt": "2026-09-16T06:20:06.206Z",
+  "lengthAudit": {
+    "maxLength": 8192,
+    "maxCompletion": 768,
+    "tokenizer": "google/gemma-4-E4B-it",
+    "files": {
+      "conversations.jsonl": {
+        "rows": 5754,
+        "overLength": 0,
+        "overCompletion": 6,
+        "promptTokens": {
+          "p50": 5905,
+          "p95": 6677,
+          "max": 7556
+        },
+        "completionTokens": {
+          "p50": 258,
+          "p95": 539,
+          "max": 880
+        },
+        "removed": 6,
+        "kept": 5748
+      },
+      "heldout.jsonl": {
+        "rows": 248,
+        "overLength": 0,
+        "overCompletion": 0,
+        "promptTokens": {
+          "p50": 5865,
+          "p95": 6540,
+          "max": 7054
+        },
+        "completionTokens": {
+          "p50": 238,
+          "p95": 480,
+          "max": 761
+        },
+        "removed": 0,
+        "kept": 248
+      }
+    }
+  }
+}
