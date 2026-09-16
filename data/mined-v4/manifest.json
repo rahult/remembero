@@ -1,0 +1,80 @@
+{
+  "from": "data/distill-v7-fresh",
+  "contract": {
+    "dateDistances": true,
+    "computedNotes": true,
+    "focusedBudget": false,
+    "structuredEvidence": false,
+    "contextBytes": 24576,
+    "fullSessions": null,
+    "abstractBytes": 320,
+    "thinking": true,
+    "id": "dd+notes+think@24576",
+    "runnerFlags": [
+      "--date-distances",
+      "--computed-notes",
+      "--reading",
+      "notes",
+      "--context-bytes",
+      "24576"
+    ]
+  },
+  "studentContract": {
+    "dateDistances": true,
+    "computedNotes": true,
+    "focusedBudget": false,
+    "structuredEvidence": false,
+    "contextBytes": 24576,
+    "fullSessions": null,
+    "abstractBytes": 320,
+    "thinking": false,
+    "id": "dd+notes@24576",
+    "runnerFlags": [
+      "--date-distances",
+      "--computed-notes",
+      "--context-bytes",
+      "24576"
+    ]
+  },
+  "student": {
+    "model": "rembero-reader-v4",
+    "baseUrl": "https://enfjp7czcyczvt-8000.proxy.runpod.net/v1"
+  },
+  "judge": {
+    "model": "deepseek-chat",
+    "baseUrl": "https://api.deepseek.com/v1"
+  },
+  "labels": "data/real/labels-glmflash8.jsonl",
+  "seed": 7,
+  "poolSessions": 3213,
+  "files": [
+    "conversations.jsonl"
+  ],
+  "limit": 644,
+  "byType": {
+    "knowledge-update": {
+      "asked": 29,
+      "correct": 26,
+      "misses": 3
+    },
+    "temporal-reasoning": {
+      "asked": 265,
+      "correct": 157,
+      "misses": 108
+    },
+    "multi-session": {
+      "asked": 257,
+      "correct": 160,
+      "misses": 97
+    },
+    "abstention": {
+      "asked": 93,
+      "correct": 91,
+      "misses": 2
+    }
+  },
+  "errors": 0,
+  "missing": 0,
+  "misses": 210,
+  "generatedAt": "2026-09-15T22:07:56.675Z"
+}

@@ -1,0 +1,9 @@
+{
+  "contract": "dd+notes+think@24576",
+  "teacher": "glm-5.3-flash:cloud",
+  "seed": 17,
+  "splitSeed": 7,
+  "typeWeights": "multi-session=40,temporal-reasoning=35,knowledge-update=15,abstention=10",
+  "trainCount": 3000,
+  "labels": "data/real/labels-glmflash8.jsonl"
+}

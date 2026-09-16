@@ -1,0 +1,28 @@
+{
+  "from": "data/distill-v7-fresh",
+  "byType": {
+    "knowledge-update": {
+      "asked": 29,
+      "correct": 26,
+      "misses": 3
+    },
+    "temporal-reasoning": {
+      "asked": 265,
+      "correct": 157,
+      "misses": 108
+    },
+    "multi-session": {
+      "asked": 257,
+      "correct": 160,
+      "misses": 97
+    },
+    "abstention": {
+      "asked": 93,
+      "correct": 91,
+      "misses": 2
+    }
+  },
+  "errors": 0,
+  "missing": 0,
+  "misses": 210
+}
