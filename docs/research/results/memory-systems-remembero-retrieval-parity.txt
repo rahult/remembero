@@ -1,0 +1,16 @@
+Paired proof that --memory-system builtin:remembero-raw reproduces the harness's own retrieval.
+Both runs: subset-100, --split all --local-only --top-k 4 --multi-session-top-k 15
+--temporal-top-k 10 --context-bytes 24576 --date-distances, reader glm-5.3-flash:cloud,
+judge deepseek-chat, --reader-max-tokens 440 --concurrency 2. The second adds
+--memory-system builtin:remembero-raw --memory-lane retrieval; nothing else differs.
+
+$ node scripts/compare-retrieved-sessions.mjs \
+    docs/research/results/memory-systems-remembero-native-raw-subset100.json \
+    docs/research/results/memory-systems-remembero-retrieval-subset100.json
+100 questions; 0 differ
+$ echo $?
+0
+
+native raw (stock path):        79/100 correct, 0 errors, recall@k 0.8928
+builtin:remembero-raw (seam):   78/100 correct, 0 errors, recall@k 0.8928
+The one-answer gap is reader sampling; the retrieved session ids are identical on all 100.

@@ -188,6 +188,79 @@ including the per-stage progress and every line `reader_lora.py` prints. What to
   new checkpoint has been copied back to the volume and the previous one deleted there — that is the
   state a re-submitted job resumes from if the worker dies.
 
+## Training on a pod (when serverless is throttled)
+
+When the serverless endpoint has no GPU capacity (`IN_QUEUE` forever, no worker assigned), the
+same training runs on an ordinary **pod** instead. It is the same pipeline — `handler.run_job`:
+train → export text-only → GGUF → quantize — driven by `train_pod.py` on the pod instead of by
+the serverless worker, on the same public image with the same bootstrap. Only the layout differs:
+a pod mounts the network volume at **`/workspace`**, not `/runpod-volume`, so `train_pod.py`
+passes `handler.run_job` its paths explicitly — `data/<run>` and `runs/<run>` on the volume,
+`/root/runs/<run>` (the 80 GB **container disk**) for the trainer's working directory, `merged/`,
+`merged-text/` and the f16 GGUF.
+
+First put the code and the data on the volume (S3 keys as in "One-time setup"; `benchmarks/runpod`
+has to include `train_pod.py` and `handler.py`):
+
+```sh
+touch /tmp/empty-init.py && .venv/bin/python benchmarks/runpod/volume.py put /tmp/empty-init.py code/benchmarks/__init__.py
+.venv/bin/python benchmarks/runpod/volume.py put benchmarks/train  code/benchmarks/train
+.venv/bin/python benchmarks/runpod/volume.py put benchmarks/runpod code/benchmarks/runpod
+.venv/bin/python benchmarks/runpod/volume.py put data/training-reader-v7 data/reader-v7-gemma4-e4b
+```
+
+Then create the pod, follow it, and pull the result back:
+
+```sh
+.venv/bin/python benchmarks/runpod/pod.py create-train --run reader-v7-gemma4-e4b \
+  --gpu "NVIDIA H100 NVL" --datacenter US-GA-2 --max-length 8192
+.venv/bin/python benchmarks/runpod/pod.py train-log --run reader-v7-gemma4-e4b            # last 40 lines
+.venv/bin/python benchmarks/runpod/pod.py train-log --run reader-v7-gemma4-e4b --tail 200
+.venv/bin/python benchmarks/runpod/volume.py get runs/reader-v7-gemma4-e4b/reader-v7-gemma4-e4b-Q8_0.gguf \
+  /Volumes/Atlas/models/rembero/reader-v7-gemma4-e4b-Q8_0.gguf
+.venv/bin/python benchmarks/runpod/pod.py stop --pod "$RUNPOD_TRAIN_POD_ID"
+```
+
+`create-train` takes `--run`, `--gpu` (default `NVIDIA H100 80GB HBM3`), `--datacenter` (default
+`US-GA-2`, where the training volume lives), `--volume` (default `RUNPOD_VOLUME_ID`),
+`--cloud COMMUNITY|SECURE`, `--max-hours` (default 8, the self-stop watchdog), and the run flags
+`--max-length`, `--batch-size`, `--grad-accum`, `--quant` and `--no-liger`, which are `submit.py`'s
+flags and default to the same values. It
+creates the pod on `runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04` with an 80 GB
+container disk, the volume at `/workspace`, `HF_HOME=/workspace/hf` and
+`PYTHONPATH=/workspace/code`, and no HTTP port (only `22/tcp`, for a shell if
+`~/.ssh/id_ed25519.pub` exists — nothing is served from a training pod). It prints the pod id
+first, then writes it to `.env` as **`RUNPOD_TRAIN_POD_ID`** — `stop`, `start`, `status` and
+`terminate` still default `--pod` to the *serving* pod, so pass `--pod "$RUNPOD_TRAIN_POD_ID"`.
+
+The start command makes `runs/<run>/` on the volume, runs the bootstrap of record above (the pip
+installs and the llama.cpp build), then `cd /workspace/code && python3 -u -m
+benchmarks.runpod.train_pod --run <run> ...`. Every line of both stages is tee'd to
+**`runs/<run>/train.log` on the volume**, which is what `train-log` reads over the S3 API — no SSH
+and no console needed. The run ends with one marker line in that log:
+
+- `TRAIN_DONE {...}` from `train_pod` (the metrics, also written to `runs/<run>/metrics.json`),
+  then `TRAIN_DONE: <run>; the pod is stopping itself` from the start command;
+- `TRAIN_FAILED <error>` from `train_pod`, with the traceback above it, or
+  `TRAIN_FAILED: bootstrap failed ...` if the install or the llama.cpp build died.
+
+**The pod stops itself.** Whatever the outcome, the start command writes its `TRAIN_DONE` or
+`TRAIN_FAILED` marker and then calls `self_stop`, which stops the pod from inside — a finished or
+failed run can no longer sit parked and billing (one did, for about $20). A watchdog does the same
+after **`--max-hours` (default 8)**, so a hung run cannot bill forever either. The container still
+never simply exits, because RunPod restarts an exited container and each restart would train again
+from the last checkpoint.
+
+**Check `pod.py status --pod "$RUNPOD_TRAIN_POD_ID"` after a run anyway.** If the stop itself fails,
+the log gets a `SELF_STOP_FAILED: <reason>` line and the pod falls back to the old
+`exec sleep infinity` park, so it can be inspected — and it bills until
+`pod.py stop --pod "$RUNPOD_TRAIN_POD_ID"` (or `terminate`). Check `train-log` for the
+`TRAIN_DONE`/`TRAIN_FAILED`/`SELF_STOP` lines and pull the GGUF.
+
+Checkpointing is the serverless one, unchanged: the newest `runs/<run>/trainer/checkpoint-N` is
+kept on the volume and replaced at each save, so a pod that dies (or is stopped) is resumed by
+creating another `create-train` pod for the same run.
+
 ## Serving the result locally
 
 Same line as reader v4 (docs/research/READER-STRUCTURE.md, "Running the reader locally"):
@@ -204,3 +277,205 @@ The harness points at it with `--reader-model rembero-reader-v5 --reader-base-ur
 The reader contract pins the prompt but not the retrieval depth, so every paired run must also pass
 `--top-k 4 --multi-session-top-k 15 --temporal-top-k 10` explicitly (the harness default is 5/5) —
 without them the comparison is not paired.
+
+## Reader serving pod
+
+For paired harness runs against a fine-tuned reader without a local GPU: a community pod runs
+vLLM over the reader's merged weights, rebuilt on the pod from the LoRA adapter, and the harness on
+the Mac calls it through RunPod's public proxy. `pod.py` launches and manages the pod;
+`prepare_reader.py` is what the pod runs before it serves.
+
+**Where.** EUR-NO-1 (network volumes and an S3 endpoint both present), one **RTX 5090 32 GB**
+community GPU ($0.69/h on 2026-09-15), the network volume mounted at **`/workspace`**
+(`RUNPOD_VOLUME_ID` / `RUNPOD_DATACENTER` must point at the EUR-NO-1 volume for `volume.py`).
+Stop the pod whenever no arm is running. RunPod has refused to stop pods that have a network
+volume attached; if `stop` is refused, `terminate` and `create-serve` again: everything the pod
+built lives on the volume, so the new pod skips the merge.
+
+**Image.** `vllm/vllm-openai:v0.29.0-cu129`, the newest stable (non-nightly) vLLM release on
+Docker Hub on 2026-09-15, pushed 2026-09-09; Gemma 4 support landed in vLLM in spring 2026. The
+`-cu129` build (CUDA 12.9.1) rather than plain `v0.29.0` (CUDA 13.0.2) so hosts on a 12.9 driver
+qualify as well; the payload sets `allowedCudaVersions` to 12.9 and 13.0 accordingly. Both builds
+compile kernels for the 5090 (`TORCH_CUDA_ARCH_LIST` includes 12.0). The image's entrypoint is
+`vllm serve`, so the pod overrides it with `dockerEntrypoint ["bash","-lc"]` and puts the whole
+start command in `dockerStartCmd`. If the tag is gone, pin the newest `vX.Y.Z-cu129` from
+https://hub.docker.com/r/vllm/vllm-openai/tags and record it here and in `pod.py` (`IMAGE`).
+
+**What lives on the volume.** `code/benchmarks/{train,runpod}/*` (the code the pod imports,
+`PYTHONPATH=/workspace/code`), `runs/<run>/adapter/` (uploaded from the Mac), `hf/` (the public
+`google/gemma-4-E4B-it` base, downloaded on the first boot; `HF_HOME=/workspace/hf`), and after
+the first boot `runs/<run>/merged-text/` with its `.prepared` marker. No Hugging Face or Modal
+credential goes to the pod; the only secret in its env is its own `VLLM_API_KEY`.
+
+**The three Gemma 4 steps.** `prepare_reader.py --root /workspace --run <run>` first checks the
+volume's free space: it needs two copies of the base weights, plus the Hugging Face cache if that
+isn't there yet (48 GB for Gemma 4 E4B on a fresh volume). If there is less, it fails in seconds and
+names both numbers, before any model loads. It then:
+
+1. merges the adapter into the base (`reader_lora.merge_adapter`, writing `merged/` and a
+   `merged/.merged` marker when done);
+2. exports the text-only causal LM (`export_text_only`, writing `merged-text/`), then deletes
+   `merged/` right away;
+3. puts back the KV-sharing `self_attn` tensors transformers drops on save
+   (`restore_dropped_weights`; vLLM refuses the checkpoint without them). The restore writes to a
+   temporary file beside `model.safetensors` and swaps it in only once the write completes, so a
+   full disk leaves the export intact.
+
+After that it copies any tokenizer file the export did not write from the adapter, refuses to
+finish without a chat template, and writes `merged-text/fingerprint.json` and then
+`merged-text/.prepared`. At most three weight-sized files are on the volume at once: cache, merged
+and merged-text during the export, then cache, merged-text and the restore's temporary file. A 60 GB
+volume ran out of quota when `merged/` was still kept through the restore.
+
+The merge loads the base in bf16 whatever the device, and the text-only model is built under a bf16
+default dtype, so host memory peaks near two bf16 copies (~32 GB); the pod asks for `minRAMPerGPU`
+48.
+
+With the marker present, prepare exits at once, so every boot runs it. After a boot that died
+halfway, an unmarked `merged-text/` is deleted. A finished `merged/` (with its marker) is kept, so
+only export and restore run again; any other `merged/` is deleted and the merge is redone. Expect
+the first boot to take the base download plus the merge (tens of minutes); later boots go straight
+to vLLM.
+
+**Where it runs from.** The start command changes into `/workspace/code` before
+`python3 -m benchmarks.runpod.prepare_reader` (and the pod keeps `PYTHONPATH=/workspace/code`):
+the image's `WORKDIR /vllm-workspace` holds vLLM's own `benchmarks/` package, which would shadow
+this one from there.
+
+**Fidelity.** `fingerprint.py <dir>` prints the tensor count, parameter count, sha256 of the sorted
+tensor names, sha256 of the raw bytes of five tensors (first, last and three evenly spaced by
+sorted name), and sha256 of `config.json`, `tokenizer_config.json` and `chat_template.jinja` where
+present. Compare the pod's against the local copy of Modal's reader v4:
+
+```sh
+.venv/bin/python benchmarks/runpod/volume.py get runs/reader-v4-gemma4-e4b/merged-text/fingerprint.json /tmp/pod-fingerprint.json
+.venv/bin/python benchmarks/runpod/fingerprint.py /Volumes/Atlas/models/rembero/reader-v4-merged-text/merged-text > /tmp/modal-fingerprint.json
+diff /tmp/pod-fingerprint.json /tmp/modal-fingerprint.json
+```
+
+**Serve flags.** The Modal serve of record, flag for flag, except the context: `--dtype bfloat16
+--max-model-len 12288 --max-num-seqs 32 --gpu-memory-utilization 0.92 --reasoning-parser gemma4
+--default-chat-template-kwargs '{"enable_thinking":false}'`, plus `--served-model-name`, and
+`--api-key "$VLLM_API_KEY"` because the proxy URL is public (the start command stops if the key
+is empty). 12288 rather than 8192 because thinking completions on 7k-token prompts overflow 8192.
+Two readers on one pod each take `--gpu-memory-utilization 0.44` instead of 0.92.
+
+### Setup and use
+
+```sh
+# code and adapter onto the volume (S3 keys as in "One-time setup")
+touch /tmp/empty-init.py && .venv/bin/python benchmarks/runpod/volume.py put /tmp/empty-init.py code/benchmarks/__init__.py
+.venv/bin/python benchmarks/runpod/volume.py put benchmarks/train  code/benchmarks/train
+.venv/bin/python benchmarks/runpod/volume.py put benchmarks/runpod code/benchmarks/runpod
+.venv/bin/python benchmarks/runpod/volume.py put <local adapter dir> runs/reader-v4-gemma4-e4b/adapter
+
+.venv/bin/python benchmarks/runpod/pod.py create-serve --run reader-v4-gemma4-e4b --served-name rembero-reader-v4
+.venv/bin/python benchmarks/runpod/pod.py wait --served-name rembero-reader-v4   # polls /v1/models every 20 s, up to 30 min; stops the pod on timeout
+.venv/bin/python benchmarks/runpod/pod.py status                                  # the serving pod, or every pod if none is recorded
+.venv/bin/python benchmarks/runpod/pod.py stop      # between arms
+.venv/bin/python benchmarks/runpod/pod.py start     # prepare is a no-op now; vLLM loads in a few minutes
+.venv/bin/python benchmarks/runpod/pod.py terminate
+```
+
+`create-serve` takes `--run` and `--served-name` (once each, or twice for two readers, below),
+`--gpu`, `--datacenter` (default EUR-NO-1), `--volume` (default
+`RUNPOD_VOLUME_ID`), `--max-hours` (default 4) and `--idle-minutes` (default 45), the two
+self-stop watchdogs, and `--cloud COMMUNITY|SECURE` (default COMMUNITY; network volumes may be
+Secure Cloud only, so retry with `--cloud SECURE` if community placement is refused). It reads `RUNPOD_API_KEY` from the environment or `.env`, generates a
+`VLLM_API_KEY` once (`secrets.token_urlsafe(32)`) if `.env` has none, passes
+`~/.ssh/id_ed25519.pub` as `PUBLIC_KEY` if it exists, prints the pod id (to stdout, as soon as the
+pod is created and before `.env` is touched, so a failed `.env` write never loses a billing pod),
+writes it and `https://<pod>-8000.proxy.runpod.net/v1` to `.env` as `RUNPOD_SERVE_POD_ID` and
+`RUNPOD_SERVE_URL`, then prints the URL; the other subcommands default `--pod` to that id.
+
+`wait` polls the pod's `/v1/models` until the served name is listed. When it times out
+(`--timeout`, default 30 min) it stops the pod, prints that it did, and exits non-zero, so a pod
+that never comes up does not bill idle; it therefore needs `RUNPOD_API_KEY` and refuses to start
+polling without it. `--no-stop-on-timeout` leaves the pod running (and billing) and still exits
+non-zero. The harness points at the
+pod with `--reader-model rembero-reader-v4 --reader-base-url "$RUNPOD_SERVE_URL"` and the
+`--reader-api-key "$VLLM_API_KEY"`, plus the retrieval-depth flags every paired run passes.
+
+**Two readers on one pod.** A paired verdict needs both readers served by the same pod, so
+`create-serve` takes a second `--run`/`--served-name` pair (pairs match up in order; one or two):
+
+```sh
+.venv/bin/python benchmarks/runpod/pod.py create-serve \
+  --run reader-v7-gemma4-e4b --served-name rembero-reader-v7 \
+  --run reader-v8-gemma4-e4b --served-name rembero-reader-v8 \
+  --gpu "NVIDIA H100 NVL" --datacenter US-GA-2
+.venv/bin/python benchmarks/runpod/pod.py wait --served-name rembero-reader-v7              # port 8000
+.venv/bin/python benchmarks/runpod/pod.py wait --served-name rembero-reader-v8 --port 8001  # port 8001
+```
+
+The start command installs PEFT once, prepares the first run and then the second (one after the
+other, so the two merges never hold host memory at once), then starts vLLM for the first run on
+port 8000 and, once that answers `/health`, vLLM for the second on port 8001, which gets its own
+30 minutes to answer `/health` on 8001 (two servers
+profiling GPU memory at the same moment can misjudge each other's usage). Both use the same
+`VLLM_API_KEY`, `--max-model-len 12288` and `--gpu-memory-utilization 0.44`; each writes its own
+`runs/<run>/prepare.log` and `runs/<run>/serve.log`. The pod exposes `8000/http` and `8001/http`,
+and `.env` gets `RUNPOD_SERVE_URL` (`https://<pod>-8000.proxy.runpod.net/v1`, the first run) and
+`RUNPOD_SERVE_URL_2` (`https://<pod>-8001.proxy.runpod.net/v1`, the second); a one-run
+`create-serve` writes `RUNPOD_SERVE_URL_2` empty so a stale second URL is never left behind. If
+either prepare fails, that run gets `PREPARE_FAILED` and the pod parks as below with neither
+server started (an empty key marks both runs).
+
+Neither start command lets the container exit, because RunPod would restart it into a loop that
+bills for every attempt. Besides a failed prepare, each stops its own pod when:
+
+- a server does not answer `/health` within 30 minutes of its start (on a two-run pod, the first
+  on 8000 and then the second on 8001);
+- a server exits, before it is healthy or later.
+
+It writes `SERVE_FAILED: <reason>` (for example `SERVE_FAILED: reader-v8-gemma4-e4b exited with 1`)
+to `serve.log` on the volume (on a two-run pod, to **both** runs' `serve.log`), stops any
+server that is still up and then stops the pod. The lines above it in that run's `serve.log` show
+vLLM's own error.
+
+0.44 of the GPU is about 14 GB on a 32 GB RTX 5090, no more than the text-only bf16 weights
+alone. So a two-run `create-serve` refuses, before any API call, unless `--gpu` is one of the
+80 GB+ types: `NVIDIA H100 NVL` (the plan's, about 41 GB per reader), `NVIDIA H100 80GB HBM3`,
+`NVIDIA H100 PCIe`, `NVIDIA A100-SXM4-80GB`, `NVIDIA A100 80GB PCIe`, `NVIDIA H200` or
+`NVIDIA B200`. The volume also holds two `merged-text` copies.
+
+**Logs and failures.** The vLLM image runs no SSH daemon (`22/tcp` and `PUBLIC_KEY` do nothing
+today), so everything is written to the volume and fetched with `volume.py get`:
+
+```sh
+.venv/bin/python benchmarks/runpod/volume.py get runs/reader-v4-gemma4-e4b/prepare.log /tmp/prepare.log   # install + prepare, appended per boot
+.venv/bin/python benchmarks/runpod/volume.py get runs/reader-v4-gemma4-e4b/serve.log   /tmp/serve.log     # vLLM's output
+.venv/bin/python benchmarks/runpod/volume.py get runs/reader-v4-gemma4-e4b/PREPARE_FAILED /tmp/PREPARE_FAILED  # exists only after a failure
+```
+
+If the install or prepare fails (or `VLLM_API_KEY` is empty), the start command writes
+`runs/<run>/PREPARE_FAILED` and then stops the pod rather than exiting, because RunPod restarts an
+exited container and each restart would redo the merge. Read `prepare.log`, fix, and terminate the
+pod (a new boot removes the marker and tries again).
+The console's pod **Logs** tab shows the same lines while the pod runs.
+
+**The pod stops itself.** Both start commands carry a `self_stop` shell function: it appends
+`SELF_STOP: <reason>` to the run's log on the volume and then runs `runpodctl stop pod
+"$RUNPOD_POD_ID"` from inside the pod, installing `runpodctl` first if the image has none. No
+RunPod API key ever goes into a pod: `runpodctl` inside a pod is authenticated by the pod itself,
+and `RUNPOD_POD_ID` is already in its environment. A serving pod stops itself
+
+- on any `SERVE_FAILED` path above (and on a failed prepare);
+- after **`--max-hours`** (default **4**), whatever the servers are doing;
+- after **`--idle-minutes`** (default **45**) with no request served — idleness is read from
+  `serve.log`'s mtime, which vLLM moves by logging a line for every request.
+
+Both watchdogs are plain shell loops inside the pod, ticking once a minute
+(`WATCHDOG_INTERVAL_S`), started before the health wait, and they cover both runs' `serve.log` on
+a two-run pod. `wait` still stops the pod on its own timeout (unless `--no-stop-on-timeout`).
+
+**Still check `pod.py status` after a run.** A stop can fail: the log then gets
+`SELF_STOP_FAILED: <reason>` and the pod falls back to the old `exec sleep infinity` park so it can
+be inspected — and a parked pod keeps the GPU reserved and charged until it is stopped. Check the
+logs:
+
+- `runs/<run>/PREPARE_FAILED` and `prepare.log` for a failed prepare;
+- `runs/<run>/serve.log` for a `SERVE_FAILED: <reason>`, `SELF_STOP: <reason>` or
+  `SELF_STOP_FAILED: <reason>` line.
+
+Then run `pod.py stop` (if nothing else has), or `pod.py terminate`.

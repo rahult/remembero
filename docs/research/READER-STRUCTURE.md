@@ -137,6 +137,7 @@ model), DeepSeek `deepseek-chat` as judge instead of gpt-4o:
 | v4 baseline | 87/133 | 80/133 | 167/266 |
 | v4 computed notes | 86/133 | 97/133 | 183/266 |
 | v5 (distilled with the block present, 4,713 examples), retrieval depth 5/5, not paired | 73/133 | 92/133 | 165/266 |
+| **v5, paired** (retrieval 4/15/10, recall@k 0.906 = v4's) | 81/133 | 100/133 | **181/266** |
 
 DeepSeek is the more lenient judge (167 against gpt-4o's 139 on the same baseline), and the
 block's gain holds under it. This is the pair reader v5 is measured against.
@@ -196,20 +197,22 @@ has both. At 135 s a step, a fresh 74-step run costs about $13 on serverless, so
 either a pod at $1.99/h or Modal credit. Runbook: `benchmarks/runpod/README.md`; contract and
 core: `src/evals/reader-contract.ts`, `benchmarks/train/reader_lora.py`.
 
-**v5 measured, first attempt (2026-09-15, 00:04): not a paired run.** The 165 above was
-obtained with the harness's default retrieval depth (5 sessions for every type), while the
-v4 row it sits next to retrieved 15 for multi-session and 10 for temporal (average 12.4
-sessions, recall@k 0.907 against 0.798). The prompt was identical in every other respect;
-the retrieval was not, and the whole 18-point gap sits in the questions whose evidence never
-reached the reader. On the questions with full evidence in context v5 was level with or
-ahead of v4 (multi-session 0.79 against 0.72, temporal 0.79 against 0.79). So the number
-supports no verdict on v5 against v4; it is kept as
-`longmemeval-raw-reader-v5-local-notes-mt-all266-topk5.json` and the dev-split file. The
-lesson is structural and is now in the runbook: the reader contract pins the prompt, not the
-retrieval depth, so every paired run passes `--top-k 4 --multi-session-top-k 15
---temporal-top-k 10` explicitly. The paired run (same flags as the v4 row) started at 00:10
-on 2026-09-15 and writes to `longmemeval-raw-reader-v5-local-notes-mt-all266.json`; its row
-and verdict follow here when it finishes.
+**v5 measured (2026-09-15, 02:00), paired.** Same 266, same flags as the v4 row, retrieval
+depth passed explicitly (`--top-k 4 --multi-session-top-k 15 --temporal-top-k 10`), recall@k
+0.906 for both: **v5 181 against v4 183**, multi-session 81 against 86, temporal 100 against
+97; paired by question v5 gains 19 and loses 21. Inside the noise band. Training with the
+computed-notes block present in every prompt, on a fresh 4,713-example distillation, produced
+a reader level with v4; the block itself is what carries the gain (v4 raw 354 → 383 on the
+500), and the reader does not read it any better for having been trained with it. Two
+confounds remain and are recorded in the run matrix: v5 saw 4,713 examples against v4's
+6,000, and its last 24 steps ran on a different stack (TRL 1.13, Liger). A first attempt at
+this measurement, kept as `...-topk5.json`, used the harness's default depth of 5 sessions
+and scored 165; it is not a pair and supports no verdict. The lesson went into the runbook:
+the reader contract pins the prompt, not the retrieval depth. Decision: v4 stays the served
+reader (no reason to swap for a level model), v5 is kept as an equal alternative, and
+`data/training-reader-v6` (v4's 6,000 examples re-rendered with the block, contract
+`dd+notes@24576`, zero teacher calls) is ready for the next paid run, which tests the data
+size confound directly.
 
 ## One judge: every stored run re-judged with DeepSeek
 
@@ -351,3 +354,147 @@ Add the row to the run matrix (`docs/research/run-matrix/training-runs.json`, pl
 `rembero-finetune` volume (`modal volume ls rembero-finetune runs/`); `train()` resumes from the
 latest checkpoint in a run directory on relaunch. Two v5 readers trained from the same data on
 different hardware are a free reproducibility check, not a conflict.
+
+## Context tiers (2026-09-15): null result
+
+Plan: `docs/superpowers/plans/2026-09-15-reader-tiers-runpod.md`, Task 4. The question was
+whether a small reader does better when only the top-ranked retrieved sessions reach it in full
+and the rest arrive as short code-built abstracts (`--full-sessions N --abstract-bytes 480`),
+the "retrieve wide, rerank narrow, read full" shape from OpenViking. Every arm ran on one H100
+pod (RunPod, US-GA-2) serving the merged reader v4, whose fingerprint matched the Modal
+checkpoint of record, against the 266 multi-session and temporal questions with the flags of
+the v4 183 row (`--top-k 4 --multi-session-top-k 15 --temporal-top-k 10 --context-bytes 24576
+--date-distances --computed-notes`, DeepSeek judge). Arms differ only in the tier flags.
+
+| Arm | Correct / 266 | Multi-session / 133 | Temporal / 133 | Gained vs untiered | Lost vs untiered |
+|---|---|---|---|---|---|
+| Untiered (`dd+notes@24576`) | 183 | 84 | 99 | | |
+| Top 5 full | 178 | 85 | 93 | 14 | 19 |
+| Top 3 full | 172 | 80 | 92 | 13 | 24 |
+| Top 2 full | 162 | 75 | 87 | 9 | 30 |
+
+The untiered pod run landed exactly on the stored 183, so the pod serves the reader of record.
+Context recall is unchanged across arms (0.91 / 0.90): tiering never removes a session, it
+shortens it.
+
+Why it loses. Classify each lost question by where its evidence sessions sat: with 2 full, 25 of
+the 30 losses had evidence ranked below the full tier, so the abstract held it; with 3 full, 17
+of 24. With 5 full the abstract-tier losses fall to 7 and the remaining flips (11 lost, 9 gained
+with all evidence in full text) look like run-to-run churn. Lexical rank puts evidence deep:
+108 of the 266 questions have an evidence session at rank 4 or lower, 63 at rank 6 or lower.
+A 480-byte content-word abstract keeps the topic and drops the detail a question turns on
+(the date, the count, the second item), and temporal questions pay for it most (-6 even at 5).
+
+Decision (plan rule "no arm clears the band: record the null and stop for review"): the reader
+contract stays `dd+notes@24576`. No paired 500 is run, no tiered distillation (Task 5's
+rank-ordered haystacks) is built, and `data/training-reader-v6` is already rendered under the
+winning contract. Tiers would need a better ranker (evidence in the top few) or abstracts written
+for the question, not a smaller budget, before they are worth another arm. Cost: about $1.50 of
+H100 time for the sweep, plus the pod's prepare.
+
+## Teacher gate for the thinking step (2026-09-16)
+
+Plan: `docs/superpowers/plans/2026-09-16-reader-v7-v8-thinking.md`, Task 7. Before a student is
+trained to write a thinking step (the dated items and the arithmetic, then a final `Answer:`
+line that alone is judged), the teacher has to be at least as right when it writes one. GLM 5.3
+Flash read the 266 under the contract flags of record (`--date-distances --computed-notes
+--context-bytes 24576`, depth 4/15/10, DeepSeek judge), direct and with `--reading notes`.
+
+| Arm | Correct / 266 | Multi-session / 133 | Temporal / 133 |
+|---|---|---|---|
+| Direct | 217 | 100 | 117 |
+| Thinking step | 214 (1 judge error) | 99 | 115 |
+
+Paired flips: multi-session 3 gained, 4 lost; temporal 3 gained, 5 lost. The difference is
+inside noise and neither type falls by more than 5, so every aggregation type keeps the
+thinking step in the v7 data. As with Luna, writing the items out does not make a large reader
+more accurate; the bet for the student is different, that a small model which cannot hold
+fifteen sessions' worth of items in one step can when it writes them down first. The teacher's
+completions run long (p50 571 tokens including its hidden reasoning), so the length audit's
+768-token completion cap will drop the longest thinking rows before training.
+
+## Reader v7: the thinking step, trained (2026-09-16)
+
+Plan: `docs/superpowers/plans/2026-09-16-reader-v7-v8-thinking.md`. Under the thinking contract
+`dd+notes+think@24576` the reader writes the dated items it relies on and the arithmetic under
+`Notes:`, then one `Answer:` line, and only that line is judged; the three aggregation types and
+abstention questions get it, single-session questions keep the direct prompt. Data: v6's 6,000
+rows re-answered by GLM 5.3 Flash under the thinking prompt and kept only where the judge said
+the new final line matched the stored answer (4,484 kept, 569 disagreed, 278 without an
+`Answer:` line), plus 578 rows built from the 210 questions reader v4 got wrong out of 644
+freshly distilled ones (each miss about three times). The length audit dropped 26 rows the
+trainer would have truncated: 5,754 train, 248 held out. Training: one H100 NVL pod (the
+serverless endpoint had no GPU capacity in the volume's datacenter), recipe of record, 90 steps,
+4.5 hours, train loss 0.518, held-out loss 0.504, about $14.
+
+Paired against v4 on one pod, both arms at depth 4/15/10 with the DeepSeek judge:
+
+| Questions | v4 (direct) | v7 (thinking step) | Difference |
+|---|---|---|---|
+| 500 (verdict) | 381 | 391 | +10 |
+| 266 multi-session + temporal | 182 | 203 | +21 |
+
+Per type on the 500: multi-session 85 → 93, temporal 99 → 104, preference 19 → 20,
+single-session-user 66 → 66, single-session-assistant 52 → 50, knowledge-update 60 → 58.
+Paired flips: multi-session +21/-13, temporal +17/-12, knowledge-update +9/-11.
+
+**v7 is the best reader measured.** The gain is where the reader had to combine sessions, and it
+comes from writing the items down before answering: a temporal answer now reads "7 days. The MoMA
+visit was on or just before 2023-01-08 and the Met visit was on 2023-01-15, so the gap is 7 days."
+The cost is length: completions run a median 231 tokens against v4's few words, so serving needs
+`--reading notes --reader-max-tokens 1024` and `--max-model-len 12288`.
+
+Knowledge-update is the one type that fell (60 → 58, 9 gained against 11 lost). Writing every
+dated mention out invites the reader to compose from the superseded value as well as the current
+one. That is the first thing the v8 data review reweights.
+
+Two measurement notes for the runbook. A first paired attempt was thrown away: the local
+distillation job and the harness's time-range model share one Ollama Cloud quota, and the
+resulting rate limits errored 89 and 78 questions per arm. No local teacher job may run while an
+arm runs. And the serverless training endpoint reported GPU stock it could not place, flapping
+between running and throttled for twenty minutes without starting the job; training moved to a
+pod (`pod.py create-train`), which starts only on `--cloud SECURE` when community capacity is out.
+
+## Reader v8: miss-driven data, a negative result (2026-09-17)
+
+The data review of v7 (`docs/research/results/reader-v7-review.json`) ran v7 over 2,210 freshly
+distilled questions it had never trained on: 466 misses, 348 of them multi-session, and 230 of
+those are counts ("how many …"). Counting across sessions is what the computed-notes block never
+touched and what the thinking step does not fix by itself. `compose` built
+`data/training-reader-v8` from the review's recommendation: 5,748 rows, 4,316 of v7's own rows
+and 1,438 built from those misses (1,071 multi-session), each unique miss about three times,
+held-out set and contract unchanged. Training: same pod recipe, 90 steps, 4.45 hours, train loss
+0.501, held-out loss 0.507 (v7: 0.518 and 0.504).
+
+Paired against v7 on one pod, both readers under the thinking contract:
+
+| Questions | v7 | v8 | Difference |
+|---|---|---|---|
+| 500 | 391 | 384 | -7 |
+| 266 multi-session + temporal | 204 | 194 | -10 |
+
+Per type on the 500: multi-session 93 → 87, temporal 105 → 101, knowledge-update 59 → 57,
+preference 18 → 21, single-session-user 66 → 67, single-session-assistant 50 → 51. On the 266 the
+flips are multi-session +8/-17 and temporal +9/-10.
+
+**The type the data targeted is the type that fell.** Mining keeps a row when the judge says the
+student's answer differs from the teacher's, which assumes the teacher is right. GLM 5.3 Flash is
+itself about 75% on multi-session (100/133 on the 266), so roughly a quarter of the mined
+"misses" teach the teacher's own error, and duplicating each one three times multiplies that
+noise. Worse, misses are by construction the questions where the teacher is least reliable: the
+harder the question, the likelier the label is wrong. A miss-driven round needs the teacher's
+answer verified before it becomes training data — a second teacher, self-consistency across
+samples, or a code check against the computed notes — and that verification, not the mining,
+is the next thing to build.
+
+**Reader v7 remains the reader of record**: 391/500 and 203/266, the best measured. Its weights
+are on the Mac (`/Volumes/Atlas/models/rembero/reader-v7-gemma4-e4b-Q8_0.gguf` and
+`reader-v7-adapter/`). v8's weights stay on the network volume; nothing depends on them.
+
+**Runbook, paid the hard way.** The v8 training pod finished at 04:10 and billed until 10:50,
+about $20, because the start command parks on completion and the local watcher that should have
+stopped it was killed by the Mac's memory pressure. Pods now stop themselves from the inside:
+`self_stop` writes `SELF_STOP:` to the run's log on the volume and calls `runpodctl stop pod`,
+training pods self-stop on `TRAIN_DONE` and `TRAIN_FAILED`, and serving pods have
+`--idle-minutes` (45) and `--max-hours` (4) watchdogs. No local process is load-bearing for
+billing any more.

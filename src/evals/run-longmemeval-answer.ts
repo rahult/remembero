@@ -23,6 +23,17 @@ import {
   longMemEvalSplit,
   type LongMemEvalSplit,
 } from './longmemeval-semantic.js';
+import { mapConcurrent } from './map-concurrent.js';
+import { DEFAULT_ABSTRACT_BYTES, tiersFromFlags } from './reader-contract.js';
+import {
+  assertBuiltinMemorySystemScope,
+  openMemorySystem,
+} from './memory-systems-builtin.js';
+import {
+  summarizeMemorySystemUsage,
+  type MemorySystemClient,
+  type MemorySystemLane,
+} from './memory-systems-protocol.js';
 
 interface Args {
   data: string;
@@ -62,6 +73,8 @@ interface Args {
   computedNotes: boolean;
   focusedBudget: boolean;
   structuredEvidence: boolean;
+  fullSessions: number | null;
+  abstractBytes: number;
   engineRecallQuestionTypes: Set<string> | undefined;
   extractionCacheDir: string | undefined;
   temporalRangeModel: string | undefined;
@@ -74,6 +87,8 @@ interface Args {
   readerMaxTokens: number | undefined;
   readerBaseUrl: string | undefined;
   readerApiKey: string | undefined;
+  memorySystem: string | undefined;
+  memoryLane: MemorySystemLane;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -133,6 +148,11 @@ Options:
                          quantities with units totalled, each with its source sentence
   --focused-budget       Weight each retrieved session's share of the context by the question's
                          content words it contains, instead of an even split
+  --full-sessions <n>    Context tiers: the n top-ranked sessions get their full text, every other
+                         retrieved session a code-built abstract of its user sentences naming the
+                         question (not combinable with --focused-budget)
+  --abstract-bytes <n>   Byte cap of one abstract section, 120-2048 (default: 320; needs
+                         --full-sessions)
   --structured-evidence  Before the chats, the extracted facts about the question, dated by their
                          session or a date inside them, grounded, deduplicated, later values current
   --no-facts-in-context  Do not list a retrieved session's matched extracted facts to the reader
@@ -155,6 +175,14 @@ Options:
   --multi-semantic-max-score <n>  Multi-session local-score ceiling for semantic routing
   --prepare-semantic     Prepare document embeddings before measuring the user turn
   --local-only           Keep every question on local lexical retrieval
+  --memory-system <spec>  Replace Remembero's formation and search with another memory
+                         layer: builtin:full-context, builtin:bm25, builtin:embed, or a path
+                         to an adapter manifest whose protocol is rembero.memory-systems.v1.
+                         One adapter process per --concurrency worker, alive for the run
+  --memory-lane <retrieval|memories>  retrieval (default): the adapter ranks sessions and the
+                         reader sees the same raw sessions it sees for Remembero. memories:
+                         the adapter returns its own memory text and the reader answers from
+                         that alone, inside the same byte budget
   --no-semantic-preferences  Compatibility alias for --local-only
   --json                 Print the complete run instead of its summary
 `;
@@ -220,6 +248,8 @@ function parseArgs(argv: string[]): Args {
     computedNotes: false,
     focusedBudget: false,
     structuredEvidence: false,
+    fullSessions: null,
+    abstractBytes: DEFAULT_ABSTRACT_BYTES,
     engineRecallQuestionTypes: undefined,
     extractionCacheDir: undefined,
     temporalRangeModel: undefined,
@@ -232,6 +262,8 @@ function parseArgs(argv: string[]): Args {
     readerMaxTokens: undefined,
     readerBaseUrl: undefined,
     readerApiKey: undefined,
+    memorySystem: undefined,
+    memoryLane: 'retrieval',
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -414,6 +446,9 @@ function parseArgs(argv: string[]): Args {
       args.focusedBudget = true;
     } else if (arg === '--structured-evidence') {
       args.structuredEvidence = true;
+    } else if (arg === '--full-sessions' || arg === '--abstract-bytes') {
+      // validated with the reader contract's own rules once every flag is read
+      requiredValue(argv, index++, arg);
     } else if (arg === '--engine-recall-question-types') {
       args.engineRecallQuestionTypes = new Set(
         requiredValue(argv, index++, arg)
@@ -433,32 +468,26 @@ function parseArgs(argv: string[]): Args {
       args.extractionCharacters = Number(requiredValue(argv, index++, arg));
     } else if (arg === '--local-only' || arg === '--no-semantic-preferences') {
       args.semanticQuestionTypes.clear();
+    } else if (arg === '--memory-system') {
+      args.memorySystem = requiredValue(argv, index++, arg);
+    } else if (arg === '--memory-lane') {
+      const value = requiredValue(argv, index++, arg);
+      if (value !== 'retrieval' && value !== 'memories') {
+        throw new Error('--memory-lane must be retrieval or memories');
+      }
+      args.memoryLane = value;
     } else if (arg === '--json') args.json = true;
     else if (arg === '--help' || arg === '-h') {
       console.log(USAGE);
       process.exit(0);
     } else throw new Error(`unknown option: ${arg}`);
   }
+  // the reader contract's rules: positive --full-sessions, --abstract-bytes 120-2048 and only
+  // with tiers, and never tiers with --focused-budget (two budget policies are not a pair)
+  const tiers = tiersFromFlags(argv);
+  args.fullSessions = tiers.fullSessions;
+  args.abstractBytes = tiers.abstractBytes;
   return args;
-}
-
-async function mapConcurrent<T, R>(
-  values: readonly T[],
-  concurrency: number,
-  operation: (value: T, index: number) => Promise<R>,
-): Promise<R[]> {
-  const results = new Array<R>(values.length);
-  let next = 0;
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, values.length) }, async () => {
-      while (true) {
-        const index = next++;
-        if (index >= values.length) return;
-        results[index] = await operation(values[index]!, index);
-      }
-    }),
-  );
-  return results;
 }
 
 function percent(value: number): string {
@@ -495,6 +524,34 @@ async function warmUp(
 async function main(): Promise<void> {
   loadEnv();
   const args = parseArgs(process.argv.slice(2));
+  if (args.memorySystem !== undefined) {
+    if (args.formation !== 'raw') {
+      throw new Error(
+        '--memory-system does its own formation; drop --formation',
+      );
+    }
+    if (args.engineRecall || args.entityRetrieval) {
+      throw new Error(
+        '--memory-system cannot be combined with --engine-recall or --entity-retrieval',
+      );
+    }
+    if (args.temporalRangeModel !== undefined) {
+      throw new Error(
+        '--memory-system cannot be combined with --temporal-range-model: time-aware retrieval is off for every system',
+      );
+    }
+    if (args.semanticQuestionTypes.size > 0) {
+      throw new Error(
+        '--memory-system needs --local-only: the memory layer under test does the retrieval',
+      );
+    }
+    // the Remembero rows are measured against the stock path: refuse the flags that would
+    // move the native side without reaching the built-in
+    assertBuiltinMemorySystemScope(args.memorySystem, {
+      temporalRangeModel: args.temporalRangeModel,
+      retrievalUnit: args.retrievalUnit,
+    });
+  }
   const apiKey = process.env.LLM_API_KEY;
   if (!apiKey)
     throw new Error(
@@ -557,8 +614,10 @@ async function main(): Promise<void> {
   });
   // extracted/hybrid formations run the product's transcript extraction with its own
   // model, typically the fine-tuned dialect model on a self-hosted OpenAI-compatible endpoint
+  // raw formation makes no extraction calls of its own, but builtin:remembero-hybrid does
+  // its own formation behind --memory-system: --extraction-model is what asks for a writer
   const extractor =
-    args.formation === 'raw'
+    args.formation === 'raw' && args.extractionModel === undefined
       ? undefined
       : new OpenRouterClient({
           apiKey:
@@ -570,7 +629,9 @@ async function main(): Promise<void> {
           baseUrl: args.extractionBaseUrl ?? baseUrl,
           model: args.extractionModel ?? args.readerModel,
         });
-  if (args.engineRecall && extractor === undefined) {
+  // the engine's query is written from extracted facts, so it needs a formation that has them:
+  // --extraction-model alone (which builtin:remembero-hybrid uses) is not one
+  if (args.engineRecall && args.formation === 'raw') {
     throw new Error('--engine-recall needs the extracted or hybrid formation');
   }
   // the writer that authors the engine's query is the extraction model
@@ -582,85 +643,147 @@ async function main(): Promise<void> {
   if (extractor !== undefined) await warmUp(extractor, 'extraction endpoint');
   // a self-hosted reader scales to zero as well
   if (args.readerBaseUrl !== undefined) await warmUp(reader, 'reader endpoint');
-  let completed = 0;
-  const observations = await mapConcurrent(
-    instances,
-    args.concurrency,
-    async (instance) => {
-      const observation = await evaluateLongMemEvalAnswerInstance(
-        instance,
-        reader,
-        judge,
-        {
-          topK: args.topK,
-          multiSessionTopK: args.multiSessionTopK,
-          temporalTopK: args.temporalTopK,
-          contextBytes: args.contextBytes,
-          ...(embeddings === undefined ? {} : { embeddings }),
-          semanticQuestionTypes: args.semanticQuestionTypes,
-          multiSessionSemanticMaximumLexicalScore:
-            args.multiSessionSemanticMaximumLexicalScore,
-          prepareSemantic: args.prepareSemantic,
-          formation: args.formation,
-          ...(extractor === undefined ? {} : { extractor }),
-          ...(args.extractionCharacters === undefined
-            ? {}
-            : { extractionCharacters: args.extractionCharacters }),
-          ...(args.extractionAssistantCharacters === undefined
-            ? {}
-            : {
-                extractionAssistantCharacters:
-                  args.extractionAssistantCharacters,
+  // builtin:embed needs a vector client even though --local-only turns Remembero's own
+  // semantic route off: there the embedding model is the memory system under test
+  const memorySystemEmbeddings =
+    args.memorySystem === 'builtin:embed'
+      ? (embeddings ?? embeddingClientFromEnv())
+      : embeddings;
+  // one adapter process per worker: each client queues its own requests, so a question is
+  // never interleaved with another inside one store
+  const memorySystems: MemorySystemClient[] =
+    args.memorySystem === undefined
+      ? []
+      : await Promise.all(
+          Array.from(
+            { length: args.concurrency },
+            async () =>
+              await openMemorySystem(args.memorySystem!, {
+                ...(memorySystemEmbeddings === undefined
+                  ? {}
+                  : { embeddings: memorySystemEmbeddings }),
+                ...(extractor === undefined ? {} : { extractor }),
+                ...(args.extractionCacheDir === undefined
+                  ? {}
+                  : { extractionCacheDir: args.extractionCacheDir }),
+                ...(args.extractionCharacters === undefined
+                  ? {}
+                  : { extractionCharacters: args.extractionCharacters }),
+                ...(args.extractionAssistantCharacters === undefined
+                  ? {}
+                  : {
+                      extractionAssistantCharacters:
+                        args.extractionAssistantCharacters,
+                    }),
+                ...(args.extractionMaxTokens === undefined
+                  ? {}
+                  : { extractionMaxTokens: args.extractionMaxTokens }),
               }),
-          ...(args.extractionMaxTokens === undefined
-            ? {}
-            : { extractionMaxTokens: args.extractionMaxTokens }),
-          factsInContext: args.factsInContext,
-          hybridRetrieval: args.hybridRetrieval,
-          retrievalUnit: args.retrievalUnit,
-          readingStrategy: args.readingStrategy,
-          ...(args.readerMaxTokens === undefined
-            ? {}
-            : { readerMaxTokens: args.readerMaxTokens }),
-          ...(aggregationReader === undefined ? {} : { aggregationReader }),
-          ...(temporalRangeExtractor === undefined
-            ? {}
-            : { temporalRangeExtractor }),
-          entityRetrieval: args.entityRetrieval,
-          dateDistances: args.dateDistances,
-          computedNotes: args.computedNotes,
-          focusedBudget: args.focusedBudget,
-          structuredEvidence: args.structuredEvidence,
-          ...(args.engineRecall
-            ? {
-                engineRecall: {
-                  llm: engineWriter,
-                  ...(args.engineRecallQuestionTypes === undefined
-                    ? {}
-                    : { questionTypes: args.engineRecallQuestionTypes }),
-                },
-              }
-            : {}),
-          ...(args.extractionCacheDir === undefined
-            ? {}
-            : { extractionCacheDir: args.extractionCacheDir }),
-          ...(args.hybridQuestionTypes === undefined
-            ? {}
-            : { hybridQuestionTypes: args.hybridQuestionTypes }),
-          ...(args.reservedMinimumScore === undefined
-            ? {}
-            : { reservedMinimumScore: args.reservedMinimumScore }),
-        },
-      );
-      completed++;
-      if (!args.json) {
-        console.error(
-          `[${completed}/${instances.length}] ${instance.question_id}: ${observation.status === 'judged' ? (observation.correct ? 'correct' : 'incorrect') : `error (${observation.error})`}`,
+          ),
         );
-      }
-      return observation;
-    },
-  );
+  let completed = 0;
+  let observations: LongMemEvalAnswerObservation[];
+  try {
+    observations = await mapConcurrent(
+      instances,
+      args.concurrency,
+      async (instance, _index, workerId) => {
+        const observation = await evaluateLongMemEvalAnswerInstance(
+          instance,
+          reader,
+          judge,
+          {
+            topK: args.topK,
+            multiSessionTopK: args.multiSessionTopK,
+            temporalTopK: args.temporalTopK,
+            contextBytes: args.contextBytes,
+            ...(embeddings === undefined ? {} : { embeddings }),
+            semanticQuestionTypes: args.semanticQuestionTypes,
+            multiSessionSemanticMaximumLexicalScore:
+              args.multiSessionSemanticMaximumLexicalScore,
+            prepareSemantic: args.prepareSemantic,
+            formation: args.formation,
+            ...(extractor === undefined ? {} : { extractor }),
+            ...(args.extractionCharacters === undefined
+              ? {}
+              : { extractionCharacters: args.extractionCharacters }),
+            ...(args.extractionAssistantCharacters === undefined
+              ? {}
+              : {
+                  extractionAssistantCharacters:
+                    args.extractionAssistantCharacters,
+                }),
+            ...(args.extractionMaxTokens === undefined
+              ? {}
+              : { extractionMaxTokens: args.extractionMaxTokens }),
+            factsInContext: args.factsInContext,
+            hybridRetrieval: args.hybridRetrieval,
+            retrievalUnit: args.retrievalUnit,
+            readingStrategy: args.readingStrategy,
+            ...(args.readerMaxTokens === undefined
+              ? {}
+              : { readerMaxTokens: args.readerMaxTokens }),
+            ...(aggregationReader === undefined ? {} : { aggregationReader }),
+            ...(temporalRangeExtractor === undefined
+              ? {}
+              : { temporalRangeExtractor }),
+            entityRetrieval: args.entityRetrieval,
+            dateDistances: args.dateDistances,
+            computedNotes: args.computedNotes,
+            focusedBudget: args.focusedBudget,
+            structuredEvidence: args.structuredEvidence,
+            ...(args.fullSessions === null
+              ? {}
+              : {
+                  tiers: {
+                    fullSessions: args.fullSessions,
+                    abstractBytes: args.abstractBytes,
+                  },
+                }),
+            ...(memorySystems.length === 0
+              ? {}
+              : {
+                  memorySystem: {
+                    // by worker, not by position: one live adapter per worker, never two
+                    // in-flight questions queued behind the same process
+                    client: memorySystems[workerId % memorySystems.length]!,
+                    lane: args.memoryLane,
+                  },
+                }),
+            ...(args.engineRecall
+              ? {
+                  engineRecall: {
+                    llm: engineWriter,
+                    ...(args.engineRecallQuestionTypes === undefined
+                      ? {}
+                      : { questionTypes: args.engineRecallQuestionTypes }),
+                  },
+                }
+              : {}),
+            ...(args.extractionCacheDir === undefined
+              ? {}
+              : { extractionCacheDir: args.extractionCacheDir }),
+            ...(args.hybridQuestionTypes === undefined
+              ? {}
+              : { hybridQuestionTypes: args.hybridQuestionTypes }),
+            ...(args.reservedMinimumScore === undefined
+              ? {}
+              : { reservedMinimumScore: args.reservedMinimumScore }),
+          },
+        );
+        completed++;
+        if (!args.json) {
+          console.error(
+            `[${completed}/${instances.length}] ${instance.question_id}: ${observation.status === 'judged' ? (observation.correct ? 'correct' : 'incorrect') : `error (${observation.error})`}`,
+          );
+        }
+        return observation;
+      },
+    );
+  } finally {
+    // the adapter processes outlive every question, but not the run
+    await Promise.all(memorySystems.map(async (client) => await client.close()));
+  }
   const run = longMemEvalAnswerRun(observations, reader.model, judge.model, {
     topK: args.topK,
     multiSessionTopK: args.multiSessionTopK,
@@ -675,6 +798,9 @@ async function main(): Promise<void> {
     prepareSemantic: args.prepareSemantic,
     formation: args.formation,
     extractionModel: extractor?.model ?? null,
+    ...(args.memorySystem === undefined
+      ? {}
+      : { memorySystemId: args.memorySystem }),
     settings: {
       aggregationReaderModel: aggregationReader?.model ?? null,
       temporalRangeModel: temporalRangeExtractor?.model ?? null,
@@ -687,6 +813,8 @@ async function main(): Promise<void> {
       computedNotes: args.computedNotes,
       focusedBudget: args.focusedBudget,
       structuredEvidence: args.structuredEvidence,
+      fullSessions: args.fullSessions,
+      abstractBytes: args.fullSessions === null ? null : args.abstractBytes,
       engineRecallQuestionTypes:
         args.engineRecallQuestionTypes === undefined
           ? null
@@ -697,6 +825,14 @@ async function main(): Promise<void> {
           : [...args.hybridQuestionTypes],
       factsInContext: args.factsInContext,
       readerMaxTokens: args.readerMaxTokens ?? 4096,
+      memorySystem: args.memorySystem ?? null,
+      memoryLane: args.memorySystem === undefined ? null : args.memoryLane,
+      // the memory system's own embedder, recorded here rather than in the top-level
+      // embeddingModel: that field means Remembero's semantic route, which --local-only turns off
+      memorySystemEmbeddingModel:
+        args.memorySystem === undefined
+          ? null
+          : (memorySystemEmbeddings?.model ?? null),
     },
   });
   const serialized = stringifyBoundedResult(run, 'LongMemEval answer run');
@@ -774,6 +910,26 @@ async function main(): Promise<void> {
     console.log(
       `judge calls/tokens/cost: ${summary.judgeUsage.calls} / ${summary.judgeUsage.totalTokens} / $${summary.judgeUsage.costUsd.toFixed(6)}`,
     );
+    if (args.memorySystem !== undefined) {
+      const adapter = summarizeMemorySystemUsage(observations);
+      console.log(
+        `memory system: ${args.memorySystem} (lane ${args.memoryLane})`,
+      );
+      console.log(
+        `memory system calls/tokens/cost: ${adapter.modelCalls} / ${adapter.inputTokens + adapter.outputTokens} / $${adapter.costUsd.toFixed(6)}`,
+      );
+      console.log(
+        `memory system ingest/search p50: ${adapter.medianIngestMs.toFixed(1)} / ${adapter.medianSearchMs.toFixed(1)} ms; dropped memory bytes ${adapter.droppedMemoryBytes}`,
+      );
+      const overreach = observations.filter(
+        (observation) => observation.memorySystem?.overRequestedDepth === true,
+      ).length;
+      if (overreach > 0) {
+        console.log(
+          `note: ${overreach} questions returned more sessions than that question's top-k; the harness scored them at it anyway (full context does this by design)`,
+        );
+      }
+    }
     console.log(
       `embedding calls/tokens/cost: ${summary.embeddingUsage.calls} / ${summary.embeddingUsage.totalTokens} / $${summary.embeddingUsage.costUsd.toFixed(6)}`,
     );

@@ -1,0 +1,65 @@
+{
+  "from": "data/training-reader-v6",
+  "sourceContract": "dd+notes@24576",
+  "contract": {
+    "dateDistances": true,
+    "computedNotes": true,
+    "focusedBudget": false,
+    "structuredEvidence": false,
+    "contextBytes": 24576,
+    "fullSessions": null,
+    "abstractBytes": 320,
+    "thinking": true,
+    "id": "dd+notes+think@24576",
+    "runnerFlags": [
+      "--date-distances",
+      "--computed-notes",
+      "--reading",
+      "notes",
+      "--context-bytes",
+      "24576"
+    ]
+  },
+  "labels": "data/real/labels-glmflash8.jsonl",
+  "seed": 7,
+  "poolSessions": 3213,
+  "teacher": "glm-5.3-flash:cloud",
+  "judge": {
+    "model": "deepseek-chat",
+    "baseUrl": "https://api.deepseek.com/v1"
+  },
+  "byType": {
+    "single-session-assistant": {
+      "rendered": 220
+    },
+    "single-session-user": {
+      "rendered": 450
+    },
+    "single-session-preference": {
+      "rendered": 299
+    },
+    "knowledge-update": {
+      "kept": 183,
+      "rejectedFormat": 11,
+      "disagreed": 12
+    },
+    "multi-session": {
+      "kept": 1517,
+      "disagreed": 446,
+      "rejectedFormat": 155
+    },
+    "temporal-reasoning": {
+      "kept": 1835,
+      "rejectedFormat": 110,
+      "disagreed": 111
+    },
+    "abstention": {
+      "kept": 949,
+      "rejectedFormat": 2
+    }
+  },
+  "train": 5203,
+  "heldout": 250,
+  "disagreements": 569,
+  "generatedAt": "2026-09-15T22:23:20.712Z"
+}

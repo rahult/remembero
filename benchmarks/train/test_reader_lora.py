@@ -40,3 +40,118 @@ def test_train_lora_runs_on_cpu_and_resumes(tmp_path):
     again = train_lora(data, run, TINY, epochs=1, batch_size=1, grad_accum=1, max_length=128, merge=False, save_steps=2)
     assert again["resumed_from"] is not None
     assert again["liger"] is False  # CPU smoke never asks for Liger
+
+
+def test_restore_dropped_weights_puts_back_only_missing_attention_tensors(tmp_path, monkeypatch):
+    import huggingface_hub
+    import torch
+    from safetensors.torch import load_file, save_file
+
+    from benchmarks.train.reader_lora import restore_dropped_weights
+
+    run_dir = tmp_path / "run"
+    text_dir = run_dir / "merged-text"
+    text_dir.mkdir(parents=True)
+    fine_tuned = torch.full((2, 2), 7.0)
+    save_file({"model.layers.0.self_attn.q_proj.weight": fine_tuned}, str(text_dir / "model.safetensors"))
+    snapshot = tmp_path / "snapshot"
+    snapshot.mkdir()
+    save_file({
+        "model.language_model.layers.0.self_attn.q_proj.weight": torch.zeros(2, 2),  # present: keep the merge's
+        "model.language_model.layers.20.self_attn.k_proj.weight": torch.ones(2, 2),  # dropped by transformers
+        "model.language_model.layers.20.self_attn.k_norm.weight": torch.ones(2),
+        "model.language_model.layers.20.mlp.up_proj.weight": torch.ones(2, 2),        # not attention: skip
+        "model.vision_tower.encoder.self_attn.q_proj.weight": torch.ones(2, 2),       # not the language model
+    }, str(snapshot / "model-00001-of-00001.safetensors"))
+    asked = {}
+
+    def fake_download(repo_id, allow_patterns=None, **kwargs):
+        asked.update(repo_id=repo_id, allow_patterns=allow_patterns)
+        return str(snapshot)
+
+    monkeypatch.setattr(huggingface_hub, "snapshot_download", fake_download)
+
+    assert restore_dropped_weights(run_dir, "google/gemma-4-E4B-it") == 2
+
+    restored = load_file(str(text_dir / "model.safetensors"))
+    assert asked == {"repo_id": "google/gemma-4-E4B-it", "allow_patterns": ["*.safetensors"]}
+    assert sorted(restored) == ["model.layers.0.self_attn.q_proj.weight", "model.layers.20.self_attn.k_norm.weight",
+                                "model.layers.20.self_attn.k_proj.weight"]
+    assert torch.equal(restored["model.layers.0.self_attn.q_proj.weight"], fine_tuned)
+
+
+def test_default_dtype_is_bf16_inside_the_block_and_restored_after_an_error():
+    import torch
+
+    from benchmarks.train.reader_lora import default_dtype
+
+    before = torch.get_default_dtype()
+    with pytest.raises(RuntimeError):
+        with default_dtype(torch.bfloat16):
+            assert torch.empty(1).dtype == torch.bfloat16
+            raise RuntimeError("construction failed")
+    assert torch.get_default_dtype() == before
+
+
+def test_merge_adapter_loads_the_base_in_bf16_whatever_the_device(tmp_path, monkeypatch):
+    import peft
+    import torch
+    import transformers
+
+    from benchmarks.train import reader_lora
+
+    asked, saved = {}, []
+
+    def fake_load(model_id, dtype=None):
+        asked.update(model_id=model_id, dtype=dtype)
+        return "base"
+
+    class Merged:
+        def save_pretrained(self, path, safe_serialization):
+            saved.append(("weights", path, safe_serialization))
+
+    class Peft:
+        def merge_and_unload(self):
+            return Merged()
+
+    class Tokenizer:
+        def save_pretrained(self, path):
+            saved.append(("tokenizer", path))
+
+    monkeypatch.setattr(reader_lora, "load_base_model", fake_load)
+    monkeypatch.setattr(peft.PeftModel, "from_pretrained", staticmethod(lambda base, path: Peft()))
+    monkeypatch.setattr(transformers.AutoTokenizer, "from_pretrained", staticmethod(lambda path: Tokenizer()))
+
+    assert reader_lora.merge_adapter(tmp_path, "google/gemma-4-E4B-it") == tmp_path / "merged"
+    assert asked == {"model_id": "google/gemma-4-E4B-it", "dtype": torch.bfloat16}
+    assert saved == [("weights", str(tmp_path / "merged"), True), ("tokenizer", str(tmp_path / "merged"))]
+
+
+def test_a_restore_whose_write_fails_leaves_the_original_weights_and_no_temp_file(tmp_path, monkeypatch):
+    import huggingface_hub
+    import safetensors.torch
+    import torch
+    from safetensors.torch import save_file
+
+    from benchmarks.train.reader_lora import restore_dropped_weights
+
+    text_dir = tmp_path / "run" / "merged-text"
+    text_dir.mkdir(parents=True)
+    save_file({"model.layers.0.self_attn.q_proj.weight": torch.ones(2, 2)}, str(text_dir / "model.safetensors"))
+    original = (text_dir / "model.safetensors").read_bytes()
+    snapshot = tmp_path / "snapshot"
+    snapshot.mkdir()
+    save_file({"model.language_model.layers.20.self_attn.k_proj.weight": torch.ones(2, 2)}, str(snapshot / "model.safetensors"))
+    monkeypatch.setattr(huggingface_hub, "snapshot_download", lambda repo_id, allow_patterns=None, **kw: str(snapshot))
+
+    def full_disk(tensors, filename, metadata=None):
+        Path(filename).write_bytes(b"half a file")
+        raise OSError(122, "Disk quota exceeded")
+
+    monkeypatch.setattr(safetensors.torch, "save_file", full_disk)
+
+    with pytest.raises(OSError):
+        restore_dropped_weights(tmp_path / "run", "google/gemma-4-E4B-it")
+
+    assert (text_dir / "model.safetensors").read_bytes() == original
+    assert sorted(p.name for p in text_dir.iterdir()) == ["model.safetensors"]

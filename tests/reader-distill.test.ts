@@ -7,8 +7,15 @@ import {
   pickType,
   questionWriterPrompt,
   acceptDistilled,
+  distillRunIdentity,
+  distillSeeds,
+  splitDistillPools,
   type DistillType,
 } from '../src/training/reader-distill.js';
+import { assertRunIdentity } from '../src/training/reader-think.js';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { LabelledSession } from '../src/training/reader-data.js';
 import { createRng } from '../src/training/rng.js';
 
@@ -155,5 +162,99 @@ describe('reader distillation data', () => {
       expect(['multi-session', 'temporal-reasoning', 'abstention']).toContain(
         pickType(rng, w),
       );
+  });
+});
+
+describe('distill seeds and session pools', () => {
+  const pool = Array.from({ length: 40 }, (_, i) => ({
+    id: `session-${String(i).padStart(2, '0')}`,
+  }));
+  const pools = (argv: string[]) => {
+    const { splitSeed } = distillSeeds(argv);
+    const { train, held } = splitDistillPools(pool, splitSeed, 30);
+    return { train: train.map((s) => s.id), held: held.map((s) => s.id) };
+  };
+
+  it('defaults the split seed to --seed and reads --split-seed when given', () => {
+    expect(distillSeeds([])).toEqual({ seed: 7, splitSeed: 7 });
+    expect(distillSeeds(['--seed', '17'])).toEqual({ seed: 17, splitSeed: 17 });
+    expect(distillSeeds(['--seed', '17', '--split-seed', '7'])).toEqual({
+      seed: 17,
+      splitSeed: 7,
+    });
+    expect(() => distillSeeds(['--split-seed', 'x'])).toThrow(/--split-seed/);
+  });
+
+  it('keeps the same train and held-out pools when --seed changes under a fixed split seed', () => {
+    const v6 = pools(['--seed', '7']);
+    const fresh17 = pools(['--seed', '17', '--split-seed', '7']);
+    const fresh19 = pools(['--seed', '19', '--split-seed', '7']);
+    expect(fresh17).toEqual(v6);
+    expect(fresh19).toEqual(v6);
+    expect(v6.train).toHaveLength(30);
+    expect(v6.held).toHaveLength(10);
+    expect(v6.train.filter((id) => v6.held.includes(id))).toEqual([]);
+    expect(pools(['--seed', '17'])).not.toEqual(v6);
+  });
+
+  it('orders as shuffle-by-id then filter, so a split seed reproduces an earlier seed run', () => {
+    const shuffled = createRng(7)
+      .shuffle([...pool].reverse().sort((a, b) => a.id.localeCompare(b.id)))
+      .filter((s) => !s.id.endsWith('3'));
+    const { train, held } = splitDistillPools(
+      [...pool].reverse(),
+      7,
+      20,
+      (s) => !s.id.endsWith('3'),
+    );
+    expect(train).toEqual(shuffled.slice(0, 20));
+    expect(held).toEqual(shuffled.slice(20));
+  });
+});
+
+describe('distill run identity', () => {
+  const identity = distillRunIdentity({
+    contract: 'dd+notes+think@24576',
+    teacher: 'glm-5.3-flash:cloud',
+    seed: 17,
+    splitSeed: 7,
+    typeWeights: 'multi-session=40,temporal-reasoning=35',
+    trainCount: 3000,
+    labels: 'data/real/labels-glmflash8.jsonl',
+  });
+
+  it('pins contract, teacher, seed, split seed, type weights, train count and labels', () => {
+    expect(Object.keys(identity).sort()).toEqual(
+      [
+        'contract',
+        'labels',
+        'seed',
+        'splitSeed',
+        'teacher',
+        'trainCount',
+        'typeWeights',
+      ].sort(),
+    );
+    const out = mkdtempSync(join(tmpdir(), 'distill-run-'));
+    assertRunIdentity(out, identity);
+    expect(() => assertRunIdentity(out, { ...identity })).not.toThrow();
+  });
+
+  it('refuses a resume begun with any different pinned field', () => {
+    const out = mkdtempSync(join(tmpdir(), 'distill-run-'));
+    assertRunIdentity(out, identity);
+    const changed: Record<string, unknown> = {
+      contract: 'dd+notes@24576',
+      teacher: 'other',
+      seed: 19,
+      splitSeed: 17,
+      typeWeights: 'default',
+      trainCount: 2000,
+      labels: 'other.jsonl',
+    };
+    for (const [key, value] of Object.entries(changed))
+      expect(() =>
+        assertRunIdentity(out, { ...identity, [key]: value }),
+      ).toThrow(new RegExp(key));
   });
 });

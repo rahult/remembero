@@ -4,6 +4,7 @@ import {
   contractFromEnv,
   contractFromFlags,
   contractId,
+  contractBuilderArgs,
   contractRunnerFlags,
   distillManifestContract,
 } from '../src/evals/reader-contract.js';
@@ -28,6 +29,28 @@ describe('reader contract', () => {
     const c = contractFromFlags(['--date-distances', '--computed-notes', '--structured-evidence']);
     expect(c).toEqual({ ...READER_CONTRACT_V5, structuredEvidence: true });
     expect(contractRunnerFlags(c)).toEqual(['--date-distances', '--computed-notes', '--structured-evidence', '--context-bytes', '24576']);
+  });
+
+  it('names, reads and emits the thinking step', () => {
+    expect(READER_CONTRACT_V5.thinking).toBe(false);
+    expect(contractId(READER_CONTRACT_V5)).toBe('dd+notes@24576');
+    const argv = ['--date-distances', '--computed-notes', '--reading', 'notes', '--context-bytes', '24576'];
+    const c = contractFromFlags(argv);
+    expect(c).toEqual({ ...READER_CONTRACT_V5, thinking: true });
+    expect(contractId(c)).toBe('dd+notes+think@24576');
+    expect(contractRunnerFlags(c)).toEqual(['--date-distances', '--computed-notes', '--reading', 'notes', '--context-bytes', '24576']);
+    expect(contractFromFlags(contractRunnerFlags(c))).toEqual(c);
+    expect(distillManifestContract(argv).id).toBe('dd+notes+think@24576');
+    expect(contractFromFlags(['--reading', 'two-call']).thinking).toBe(false);
+    expect(contractFromFlags(['--reading', 'direct']).thinking).toBe(false);
+    expect(contractFromFlags(['--reading', 'notes'], { ...READER_CONTRACT_V5, thinking: true }).thinking).toBe(true);
+    expect(contractFromFlags([], { ...READER_CONTRACT_V5, thinking: true }).thinking).toBe(false);
+    const tiered = contractFromFlags(['--date-distances', '--computed-notes', '--reading', 'notes', '--full-sessions', '3']);
+    expect(contractId(tiered)).toBe('dd+notes+think+full3@24576');
+    expect(contractRunnerFlags(tiered)).toEqual([
+      '--date-distances', '--computed-notes', '--full-sessions', '3', '--abstract-bytes', '320', '--reading', 'notes', '--context-bytes', '24576',
+    ]);
+    expect(contractFromFlags(contractRunnerFlags(tiered))).toEqual(tiered);
   });
 
   it('refuses a --context-bytes that is not a positive integer', () => {
@@ -55,10 +78,64 @@ describe('reader contract', () => {
     expect(distilled[1]!.content).toContain('Computed');
   });
 
+  it('renders a thinking prompt byte-for-byte as the harness renders it with notes', () => {
+    const contract = { ...READER_CONTRACT_V5, thinking: true };
+    const sessions = haystack.sessions.map((s) => ({ opId: s.id, ts: `${s.date}T09:00:00.000Z`, text: s.transcript, facts: s.facts }));
+    const base = {
+      question: 'How long ago did I see John Mulaney?', question_date: '2023/07/10 (Sat) 09:00',
+      answer: '', haystack_session_ids: [], haystack_dates: [], haystack_sessions: [], answer_session_ids: [],
+    };
+    const distilled = readerMessages(haystack, base.question, 'temporal-reasoning', contract);
+    const harness = buildLongMemEvalAnswerContext(
+      { ...base, question_id: 'distill-temporal-reasoning', question_type: 'temporal-reasoning' } as never,
+      sessions, contract.contextBytes, [], 'notes', undefined, ...contractBuilderArgs(contract),
+    );
+    expect(distilled).toEqual(harness.messages);
+    const abstention = readerMessages(haystack, base.question, 'abstention', contract);
+    const harnessAbstention = buildLongMemEvalAnswerContext(
+      { ...base, question_id: 'distill-abstention', question_type: 'multi-session' } as never,
+      sessions, contract.contextBytes, [], 'notes', undefined, ...contractBuilderArgs(contract),
+    );
+    expect(abstention).toEqual(harnessAbstention.messages);
+  });
+
   it('the distill manifest records the contract it rendered with', () => {
     const entry = distillManifestContract(['--computed-notes', '--date-distances']);
     expect(entry.id).toBe('dd+notes@24576');
     expect(entry.runnerFlags).toEqual(['--date-distances', '--computed-notes', '--context-bytes', '24576']);
+  });
+
+  it('names, reads and emits context tiers', () => {
+    expect(READER_CONTRACT_V5.fullSessions).toBeNull();
+    expect(READER_CONTRACT_V5.abstractBytes).toBe(320);
+    const c = contractFromFlags(['--date-distances', '--computed-notes', '--full-sessions', '3']);
+    expect(c).toEqual({ ...READER_CONTRACT_V5, fullSessions: 3 });
+    expect(contractId(c)).toBe('dd+notes+full3@24576');
+    expect(contractRunnerFlags(c)).toEqual([
+      '--date-distances', '--computed-notes', '--full-sessions', '3', '--abstract-bytes', '320', '--context-bytes', '24576',
+    ]);
+    expect(contractFromFlags(contractRunnerFlags(c))).toEqual(c);
+    expect(contractBuilderArgs(c)).toEqual([true, true, false, false, { fullSessions: 3, abstractBytes: 320 }]);
+    expect(contractBuilderArgs(READER_CONTRACT_V5)).toEqual([true, true, false, false, undefined]);
+    const a = contractFromFlags(['--full-sessions', '5', '--abstract-bytes', '200']);
+    expect(contractId(a)).toBe('plain+full5a200@24576');
+    expect(contractFromFlags(contractRunnerFlags(a))).toEqual(a);
+    const entry = distillManifestContract(['--date-distances', '--computed-notes', '--full-sessions', '2']);
+    expect(entry.id).toBe('dd+notes+full2@24576');
+    expect(entry.runnerFlags).toContain('--full-sessions');
+  });
+
+  it('refuses malformed tier flags and tiers combined with the focused budget', () => {
+    expect(() => contractFromFlags(['--full-sessions', '0'])).toThrow('--full-sessions must be a positive integer, got 0');
+    expect(() => contractFromFlags(['--full-sessions', 'x'])).toThrow('--full-sessions must be a positive integer, got x');
+    expect(() => contractFromFlags(['--full-sessions', '3', '--abstract-bytes', '100'])).toThrow(
+      '--abstract-bytes must be an integer from 120 to 2048, got 100',
+    );
+    expect(() => contractFromFlags(['--full-sessions', '3', '--abstract-bytes', '4096'])).toThrow(/--abstract-bytes/);
+    expect(() => contractFromFlags(['--abstract-bytes', '200'])).toThrow('--abstract-bytes needs --full-sessions');
+    expect(() => contractFromFlags(['--full-sessions', '3', '--focused-budget'])).toThrow(
+      '--full-sessions cannot be combined with --focused-budget',
+    );
   });
 
   it('reads the one environment variable the old distill commands set', () => {

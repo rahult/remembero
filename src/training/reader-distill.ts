@@ -13,16 +13,21 @@
  * Contamination: the session pool is the 3,400 haystack sessions that are
  * evidence for no LongMemEval question; questions are written fresh over them.
  */
-import { buildLongMemEvalAnswerContext } from '../evals/longmemeval-answer.js';
 import {
+  buildLongMemEvalAnswerContext,
+  finalAnswerLine,
+} from '../evals/longmemeval-answer.js';
+import {
+  THINKING_TYPES,
   contractBuilderArgs,
   contractFromEnv,
+  readingFor,
   type ReaderContract,
 } from '../evals/reader-contract.js';
 import type { LongMemEvalInstance } from '../evals/longmemeval.js';
 import type { Conversation } from './export.js';
 import type { LabelledSession } from './reader-data.js';
-import type { Rng } from './rng.js';
+import { createRng, type Rng } from './rng.js';
 
 export type DistillType =
   | 'single-session-user'
@@ -43,6 +48,74 @@ const TYPE_WEIGHTS: Array<[DistillType, number]> = [
   ['single-session-preference', 8],
   ['abstention', 14],
 ];
+
+/**
+ * The two seeds of a distill run. `--seed` draws questions and haystacks; `--split-seed`
+ * (default: `--seed`) orders the session pool that `--train-count` cuts into train and
+ * held-out sessions, so a fresh distill can draw new questions over an earlier run's split.
+ */
+export function distillSeeds(argv: readonly string[]): {
+  seed: number;
+  splitSeed: number;
+} {
+  const read = (name: string, fallback: string): number => {
+    const index = argv.indexOf(name);
+    const raw =
+      index >= 0 && argv[index + 1] !== undefined ? argv[index + 1] : fallback;
+    const value = Number(raw);
+    if (!Number.isInteger(value))
+      throw new Error(`${name} must be an integer, got ${raw}`);
+    return value;
+  };
+  const seed = read('--seed', '7');
+  return { seed, splitSeed: read('--split-seed', String(seed)) };
+}
+
+/**
+ * Train and held-out session pools: sessions in id order, shuffled by the split seed, kept
+ * sessions only, cut at `trainCount`. The order (shuffle, then filter) is the one earlier
+ * distill runs used with their `--seed`, so `--split-seed 7` reproduces a `--seed 7` split.
+ */
+export function splitDistillPools<T extends { id: string }>(
+  sessions: readonly T[],
+  splitSeed: number,
+  trainCount: number,
+  keep: (session: T) => boolean = () => true,
+): { train: T[]; held: T[] } {
+  const ordered = createRng(splitSeed)
+    .shuffle([...sessions].sort((a, b) => a.id.localeCompare(b.id)))
+    .filter(keep);
+  return {
+    train: ordered.slice(0, trainCount),
+    held: ordered.slice(trainCount),
+  };
+}
+
+/** What a distill output directory is pinned to in `run.json`; a resume must match it. */
+export interface DistillRunIdentity {
+  contract: string;
+  teacher: string;
+  seed: number;
+  splitSeed: number;
+  typeWeights: string;
+  trainCount: number;
+  labels: string;
+}
+
+export function distillRunIdentity(
+  identity: DistillRunIdentity,
+): DistillRunIdentity {
+  const {
+    contract,
+    teacher,
+    seed,
+    splitSeed,
+    typeWeights,
+    trainCount,
+    labels,
+  } = identity;
+  return { contract, teacher, seed, splitSeed, typeWeights, trainCount, labels };
+}
 
 export function pickType(
   rng: Rng,
@@ -233,18 +306,50 @@ export function parseQuestionReply(
   }
 }
 
-const ABSTAINS =
+/** A reply that abstains: says the history does not answer the question. */
+export const ABSTAINS =
   /(does not|doesn't|don't|do not|no) (say|mention|know|have|contain|record|information|indicate)|not (mentioned|recorded|in (the|your) history)|i do not know|i don't know|no information/i;
+
+/**
+ * Whether the row is rendered with the notes prompt: a thinking type, or an abstention
+ * question, which under thinking renders as multi-session (LongMemEval's abstention
+ * questions keep their aggregation type, so the harness reads them with notes).
+ */
+export function thinksOn(thinking: boolean, type: string): boolean {
+  return thinking && (THINKING_TYPES.has(type) || type === 'abstention');
+}
+
+/** The text the evaluation judges: the final answer line on a notes-rendered row, else the reply. */
+export function completionAnswer(
+  reply: string,
+  thinking: boolean,
+  type: string,
+): string {
+  return thinksOn(thinking, type) ? finalAnswerLine(reply) : reply.trim();
+}
+
+/** A last "Answer:" marker with text after it, as finalAnswerLine reads one. */
+export function hasAnswerLine(reply: string): boolean {
+  const index = reply.lastIndexOf('Answer:');
+  return index >= 0 && reply.slice(index + 'Answer:'.length).trim() !== '';
+}
 
 /**
  * An abstention example is kept only when the reader abstained; any other type
  * is dropped when the reader abstained (the teacher could not answer its own
- * question, so the example teaches nothing) or answered nothing at all.
+ * question, so the example teaches nothing) or answered nothing at all. Under the
+ * thinking step a notes-rendered row (a thinking type or abstention) must end in an
+ * answer line, and only that line is tested: notes may well say what the history does
+ * not mention.
  */
-export function acceptDistilled(type: DistillType, answer: string): boolean {
-  const text = answer.trim();
-  if (text.length === 0) return false;
-  const abstained = ABSTAINS.test(text);
+export function acceptDistilled(
+  type: DistillType,
+  answer: string,
+  thinking = false,
+): boolean {
+  if (answer.trim().length === 0) return false;
+  if (thinksOn(thinking, type) && !hasAnswerLine(answer)) return false;
+  const abstained = ABSTAINS.test(completionAnswer(answer, thinking, type));
   return type === 'abstention' ? abstained : !abstained;
 }
 
@@ -255,9 +360,23 @@ export function readerMessages(
   type: DistillType,
   contract: ReaderContract = contractFromEnv(),
 ): Conversation['messages'] {
+  // distillation orders a haystack by date, evaluation takes the top lexical ranks: the full
+  // tier would go to different sessions in the two, so tiers wait for rank-ordered haystacks
+  if (contract.fullSessions !== null)
+    throw new Error(
+      'tiered contracts need rank-ordered haystacks; see plan Task 5',
+    );
+  // abstention renders as an aggregation question under thinking, as LongMemEval's do; a
+  // direct contract keeps single-session-user so its prompts stay byte-identical
+  const instanceType =
+    type === 'abstention'
+      ? contract.thinking
+        ? 'multi-session'
+        : 'single-session-user'
+      : type;
   const instance = {
     question_id: `distill-${type}`,
-    question_type: type === 'abstention' ? 'single-session-user' : type,
+    question_type: instanceType,
     question,
     question_date: `${haystack.questionDate.replace(/-/g, '/')} (Sat) 09:00`,
     answer: '',
@@ -276,7 +395,7 @@ export function readerMessages(
     })),
     contract.contextBytes,
     [],
-    'direct',
+    readingFor(contract, instanceType),
     undefined,
     ...contractBuilderArgs(contract),
   );

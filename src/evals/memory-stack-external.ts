@@ -21,11 +21,15 @@ const ALLOWED_EXTERNAL_ENVIRONMENT = new Set([
   'HF_HOME',
   'HF_HUB_CACHE',
   'HF_HUB_OFFLINE',
+  'DEEPSEEK_API_KEY',
+  'OLLAMA_HOST',
 ]);
 
 export interface LoadedExternalAdapterManifest {
   descriptor: MemoryStackAdapterDescriptor;
   command: ExternalCommandAdapterOptions;
+  /** Absent means the conformance suite's one-process-per-case shape. */
+  protocol?: 'rembero.memory-stack.v1' | 'rembero.memory-systems.v1';
   manifestPath: string;
 }
 
@@ -188,6 +192,19 @@ export async function loadExternalAdapterManifest(
         ),
       ...(Object.keys(env).length === 0 ? {} : { env }),
     },
+    ...(root.protocol === undefined
+      ? {}
+      : {
+        protocol: ((): 'rembero.memory-stack.v1' | 'rembero.memory-systems.v1' => {
+          if (
+            root.protocol !== 'rembero.memory-stack.v1' &&
+            root.protocol !== 'rembero.memory-systems.v1'
+          ) {
+            throw new Error(`unsupported adapter protocol: ${String(root.protocol)}`);
+          }
+          return root.protocol;
+        })(),
+      }),
     manifestPath,
   };
 }

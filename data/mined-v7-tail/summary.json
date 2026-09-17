@@ -1,0 +1,30 @@
+{
+  "from": "data/distill-v7-fresh",
+  "byType": {
+    "multi-session": {
+      "asked": 927,
+      "correct": 579,
+      "misses": 348
+    },
+    "abstention": {
+      "asked": 289,
+      "correct": 286,
+      "misses": 3
+    },
+    "temporal-reasoning": {
+      "asked": 879,
+      "correct": 784,
+      "misses": 95
+    },
+    "knowledge-update": {
+      "asked": 115,
+      "correct": 95,
+      "misses": 20
+    }
+  },
+  "errors": 0,
+  "missing": 0,
+  "misses": 466,
+  "filteredFrom": "data/mined-v7",
+  "minIndex": 644
+}

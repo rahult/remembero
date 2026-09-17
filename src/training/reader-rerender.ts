@@ -26,6 +26,17 @@ import {
 } from './reader-distill.js';
 import type { LabelledSession } from './reader-data.js';
 
+/**
+ * The rerender command keeps each row's stored answer, and those are direct answers: under
+ * a thinking contract they would sit under a notes prompt that asks for notes first.
+ */
+export function assertRerenderContract(contract: ReaderContract): void {
+  if (contract.thinking)
+    throw new Error(
+      'rerender keeps stored direct answers; use the think command for a thinking contract',
+    );
+}
+
 /** One row of a distilled `*.meta.jsonl`: the example without its rendered messages. */
 export interface DistilledMetaRow {
   type: DistillType;

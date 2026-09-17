@@ -49,6 +49,26 @@ in `docs/adr/`.
 - **Arm** — one run of a benchmark under one setting. A **paired run** is two arms
   that differ in exactly one setting with identical retrieval, so a difference in
   score is attributable to that setting.
+- **Reader contract** — the fixed shape of what a reader is given: which deterministic
+  blocks are present and the byte budget. Distillation, training and evaluation share one
+  contract, so a reader is always measured on the prompt it learned from. The contract fixes
+  the prompt, not the retrieval depth; a paired run must hold both.
+- **Lane** — which side of a memory layer the reader reads from. The **retrieval lane**
+  gives the reader raw sessions the memory layer found; the **memories lane** gives it only
+  the memory layer's own text. Rows in different lanes are not ranked against each other.
+- **Context tier** — how much of a retrieved session the reader sees. Every retrieved
+  session gets a short **abstract** built by code; only the highest-ranked few get their
+  **full text**. Tiering replaces cutting every session to the same sliver.
+- **Thinking step** — what a reader writes before its answer on the question types that
+  combine or compute: the dated items it relies on and the arithmetic, then one final answer
+  line. Only the final line is judged. Part of the reader contract, so a reader trained with
+  it is always measured with it. Distinct from computed notes, which code writes into the
+  prompt; the thinking step is the reader's own output.
+- **Miss mining** — keeping, as training data, the teacher-answered questions the current
+  best reader gets wrong. Questions come from the distillation session pool, never from a
+  benchmark.
+- **Data review** — the step after every trained reader: its misses counted by question type
+  and failure class, turned into the next reader's type weights and miss share.
 - **Judge** — the model that grades a reader's answer against the gold answer.
   Judges differ in leniency, so a score always names its judge and rows in one
   table share one judge.

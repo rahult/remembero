@@ -13,6 +13,25 @@
  *   node dist/training/run-real-sessions.js rerender --in data/training-reader-v4 \
  *        --out data/training-reader-v6 --date-distances --computed-notes
  *
+ *   node dist/training/run-real-sessions.js think --from data/training-reader-v6 \
+ *        --out data/training-reader-v7-think --date-distances --computed-notes \
+ *        --reading notes --context-bytes 24576 --judge-base-url <url> \
+ *        --judge-model <model> --judge-key-env DEEPSEEK_API_KEY
+ *
+ *   node dist/training/run-real-sessions.js mine --from data/training-reader-v7-think \
+ *        --out data/training-reader-v8-misses --student-model <m> --student-base-url <url> \
+ *        --student-key-env READER_API_KEY --student-max-tokens 4096 \
+ *        --student-date-distances --student-computed-notes --student-context-bytes 24576 \
+ *        --judge-base-url <url> --judge-model <model> --judge-key-env DEEPSEEK_API_KEY
+ *
+ *   node dist/training/run-real-sessions.js review \
+ *        --run docs/research/results/<thinking run>.json --baseline <direct run>.json \
+ *        --mined data/training-reader-v8-misses --out docs/research/results/<review>.json
+ *
+ *   node dist/training/run-real-sessions.js compose --base data/training-reader-v7-think \
+ *        --misses data/training-reader-v8-misses --out data/training-reader-v8 \
+ *        --miss-share 0.25 --rows 6000 --seed 7 [--heldout <dir>]
+ *
  * `label` and `measure` resume: sessions already in the output are skipped.
  */
 import { createHash } from 'node:crypto';
@@ -31,6 +50,7 @@ import { loadEnv } from '../env.js';
 import { loadLongMemEvalS } from '../evals/longmemeval.js';
 import { longMemEvalSplit } from '../evals/longmemeval-semantic.js';
 import {
+  assertDistillReading,
   contractFromFlags,
   distillManifestContract,
 } from '../evals/reader-contract.js';
@@ -38,20 +58,45 @@ import { OpenRouterClient, type ChatMessage } from '../llm/client.js';
 import { rememberTranscriptText } from '../llm/pipeline.js';
 import { MemoryStore } from '../store/store.js';
 import { createRng } from './rng.js';
+import { runPool } from './run-pool.js';
 import {
   acceptDistilled,
   assembleHaystack,
+  distillRunIdentity,
+  distillSeeds,
   parseQuestionReply,
   parseTypeWeights,
   pickType,
   predicateGroups,
   questionWriterPrompt,
   readerMessages,
+  splitDistillPools,
   toDistilledConversation,
   type DistilledExample,
 } from './reader-distill.js';
 import type { Rng } from './rng.js';
-import { rerenderMetaFile } from './reader-rerender.js';
+import {
+  assertRerenderContract,
+  parseMetaRows,
+  rerenderMetaFile,
+} from './reader-rerender.js';
+import { composeTraining } from './reader-compose.js';
+import { reviewReader } from './reader-review.js';
+import {
+  mineCounts,
+  mineFile,
+  parseMineFiles,
+  readDistilledFile,
+  studentContractFromFlags,
+  teacherContractFromManifest,
+} from './reader-mine.js';
+import {
+  TEACHER_MAX_TOKENS,
+  assertRunIdentity,
+  sourceLabels,
+  thinkCounts,
+  thinkFile,
+} from './reader-think.js';
 import {
   generateReaderExamples,
   rewritePrompt,
@@ -96,12 +141,16 @@ function readRows(path: string): Map<string, LabelRow> {
   return rows;
 }
 
-async function orderedSessions(seed: number): Promise<SelectedSession[]> {
+async function trainingSessions(): Promise<SelectedSession[]> {
   const data = flag('--data', '.cache/longmemeval/longmemeval_s_cleaned.json')!;
   const { instances } = await loadLongMemEvalS(resolve(data));
   const chosen = selectTrainingSessions(instances, longMemEvalSplit);
   chosen.sort((a, b) => a.id.localeCompare(b.id));
-  return createRng(seed).shuffle(chosen);
+  return chosen;
+}
+
+async function orderedSessions(seed: number): Promise<SelectedSession[]> {
+  return createRng(seed).shuffle(await trainingSessions());
 }
 
 /** Run the product's transcript extraction on one session with a fresh, empty store. */
@@ -180,22 +229,6 @@ async function extractOne(
       completionTokens,
     };
   }
-}
-
-async function runPool<T>(
-  items: readonly T[],
-  concurrency: number,
-  work: (item: T, index: number) => Promise<void>,
-): Promise<void> {
-  let next = 0;
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, async () => {
-      while (next < items.length) {
-        const index = next++;
-        await work(items[index]!, index);
-      }
-    }),
-  );
 }
 
 async function label(): Promise<void> {
@@ -585,18 +618,41 @@ async function judgeUnmatched(): Promise<void> {
  * sessions, have the teacher write a question of a drawn type, then answer it through
  * the evaluation's reader prompt; keep the pair when the answer is consistent with
  * the type (an abstention question got an abstention, any other got an answer).
- * Resumable: examples are appended to the output as they finish.
+ * Resumable: examples are appended to the output as they finish, and `run.json` pins the
+ * contract, teacher, seeds, type weights, train count and labels a resume must repeat.
+ * `--split-seed <n>` (default `--seed`) fixes which sessions are train and held-out;
+ * `--seed` draws the questions.
  */
 async function distillReader(): Promise<void> {
   const labelsPath = flag('--labels', 'data/real/labels-glmflash8.jsonl')!;
   const out = flag('--out', 'data/training-reader-v3')!;
+  assertDistillReading(process.argv);
   const contract = contractFromFlags(process.argv);
   const trainCount = Number(flag('--train-count', '3000'));
   const target = Number(flag('--examples', '4000'));
   const heldoutTarget = Number(flag('--heldout-examples', '200'));
-  const seed = Number(flag('--seed', '7'));
+  // --seed draws questions; --split-seed (default --seed) fixes the train/held-out sessions
+  const { seed, splitSeed } = distillSeeds(process.argv);
   const concurrency = Number(flag('--concurrency', '8'));
   const model = flag('--model', 'z-ai/glm-5.3-flash')!;
+  // --type-weights multi-session=40,temporal-reasoning=35,… reweights the draw; multi-session
+  // and knowledge-update haystacks are seeded with sessions that carry the material
+  const weightsFlag = flag('--type-weights');
+  const weights =
+    weightsFlag === undefined ? undefined : parseTypeWeights(weightsFlag);
+  // before the pool loads or any model is called: a resume must be the same run
+  assertRunIdentity(
+    out,
+    distillRunIdentity({
+      contract: distillManifestContract(process.argv).id,
+      teacher: model,
+      seed,
+      splitSeed,
+      typeWeights: weightsFlag ?? 'default',
+      trainCount,
+      labels: labelsPath,
+    }),
+  );
   const apiKey = flag('--api-key', process.env.LLM_API_KEY);
   if (!apiKey) throw new Error('LLM_API_KEY is not set');
   const client = new OpenRouterClient({
@@ -608,22 +664,20 @@ async function distillReader(): Promise<void> {
     model,
   });
   const labels = readRows(labelsPath);
-  const ordered = (await orderedSessions(seed)).filter(
-    (s) => labels.has(s.id) && !labels.get(s.id)!.error,
-  );
   const toLabelled = (s: SelectedSession): LabelledSession => ({
     id: s.id,
     date: s.date.slice(0, 10).replace(/\//g, '-'),
     facts: labels.get(s.id)!.facts,
     transcript: realTranscript(s.session),
   });
-  const trainPool = ordered.slice(0, trainCount).map(toLabelled);
-  const heldPool = ordered.slice(trainCount).map(toLabelled);
-  // --type-weights multi-session=40,temporal-reasoning=35,… reweights the draw; multi-session
-  // and knowledge-update haystacks are seeded with sessions that carry the material
-  const weightsFlag = flag('--type-weights');
-  const weights =
-    weightsFlag === undefined ? undefined : parseTypeWeights(weightsFlag);
+  const split = splitDistillPools(
+    await trainingSessions(),
+    splitSeed,
+    trainCount,
+    (s) => labels.has(s.id) && !labels.get(s.id)!.error,
+  );
+  const trainPool = split.train.map(toLabelled);
+  const heldPool = split.held.map(toLabelled);
   mkdirSync(out, { recursive: true });
   const stats = {
     attempted: 0,
@@ -679,7 +733,8 @@ async function distillReader(): Promise<void> {
         const answered = await client.completeWithUsage(messages, {
           maxTokens: 4_000,
         });
-        if (!acceptDistilled(type, answered.content)) {
+        // the whole reply, notes included, is the assistant turn; acceptance reads the answer line
+        if (!acceptDistilled(type, answered.content, contract.thinking)) {
           stats.rejected += 1;
           return;
         }
@@ -732,6 +787,7 @@ async function distillReader(): Promise<void> {
     teacher: model,
     typeWeights: weightsFlag ?? 'default',
     seed,
+    splitSeed,
     trainSessions: trainPool.length,
     heldoutSessions: heldPool.length,
     train: readFileSync(join(out, 'conversations.jsonl'), 'utf8')
@@ -754,6 +810,29 @@ async function distillReader(): Promise<void> {
 }
 
 /**
+ * The same pool the distiller drew from, both halves together: a meta row names its
+ * sessions by id, and train and heldout rows are rebuilt against the one pool.
+ */
+async function labelledSessionPool(
+  labelsPath: string,
+  seed: number,
+): Promise<Map<string, LabelledSession>> {
+  const labels = readRows(labelsPath);
+  const pool = new Map<string, LabelledSession>();
+  for (const s of await orderedSessions(seed)) {
+    const row = labels.get(s.id);
+    if (row === undefined || row.error) continue;
+    pool.set(s.id, {
+      id: s.id,
+      date: s.date.slice(0, 10).replace(/\//g, '-'),
+      facts: row.facts,
+      transcript: realTranscript(s.session),
+    });
+  }
+  return pool;
+}
+
+/**
  * Reader v6 data: v4's examples re-rendered through a reader contract.
  *
  * v4's prompts were built before the contract, so a reader trained on them meets a
@@ -772,20 +851,8 @@ async function rerenderReader(): Promise<void> {
   const labelsPath = flag('--labels', 'data/real/labels-glmflash8.jsonl')!;
   const seed = Number(flag('--seed', '7'));
   const contract = contractFromFlags(process.argv);
-  const labels = readRows(labelsPath);
-  // the same pool the distiller drew from, both halves together: a meta row names its
-  // sessions by id, and train and heldout rows are rebuilt against the one pool
-  const pool = new Map<string, LabelledSession>();
-  for (const s of await orderedSessions(seed)) {
-    const row = labels.get(s.id);
-    if (row === undefined || row.error) continue;
-    pool.set(s.id, {
-      id: s.id,
-      date: s.date.slice(0, 10).replace(/\//g, '-'),
-      facts: row.facts,
-      transcript: realTranscript(s.session),
-    });
-  }
+  assertRerenderContract(contract);
+  const pool = await labelledSessionPool(labelsPath, seed);
   mkdirSync(out, { recursive: true });
   const results: Record<string, { rows: number; skipped: number }> = {};
   for (const [name, file] of [
@@ -831,8 +898,7 @@ async function rerenderReader(): Promise<void> {
       train: results.train?.rows ?? 0,
       heldout: results.heldout?.rows ?? 0,
     },
-    skipped:
-      (results.train?.skipped ?? 0) + (results.heldout?.skipped ?? 0),
+    skipped: (results.train?.skipped ?? 0) + (results.heldout?.skipped ?? 0),
     train: results.train?.rows ?? 0,
     heldout: results.heldout?.rows ?? 0,
     generatedAt: new Date().toISOString(),
@@ -841,6 +907,344 @@ async function rerenderReader(): Promise<void> {
     join(out, 'manifest.json'),
     `${JSON.stringify(manifest, null, 2)}\n`,
   );
+  console.log(JSON.stringify(manifest, null, 2));
+}
+
+/**
+ * Reader v7 base data: v6's rows under the thinking contract. Rows of the types the contract
+ * thinks on are answered again by the teacher and kept when the judge finds the final line
+ * agrees with the stored answer; the other rows keep their stored answer (see
+ * reader-think.ts). Resumable through `progress.jsonl` in the output directory.
+ *
+ *   node dist/training/run-real-sessions.js think --from data/training-reader-v6 \
+ *        --out data/training-reader-v7-think --date-distances --computed-notes \
+ *        --reading notes --context-bytes 24576 [--concurrency 8] --model <teacher> \
+ *        --judge-base-url <url> --judge-model <model> --judge-key-env DEEPSEEK_API_KEY
+ */
+async function thinkReader(): Promise<void> {
+  const from = flag('--from', 'data/training-reader-v6')!;
+  const out = flag('--out', 'data/training-reader-v7-think')!;
+  assertDistillReading(process.argv);
+  const contract = contractFromFlags(process.argv);
+  if (!contract.thinking)
+    throw new Error(
+      'think renders the thinking prompt; pass --reading notes (rerender keeps direct answers)',
+    );
+  if (contract.fullSessions !== null)
+    throw new Error('think cannot render tiered contracts (--full-sessions)');
+  const seed = Number(flag('--seed', '7'));
+  const concurrency = Number(flag('--concurrency', '8'));
+  const teacherMaxTokens = Number(
+    flag('--max-tokens', String(TEACHER_MAX_TOKENS)),
+  );
+  const model = flag('--model', 'z-ai/glm-5.3-flash')!;
+  const apiKey = flag('--api-key', process.env.LLM_API_KEY);
+  if (!apiKey) throw new Error('LLM_API_KEY is not set');
+  const judgeBaseUrl = flag('--judge-base-url');
+  const judgeModel = flag('--judge-model');
+  const judgeKeyEnv = flag('--judge-key-env');
+  if (!judgeBaseUrl || !judgeModel || !judgeKeyEnv)
+    throw new Error(
+      'think needs --judge-base-url, --judge-model and --judge-key-env',
+    );
+  const judgeKey = process.env[judgeKeyEnv];
+  if (!judgeKey) throw new Error(`${judgeKeyEnv} is not set`);
+  const teacher = new OpenRouterClient({
+    apiKey,
+    baseUrl: (
+      flag('--base-url', process.env.LLM_BASE_URL) ??
+      'https://openrouter.ai/api/v1'
+    ).replace(/\/$/, ''),
+    model,
+  });
+  const judge = new OpenRouterClient({
+    apiKey: judgeKey,
+    baseUrl: judgeBaseUrl.replace(/\/$/, ''),
+    model: judgeModel,
+  });
+  const manifestContract = distillManifestContract(process.argv);
+  // before the pool loads or any model is called: a resume must be the same run
+  assertRunIdentity(out, {
+    contract: manifestContract.id,
+    from,
+    teacher: model,
+    judge: judgeModel,
+  });
+  const base = existsSync(join(from, 'manifest.json'))
+    ? (JSON.parse(readFileSync(join(from, 'manifest.json'), 'utf8')) as {
+        labels?: unknown;
+        parts?: unknown;
+        contract?: { id?: string };
+      })
+    : {};
+  const labelsPath =
+    flag('--labels') ??
+    sourceLabels(base) ??
+    'data/real/labels-glmflash8.jsonl';
+  const pool = await labelledSessionPool(labelsPath, seed);
+  mkdirSync(out, { recursive: true });
+  for (const file of ['conversations.jsonl', 'heldout.jsonl']) {
+    const metaPath = join(from, `${file}.meta.jsonl`);
+    if (!existsSync(metaPath)) {
+      console.error(`no ${metaPath}, skipping ${file}`);
+      continue;
+    }
+    let finished = 0;
+    await thinkFile({
+      file,
+      rows: parseMetaRows(metaPath),
+      pool,
+      contract,
+      clients: { teacher, judge },
+      outDir: out,
+      concurrency,
+      teacherMaxTokens,
+      onRow: (entry) => {
+        finished += 1;
+        if (finished % 100 === 0) console.error(`[${file} ${finished}]`);
+        if (entry.outcome === 'error')
+          console.error(`${file} row ${entry.index} error: ${entry.error}`);
+      },
+    });
+  }
+  const lineCount = (path: string) =>
+    existsSync(path)
+      ? readFileSync(path, 'utf8').split('\n').filter(Boolean).length
+      : 0;
+  const manifest = {
+    from,
+    sourceContract: base.contract?.id ?? null,
+    contract: manifestContract,
+    labels: labelsPath,
+    seed,
+    poolSessions: pool.size,
+    teacher: model,
+    judge: { model: judgeModel, baseUrl: judgeBaseUrl },
+    byType: thinkCounts(join(out, 'progress.jsonl')),
+    train: lineCount(join(out, 'conversations.jsonl')),
+    heldout: lineCount(join(out, 'heldout.jsonl')),
+    disagreements: lineCount(join(out, 'disagreements.jsonl')),
+    generatedAt: new Date().toISOString(),
+  };
+  writeFileSync(
+    join(out, 'manifest.json'),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
+  console.log(JSON.stringify(manifest, null, 2));
+}
+
+/**
+ * Miss mining: the distilled rows the student reader gets wrong (see reader-mine.ts). The
+ * teacher's contract is the distilled manifest's; the student's comes from the `--student-`
+ * contract flags only. Resumable through `progress.jsonl` in the output directory.
+ *
+ *   node dist/training/run-real-sessions.js mine --from <distilled dir> --out <dir> \
+ *        --student-model <m> --student-base-url <url> --student-key-env READER_API_KEY \
+ *        --student-max-tokens <n> [--student-date-distances --student-computed-notes \
+ *        --student-reading notes --student-context-bytes 24576 ...] \
+ *        --judge-base-url <url> --judge-model <model> --judge-key-env DEEPSEEK_API_KEY \
+ *        [--files conversations,heldout] [--limit N] [--concurrency 8]
+ */
+async function mineReader(): Promise<void> {
+  const from = flag('--from');
+  const out = flag('--out');
+  if (!from || !out) throw new Error('mine needs --from and --out');
+  const studentContract = studentContractFromFlags(process.argv);
+  const manifestPath = join(from, 'manifest.json');
+  if (!existsSync(manifestPath))
+    throw new Error(
+      `${manifestPath} does not exist; mine reads a distilled directory`,
+    );
+  const base = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
+    labels?: unknown;
+    parts?: unknown;
+    contract?: unknown;
+  };
+  const teacherContract = teacherContractFromManifest(base);
+  const files = parseMineFiles(flag('--files'));
+  const limitFlag = flag('--limit');
+  const limit = limitFlag === undefined ? undefined : Number(limitFlag);
+  if (limit !== undefined && (!Number.isInteger(limit) || limit <= 0))
+    throw new Error(`--limit must be a positive integer, got ${limitFlag}`);
+  const concurrency = Number(flag('--concurrency', '8'));
+  if (!Number.isInteger(concurrency) || concurrency <= 0)
+    throw new Error(`--concurrency must be a positive integer`);
+  const seed = Number(flag('--seed', '7'));
+  const studentModel = flag('--student-model');
+  const studentBaseUrl = flag('--student-base-url');
+  const studentKeyEnv = flag('--student-key-env');
+  const studentMaxTokensFlag = flag('--student-max-tokens');
+  if (
+    !studentModel ||
+    !studentBaseUrl ||
+    !studentKeyEnv ||
+    !studentMaxTokensFlag
+  )
+    throw new Error(
+      'mine needs --student-model, --student-base-url, --student-key-env and --student-max-tokens',
+    );
+  const studentMaxTokens = Number(studentMaxTokensFlag);
+  if (
+    !Number.isInteger(studentMaxTokens) ||
+    studentMaxTokens < 1 ||
+    studentMaxTokens > 16_384
+  )
+    throw new Error(
+      `--student-max-tokens must be an integer from 1 to 16384, got ${studentMaxTokensFlag}`,
+    );
+  const judgeBaseUrl = flag('--judge-base-url');
+  const judgeModel = flag('--judge-model');
+  const judgeKeyEnv = flag('--judge-key-env');
+  if (!judgeBaseUrl || !judgeModel || !judgeKeyEnv)
+    throw new Error(
+      'mine needs --judge-base-url, --judge-model and --judge-key-env',
+    );
+  const studentKey = process.env[studentKeyEnv];
+  if (!studentKey) throw new Error(`${studentKeyEnv} is not set`);
+  const judgeKey = process.env[judgeKeyEnv];
+  if (!judgeKey) throw new Error(`${judgeKeyEnv} is not set`);
+  // built as the evaluation harness builds its reader client for a vLLM endpoint
+  const student = new OpenRouterClient({
+    apiKey: studentKey,
+    baseUrl: studentBaseUrl.replace(/\/$/, ''),
+    model: studentModel,
+  });
+  const judge = new OpenRouterClient({
+    apiKey: judgeKey,
+    baseUrl: judgeBaseUrl.replace(/\/$/, ''),
+    model: judgeModel,
+  });
+  // before the pool loads or any model is called: a resume must be the same run
+  assertRunIdentity(out, {
+    from,
+    teacherContract: teacherContract.id,
+    studentContract: studentContract.id,
+    studentModel,
+    judge: judgeModel,
+  });
+  const labelsPath =
+    flag('--labels') ??
+    sourceLabels(base) ??
+    'data/real/labels-glmflash8.jsonl';
+  const sources = files.flatMap((file) => {
+    if (!existsSync(join(from, file))) {
+      console.error(`no ${join(from, file)}, skipping ${file}`);
+      return [];
+    }
+    // read and alignment-checked before the pool loads, so a broken directory fails fast
+    const read = readDistilledFile(from, file);
+    return [
+      {
+        file,
+        rows: limit === undefined ? read.rows : read.rows.slice(0, limit),
+        lines: read.lines,
+      },
+    ];
+  });
+  const pool = await labelledSessionPool(labelsPath, seed);
+  mkdirSync(out, { recursive: true });
+  for (const source of sources) {
+    let finished = 0;
+    await mineFile({
+      ...source,
+      pool,
+      teacherThinking: teacherContract.thinking,
+      studentContract,
+      clients: { student, judge },
+      outDir: out,
+      studentMaxTokens,
+      concurrency,
+      onRow: (entry) => {
+        finished += 1;
+        if (finished % 100 === 0) console.error(`[${source.file} ${finished}]`);
+        if (entry.outcome === 'error' || entry.outcome === 'missing')
+          console.error(
+            `${source.file} row ${entry.index} ${entry.outcome}: ${entry.error}`,
+          );
+      },
+    });
+  }
+  const counts = mineCounts(join(out, 'progress.jsonl'));
+  const lineCount = (path: string) =>
+    existsSync(path)
+      ? readFileSync(path, 'utf8').split('\n').filter(Boolean).length
+      : 0;
+  const summary = {
+    from,
+    ...counts,
+    misses: lineCount(join(out, 'misses.jsonl')),
+  };
+  writeFileSync(
+    join(out, 'summary.json'),
+    `${JSON.stringify(summary, null, 2)}\n`,
+  );
+  const manifest = {
+    from,
+    contract: base.contract,
+    studentContract,
+    student: { model: studentModel, baseUrl: studentBaseUrl },
+    judge: { model: judgeModel, baseUrl: judgeBaseUrl },
+    labels: labelsPath,
+    seed,
+    poolSessions: pool.size,
+    files,
+    ...(limit === undefined ? {} : { limit }),
+    ...counts,
+    misses: summary.misses,
+    generatedAt: new Date().toISOString(),
+  };
+  writeFileSync(
+    join(out, 'manifest.json'),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
+  console.log(JSON.stringify(summary, null, 2));
+}
+
+/**
+ * Data review (see reader-review.ts): per-type accuracy and deltas, failure classes from a
+ * LongMemEval run and a mine directory, and the next reader's data recipe.
+ *
+ *   node dist/training/run-real-sessions.js review --run <result.json> \
+ *        [--baseline <result.json>] --mined <mine dir> --out <review.json>
+ */
+async function reviewData(): Promise<void> {
+  const run = flag('--run');
+  const mined = flag('--mined');
+  const out = flag('--out');
+  if (!run || !mined || !out)
+    throw new Error('review needs --run, --mined and --out');
+  const review = reviewReader({ run, baseline: flag('--baseline'), mined });
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, `${JSON.stringify(review, null, 2)}\n`);
+  console.log(JSON.stringify(review.recommend, null, 2));
+}
+
+/**
+ * Training-data composer (see reader-compose.ts): base rows with mined misses at a share.
+ *
+ *   node dist/training/run-real-sessions.js compose --base <dir> --misses <mine dir> \
+ *        --out <dir> --miss-share 0.25 --rows 6000 --seed <n> [--heldout <dir>]
+ */
+async function composeData(): Promise<void> {
+  const base = flag('--base');
+  const misses = flag('--misses');
+  const out = flag('--out');
+  const share = flag('--miss-share');
+  const rows = flag('--rows');
+  const seed = flag('--seed');
+  if (!base || !misses || !out || !share || !rows || !seed)
+    throw new Error(
+      'compose needs --base, --misses, --out, --miss-share, --rows and --seed',
+    );
+  const manifest = composeTraining({
+    base,
+    misses,
+    out,
+    heldout: flag('--heldout'),
+    share: Number(share),
+    rows: Number(rows),
+    seed: Number(seed),
+  });
   console.log(JSON.stringify(manifest, null, 2));
 }
 
@@ -858,9 +1262,13 @@ if (invokedDirectly) {
   else if (command === 'judge') await judgeUnmatched();
   else if (command === 'distill') await distillReader();
   else if (command === 'rerender') await rerenderReader();
+  else if (command === 'think') await thinkReader();
+  else if (command === 'mine') await mineReader();
+  else if (command === 'review') await reviewData();
+  else if (command === 'compose') await composeData();
   else {
     console.error(
-      'usage: run-real-sessions.js label|measure|export|reader|judge|distill|rerender [flags]',
+      'usage: run-real-sessions.js label|measure|export|reader|judge|distill|rerender|think|mine|review|compose [flags]',
     );
     process.exit(1);
   }

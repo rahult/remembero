@@ -1,0 +1,27 @@
+{
+  "labels": "data/real/labels-glmflash8.jsonl",
+  "contract": {
+    "dateDistances": true,
+    "computedNotes": true,
+    "focusedBudget": false,
+    "structuredEvidence": false,
+    "contextBytes": 24576,
+    "fullSessions": null,
+    "abstractBytes": 320,
+    "thinking": true,
+    "id": "dd+notes+think@24576",
+    "runnerFlags": [
+      "--date-distances",
+      "--computed-notes",
+      "--reading",
+      "notes",
+      "--context-bytes",
+      "24576"
+    ]
+  },
+  "teacher": "glm-5.3-flash:cloud",
+  "typeWeights": "multi-session=40,temporal-reasoning=35,knowledge-update=15,abstention=10",
+  "seed": 17,
+  "splitSeed": 7,
+  "partial": "written by hand at 2026-09-16 08:00 so mine can read rows in progress; distill overwrites it when it finishes"
+}

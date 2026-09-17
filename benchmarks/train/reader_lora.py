@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import inspect
 import json
+import os
 import time
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Callable
 
@@ -31,12 +33,16 @@ def to_prompt_completion(path: str) -> list[dict]:
     return rows
 
 
-def load_base_model(model_id: str):
-    """Text-only causal LM where the checkpoint offers one; multimodal wrapper (Gemma 4) otherwise."""
+def load_base_model(model_id: str, dtype=None):
+    """Text-only causal LM where the checkpoint offers one; multimodal wrapper (Gemma 4) otherwise.
+    dtype defaults to bf16 on CUDA and float32 on CPU (training); pass it to pin the weights'
+    precision whatever the device (merging)."""
     import torch
     from transformers import AutoModelForCausalLM
 
-    kwargs = dict(dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32, attn_implementation="sdpa")
+    if dtype is None:
+        dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
+    kwargs = dict(dtype=dtype, attn_implementation="sdpa")
     try:
         return AutoModelForCausalLM.from_pretrained(model_id, **kwargs)
     except (ValueError, KeyError, OSError) as error:
@@ -180,6 +186,19 @@ def train_lora(
     return metrics
 
 
+@contextmanager
+def default_dtype(dtype):
+    """torch's default floating dtype set to `dtype` inside the block, restored afterwards."""
+    import torch
+
+    previous = torch.get_default_dtype()
+    torch.set_default_dtype(dtype)
+    try:
+        yield
+    finally:
+        torch.set_default_dtype(previous)
+
+
 def export_text_only(run_dir: Path) -> Path:
     """Re-save a merged multimodal checkpoint (Gemma 4) as its text-only causal LM, the layout
     llama.cpp's converter reads."""
@@ -195,7 +214,11 @@ def export_text_only(run_dir: Path) -> Path:
     full = AutoModelForImageTextToText.from_pretrained(str(merged_dir), dtype=torch.bfloat16)
     language_model = getattr(full.model, "language_model", None) or getattr(full, "language_model")
     text_cls = getattr(transformers, text_config.architectures[0] if getattr(text_config, "architectures", None) else "Gemma4ForCausalLM")
-    text_model = text_cls(text_config)
+    # Built under a bf16 default: the float32 default would allocate ~30 GB for ~8B parameters
+    # next to the loaded bf16 multimodal model. The saved weights are the same, since the model
+    # was cast to bf16 before saving either way.
+    with default_dtype(torch.bfloat16):
+        text_model = text_cls(text_config)
     # Gemma 4's KV-sharing layers have no counterpart here, so a non-empty list is expected
     # rather than an error (restore_dropped_weights puts those tensors back); print, never raise.
     missing, unexpected = text_model.model.load_state_dict(language_model.state_dict(), strict=False)
@@ -205,6 +228,66 @@ def export_text_only(run_dir: Path) -> Path:
     text_model.to(torch.bfloat16).save_pretrained(str(text_dir), safe_serialization=True)
     AutoTokenizer.from_pretrained(str(merged_dir)).save_pretrained(str(text_dir))
     return text_dir
+
+
+def merge_adapter(run_dir: Path, base_model: str) -> Path:
+    """Fold run_dir/adapter into the base model and save run_dir/merged with the adapter's
+    tokenizer: the same merge train_lora does at the end of a run, for a run whose adapter was
+    trained elsewhere (only the adapter travels; the base comes from the hub)."""
+    from peft import PeftModel
+    from transformers import AutoTokenizer
+
+    import torch
+
+    adapter_dir, merged_dir = run_dir / "adapter", run_dir / "merged"
+    # bf16 explicitly: load_base_model's CPU default is float32, which would double the merged size
+    base = load_base_model(base_model, dtype=torch.bfloat16)
+    PeftModel.from_pretrained(base, str(adapter_dir)).merge_and_unload().save_pretrained(str(merged_dir), safe_serialization=True)
+    AutoTokenizer.from_pretrained(str(adapter_dir)).save_pretrained(str(merged_dir))
+    return merged_dir
+
+
+def restore_dropped_weights(run_dir: Path, base_model: str) -> int:
+    """Put back tensors transformers drops on save but vLLM requires; returns how many.
+
+    Gemma 4's KV-sharing layers carry k_proj/v_proj/k_norm in Google's checkpoint; the
+    transformers implementation has no such parameters there, so a re-saved model lacks them
+    and vLLM refuses to load. LoRA never touched those layers, so the originals are exact.
+    Ported from benchmarks/modal/train_lora.py, which keeps its own copy.
+    """
+    import glob
+
+    import huggingface_hub
+    from safetensors import safe_open
+    from safetensors.torch import load_file, save_file
+
+    target = run_dir / "merged-text" / "model.safetensors"
+    if not target.exists():
+        raise FileNotFoundError(f"{target} missing (a sharded export is not handled); run export_text_only first")
+    exported = load_file(str(target))
+    prefix = "model.language_model."
+    added = []
+    snapshot = huggingface_hub.snapshot_download(base_model, allow_patterns=["*.safetensors"])
+    for shard in sorted(glob.glob(f"{snapshot}/*.safetensors")):
+        with safe_open(shard, "pt") as st:
+            for key in st.keys():
+                if not key.startswith(prefix):
+                    continue
+                new_key = "model." + key[len(prefix):]
+                if new_key not in exported and ".self_attn." in new_key:
+                    exported[new_key] = st.get_tensor(key)
+                    added.append(new_key)
+    # Written beside the original and swapped in only once complete: a full disk mid-write
+    # (it happened on a 60 GB volume) must leave the export intact, not a truncated file.
+    temporary = target.with_name(target.name + ".restoring")
+    try:
+        save_file(exported, str(temporary), metadata={"format": "pt"})
+        os.replace(temporary, target)
+    except BaseException:
+        temporary.unlink(missing_ok=True)
+        raise
+    print(f"restored {len(added)} tensors, e.g. {added[:3]}")
+    return len(added)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,7 @@
-import { buildComputedNotes } from '../knowledge/computed-notes.js';
+import {
+  buildComputedNotes,
+  STOPWORDS as COMPUTED_NOTES_STOPWORDS,
+} from '../knowledge/computed-notes.js';
 import { buildStructuredEvidence } from '../knowledge/structured-evidence.js';
 import {
   existsSync,
@@ -21,7 +24,7 @@ import {
   type LlmUsageTotals,
 } from '../llm/client.js';
 import { recallWords } from '../llm/schema.js';
-import { assertSafeForExternalLlm } from '../safety.js';
+import { assertSafeForExternalLlm, redactSensitiveText } from '../safety.js';
 import {
   searchKnowledge,
   type KnowledgeSearchResult,
@@ -45,6 +48,7 @@ import {
   interleaveSessions,
 } from '../knowledge/entity-retrieval.js';
 import { MemoryStore } from '../store/store.js';
+import { THINKING_TYPES, type ContextTiers } from './reader-contract.js';
 import {
   longMemEvalSessionText,
   LONGMEMEVAL_S_COMMIT,
@@ -53,6 +57,16 @@ import {
   type LongMemEvalInstance,
   type LongMemEvalQuestionResult,
 } from './longmemeval.js';
+import {
+  MEMORY_SYSTEM_MAX_SESSIONS,
+  MEMORY_SYSTEM_MEMORY_HEADROOM_BYTES,
+  MEMORY_SYSTEM_UNSOURCED_SESSION,
+  memorySystemRequestFor,
+  type MemorySystemClient,
+  type MemorySystemLane,
+  type MemorySystemMemory,
+  type MemorySystemObservation,
+} from './memory-systems-protocol.js';
 
 export const LONGMEMEVAL_ANSWER_VERSION =
   'remembero.longmemeval-answer.v1' as const;
@@ -156,6 +170,8 @@ export interface LongMemEvalAnswerObservation {
   temporalRangeUsage?: LlmUsage | null;
   /** Present when the memory engine's own recall ran over the remembered facts. */
   engineRecall?: LongMemEvalEngineRecall;
+  /** Present when an external memory layer replaced Remembero's formation and search. */
+  memorySystem?: MemorySystemObservation;
   formationMs: number;
   semanticPreparationMs: number;
   retrievalMs: number;
@@ -231,7 +247,14 @@ export interface LongMemEvalAnswerRun {
   judgeModel: string;
   embeddingModel: string | null;
   judgeProtocol: 'longmemeval-official-compatible-v1';
-  formation: (typeof LONGMEMEVAL_FORMATION_LABELS)[LongMemEvalFormation];
+  /**
+   * How the memory under test was formed. Stock runs carry a Remembero formation label; a
+   * `--memory-system` run carries `memory-system:<id>`, because the seam forces `--formation
+   * raw` and no Remembero formation ran at all.
+   */
+  formation:
+    | (typeof LONGMEMEVAL_FORMATION_LABELS)[LongMemEvalFormation]
+    | `memory-system:${string}`;
   extractionModel: string | null;
   /** Every knob that shaped the run, so a results file explains itself. */
   settings?: {
@@ -247,12 +270,25 @@ export interface LongMemEvalAnswerRun {
     computedNotes?: boolean;
     focusedBudget?: boolean;
     structuredEvidence?: boolean;
+    /** Context tiers: full-text sessions (null: even split) and the abstract byte cap. */
+    fullSessions?: number | null;
+    abstractBytes?: number | null;
     hybridQuestionTypes: string[] | null;
     factsInContext: boolean;
     readerMaxTokens: number;
+    memorySystem?: string | null;
+    memoryLane?: MemorySystemLane | null;
+    /**
+     * The embedding model the memory system itself ran on (e.g. `builtin:embed`). Kept out of
+     * the top-level `embeddingModel`, which readers take to mean Remembero's own semantic
+     * route — that route is off under `--local-only`.
+     */
+    memorySystemEmbeddingModel?: string | null;
   };
   retrieval:
-    'remembero-local-source-search' | 'remembero-adaptive-source-search';
+    | 'remembero-local-source-search'
+    | 'remembero-adaptive-source-search'
+    | `memory-system:${string}`;
   answerContextPolicy: 'user-turns-except-assistant-memory';
   semanticQuestionTypes: string[];
   multiSessionSemanticMaximumLexicalScore: number;
@@ -353,6 +389,156 @@ function sourceWindow(
     if (start + approximateCharacters >= boundedSource.length) break;
   }
   return boundedUtf8(boundedSource.slice(bestStart), maxBytes);
+}
+
+/**
+ * Words that say nothing about what a question is after: the computed-notes stopwords plus
+ * the auxiliaries that otherwise dominate abstract matching on real questions. Kept local so
+ * the computed-notes block, part of every reader contract, renders exactly as before.
+ */
+const ABSTRACT_STOPWORDS: ReadonlySet<string> = new Set([
+  ...COMPUTED_NOTES_STOPWORDS,
+  ...'need from since about would could should there their which'.split(' '),
+]);
+
+/** The question's content words for abstract matching, canonical as recallWords makes them. */
+function abstractContentWords(question: string): string[] {
+  const raw = question
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+  const words = raw.flatMap((word) => {
+    if (ABSTRACT_STOPWORDS.has(word)) return [];
+    const canonical = recallWords(word)[0];
+    return canonical === undefined ||
+      canonical.length < 4 ||
+      ABSTRACT_STOPWORDS.has(canonical)
+      ? []
+      : [canonical];
+  });
+  return [...new Set(words)];
+}
+
+/**
+ * Tokens a period follows without ending a sentence, lowercased with their inner periods kept
+ * and the final one dropped (so "e.g." is "e.g"). One-letter tokens are handled by rule.
+ */
+const ABBREVIATIONS: ReadonlySet<string> = new Set([
+  'dr', 'mr', 'mrs', 'ms', 'st', 'jr', 'sr', 'vs', 'etc', 'e.g', 'i.e',
+  'prof', 'sgt', 'capt', 'gen', 'rev', 'hon', 'approx', 'dept', 'univ',
+  'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'oct', 'nov', 'dec',
+]);
+
+/**
+ * One turn's sentences: split after . ! ? and whitespace, and at newlines, but not after a
+ * period that closes a one-letter token (an initial, or the pieces of U.S., D.C., p.m.) or a
+ * known abbreviation (Dr., Mrs., e.g.). Ordinary short words (it, up, ok, so) still end one.
+ */
+function turnSentences(turn: string): string[] {
+  const sentences: string[] = [];
+  for (const line of turn.split(/\n+/)) {
+    let start = 0;
+    for (const match of line.matchAll(/[.!?]+(?=\s)/g)) {
+      const end = match.index! + match[0].length;
+      if (match[0] === '.') {
+        const token = /([A-Za-z][A-Za-z.]*)$/.exec(
+          line.slice(start, match.index!),
+        )?.[1];
+        const lastPiece = token?.split('.').at(-1);
+        if (
+          token !== undefined &&
+          (lastPiece!.length === 1 || ABBREVIATIONS.has(token.toLowerCase()))
+        )
+          continue;
+      }
+      sentences.push(line.slice(start, end));
+      start = end;
+    }
+    sentences.push(line.slice(start));
+  }
+  return sentences
+    .map((sentence) => sentence.replace(/\s+/g, ' ').trim())
+    .filter((sentence) => sentence !== '');
+}
+
+/** The sentences of a session's user turns, in order; assistant turns never contribute. */
+function userSentences(text: string): string[] {
+  const turns = [...text.matchAll(/^(user|assistant)[ \t]*:/gim)];
+  // a source with no role markers (a memory layer's own text) is the user's words throughout
+  const userText =
+    turns.length === 0
+      ? [text]
+      : turns.flatMap((turn, index) =>
+          turn[1]!.toLowerCase() === 'user'
+            ? [
+                text.slice(
+                  turn.index! + turn[0].length,
+                  turns[index + 1]?.index ?? text.length,
+                ),
+              ]
+            : [],
+        );
+  return userText.flatMap(turnSentences);
+}
+
+/** Cut to maxBytes, backing off to the last word boundary when the cut lands inside a word. */
+function boundedAtWord(value: string, maxBytes: number): string {
+  const bounded = boundedUtf8(value, maxBytes);
+  if (bounded.length === value.length) return bounded;
+  const space = bounded.lastIndexOf(' ');
+  return space > 0 ? bounded.slice(0, space) : bounded;
+}
+
+/**
+ * A tiered session's abstract: its header, then the user sentences that name the question.
+ * Sentences rank by how many distinct content words they contain (ties by position) and are
+ * taken greedily in that order, skipping any that no longer fit, then shown in their original
+ * order. With no matching sentence, the first user sentence cut at a word boundary.
+ */
+function abstractSection(
+  header: string,
+  text: string,
+  words: readonly string[],
+  maxBytes: number,
+): string {
+  const room = maxBytes - Buffer.byteLength(header, 'utf8') - 1;
+  if (room <= 0) return `${boundedUtf8(header, maxBytes - 1)}\n`;
+  const sentences = userSentences(text);
+  const ranked = sentences
+    .map((sentence, position) => {
+      const tokens = new Set(recallWords(sentence));
+      return {
+        sentence,
+        position,
+        bytes: Buffer.byteLength(sentence, 'utf8'),
+        score: words.reduce((n, word) => n + (tokens.has(word) ? 1 : 0), 0),
+      };
+    })
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score || a.position - b.position);
+  let body = '';
+  if (ranked.length === 0) {
+    if (sentences.length > 0) body = boundedAtWord(sentences[0]!, room);
+  } else {
+    const chosen: typeof ranked = [];
+    let used = 0;
+    for (const candidate of ranked) {
+      const cost = candidate.bytes + (chosen.length === 0 ? 0 : 1);
+      if (used + cost > room) continue;
+      chosen.push(candidate);
+      used += cost;
+    }
+    body =
+      chosen.length === 0
+        ? // every matching sentence is longer than the room: the best one, cut at a word
+          boundedAtWord(ranked[0]!.sentence, room)
+        : chosen
+            .sort((a, b) => a.position - b.position)
+            .map(({ sentence }) => sentence)
+            .join(' ');
+  }
+  return `${header}${body}\n`;
 }
 
 /** USER:/ASSISTANT: blocks, the shape the product's transcript capture and its training data use. */
@@ -536,14 +722,70 @@ export function buildLongMemEvalAnswerContext(
   computedNotes = false,
   focusedBudget = false,
   structuredEvidence = false,
+  tiers?: ContextTiers,
 ): AnswerContext {
   validateOptions(Math.max(1, rankedSources.length), contextBytes);
+  if (tiers !== undefined) {
+    if (focusedBudget)
+      throw new Error(
+        'context tiers cannot be combined with the focused budget: two budget policies in one prompt',
+      );
+    if (!Number.isInteger(tiers.fullSessions) || tiers.fullSessions <= 0)
+      throw new Error(
+        `context tiers need a positive integer fullSessions, got ${tiers.fullSessions}`,
+      );
+    if (!Number.isInteger(tiers.abstractBytes) || tiers.abstractBytes <= 0)
+      throw new Error(
+        `context tiers need a positive integer abstractBytes, got ${tiers.abstractBytes}`,
+      );
+  }
   const usable = rankedSources.filter(
     (source) => source.redacted !== true && source.text !== undefined,
   );
+  // tiers: the first fullSessions by rank keep a sourceWindow body; the rest become abstracts,
+  // and the full sessions split what the abstracts leave, exactly as the even split divides
+  const fullCount =
+    tiers === undefined
+      ? usable.length
+      : Math.min(usable.length, tiers.fullSessions);
+  const abstractFor = (rank: number) =>
+    tiers !== undefined && rank >= fullCount;
+  const dateLineFor = (ts: string) =>
+    dateDistances
+      ? `Session date: ${ts.slice(0, 10)} (${describeDistance(ts, instance.question_date)})`
+      : `Session date: ${ts}`;
+  const factsLineFor = (facts: string[] | undefined) =>
+    facts !== undefined && facts.length > 0
+      ? `Remembered facts (stated in this session): ${facts.join(' ')}\n`
+      : '';
+  const abstractWords =
+    tiers === undefined ? [] : abstractContentWords(instance.question);
+  const abstracts = new Map<number, string>();
+  if (tiers !== undefined)
+    for (let rank = fullCount; rank < usable.length; rank += 1) {
+      const source = usable[rank]!;
+      abstracts.set(
+        rank,
+        abstractSection(
+          // an abstract is the lines matching the question only: no facts line
+          `### Retrieved session ${rank + 1} (abstract)\n${dateLineFor(source.ts)}\n`,
+          source.text!,
+          abstractWords,
+          tiers.abstractBytes,
+        ),
+      );
+    }
+  const abstractBytesUsed = [...abstracts.values()].reduce(
+    (sum, section) => sum + Buffer.byteLength(section, 'utf8'),
+    0,
+  );
+  if (abstracts.size > 0 && abstractBytesUsed > contextBytes - 256 * fullCount)
+    throw new Error(
+      `abstract sections take ${abstractBytesUsed} bytes, more than the ${contextBytes - 256 * fullCount} bytes the context leaves after 256 per full session; lower abstractBytes or the retrieval depth`,
+    );
   const evenBytes = Math.max(
     256,
-    Math.floor(contextBytes / Math.max(1, usable.length)),
+    Math.floor((contextBytes - abstractBytesUsed) / Math.max(1, fullCount)),
   );
   // focused budget: a session's share of the context grows with the number of the question's
   // content words it contains, so fifteen retrieved sessions do not each get a 1.6 KB sliver
@@ -562,13 +804,10 @@ export function buildLongMemEvalAnswerContext(
       ? Math.max(256, Math.floor((contextBytes * weights[index]!) / weightSum))
       : evenBytes;
   const selected = usable.map((source, rank) => {
-    const facts =
-      source.facts !== undefined && source.facts.length > 0
-        ? `Remembered facts (stated in this session): ${source.facts.join(' ')}\n`
-        : '';
-    const dateLine = dateDistances
-      ? `Session date: ${source.ts.slice(0, 10)} (${describeDistance(source.ts, instance.question_date)})`
-      : `Session date: ${source.ts}`;
+    if (abstractFor(rank))
+      return { ...source, rank, section: abstracts.get(rank)! };
+    const facts = factsLineFor(source.facts);
+    const dateLine = dateLineFor(source.ts);
     const header = `### Retrieved session ${rank + 1}\n${dateLine}\n${facts}`;
     const body = sourceWindow(
       source.text!,
@@ -751,6 +990,8 @@ export async function evaluateLongMemEvalAnswerInstance(
     focusedBudget?: boolean;
     /** Dated, grounded, deduplicated extracted facts placed before the chats. */
     structuredEvidence?: boolean;
+    /** Context tiers: full text for the top-ranked few, code-built abstracts for the rest. */
+    tiers?: ContextTiers;
     engineRecall?: {
       /** The writer: authors the Datalog query (usage is accounted with extraction). */
       llm: LongMemEvalCompletionClient;
@@ -776,6 +1017,15 @@ export async function evaluateLongMemEvalAnswerInstance(
     extractionCacheDir?: string;
     /** Cut each assistant turn to this many characters before extraction (default: no cut). */
     extractionAssistantCharacters?: number;
+    /**
+     * An external memory layer replaces Remembero's formation and search. The haystack loop
+     * still runs (it is what teaches the harness every session's text, roles and date), but
+     * nothing is written into the store and the lexical search never happens: the adapter is
+     * asked for this question's ranked sessions ('retrieval') or its own memory text
+     * ('memories'). Everything after retrieval — the context builder, the reader, the judge
+     * and the observation schema — is unchanged.
+     */
+    memorySystem?: { client: MemorySystemClient; lane: MemorySystemLane };
   } = {},
 ): Promise<LongMemEvalAnswerObservation> {
   // formation can be routed by question type: a type outside the set runs raw formation,
@@ -842,6 +1092,7 @@ export async function evaluateLongMemEvalAnswerInstance(
   let temporalRange: { start: string; end: string } | null | undefined;
   let temporalRangeUsage: LlmUsage | null = null;
   let engineRecall: LongMemEvalEngineRecall | undefined;
+  let memorySystem: MemorySystemObservation | undefined;
   try {
     const store = new MemoryStore(root);
     const formationStarted = performance.now();
@@ -985,7 +1236,9 @@ export async function evaluateLongMemEvalAnswerInstance(
           }
         }
       }
-      if (formation !== 'extracted') {
+      // a memory system does its own formation; the loop above still fills sessionRecords
+      // and userSourceText, which the context builder needs whichever layer retrieves
+      if (formation !== 'extracted' && options.memorySystem === undefined) {
         // fact-augmented key: the session's own facts lead its source text, so lexical
         // scoring sees them without a separate document competing for a slot
         const keyedFormation =
@@ -1038,311 +1291,442 @@ export async function evaluateLongMemEvalAnswerInstance(
       }
     }
     formationMs = performance.now() - formationStarted;
-    const snapshot = store.knowledgeSnapshot(['longmemeval']);
-    const retrievalStarted = performance.now();
-    // time-aware: read a date range off the question before searching
-    if (
-      options.temporalRangeExtractor !== undefined &&
-      (
-        options.temporalRangeQuestionTypes ?? new Set(['temporal-reasoning'])
-      ).has(instance.question_type)
-    ) {
-      const completion = await options.temporalRangeExtractor.completeWithUsage(
-        [
-          {
-            role: 'user',
-            content: temporalRangePrompt(
-              instance.question,
-              instance.question_date,
-            ),
-          },
-        ],
-        { maxTokens: 1024 },
-      );
-      temporalRangeUsage = completion.usage;
-      temporalRange = parseTemporalRange(completion.content);
-    }
-    const inRange = (ts: string): boolean =>
-      temporalRange !== null &&
-      temporalRange !== undefined &&
-      ts.slice(0, 10) >= temporalRange.start &&
-      ts.slice(0, 10) <= temporalRange.end;
-    const rangeFirst = <T extends { ts: string }>(items: T[]): T[] =>
-      temporalRange === null || temporalRange === undefined
-        ? items
-        : [
-            ...items.filter((i) => inRange(i.ts)),
-            ...items.filter((i) => !inRange(i.ts)),
-          ];
-    const semanticQuestionTypes =
-      options.semanticQuestionTypes ??
-      DEFAULT_LONGMEMEVAL_SEMANTIC_QUESTION_TYPES;
-    const reserved =
-      formation === 'hybrid' && options.hybridRetrieval === 'reserved';
-    const keyed = formation === 'hybrid' && options.hybridRetrieval === 'keyed';
-    const isPlaceholder = (c: Clause) =>
-      c.head.predicate === 'longmem_session' ||
-      c.head.predicate === 'longmem_turn';
-    // reserved and keyed: placeholders fill top-k on their own (keyed carries the facts in
-    // the placeholder's text); reserved also searches the extracted facts apart
-    const rawClauses =
-      reserved || keyed
-        ? snapshot.clauses.filter(isPlaceholder)
-        : snapshot.clauses;
-    const factClauses = reserved
-      ? snapshot.clauses.filter((c) => !isPlaceholder(c))
-      : [];
-    const turnUnit = options.retrievalUnit === 'turn';
-    const lexical = searchKnowledge(
-      rawClauses,
-      instance.question,
-      snapshot.sources,
-      {
-        // extracted formations hold several facts per session; fetch more so top-k
-        // still counts distinct sessions after de-duplication below
-        limit: Math.min(
-          100,
-          Math.max(
-            // a range needs candidates beyond top-k to promote from
-            temporalRange ? effectiveTopK * 4 : 0,
-            turnUnit
-              ? effectiveTopK * 6
-              : formation === 'raw' || reserved || keyed
-                ? effectiveTopK
-                : effectiveTopK * 8,
-          ),
-        ),
-        minimumScore: 1,
-        kinds: ['fact'],
-        sourceCharacterLimit: LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
-      },
-    );
-    const useSemantic =
-      options.embeddings !== undefined &&
-      semanticQuestionTypes.has(instance.question_type) &&
-      ((instance.question_type === 'single-session-preference' &&
-        isRecommendationIntent(instance.question)) ||
-        (instance.question_type === 'multi-session' &&
-          (lexical.results[0]?.score ?? 0) <=
-            multiSessionSemanticMaximumLexicalScore));
-    let search: KnowledgeSearchResult | SemanticKnowledgeSearchResult;
-    if (useSemantic) {
-      const semanticCache = new MemoryEmbeddingCache();
-      if (options.prepareSemantic === true) {
-        const preparationStarted = performance.now();
-        let after: string | undefined;
-        do {
-          const prepared = await prepareSemanticKnowledge(
-            snapshot.clauses,
-            snapshot.sources,
-            options.embeddings!,
-            {
-              cache: semanticCache,
-              limit: 100,
-              kinds: ['fact'],
-              ...(after === undefined ? {} : { after }),
-            },
-          );
-          semanticPreparationCalls += prepared.providerCalls;
-          semanticPreparationUsage = mergeEmbeddingUsage(
-            semanticPreparationUsage,
-            prepared.providerUsage,
-          );
-          after =
-            prepared.status === 'more'
-              ? (prepared.nextCursor ?? undefined)
-              : undefined;
-          if (prepared.status === 'complete') break;
-        } while (after !== undefined);
-        semanticPreparationMs = performance.now() - preparationStarted;
-      }
-      const semantic = await semanticSearchKnowledge(
-        snapshot.clauses,
-        instance.question,
-        snapshot.sources,
-        options.embeddings!,
-        {
-          limit:
-            formation === 'raw'
-              ? effectiveTopK
-              : Math.min(100, effectiveTopK * 8),
-          candidateLimit: 100,
-          kinds: ['fact'],
-          cache: semanticCache,
-        },
-      );
-      retrievalRoute = 'semantic';
-      embeddingModel = options.embeddings!.model;
-      embeddingCalls = semantic.providerCalls;
-      embeddingUsage = semantic.providerUsage;
-      search = semantic;
-    } else {
-      search = lexical;
-    }
-    retrievalMs = Math.max(
-      0,
-      performance.now() - retrievalStarted - semanticPreparationMs,
-    );
-    // extracted facts that matched, grouped by session, minus the placeholder plumbing
-    const matchedFacts = new Map<string, string[]>();
-    for (const result of search.results) {
-      const source = result.sources[0];
-      if (
-        source === undefined ||
-        result.clause.startsWith('longmem_session(') ||
-        result.clause.startsWith('longmem_turn(')
-      )
-        continue;
-      const session = sourceSessionIds.get(source.opId) ?? source.opId;
-      const list = matchedFacts.get(session) ?? [];
-      if (list.length < 24) list.push(result.clause);
-      matchedFacts.set(session, list);
-    }
-    const seenSessions = new Set<string>();
-    const rankedSources = search.results.flatMap((result) => {
-      const source = result.sources[0];
-      return source === undefined
-        ? []
-        : [
-            {
-              opId: sourceSessionIds.get(source.opId) ?? source.opId,
-              ts: source.ts,
-              facts:
-                options.factsInContext === false
-                  ? []
-                  : (matchedFacts.get(
-                      sourceSessionIds.get(source.opId) ?? source.opId,
-                    ) ?? []),
-              text:
-                contextRoles === 'user'
-                  ? (userSourceText.get(source.opId) ?? source.text)
-                  : source.text,
-              ...('semanticChunkIndex' in result
-                ? {
-                    focusCharacterOffset:
-                      result.semanticChunkIndex *
-                      (SEMANTIC_CHUNK_CHARACTERS - SEMANTIC_CHUNK_OVERLAP),
-                  }
-                : {}),
-              ...(source.redacted === true ? { redacted: true as const } : {}),
-            },
-          ];
-    });
-    // one entry per session, best rank first, then the usual top-k
-    const dedupedSources = rangeFirst(
-      rankedSources.filter(({ opId }) => {
-        if (seenSessions.has(opId)) return false;
-        seenSessions.add(opId);
-        return true;
-      }),
-    ).slice(0, effectiveTopK);
-    if (turnUnit) {
-      // aggregate matching turns to their sessions: sum of 1/log2(rank+1), whole session back
-      const sessionScore = new Map<string, number>();
-      search.results.forEach((result, position) => {
-        const source = result.sources[0];
-        if (source === undefined) return;
-        const session = sourceSessionIds.get(source.opId) ?? source.opId;
-        sessionScore.set(
-          session,
-          (sessionScore.get(session) ?? 0) + 1 / Math.log2(position + 2),
-        );
-      });
-      const ordered = rangeFirst(
-        [...sessionScore.entries()]
-          .sort((a, b) => b[1] - a[1])
-          .map(([session]) => ({
-            session,
-            ts: sessionRecords.get(session)?.ts ?? '',
-          })),
-      )
-        .slice(0, effectiveTopK)
-        .map(({ session }) => session);
-      dedupedSources.length = 0;
-      for (const session of ordered) {
-        const record = sessionRecords.get(session);
-        if (record === undefined) continue;
-        dedupedSources.push({
-          opId: session,
-          ts: record.ts,
-          text: record.text,
-          facts:
-            options.factsInContext === false
-              ? []
-              : (matchedFacts.get(session) ?? []),
-        });
-      }
-    }
-    rankedSources.length = 0;
-    rankedSources.push(...dedupedSources);
-    // entity retrieval: one hop over the extracted facts, interleaved with the lexical order
-    if (options.entityRetrieval === true && formation !== 'raw') {
-      const hits = expandByEntities(
-        snapshot.clauses.filter((c) => c.head.predicate !== 'longmem_session'),
-        instance.question,
-        snapshot.sources,
-        { selfAtom: 'user', maxSessions: effectiveTopK * 2 },
-      );
-      const bySession = new Map<string, (typeof hits)[number]>();
-      for (const hit of hits) {
-        const session = sourceSessionIds.get(hit.opId) ?? hit.opId;
-        if (!bySession.has(session)) bySession.set(session, hit);
-      }
-      const order = interleaveSessions(
-        rankedSources.map(({ opId }) => opId),
-        [...bySession.keys()],
-        effectiveTopK,
-      );
-      const lexicalBySession = new Map(rankedSources.map((r) => [r.opId, r]));
-      const merged = order.flatMap((session) => {
-        const lexicalEntry = lexicalBySession.get(session);
-        if (lexicalEntry !== undefined) return [lexicalEntry];
-        const record = sessionRecords.get(session);
-        const hit = bySession.get(session);
-        if (record === undefined || hit === undefined) return [];
-        return [
-          {
-            opId: session,
-            ts: record.ts,
-            text: record.text,
-            facts: options.factsInContext === false ? [] : hit.facts,
-          },
-        ];
-      });
-      rankedSources.length = 0;
-      rankedSources.push(...merged);
-    }
-    retrievedSessionIds = rankedSources.map(({ opId }) => opId);
-    // reserved: matched extracted facts ride along as a dated block, up to 3k of them
+    type RankedSource = {
+      opId: string;
+      ts: string;
+      text?: string;
+      redacted?: true;
+      focusCharacterOffset?: number;
+      facts?: string[];
+    };
+    let rankedSources: RankedSource[] = [];
     const extraFacts: Array<{ clause: string; ts: string }> = [];
-    if (reserved && factClauses.length > 0) {
-      const factSearch = searchKnowledge(
-        factClauses,
+    let topScore = 0;
+    if (options.memorySystem === undefined) {
+      const snapshot = store.knowledgeSnapshot(['longmemeval']);
+      const retrievalStarted = performance.now();
+      // time-aware: read a date range off the question before searching
+      if (
+        options.temporalRangeExtractor !== undefined &&
+        (
+          options.temporalRangeQuestionTypes ?? new Set(['temporal-reasoning'])
+        ).has(instance.question_type)
+      ) {
+        const completion = await options.temporalRangeExtractor.completeWithUsage(
+          [
+            {
+              role: 'user',
+              content: temporalRangePrompt(
+                instance.question,
+                instance.question_date,
+              ),
+            },
+          ],
+          { maxTokens: 1024 },
+        );
+        temporalRangeUsage = completion.usage;
+        temporalRange = parseTemporalRange(completion.content);
+      }
+      const inRange = (ts: string): boolean =>
+        temporalRange !== null &&
+        temporalRange !== undefined &&
+        ts.slice(0, 10) >= temporalRange.start &&
+        ts.slice(0, 10) <= temporalRange.end;
+      const rangeFirst = <T extends { ts: string }>(items: T[]): T[] =>
+        temporalRange === null || temporalRange === undefined
+          ? items
+          : [
+              ...items.filter((i) => inRange(i.ts)),
+              ...items.filter((i) => !inRange(i.ts)),
+            ];
+      const semanticQuestionTypes =
+        options.semanticQuestionTypes ??
+        DEFAULT_LONGMEMEVAL_SEMANTIC_QUESTION_TYPES;
+      const reserved =
+        formation === 'hybrid' && options.hybridRetrieval === 'reserved';
+      const keyed = formation === 'hybrid' && options.hybridRetrieval === 'keyed';
+      const isPlaceholder = (c: Clause) =>
+        c.head.predicate === 'longmem_session' ||
+        c.head.predicate === 'longmem_turn';
+      // reserved and keyed: placeholders fill top-k on their own (keyed carries the facts in
+      // the placeholder's text); reserved also searches the extracted facts apart
+      const rawClauses =
+        reserved || keyed
+          ? snapshot.clauses.filter(isPlaceholder)
+          : snapshot.clauses;
+      const factClauses = reserved
+        ? snapshot.clauses.filter((c) => !isPlaceholder(c))
+        : [];
+      const turnUnit = options.retrievalUnit === 'turn';
+      const lexical = searchKnowledge(
+        rawClauses,
         instance.question,
         snapshot.sources,
         {
-          limit: Math.min(100, effectiveTopK * 3),
-          minimumScore: options.reservedMinimumScore ?? 1,
+          // extracted formations hold several facts per session; fetch more so top-k
+          // still counts distinct sessions after de-duplication below
+          limit: Math.min(
+            100,
+            Math.max(
+              // a range needs candidates beyond top-k to promote from
+              temporalRange ? effectiveTopK * 4 : 0,
+              turnUnit
+                ? effectiveTopK * 6
+                : formation === 'raw' || reserved || keyed
+                  ? effectiveTopK
+                  : effectiveTopK * 8,
+            ),
+          ),
+          minimumScore: 1,
           kinds: ['fact'],
           sourceCharacterLimit: LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
         },
       );
-      for (const result of factSearch.results) {
-        const source = result.sources[0];
-        if (source === undefined || source.redacted === true) continue;
-        extraFacts.push({ clause: result.clause, ts: source.ts });
-        const session = sourceSessionIds.get(source.opId) ?? source.opId;
-        if (!retrievedSessionIds.includes(session))
-          retrievedSessionIds.push(session);
+      const useSemantic =
+        options.embeddings !== undefined &&
+        semanticQuestionTypes.has(instance.question_type) &&
+        ((instance.question_type === 'single-session-preference' &&
+          isRecommendationIntent(instance.question)) ||
+          (instance.question_type === 'multi-session' &&
+            (lexical.results[0]?.score ?? 0) <=
+              multiSessionSemanticMaximumLexicalScore));
+      let search: KnowledgeSearchResult | SemanticKnowledgeSearchResult;
+      if (useSemantic) {
+        const semanticCache = new MemoryEmbeddingCache();
+        if (options.prepareSemantic === true) {
+          const preparationStarted = performance.now();
+          let after: string | undefined;
+          do {
+            const prepared = await prepareSemanticKnowledge(
+              snapshot.clauses,
+              snapshot.sources,
+              options.embeddings!,
+              {
+                cache: semanticCache,
+                limit: 100,
+                kinds: ['fact'],
+                ...(after === undefined ? {} : { after }),
+              },
+            );
+            semanticPreparationCalls += prepared.providerCalls;
+            semanticPreparationUsage = mergeEmbeddingUsage(
+              semanticPreparationUsage,
+              prepared.providerUsage,
+            );
+            after =
+              prepared.status === 'more'
+                ? (prepared.nextCursor ?? undefined)
+                : undefined;
+            if (prepared.status === 'complete') break;
+          } while (after !== undefined);
+          semanticPreparationMs = performance.now() - preparationStarted;
+        }
+        const semantic = await semanticSearchKnowledge(
+          snapshot.clauses,
+          instance.question,
+          snapshot.sources,
+          options.embeddings!,
+          {
+            limit:
+              formation === 'raw'
+                ? effectiveTopK
+                : Math.min(100, effectiveTopK * 8),
+            candidateLimit: 100,
+            kinds: ['fact'],
+            cache: semanticCache,
+          },
+        );
+        retrievalRoute = 'semantic';
+        embeddingModel = options.embeddings!.model;
+        embeddingCalls = semantic.providerCalls;
+        embeddingUsage = semantic.providerUsage;
+        search = semantic;
+      } else {
+        search = lexical;
       }
+      retrievalMs = Math.max(
+        0,
+        performance.now() - retrievalStarted - semanticPreparationMs,
+      );
+      // extracted facts that matched, grouped by session, minus the placeholder plumbing
+      const matchedFacts = new Map<string, string[]>();
+      for (const result of search.results) {
+        const source = result.sources[0];
+        if (
+          source === undefined ||
+          result.clause.startsWith('longmem_session(') ||
+          result.clause.startsWith('longmem_turn(')
+        )
+          continue;
+        const session = sourceSessionIds.get(source.opId) ?? source.opId;
+        const list = matchedFacts.get(session) ?? [];
+        if (list.length < 24) list.push(result.clause);
+        matchedFacts.set(session, list);
+      }
+      const seenSessions = new Set<string>();
+      rankedSources = search.results.flatMap((result) => {
+        const source = result.sources[0];
+        return source === undefined
+          ? []
+          : [
+              {
+                opId: sourceSessionIds.get(source.opId) ?? source.opId,
+                ts: source.ts,
+                facts:
+                  options.factsInContext === false
+                    ? []
+                    : (matchedFacts.get(
+                        sourceSessionIds.get(source.opId) ?? source.opId,
+                      ) ?? []),
+                text:
+                  contextRoles === 'user'
+                    ? (userSourceText.get(source.opId) ?? source.text)
+                    : source.text,
+                ...('semanticChunkIndex' in result
+                  ? {
+                      focusCharacterOffset:
+                        result.semanticChunkIndex *
+                        (SEMANTIC_CHUNK_CHARACTERS - SEMANTIC_CHUNK_OVERLAP),
+                    }
+                  : {}),
+                ...(source.redacted === true ? { redacted: true as const } : {}),
+              },
+            ];
+      });
+      // one entry per session, best rank first, then the usual top-k
+      const dedupedSources = rangeFirst(
+        rankedSources.filter(({ opId }) => {
+          if (seenSessions.has(opId)) return false;
+          seenSessions.add(opId);
+          return true;
+        }),
+      ).slice(0, effectiveTopK);
+      if (turnUnit) {
+        // aggregate matching turns to their sessions: sum of 1/log2(rank+1), whole session back
+        const sessionScore = new Map<string, number>();
+        search.results.forEach((result, position) => {
+          const source = result.sources[0];
+          if (source === undefined) return;
+          const session = sourceSessionIds.get(source.opId) ?? source.opId;
+          sessionScore.set(
+            session,
+            (sessionScore.get(session) ?? 0) + 1 / Math.log2(position + 2),
+          );
+        });
+        const ordered = rangeFirst(
+          [...sessionScore.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .map(([session]) => ({
+              session,
+              ts: sessionRecords.get(session)?.ts ?? '',
+            })),
+        )
+          .slice(0, effectiveTopK)
+          .map(({ session }) => session);
+        dedupedSources.length = 0;
+        for (const session of ordered) {
+          const record = sessionRecords.get(session);
+          if (record === undefined) continue;
+          dedupedSources.push({
+            opId: session,
+            ts: record.ts,
+            text: record.text,
+            facts:
+              options.factsInContext === false
+                ? []
+                : (matchedFacts.get(session) ?? []),
+          });
+        }
+      }
+      rankedSources.length = 0;
+      rankedSources.push(...dedupedSources);
+      // entity retrieval: one hop over the extracted facts, interleaved with the lexical order
+      if (options.entityRetrieval === true && formation !== 'raw') {
+        const hits = expandByEntities(
+          snapshot.clauses.filter((c) => c.head.predicate !== 'longmem_session'),
+          instance.question,
+          snapshot.sources,
+          { selfAtom: 'user', maxSessions: effectiveTopK * 2 },
+        );
+        const bySession = new Map<string, (typeof hits)[number]>();
+        for (const hit of hits) {
+          const session = sourceSessionIds.get(hit.opId) ?? hit.opId;
+          if (!bySession.has(session)) bySession.set(session, hit);
+        }
+        const order = interleaveSessions(
+          rankedSources.map(({ opId }) => opId),
+          [...bySession.keys()],
+          effectiveTopK,
+        );
+        const lexicalBySession = new Map(rankedSources.map((r) => [r.opId, r]));
+        const merged = order.flatMap((session) => {
+          const lexicalEntry = lexicalBySession.get(session);
+          if (lexicalEntry !== undefined) return [lexicalEntry];
+          const record = sessionRecords.get(session);
+          const hit = bySession.get(session);
+          if (record === undefined || hit === undefined) return [];
+          return [
+            {
+              opId: session,
+              ts: record.ts,
+              text: record.text,
+              facts: options.factsInContext === false ? [] : hit.facts,
+            },
+          ];
+        });
+        rankedSources.length = 0;
+        rankedSources.push(...merged);
+      }
+      retrievedSessionIds = rankedSources.map(({ opId }) => opId);
+      // reserved: matched extracted facts ride along as a dated block, up to 3k of them
+      if (reserved && factClauses.length > 0) {
+        const factSearch = searchKnowledge(
+          factClauses,
+          instance.question,
+          snapshot.sources,
+          {
+            limit: Math.min(100, effectiveTopK * 3),
+            minimumScore: options.reservedMinimumScore ?? 1,
+            kinds: ['fact'],
+            sourceCharacterLimit: LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
+          },
+        );
+        for (const result of factSearch.results) {
+          const source = result.sources[0];
+          if (source === undefined || source.redacted === true) continue;
+          extraFacts.push({ clause: result.clause, ts: source.ts });
+          const session = sourceSessionIds.get(source.opId) ?? source.opId;
+          if (!retrievedSessionIds.includes(session))
+            retrievedSessionIds.push(session);
+        }
+      }
+      const firstResult = search.results[0];
+      topScore =
+        firstResult === undefined
+          ? 0
+          : 'semanticScore' in firstResult
+            ? firstResult.semanticScore
+            : firstResult.score;
+    } else {
+      const { client, lane } = options.memorySystem;
+      const request = memorySystemRequestFor(instance, lane, effectiveTopK);
+      const askedAt = performance.now();
+      const reply = await client.request(request);
+      retrievalMs = performance.now() - askedAt;
+      const seen = new Set<string>();
+      const ranked = [...(reply.retrieved ?? [])]
+        .sort((left, right) => left.rank - right.rank)
+        .filter(({ sessionId }) => {
+          if (seen.has(sessionId)) return false;
+          seen.add(sessionId);
+          return true;
+        });
+      topScore = ranked[0]?.score ?? 0;
+      // The question is scored at effectiveTopK, so an adapter that ignores request.topK
+      // does not get to buy recall with depth. builtin:full-context is the deliberate
+      // exception: handing back the whole haystack is the point of that row.
+      const overRequestedDepth = ranked.length > effectiveTopK;
+      const depthCap =
+        client.id === 'builtin:full-context'
+          ? MEMORY_SYSTEM_MAX_SESSIONS
+          : Math.min(effectiveTopK, MEMORY_SYSTEM_MAX_SESSIONS);
+      const withinDepth = ranked.slice(0, depthCap);
+      const memoryBytes = { supplied: 0, kept: 0, dropped: 0 };
+      const memories = reply.memories ?? [];
+      if (lane === 'retrieval') {
+        rankedSources = withinDepth.flatMap(({ sessionId }) => {
+          const record = sessionRecords.get(sessionId);
+          if (record === undefined) return [];
+          // Parity with the store path: MemoryStore redacts a source that trips
+          // containsSensitiveText and marks it, and the context builder drops it. Without
+          // this the external arm would send raw what the Remembero arm dropped, and the
+          // prompt guard would fail the whole question instead.
+          const source = redactSensitiveText(record.text);
+          return [
+            {
+              opId: sessionId,
+              ts: record.ts,
+              text: source.text,
+              facts: [],
+              ...(source.redacted ? { redacted: true as const } : {}),
+            },
+          ];
+        });
+        retrievedSessionIds = rankedSources.map(({ opId }) => opId);
+      } else {
+        if (memories.length === 0) {
+          throw new Error(
+            `${client.id} returned no memory text for ${instance.question_id}: the memories lane is unsupported for it`,
+          );
+        }
+        // Keep memory text in the order the system ranked it until the context budget is
+        // full, and say exactly how many bytes were left behind.
+        const budget = Math.max(
+          1_024,
+          contextBytes - MEMORY_SYSTEM_MEMORY_HEADROOM_BYTES,
+        );
+        const kept: MemorySystemMemory[] = [];
+        for (const memory of memories) {
+          // "MEMORY: " and the newline the line is rendered with
+          const bytes = Buffer.byteLength(memory.text, 'utf8') + 9;
+          memoryBytes.supplied += bytes;
+          if (memoryBytes.kept + bytes > budget) {
+            memoryBytes.dropped += bytes;
+            continue;
+          }
+          memoryBytes.kept += bytes;
+          kept.push(memory);
+        }
+        // one pseudo-session per cited session, so the context builder, the byte budget, the
+        // date distances and the computed notes work over memory text exactly as over chats
+        const grouped = new Map<string, { ts: string; lines: string[] }>();
+        for (const memory of kept) {
+          const sessionId =
+            memory.sessionIds?.[0] ?? MEMORY_SYSTEM_UNSOURCED_SESSION;
+          const record = sessionRecords.get(sessionId);
+          const ts =
+            record?.ts ??
+            (memory.at === undefined
+              ? datasetDate(instance.question_date).toISOString()
+              : `${memory.at}T09:00:00.000Z`);
+          const group = grouped.get(sessionId) ?? { ts, lines: [] };
+          group.lines.push(memory.text);
+          grouped.set(sessionId, group);
+        }
+        rankedSources = [...grouped.entries()]
+          .slice(0, depthCap)
+          .map(([sessionId, group]) => {
+            const source = redactSensitiveText(
+              group.lines.map((line) => `MEMORY: ${line}`).join('\n'),
+            );
+            return {
+              opId: sessionId,
+              ts: group.ts,
+              text: source.text,
+              facts: [],
+              ...(source.redacted ? { redacted: true as const } : {}),
+            };
+          });
+        retrievedSessionIds = [
+          ...new Set([
+            ...kept.flatMap(({ sessionIds }) => sessionIds ?? []),
+            ...withinDepth.map(({ sessionId }) => sessionId),
+          ]),
+        ];
+      }
+      memorySystem = {
+        id: client.id,
+        lane,
+        usage: reply.usage ?? null,
+        wallMs: reply.wallMs ?? null,
+        returnedSessions: ranked.length,
+        returnedMemories: memories.length,
+        memoryBytes,
+        unsupported: reply.unsupported ?? [],
+        ...(overRequestedDepth ? { overRequestedDepth: true } : {}),
+      };
     }
-    const firstResult = search.results[0];
-    const topScore =
-      firstResult === undefined
-        ? 0
-        : 'semanticScore' in firstResult
-          ? firstResult.semanticScore
-          : firstResult.score;
+
     retrieval = scoreLongMemEvalRetrievedSessions(
       instance,
       retrievedSessionIds,
@@ -1350,8 +1734,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       topScore,
     );
     const aggregationType = (
-      options.notesQuestionTypes ??
-      new Set(['multi-session', 'temporal-reasoning', 'knowledge-update'])
+      options.notesQuestionTypes ?? THINKING_TYPES
     ).has(instance.question_type);
     const notes = options.readingStrategy === 'notes' && aggregationType;
     const twoCall = options.readingStrategy === 'two-call' && aggregationType;
@@ -1429,6 +1812,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       options.computedNotes === true,
       options.focusedBudget === true,
       options.structuredEvidence === true,
+      options.tiers,
     );
     contextSessionIds = [
       ...answerContext.contextSessionIds,
@@ -1520,6 +1904,7 @@ export async function evaluateLongMemEvalAnswerInstance(
         ? {}
         : { temporalRange, temporalRangeUsage }),
       ...(engineRecall === undefined ? {} : { engineRecall }),
+      ...(memorySystem === undefined ? {} : { memorySystem }),
       formationMs,
       semanticPreparationMs,
       retrievalMs,
@@ -1556,6 +1941,7 @@ export async function evaluateLongMemEvalAnswerInstance(
         ? {}
         : { temporalRange, temporalRangeUsage }),
       ...(engineRecall === undefined ? {} : { engineRecall }),
+      ...(memorySystem === undefined ? {} : { memorySystem }),
       formationMs,
       semanticPreparationMs,
       retrievalMs,
@@ -1781,6 +2167,7 @@ export function longMemEvalAnswerRun(
     prepareSemantic?: boolean;
     formation?: LongMemEvalFormation;
     extractionModel?: string | null;
+    memorySystemId?: string;
     settings?: LongMemEvalAnswerRun['settings'];
   } = {},
 ): LongMemEvalAnswerRun {
@@ -1811,13 +2198,18 @@ export function longMemEvalAnswerRun(
     judgeModel,
     embeddingModel: options.embeddingModel ?? null,
     judgeProtocol: 'longmemeval-official-compatible-v1',
-    formation: LONGMEMEVAL_FORMATION_LABELS[options.formation ?? 'raw'],
+    formation:
+      options.memorySystemId === undefined
+        ? LONGMEMEVAL_FORMATION_LABELS[options.formation ?? 'raw']
+        : (`memory-system:${options.memorySystemId}` as const),
     ...(options.settings === undefined ? {} : { settings: options.settings }),
     extractionModel: options.extractionModel ?? null,
     retrieval:
-      options.embeddingModel === undefined || options.embeddingModel === null
-        ? 'remembero-local-source-search'
-        : 'remembero-adaptive-source-search',
+      options.memorySystemId === undefined
+        ? options.embeddingModel === undefined || options.embeddingModel === null
+          ? 'remembero-local-source-search'
+          : 'remembero-adaptive-source-search'
+        : (`memory-system:${options.memorySystemId}` as const),
     answerContextPolicy: 'user-turns-except-assistant-memory',
     semanticQuestionTypes: [
       ...(options.semanticQuestionTypes ??
