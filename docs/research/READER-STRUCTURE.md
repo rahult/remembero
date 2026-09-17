@@ -637,3 +637,17 @@ lost) while every aggregation-free or multi-session type gains. On the 266 tempo
 only -2; the other 234 questions carry the gain. Next arm: turn unit for every type except
 temporal (`--turn-unit-question-types`).
 
+**Verdict: turn-level retrieval for every type except temporal.** Paired on one pod
+(`--retrieval-unit turn --turn-unit-question-types multi-session,knowledge-update,single-session-user,single-session-assistant,single-session-preference --multi-session-top-k 12 --temporal-top-k 10`, commit 5d494b6):
+
+| v7, all 500 | Total | Multi-session | Knowledge-update | SS-assistant | SS-preference | SS-user | Temporal |
+|---|---|---|---|---|---|---|---|
+| session unit, 15 / 10 / 24 KB | 397 | 95 | 59 | 50 | 19 | 67 | 107 |
+| **mixed unit, 12 / 10 / 24 KB** | **410** | 101 | 64 | 53 | 21 | 65 | 106 |
+
++13 (36 gained, 23 lost), past the ~8 the verdict needs, with temporal held. The two session-unit
+runs of the day scored 395 and 397, so the noise estimate holds. **Reader v7 with mixed retrieval,
+410/500, is the best system measured**, 30 short of the GLM teacher's 440. The retrieval setting is
+not part of the reader contract (the prompt shape is unchanged), so no retraining is needed; the
+product's own search has to adopt the same per-type unit before a user sees the gain.
+
