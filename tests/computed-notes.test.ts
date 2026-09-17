@@ -338,3 +338,68 @@ describe('rule 2: dates for events stated without one', () => {
     expect(notes).toMatch(/- 2023-03-01: "[^"]*book two months in advance\.?" \[[^\]]*counted from 2023-05-01/);
   });
 });
+
+describe('rule 1: an ordering verdict for which-came-first questions', () => {
+  const at = '2023-06-10T10:00:00Z';
+  const verdictOf = (notes: string) => notes.split('\n').find((l) => l.startsWith('Which came first:')) ?? '';
+
+  it('ties each alternative to the clause holding its date and states the order first', () => {
+    const notes = buildComputedNotes('Which project did I start first, the sailboat model or the lighthouse puzzle?', '2023/06/10 (Sat) 20:00', [
+      { ts: at, text: "USER: By the way, I'm currently painting a sailboat model, and in the evenings I'm also assembling a lighthouse puzzle, which I started about a month ago." },
+      { ts: at, text: 'USER: I started the sailboat model about three weeks ago on a rainy Sunday.' },
+    ]);
+    expect(notes.split('\n')[1]).toMatch(/^Which came first:/);
+    expect(verdictOf(notes)).toMatch(/"lighthouse puzzle" ≈2023-05-10 [^\n]*is earlier than "sailboat model" 2023-05-20[^\n]*→ lighthouse puzzle came first/);
+  });
+
+  it('calls the order too close only when the two rough date ranges overlap', () => {
+    const apart = buildComputedNotes('Which happened first, losing my umbrella or getting my raincoat?', '2023/06/10 (Sat) 20:00', [
+      { ts: at, text: 'USER: I lost my umbrella at the station about three weeks ago.\n\nUSER: I got my raincoat about a month ago.' },
+    ]);
+    expect(verdictOf(apart)).toMatch(/→ getting my raincoat came first/);
+    const close = buildComputedNotes('Which happened first, losing my umbrella or getting my raincoat?', '2023/06/10 (Sat) 20:00', [
+      { ts: at, text: 'USER: I lost my umbrella at the station about two months ago.\n\nUSER: I got my raincoat nine weeks ago.' },
+    ]);
+    expect(verdictOf(close)).toMatch(/too close to order/);
+    expect(verdictOf(close)).not.toMatch(/→ .* came first/);
+  });
+
+  it('follows "the tablet" to the name set beside it and prefers the date whose verb the question asks about', () => {
+    const notes = buildComputedNotes('Which device did I get first, the Lenovo Yoga or the Pixel 7?', '2023/05/01 (Mon) 20:00', [
+      {
+        ts: '2023-05-01T10:00:00Z',
+        text: 'USER: I need cases for my new tablet, Lenovo Yoga, and my new phone, Pixel 7. By the way, I ordered the tablet on April 2nd, and it finally arrived on April 20th after a delay from the expected date of April 9th.\n\nUSER: I got the Pixel 7 at the mall on April 12th.',
+      },
+    ]);
+    expect(verdictOf(notes)).toMatch(/"Pixel 7" 2023-04-12 [^\n]*is earlier than "Lenovo Yoga" 2023-04-20 [^\n]*→ Pixel 7 came first/);
+    expect(verdictOf(notes)).toMatch(/2023-04-02/);  // the other date is shown, not hidden
+  });
+
+  it('works with short names and "met"', () => {
+    const notes = buildComputedNotes('Who did I meet first, Priya or Jo?', '2023/06/10 (Sat) 20:00', [
+      { ts: at, text: 'USER: I met Priya at a book club about two weeks ago.\n\nUSER: A few months ago, I met a lot of people at a fair, including a potter named Jo.' },
+    ]);
+    expect(verdictOf(notes)).toMatch(/→ Jo came first/);
+  });
+
+  it('reads "before or after" questions', () => {
+    const notes = buildComputedNotes('Did I repaint the fence before or after the garden party?', '2023/06/10 (Sat) 20:00', [
+      { ts: at, text: 'USER: I repainted the fence last Saturday.\n\nUSER: The garden party was two weeks ago.' },
+    ]);
+    expect(verdictOf(notes)).toMatch(/→ garden party came first/);
+  });
+
+  it('gives no verdict from a clause that names both alternatives', () => {
+    const notes = buildComputedNotes('Which did I buy first, the kettle or the toaster?', '2023/06/10 (Sat) 20:00', [
+      { ts: at, text: 'USER: I bought the kettle and the toaster about a month ago.\n\nUSER: I bought the toaster two weeks ago.' },
+    ]);
+    expect(verdictOf(notes)).toBe('');
+  });
+
+  it('quotes the clause that holds the date when a sentence is long', () => {
+    const notes = buildComputedNotes('When did I start the lighthouse puzzle?', '2023/06/10 (Sat) 20:00', [
+      { ts: at, text: "USER: I've been thinking a lot about how hobbies relate to my own week at work and at home, and I started assembling a lighthouse puzzle today, which got me thinking about patience." },
+    ]);
+    expect(notes).toMatch(/- 2023-06-10: "…?I started assembling a lighthouse puzzle today/);
+  });
+});

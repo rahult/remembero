@@ -580,7 +580,9 @@ export function questionTerms(text: string): string[] {
   for (const raw of tokenize(text)) {
     const lower = raw.toLowerCase();
     if (STOPWORDS.has(lower) || EXTRA_STOP.has(lower) || SMALL_NUMBERS[lower] !== undefined) continue;
-    if (lower.length >= 3 || (/^[A-Z]/.test(raw) && raw.length >= 2)) out.add(canonicalWord(lower));
+    if (lower.length < 3 && !(/^[A-Z]/.test(raw) && raw.length >= 2)) continue;
+    const word = canonicalWord(lower);
+    if (!STOPWORDS.has(word) && !EXTRA_STOP.has(word)) out.add(word);
   }
   return [...out];
 }
@@ -656,6 +658,140 @@ function snippet(sentence: string, max = 90): string {
   return s.length <= max ? s : `${s.slice(0, max - 1)}…`;
 }
 
+/** The part of a long sentence that holds the event's date: its clause, cut around the expression. */
+function focusSnippet(e: DatedEvent, max = 90): string {
+  const sentence = e.sentence;
+  if (e.index === undefined || sentence.length <= max) return snippet(sentence, max);
+  const [from, to] = clauseAt(sentence, e.index);
+  const expressionEnd = e.index + e.expression.length;
+  let start = Math.max(from, Math.min(e.index, expressionEnd + 12 - max));
+  if (start > from) {
+    const space = sentence.indexOf(' ', start - 1);
+    if (space !== -1 && space < e.index) start = space + 1;
+  }
+  let end = Math.min(to, start + max);
+  if (end < to) {
+    const space = sentence.lastIndexOf(' ', end);
+    if (space > expressionEnd) end = space;
+  }
+  const body = sentence.slice(start, end).replace(/\s+/g, ' ').trim();
+  return `${start > 0 ? '…' : ''}${body}${end < sentence.length ? '…' : ''}`;
+}
+
+/** An event's date as the notes print it: rough dates marked, a month shown as a month. */
+function whenOf(e: DatedEvent): string {
+  if (e.monthOnly) return `${e.iso.slice(0, 7)} (month only)`;
+  if (e.kind === 'undated') return `on or before ${e.sessionDay} (no date stated)`;
+  return `${e.approximate ? '≈' : ''}${e.iso}`;
+}
+
+/** The days an event may fall on, as UTC ms. */
+function windowOf(e: DatedEvent): [number, number] {
+  const ms = msOf(e.iso);
+  if (e.monthOnly) {
+    const d = new Date(ms);
+    return [ms, Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)];
+  }
+  if (e.kind === 'undated') return [Number.NEGATIVE_INFINITY, msOf(e.sessionDay)];
+  const slack = (e.slack ?? 0) * DAY_MS;
+  return [ms - slack, ms + slack];
+}
+
+interface Alternative {
+  /** As the question words it, without a leading article. */
+  text: string;
+  /** Display words (the older keyword reading). */
+  ks: string[];
+  /** Canonical words that identify this alternative and not the other ones. */
+  terms: string[];
+}
+
+const ORDINALS = new Set(['first', 'last', 'second', 'third', 'next', 'previous', 'earlier', 'later']);
+
+/** "X or Y", "A, B and C", "did I do X before or after Y": the question's alternatives. */
+function questionAlternatives(question: string): Alternative[] {
+  const q = question.replace(/[?]+\s*$/, '').trim();
+  const beforeOrAfter = /^(.*?)\s+before or after\s+(.*)$/i.exec(q);
+  const parts = beforeOrAfter
+    ? [beforeOrAfter[1]!.replace(/^(?:did|do|does|was|were|have|had|has)\s+(?:i|we)\s+/i, ''), beforeOrAfter[2]!]
+    : q.split(/\s+or\s+|,\s*(?:and\s+)?|\s+and then\s+/i).filter((part) => !/\b(which|what|how|when|did|do|does|who|where)\b/i.test(part));
+  const alternatives = parts
+    .map((part) => ({
+      text: part.trim().replace(/^(?:the|a|an)\s+/i, '').replace(/[.,;:!]+$/, ''),
+      // number words and ordinals match everywhere ("three weeks ago"); they do not identify an alternative
+      ks: questionKeywords(part).filter((k) => SMALL_NUMBERS[k] === undefined && !ORDINALS.has(k)),
+      terms: questionTerms(part),
+    }))
+    .filter((a) => a.terms.length > 0);
+  // "the narrator losing their phone charger or the narrator receiving their new phone case":
+  // words every alternative shares say nothing about which one a sentence means
+  const shared = alternatives.length >= 2 ? alternatives[0]!.terms.filter((t) => alternatives.every((a) => a.terms.includes(t))) : [];
+  if (shared.length > 0 && alternatives.every((a) => a.terms.some((t) => !shared.includes(t)))) {
+    for (const a of alternatives) a.terms = a.terms.filter((t) => !shared.includes(t));
+  }
+  return alternatives.map((a) => ({ ...a, ks: a.ks.length > 0 ? a.ks : a.terms }));
+}
+
+/**
+ * The order of the question's two alternatives. Each alternative is tied to a dated event whose
+ * clause names it (or whose sentence names it and not the other one); a clause naming both
+ * decides nothing. The order is too close to call only when the two date ranges overlap.
+ */
+function orderVerdict(
+  alternatives: Alternative[],
+  pool: DatedEvent[],
+  sentenceWords: (sentence: string) => Set<string>,
+  clauseWords: (e: DatedEvent) => Set<string>,
+  questionClasses: Set<number>,
+): string | undefined {
+  if (alternatives.length !== 2) return undefined;
+  const names = (words: Set<string>, a: Alternative) => a.terms.some((t) => words.has(t));
+  // the distance from the event's date to the nearest verb of the kind the question asks about
+  const verbDistance = (e: DatedEvent) => {
+    if (e.index === undefined || questionClasses.size === 0) return Number.POSITIVE_INFINITY;
+    const [from, to] = clauseAt(e.sentence, e.index);
+    let best = Number.POSITIVE_INFINITY;
+    const word = /[A-Za-z'-]+/g;
+    const clause = e.sentence.slice(from, to);
+    let m: RegExpExecArray | null;
+    while ((m = word.exec(clause)) !== null) {
+      const c = canonicalWord(m[0]);
+      if (VERB_CLASSES.some((cls, i) => questionClasses.has(i) && cls.has(c))) best = Math.min(best, Math.abs(from + m.index - e.index));
+    }
+    return best;
+  };
+  const picks = alternatives.map((alt, i) => {
+    const other = alternatives[1 - i]!;
+    const found = pool.flatMap((e) => {
+      const clause = clauseWords(e);
+      if (names(clause, other)) return [];
+      if (names(clause, alt)) return [{ e, clause: 1 }];
+      const sentence = sentenceWords(e.sentence);
+      return names(sentence, alt) && !names(sentence, other) ? [{ e, clause: 0 }] : [];
+    });
+    const ranked = found
+      .map((x) => ({ ...x, distance: verbDistance(x.e), hits: alt.terms.filter((t) => sentenceWords(x.e.sentence).has(t)).length }))
+      .sort((l, r) => Number(Number.isFinite(r.distance)) - Number(Number.isFinite(l.distance)) || l.distance - r.distance || r.clause - l.clause || r.hits - l.hits);
+    return { alt, ranked };
+  });
+  const [a, b] = picks as [(typeof picks)[number], (typeof picks)[number]];
+  const first = a.ranked[0];
+  const second = b.ranked[0];
+  if (first === undefined || second === undefined || first.e === second.e) return undefined;
+  const describe = (p: typeof a) => {
+    const chosen = p.ranked[0]!.e;
+    const others = [...new Map(p.ranked.slice(1).filter((x) => x.e.iso !== chosen.iso).map((x) => [x.e.iso, x.e])).values()].slice(0, 2);
+    const also = others.length === 0 ? '' : ` [other dates the history gives it: ${others.map((o) => `${whenOf(o)} ("${focusSnippet(o, 50)}")`).join('; ')}]`;
+    return `"${p.alt.text}" ${whenOf(chosen)} ("${focusSnippet(chosen, 70)}", said ${chosen.sessionDay})${also}`;
+  };
+  const [aFrom, aTo] = windowOf(first.e);
+  const [bFrom, bTo] = windowOf(second.e);
+  if (aTo < bFrom) return `Which came first: ${describe(a)} is earlier than ${describe(b)} → ${a.alt.text} came first.`;
+  if (bTo < aFrom) return `Which came first: ${describe(b)} is earlier than ${describe(a)} → ${b.alt.text} came first.`;
+  if (aFrom === aTo && bFrom === bTo && aFrom === bFrom) return `Which came first: ${describe(a)} and ${describe(b)} are dated the same day.`;
+  return `Which came first: ${describe(a)} and ${describe(b)} are too close to order from these dates (the ranges their rough expressions allow overlap).`;
+}
+
 /**
  * The block for the reader, or '' when the history has nothing datable or countable near the
  * question. Every line names the sentence it came from so the reader can check it.
@@ -671,12 +807,14 @@ export function buildComputedNotes(
   const names = questionNames(question);
   // every user sentence's words, plus the names it refers to through a noun set beside them in its turn
   const sentenceWords = new Map<string, Set<string>>();
+  const sentenceAliases = new Map<string, Map<string, string>>();
   const allUserWords = new Set<string>();
   for (const source of sources) {
     for (const turn of userTurns(source.text)) {
       const aliases = names.length > 0 ? turnAliases(turn.join(' '), names) : new Map<string, string>();
       for (const sentence of turn) {
         const words = new Set([...wordSet(sentence), ...aliasReferences(sentence, aliases)]);
+        if (aliases.size > 0) sentenceAliases.set(sentence, new Map([...(sentenceAliases.get(sentence) ?? []), ...aliases]));
         const known = sentenceWords.get(sentence);
         sentenceWords.set(sentence, known === undefined ? words : new Set([...known, ...words]));
         for (const w of words) allUserWords.add(w);
@@ -684,6 +822,12 @@ export function buildComputedNotes(
     }
   }
   const wordsOf = (sentence: string) => sentenceWords.get(sentence) ?? wordSet(sentence);
+  const clauseWordsOf = (e: DatedEvent) => {
+    if (e.index === undefined) return wordsOf(e.sentence);
+    const [from, to] = clauseAt(e.sentence, e.index);
+    const clause = e.sentence.slice(from, to);
+    return new Set([...wordSet(clause), ...aliasReferences(clause, sentenceAliases.get(e.sentence) ?? new Map())]);
+  };
   const maxEvents = limits.maxEvents ?? 12;
   const maxQuantities = limits.maxQuantities ?? 16;
   const maxChars = limits.maxChars ?? 2600;
@@ -739,6 +883,12 @@ export function buildComputedNotes(
     }
   }
   const lines: string[] = [];
+  const questionClasses = verbClasses(question);
+  const alternatives = asksOrder ? questionAlternatives(question) : [];
+  if (/\b(first|earlier|sooner)\b|\bbefore or after\b/.test(q)) {
+    const verdict = orderVerdict(alternatives, events, wordsOf, clauseWordsOf, questionClasses);
+    if (verdict !== undefined) lines.push(verdict);
+  }
   // the question's own time reference ("last Saturday", "two months ago", "the past weekend"):
   // resolve it against the question date and point at the dated events closest to it
   const questionRefs = resolveTemporalExpressions(`USER: ${question.replace(/\bthe past weekend\b/i, 'last Saturday')}`, `${questionDay}T00:00:00Z`).filter((e) => e.kind !== 'absolute');
@@ -747,7 +897,6 @@ export function buildComputedNotes(
     const ref = questionRefs[0]!;
     // every dated event counts here, whatever its wording: the question asks what happened then
     // one event per date: the one whose sentence best matches the question, not the last one said
-    const questionClasses = verbClasses(question);
     const score = (e: DatedEvent) => keywordHits(e.sentence) + ([...verbClasses(e.sentence)].some((c) => questionClasses.has(c)) ? 1 : 0);
     const bestByDate = new Map<string, DatedEvent>();
     for (const e of allEvents) {
@@ -790,20 +939,11 @@ export function buildComputedNotes(
       const said = e.kind === 'undated' ? `said ${e.sessionDay}; no date stated, so dated by the session it was said in (it happened on or before that day)` : `said ${e.sessionDay}, "${e.expression}"`;
       const when = e.monthOnly ? `${e.iso.slice(0, 7)} (month only)` : e.iso;
       const far = e.monthOnly ? `the month began ${distance(e.iso, questionDay)}` : distance(e.iso, questionDay);
-      lines.push(`- ${when}: "${snippet(e.sentence)}" [${said}${flags ? `; ${flags}` : ''}] — ${far}`);
+      lines.push(`- ${when}: "${focusSnippet(e)}" [${said}${flags ? `; ${flags}` : ''}] — ${far}`);
     }
     const distinct = [...new Map(dated.map((e) => [e.iso, e])).values()].sort((l, r) => l.iso.localeCompare(r.iso));
     if (asksOrder) {
       // "X or Y": which alternatives the dated events actually cover
-      const alternatives = question
-        .split(/\s+or\s+|,\s*(?:and\s+)?|\s+and then\s+/i)
-        .filter((part) => !/\b(which|what|how|when|did|do|does|who|where)\b/i.test(part))
-        // number words and ordinals match everywhere ("three weeks ago"); they do not identify an alternative
-        .map((part) => ({
-          ks: questionKeywords(part).filter((k) => SMALL_NUMBERS[k] === undefined && !/^(first|last|second|third|next|previous|earlier|later)$/.test(k)),
-          terms: questionTerms(part),
-        }))
-        .filter((a) => a.ks.length > 0 && a.terms.length > 0);
       if (alternatives.length >= 2) {
         const coverage = alternatives.map((a) => ({ ...a, dated: dated.some((e) => a.terms.some((t) => wordsOf(e.sentence).has(t))) }));
         const undated = coverage.filter((c) => !c.dated);
