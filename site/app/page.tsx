@@ -154,11 +154,12 @@ status(atlas, blocked).`}</code></pre></article>
               <h3>Gemma 4 E4B, distilled</h3>
               <p>Answers from retrieved history. Distilled from GLM 5.3 Flash over real sessions, handed computed notes before it reads (dates resolved, distances stated, totals summed, deterministically), and trained to write its own working: the dated items and the arithmetic first, then one answer line.</p>
               <dl>
-                <div><dt>LongMemEval, 500 questions</dt><dd>414<i>/500</i></dd></div>
+                <div><dt>LongMemEval, 500 questions</dt><dd>425<i>/500</i></dd></div>
                 <div><dt>Teacher, same judge</dt><dd>440<i>/500</i></dd></div>
                 <div><dt>Computed notes, no training</dt><dd>+29</dd></div>
                 <div><dt>Writing its working, trained</dt><dd>+10</dd></div>
                 <div><dt>Turn-level retrieval and dated notes</dt><dd>+17</dd></div>
+                <div><dt>Relevance re-ranking (TypeSafe)</dt><dd>+13</dd></div>
               </dl>
             </article>
           </div>
@@ -193,7 +194,7 @@ status(atlas, blocked).`}</code></pre></article>
               <span>LongMemEval</span>
               <strong>500 questions over long chat histories</strong>
               <p>Multi-session, temporal, knowledge-update, abstention. Every stored run re-judged under one judge; paired runs, identical retrieval, so a change is measured against the reader&apos;s own noise.</p>
-              <code>GLM 5.3 Flash 440 · our reader 414 · noise band ±7</code>
+              <code>GLM 5.3 Flash 440 · our reader 425 · noise band ±7</code>
             </a>
             <a href={extractionBench}>
               <span>Benchmarks</span>

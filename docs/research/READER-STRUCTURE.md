@@ -699,3 +699,45 @@ The judge's type-specific grading prompt is evaluation, not answering, and stays
 text classifier for all five decisions, and the benchmark needs a fully label-free arm before any
 product claim.
 
+## TypeSafe re-ranking of the shortlist (2026-09-18)
+
+TypeSafe (docs.typesafe.ai) serves Jev, a "System One" model that answers typed questions about a
+state with calibrated probabilities; it is priced at $0.042 per million input tokens, output free.
+`--rerank typesafe` (commit 1bda51e, experimental) takes the top 30 sessions from the lexical,
+turn-routed search and asks Jev two yes/no questions per session: does it talk about what the
+question asks, and does it hold a user statement the answer depends on. Score = 0.7 × evidence +
+0.3 × relevance; the reordered pool then goes through the unchanged date-window, depth and context
+steps. Answers are cached on disk (`.cache/typesafe/`).
+
+Retrieval only, the 266 (`results/retrieval-only/`):
+
+| Setup | Evidence sessions complete | Answer turns complete | Multi-session turns | Temporal turns |
+|---|---|---|---|---|
+| text-routed turn unit, no date window | 80.2% | 83.1% | 79.3% | 86.6% |
+| same, date window | 80.2% | 84.3% | 79.3% | 89.0% |
+| + TypeSafe re-rank, no date window | 93.5% | 93.1% | 89.3% | 96.9% |
+| + TypeSafe re-rank, date window | 91.1% | 93.1% | 89.3% | 96.9% |
+
+7,449 Jev calls, 5.4M tokens, $0.23 for the 266. GLM 5.3 Flash reading the 266: 223 → 227
+(multi-session +8 / -6, temporal +4 / -2), inside noise.
+
+Reader v7 on all 500, one pod, new notes, text-routed unit (6,232 Jev calls, $0.28):
+
+| Setup | Total | Multi-session | Knowledge-update | SS-assistant | SS-preference | SS-user | Temporal | Answer turns complete |
+|---|---|---|---|---|---|---|---|---|
+| no re-rank | 412 | 99 | 62 | 52 | 20 | 64 | 115 | 84.0% |
+| **TypeSafe re-rank** | **425** | 99 | 62 | 52 | 28 | 69 | 115 | 94.9% |
+
++13 (42 gained, 29 lost), past the ~8 the verdict needs. The gain lands where the depth is
+shallowest: single-session preference (+8) and single-session user (+5) keep only four sessions,
+and choosing the right four matters most there. Multi-session and temporal hold level even though
+their evidence arrives more often, so the remaining misses on those types are reading, not
+retrieval. Two questions error because the re-ranked context carries text the external-model guard
+refuses; they count as wrong. The no-re-rank arm (412) sits within noise of the earlier 414 run of
+the same setup.
+
+**Reader v7 + computed notes + text-routed turn retrieval + TypeSafe re-ranking: 425/500**, 15 short
+of the GLM teacher's 440. The same caveat as 414 applies: the harness still takes retrieval depth,
+the time-range call, the reading format, the preference prompt and assistant-turn roles from the
+dataset label, and the rules behind the notes and the unit detector were written on these 500.
+
