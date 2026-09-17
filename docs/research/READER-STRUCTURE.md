@@ -568,3 +568,47 @@ getting all the evidence into the reader's 24 KB is.** That is where the next ro
 retrieval that ranks the evidence sessions higher, or a budget that keeps more of each, measured
 on these 53 questions first. (Context tiers, which cut sessions to abstracts, were the wrong
 shape of this: they kept the sessions and dropped the detail.)
+
+## Retrieval, not the reader, caps the aggregation types (2026-09-17)
+
+Splitting every reader's misses on the 266 by whether the evidence reached its context: on the
+202 of 248 answerable questions whose evidence sessions all arrive, GLM 5.3 Flash is right 90% of
+the time, Kimi K3 90%, GLM 5.3 89% and reader v7 84%. On the other 46 they collapse to 41%, 38%,
+43% and 33%. The three frontier readers share 39 misses, and 26 of those lack an evidence session.
+That is why no stronger teacher helped. Reader v7's own gap to its teacher is different: of the
+28 questions Flash gets and v7 misses, 23 had every evidence session in front of it, 17 of them
+temporal.
+
+`--retrieval-only` (commit 8600b3d) scores a retrieval setup without calling a reader or judge,
+and every run now records `evidenceCoverage`: evidence sessions in context and, stricter, the
+answer-bearing turns (`has_answer`) whose text survives the byte budget. Sweep on the 266, raw
+formation, time range from GLM, contract blocks on (`results/retrieval-only/`):
+
+| Setup (multi-session k / temporal k / context) | Evidence sessions complete | Answer turns complete |
+|---|---|---|
+| session unit, 15 / 10 / 24 KB (contract of record) | 81.0% | 81.9% |
+| session unit + r19 writer facts (hybrid), 15 / 10 / 24 KB | 81.5% | 81.9% |
+| session unit, 25 / 15 / 24 KB | 86.7% | 69.4% |
+| session unit, 15 / 10 / 40 KB | 81.5% | 85.5% |
+| **turn unit, 12 / 10 / 24 KB** | 85.0% | **87.4%** |
+| turn unit, 15 / 10 / 24 KB | 85.8% | 85.0% |
+| turn unit, 20 / 12 / 24 KB | 89.1% | 76.5% |
+| turn unit, 15 / 10 / 32 KB | 85.4% | 87.4% |
+| turn unit, 20 / 12 / 32 KB | 89.1% | 87.0% |
+
+Scoring sessions by their best-matching user turns and returning whole sessions is the one change
+that lifts both columns inside the 24 KB contract. Going deeper at a fixed budget finds more
+sessions but squeezes the answer turns out of them; writer facts add nothing at this depth.
+
+GLM 5.3 Flash reading the same 266 under four of these setups, one day, one judge:
+
+| Setup | Correct | Multi-session | Temporal | vs contract of record |
+|---|---|---|---|---|
+| session unit, 15 / 10 / 24 KB | 220 | 99 | 121 | |
+| turn unit, 12 / 10 / 24 KB | 224 | 104 | 120 | +17 / -13 |
+| turn unit, 15 / 10 / 24 KB | 223 | 103 | 120 | +15 / -12 |
+| turn unit, 20 / 12 / 32 KB | 225 | 105 | 120 | +18 / -13 |
+
+The gain is the size the arithmetic predicts (about 13 more questions with their evidence, half of
+them converted) and sits inside the noise band on the 266; it lands entirely on multi-session.
+One question per turn-unit run errors because the privacy guard refuses the retrieved text.
