@@ -197,7 +197,6 @@ export {
   MAX_TRANSCRIPT_TAIL_BYTES,
   defaultClaudeConfigDir,
   parseClaudeStopHookInput,
-  parseTranscriptMessages,
   readClaudeTranscriptTail,
   type ClaudeStopHookInput,
   type ClaudeTranscriptTail,

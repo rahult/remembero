@@ -13,6 +13,7 @@ import {
   autoCaptureClaudeStop,
   type AutoCaptureOptions,
 } from '../src/autocapture/capture.js';
+import { transcriptWindowBytes } from '../src/autocapture/transcript.js';
 import type { ChatMessage, LlmClient } from '../src/llm/client.js';
 import { createServer } from '../src/mcp/server.js';
 import { rememberText } from '../src/llm/pipeline.js';
@@ -251,16 +252,66 @@ describe('capture writes conversation turns to the session store', () => {
     );
   });
 
-  it('hands the store only the newest tailBytes of the window', async () => {
-    // The store masks and hashes every turn it is handed, inside the namespace
-    // lock, so the whole read window must not reach it on every stop hook.
+  it('keeps a new turn beside an assistant answer larger than tailBytes', async () => {
+    // A code-heavy assistant answer is routinely bigger than the extraction tail's
+    // budget, and `tail.turns` is untruncated. Spending the budget on it would drop
+    // the user's message in the same batch, which the ts floor would then bar for
+    // good.
     writeTranscript([
-      transcriptLine('user', `old ${'a'.repeat(2000)}`, '2026-08-17T01:00:00.000Z'),
-      transcriptLine('user', `mid ${'b'.repeat(2000)}`, '2026-08-17T01:30:00.000Z'),
-      transcriptLine('user', `new ${'c'.repeat(2000)}`, '2026-08-17T02:00:00.000Z'),
+      transcriptLine('user', 'I prefer dark mode.', '2026-08-17T01:00:00.000Z'),
+      transcriptLine('assistant', 'Noted.', '2026-08-17T01:01:00.000Z'),
     ]);
-    // Padding is not memorable, so extraction keeps nothing; the session write
-    // runs on the empty capture all the same.
+    const llm = new ScriptedLlm([
+      'prefers_theme(user, dark).',
+      'lives_in(user, melbourne).',
+    ]);
+    await autoCaptureClaudeStop(
+      { store, llm, sessions },
+      stopInput(),
+      captureOptions({ tailBytes: 3000 }),
+    );
+
+    writeTranscript([
+      transcriptLine(
+        'user',
+        'remember I moved to Melbourne',
+        '2026-08-17T02:05:00.000Z',
+      ),
+      transcriptLine('assistant', 'x'.repeat(4000), '2026-08-17T02:06:00.000Z'),
+    ]);
+    const second = await autoCaptureClaudeStop(
+      { store, llm, sessions },
+      stopInput(),
+      captureOptions({ tailBytes: 3000 }),
+    );
+
+    expect(second.sessionTurns).toEqual({ appended: 2, skipped: 0 });
+    expect(storedTurns()!.turns.map((turn) => turn.ts)).toEqual([
+      '2026-08-17T01:00:00.000Z',
+      '2026-08-17T01:01:00.000Z',
+      '2026-08-17T02:05:00.000Z',
+      '2026-08-17T02:06:00.000Z',
+    ]);
+    expect(storedTurns()!.turns[2].text).toBe('remember I moved to Melbourne');
+  });
+
+  it('bounds a first capture to the read window, and still dates it from the start', async () => {
+    // The store masks and hashes every turn it is handed, inside the namespace
+    // lock, so a window that widened backwards past its budget must not reach it
+    // whole. Only a widened window can: everything an unwidened one holds fits the
+    // budget by construction, which is why a sliding session loses nothing.
+    const budget = transcriptWindowBytes(3000);
+    const turnText = (marker: string) => `${marker} ${'x'.repeat(2048)}`;
+    const minute = (index: number) =>
+      `2026-08-17T01:${String(index).padStart(2, '0')}:00.000Z`;
+    // The only user turn is at the very start, so the base 64 KB window holds no
+    // user text and the scan widens to the whole file.
+    writeTranscript([
+      transcriptLine('user', turnText('oldest'), minute(0)),
+      ...Array.from({ length: 45 }, (_, index) =>
+        transcriptLine('assistant', turnText(`answer ${index}`), minute(index + 1)),
+      ),
+    ]);
     const llm = new ScriptedLlm(['% nothing']);
 
     const result = await autoCaptureClaudeStop(
@@ -270,10 +321,41 @@ describe('capture writes conversation turns to the session store', () => {
     );
 
     expect(result.status).toBe('empty');
-    expect(result.sessionTurns).toEqual({ appended: 1, skipped: 0 });
     const turns = storedTurns()!.turns;
-    expect(turns).toHaveLength(1);
-    expect(turns[0].text.startsWith('new ')).toBe(true);
+    expect(turns.length).toBeGreaterThan(1);
+    expect(turns.length).toBeLessThan(46);
+    expect(
+      turns.reduce((sum, turn) => sum + Buffer.byteLength(turn.text, 'utf8'), 0),
+    ).toBeLessThanOrEqual(budget);
+    // The newest turns, contiguous and in ts order, the oldest ones dropped.
+    expect(turns.at(-1)!.text.startsWith('answer 44')).toBe(true);
+    expect(turns.map((turn) => turn.ts)).toEqual(
+      [...turns].map((turn) => turn.ts).sort(),
+    );
+    expect(turns.some((turn) => turn.text.startsWith('oldest'))).toBe(false);
+    // The dropped turns still date the session: it did not begin where the budget
+    // happened to start keeping.
+    expect(storedTurns()!.header.startedAt).toBe(minute(0));
+  });
+
+  it('stores a batch in ts order even when the transcript is not', async () => {
+    writeTranscript([
+      transcriptLine('assistant', 'Noted.', '2026-08-17T02:05:00.000Z'),
+      transcriptLine('user', 'I prefer dark mode.', '2026-08-17T02:04:00.000Z'),
+    ]);
+    const llm = new ScriptedLlm(['prefers_theme(user, dark).']);
+
+    await autoCaptureClaudeStop(
+      { store, llm, sessions },
+      stopInput(),
+      captureOptions(),
+    );
+
+    expect(storedTurns()!.turns.map((turn) => [turn.index, turn.ts])).toEqual([
+      [0, '2026-08-17T02:04:00.000Z'],
+      [1, '2026-08-17T02:05:00.000Z'],
+    ]);
+    expect(storedTurns()!.header.startedAt).toBe('2026-08-17T02:04:00.000Z');
   });
 
   it('keeps the capture when REMBERO_SESSIONS is neither on nor off', async () => {

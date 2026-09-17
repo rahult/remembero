@@ -14,6 +14,7 @@ import {
   DEFAULT_TRANSCRIPT_TAIL_BYTES,
   parseClaudeStopHookInput,
   readClaudeTranscriptTail,
+  transcriptWindowBytes,
 } from './transcript.js';
 import type { SessionStore } from '../sessions/store.js';
 
@@ -60,20 +61,29 @@ export interface AutoCaptureResult {
 type StampedTurn = { role: 'user' | 'assistant'; ts: string; text: string };
 
 /**
- * The turns this session does not already hold, in transcript order and bounded
- * to `tailBytes`.
+ * The turns this session does not already hold, in `ts` order, and the window's
+ * own start whether or not its first turn is one of them.
  *
- * Two things have to be kept off every stop hook. One is old turns: a window
- * with no user text is re-read four times further back (up to 16 MB), so a
- * capture can see turns far older than the ones already stored, and appending
- * those would put a newer `index` on an older `ts` — the file order `readSession`
- * returns would stop matching time. `lastTs` comes from the namespace index
- * rather than the session file, so the high-water mark costs one small read
- * instead of a second parse of a file that grows without bound. The other is
- * volume: the store masks and hashes every turn it is handed, inside the
- * namespace lock, so a 192 KB window would be re-masked on every hook. Only the
- * newest `tailBytes` of new turns is handed over, and never fewer than one turn,
- * so a single turn larger than the budget is still stored.
+ * Two things have to be kept off every stop hook. One is old turns: a window with
+ * no user text is re-read four times further back (up to 16 MB), so a capture can
+ * see turns far older than the ones already stored, and appending those would put
+ * a newer `index` on an older `ts` — the file order `readSession` returns would
+ * stop matching time. `lastTs` comes from the namespace index rather than the
+ * session file, so the high-water mark costs one small read instead of a second
+ * parse of a file that grows without bound. The other is volume: the store masks
+ * and hashes every turn it is handed, inside the namespace lock, so a widened
+ * window of megabytes would be re-masked on every hook.
+ *
+ * The budget for that is the read window's own `transcriptWindowBytes`, not the
+ * extraction tail's much smaller `tailBytes`. Everything an unwidened window
+ * holds fits in it by construction, so no new turn is dropped while a session
+ * slides forward — which matters because the `ts` floor makes a drop permanent,
+ * and because a hook whose write failed must be able to recover its turns from
+ * the next window. Only a widened window can exceed the budget, and that is the
+ * first capture into a long conversation, where storing the newest part of it is
+ * the point. A turn larger than the whole budget is kept on its own account
+ * rather than spending it, so one code-heavy assistant answer cannot evict the
+ * user's message beside it.
  */
 function sessionTurnsToWrite(
   sessions: SessionStore,
@@ -82,33 +92,49 @@ function sessionTurnsToWrite(
   turns: Array<{ role: 'user' | 'assistant'; ts?: string; text: string }>,
   at: string,
   tailBytes: number,
-): StampedTurn[] {
+): { startedAt?: string; turns: StampedTurn[] } {
   const key = sessions.sessionKey('claude-code', sourceSessionId);
   const lastTs = sessions
     .list(namespace)
     .find((entry) => entry.key === key)?.lastTs;
   const floor = lastTs === undefined ? undefined : Date.parse(lastTs);
-  const fresh: StampedTurn[] = [];
-  for (const turn of turns) {
-    const stamped: StampedTurn = {
-      role: turn.role,
-      ts: turn.ts ?? at,
-      text: turn.text,
-    };
-    // Turns sharing the last stored timestamp stay: several transcript entries
-    // can carry one timestamp, and the store skips the stored ones by hash.
-    if (floor !== undefined && Date.parse(stamped.ts) < floor) continue;
-    fresh.push(stamped);
+  const stamped = turns.map((turn) => ({
+    role: turn.role,
+    ts: turn.ts ?? at,
+    text: turn.text,
+  }));
+  // The whole window's start, kept or not: a bounded first capture must not claim
+  // the conversation began at the oldest turn it happened to keep.
+  let startedAt: string | undefined;
+  for (const turn of stamped) {
+    if (startedAt === undefined || Date.parse(turn.ts) < Date.parse(startedAt)) {
+      startedAt = turn.ts;
+    }
   }
+  // Turns sharing the last stored timestamp stay: several transcript entries can
+  // carry one timestamp, and the store skips the stored ones by hash.
+  const fresh = stamped.filter(
+    (turn) => floor === undefined || Date.parse(turn.ts) >= floor,
+  );
+  const budget = transcriptWindowBytes(tailBytes);
   const bounded: StampedTurn[] = [];
   let used = 0;
   for (let index = fresh.length - 1; index >= 0; index -= 1) {
-    const bytes = Buffer.byteLength(fresh[index].text, 'utf8');
-    if (bounded.length > 0 && used + bytes > tailBytes) break;
-    bounded.push(fresh[index]);
+    const turn = fresh[index];
+    const bytes = Buffer.byteLength(turn.text, 'utf8');
+    if (bytes > budget) {
+      bounded.push(turn);
+      continue;
+    }
+    if (bounded.length > 0 && used + bytes > budget) break;
+    bounded.push(turn);
     used += bytes;
   }
-  return bounded.reverse();
+  // Transcript order first, then a stable sort by time: entries can be written out
+  // of order, and the file's own order is what `readSession` hands the reader.
+  bounded.reverse();
+  bounded.sort((left, right) => Date.parse(left.ts) - Date.parse(right.ts));
+  return { ...(startedAt === undefined ? {} : { startedAt }), turns: bounded };
 }
 
 /**
@@ -140,7 +166,7 @@ function writeSessionTurns(
       now.toISOString(),
       tailBytes,
     );
-    if (selected.length === 0) {
+    if (selected.turns.length === 0) {
       return { sessionTurns: { appended: 0, skipped: 0 } };
     }
     const result = sessions.appendTurns(
@@ -149,10 +175,10 @@ function writeSessionTurns(
         version: 1,
         source: 'claude-code',
         sourceSessionId: input.sessionId,
-        startedAt: selected[0].ts,
+        startedAt: selected.startedAt ?? selected.turns[0].ts,
         cwd: input.cwd,
       },
-      selected,
+      selected.turns,
     );
     return {
       sessionTurns: { appended: result.appended, skipped: result.skipped },

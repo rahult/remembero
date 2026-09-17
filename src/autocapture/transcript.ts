@@ -17,6 +17,17 @@ const MAX_TRANSCRIPT_FILE_BYTES = 512 * 1024 * 1024;
 // Agentic transcripts bury user turns under megabytes of tool_result lines, so the
 // backward scan may widen well past the base window before it sees user text.
 const MAX_READ_WINDOW_BYTES = 16 * 1024 * 1024;
+const BASE_READ_WINDOW_BYTES = 64 * 1024;
+
+/**
+ * The bytes the backward scan reads before it has to widen. Every turn in an
+ * unwidened window came out of this many bytes, so it is also the budget a
+ * consumer needs to keep all of them: the session write uses it for that, and
+ * both callers reading it from here is what stops the two from drifting apart.
+ */
+export function transcriptWindowBytes(tailBytes: number): number {
+  return Math.max(BASE_READ_WINDOW_BYTES, tailBytes * 8);
+}
 
 export interface ClaudeStopHookInput {
   sessionId: string;
@@ -309,7 +320,11 @@ export function readClaudeTranscriptTail(
   const configDir = resolve(options.claudeConfigDir ?? defaultClaudeConfigDir());
   const trusted = trustedTranscriptPath(input.transcriptPath, configDir);
   const size = statSync(trusted.path).size;
-  let readBytes = Math.min(size, MAX_READ_WINDOW_BYTES, Math.max(64 * 1024, tailBytes * 8));
+  let readBytes = Math.min(
+    size,
+    MAX_READ_WINDOW_BYTES,
+    transcriptWindowBytes(tailBytes)
+  );
   let messages = parseTranscriptMessages(readTranscriptWindow(trusted, size, readBytes));
   while (
     !messages.some((message) => message.role === 'user') &&
