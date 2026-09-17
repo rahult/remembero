@@ -64,7 +64,15 @@ import {
 } from '../knowledge/entity-retrieval.js';
 import { MemoryStore } from '../store/store.js';
 import { isTemporalQuestion } from '../knowledge/temporal-question.js';
-import { THINKING_TYPES, type ContextTiers } from './reader-contract.js';
+import {
+  questionKindFromLabel,
+  questionKindFromText,
+  type QuestionClassification,
+  type QuestionKind,
+  type QuestionKindSource,
+} from '../knowledge/question-kind.js';
+import { typesafeQuestionKind } from './typesafe-question-kind.js';
+import { type ContextTiers } from './reader-contract.js';
 import {
   longMemEvalSessionText,
   LONGMEMEVAL_S_COMMIT,
@@ -179,6 +187,19 @@ export interface LongMemEvalEvidenceCoverage {
   turnsTotal: number;
 }
 
+/**
+ * The five answering flags this question was routed by, and where they came from. Recorded
+ * only when the run did not read the dataset's `question_type` label (`--classify label`
+ * routes exactly as the harness always has, and records nothing extra).
+ */
+export interface LongMemEvalQuestionKind extends QuestionKind {
+  source: QuestionKindSource;
+  /** TypeSafe input tokens spent classifying this question; 0 for a cached answer. */
+  inputTokens?: number;
+  /** The classification came from the on-disk TypeSafe cache. */
+  cached?: boolean;
+}
+
 export interface LongMemEvalAnswerObservation {
   questionId: string;
   questionType: string;
@@ -215,6 +236,8 @@ export interface LongMemEvalAnswerObservation {
   memorySystem?: MemorySystemObservation;
   /** Present when the experimental TypeSafe re-rank ran for this question. */
   rerank?: RerankStats;
+  /** Present when the question's kind was read from its text rather than from the label. */
+  questionKind?: LongMemEvalQuestionKind;
   /** Present when the TypeSafe counted-items block ran for this question. */
   countedItems?: CountStats;
   formationMs: number;
@@ -289,6 +312,19 @@ export interface LongMemEvalAnswerSummary {
   rerankUsage?: RerankStats & { costUsd: number };
   /** Present when any observation counted items through TypeSafe, at the same token price. */
   countUsage?: CountStats & { costUsd: number };
+  /**
+   * Present when the question kind was classified from the text: how many questions, how
+   * many by TypeSafe (live, cached, or fallen back to the text rules after a failure), and
+   * the TypeSafe tokens the classification cost at the same $0.042 per M input tokens.
+   */
+  classifyUsage?: {
+    questions: number;
+    calls: number;
+    cached: number;
+    fallbacks: number;
+    inputTokens: number;
+    costUsd: number;
+  };
 }
 
 export interface LongMemEvalAnswerRun {
@@ -355,6 +391,16 @@ export interface LongMemEvalAnswerRun {
     typesafeCount?: boolean;
     typesafeCountMax?: number | null;
     typesafeCountThreshold?: number | null;
+    /**
+     * Where the five answering decisions came from: 'label' the dataset's question_type
+     * (the historical routing), 'text' the deterministic rules, 'typesafe' one Jev request
+     * per question with the rules as fallback. A label-free score needs 'text' or 'typesafe'.
+     */
+    classify?: QuestionClassification;
+    classifyModel?: string | null;
+    classifyKeyEnv?: string | null;
+    classifyConcurrency?: number | null;
+    classifyThreshold?: number | null;
     memoryLane?: MemorySystemLane | null;
     /**
      * The embedding model the memory system itself ran on (e.g. `builtin:embed`). Kept out of
@@ -857,6 +903,11 @@ export function buildLongMemEvalAnswerContext(
   tiers?: ContextTiers,
   /** A code-counted tally (see typesafe-count.ts): the computed-notes block's first line. */
   countedLine?: string,
+  /**
+   * Personalise the answer, LongMemEval's single-session-preference reading. Defaults to the
+   * dataset's label, so a caller that does not classify the question keeps today's prompt.
+   */
+  personalize = instance.question_type === 'single-session-preference',
 ): AnswerContext {
   validateOptions(Math.max(1, rankedSources.length), contextBytes);
   if (tiers !== undefined) {
@@ -1001,7 +1052,7 @@ export function buildLongMemEvalAnswerContext(
   const user = `${evidenceBlock}History chats:\n\n${history || '[no safe relevant history retrieved]'}\n${remembered}${engineBlock}${computedBlock}Current date: ${instance.question_date}\nQuestion: ${instance.question}\nAnswer:`;
   assertSafeForExternalLlm(user, 'LongMemEval answer prompt');
   const system =
-    instance.question_type === 'single-session-preference'
+    personalize
       ? 'Use the supplied history to personalize the answer. You may use general knowledge for recommendations, but do not invent facts about the user. Briefly make the remembered preference or context driving the answer explicit.'
       : reading === 'enumerate'
         ? 'Do not answer the question yet. From the supplied history, list every item relevant to the question, one per line, each with its session date and the exact detail the history states (a count, a name, a date, an amount, a quote). Include every occurrence across sessions, keep duplicates apart, and add nothing the history does not say. If nothing is relevant, write "No relevant items." Output the list only.'
@@ -1169,6 +1220,18 @@ export async function evaluateLongMemEvalAnswerInstance(
     /** Cut each assistant turn to this many characters before extraction (default: no cut). */
     extractionAssistantCharacters?: number;
     /**
+     * Where the five answering decisions come from — retrieval depth, the time-range model,
+     * the notes reading, the personalisation prompt, and whether assistant turns reach the
+     * reader. 'label' (default) reads the dataset's `question_type`, which a deployed system
+     * never has; 'text' reads the question with knowledge/question-kind.ts; 'typesafe' asks
+     * one Jev request for the five flags and falls back to the text rules if it fails.
+     */
+    classify?: QuestionClassification;
+    /** The TypeSafe client for classify 'typesafe' (required by it). */
+    classifyNouls?: TypesafeNouls;
+    /** Probability at which a noul sets its flag (default 0.5). */
+    classifyThreshold?: number;
+    /**
      * An external memory layer replaces Remembero's formation and search. The haystack loop
      * still runs (it is what teaches the harness every session's text, roles and date), but
      * nothing is written into the store and the lexical search never happens: the adapter is
@@ -1210,13 +1273,57 @@ export async function evaluateLongMemEvalAnswerInstance(
   if (formation !== 'raw' && options.extractor === undefined) {
     throw new Error(`formation "${formation}" needs an extractor client`);
   }
+  // the five answering decisions — depth, the time-range model, the notes reading, the
+  // personalisation prompt, and whether assistant turns reach the reader — are this
+  // question's kind. 'label' reads the dataset's question_type and routes exactly as the
+  // harness always has; 'text' and 'typesafe' read the question itself, so the score
+  // describes a product rather than a benchmark.
+  const classify = options.classify ?? 'label';
+  let kind =
+    classify === 'label'
+      ? questionKindFromLabel(instance.question_type)
+      : questionKindFromText(instance.question);
+  let kindSource: QuestionKindSource = classify === 'label' ? 'label' : 'text';
+  let classifyTokens = 0;
+  let classifyCached = false;
+  if (classify === 'typesafe') {
+    if (options.classifyNouls === undefined) {
+      throw new Error("classify 'typesafe' needs a TypeSafe client");
+    }
+    try {
+      const classified = await typesafeQuestionKind(
+        instance.question,
+        options.classifyNouls,
+        options.classifyThreshold === undefined
+          ? {}
+          : { threshold: options.classifyThreshold },
+      );
+      kind = classified.kind;
+      kindSource = 'typesafe';
+      classifyCached = classified.cached;
+      if (!classified.cached) classifyTokens = classified.inputTokens;
+    } catch {
+      // a classification failure must not fail the question: the text rules are the fallback
+      kindSource = 'typesafe-fallback';
+    }
+  }
+  // 'label' routes as before and records nothing, so its observations stay byte-identical
+  const questionKind: LongMemEvalQuestionKind | undefined =
+    classify === 'label'
+      ? undefined
+      : {
+          ...kind,
+          source: kindSource,
+          ...(classify === 'typesafe'
+            ? { inputTokens: classifyTokens, cached: classifyCached }
+            : {}),
+        };
   const topK = options.topK ?? DEFAULT_LONGMEMEVAL_ANSWER_TOP_K;
-  const effectiveTopK =
-    instance.question_type === 'multi-session'
-      ? (options.multiSessionTopK ?? DEFAULT_LONGMEMEVAL_MULTI_SESSION_TOP_K)
-      : instance.question_type === 'temporal-reasoning'
-        ? (options.temporalTopK ?? DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K)
-        : topK;
+  const effectiveTopK = kind.aggregation
+    ? (options.multiSessionTopK ?? DEFAULT_LONGMEMEVAL_MULTI_SESSION_TOP_K)
+    : kind.temporal
+      ? (options.temporalTopK ?? DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K)
+      : topK;
   // turn-level retrieval can be routed by question type (temporal questions lose with it),
   // or by the question text alone
   if (
@@ -1227,12 +1334,16 @@ export async function evaluateLongMemEvalAnswerInstance(
       'turnUnitRule and turnUnitQuestionTypes are mutually exclusive',
     );
   }
+  // a classified run reads the unit off the same kind as the other four decisions, which is
+  // what --turn-unit-unless-temporal did on its own: it is implied by 'text' and 'typesafe'
   const turnUnit =
     options.retrievalUnit === 'turn' &&
-    (options.turnUnitRule === 'unless-temporal'
-      ? !isTemporalQuestion(instance.question)
-      : options.turnUnitQuestionTypes === undefined ||
-        options.turnUnitQuestionTypes.has(instance.question_type));
+    (classify !== 'label'
+      ? !kind.temporal
+      : options.turnUnitRule === 'unless-temporal'
+        ? !isTemporalQuestion(instance.question)
+        : options.turnUnitQuestionTypes === undefined ||
+          options.turnUnitQuestionTypes.has(instance.question_type));
   const contextBytes =
     options.contextBytes ?? DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES;
   validateOptions(effectiveTopK, contextBytes);
@@ -1257,10 +1368,7 @@ export async function evaluateLongMemEvalAnswerInstance(
   let judgeMs = 0;
   let retrievedSessionIds: string[] = [];
   let contextSessionIds: string[] = [];
-  const contextRoles =
-    instance.question_type === 'single-session-assistant'
-      ? ('all' as const)
-      : ('user' as const);
+  const contextRoles = kind.assistantRecall ? ('all' as const) : ('user' as const);
   let redactedRetrievedSessions = 0;
   let retrievalRoute: 'local' | 'semantic' = 'local';
   let embeddingModel: string | null = null;
@@ -1495,12 +1603,13 @@ export async function evaluateLongMemEvalAnswerInstance(
     if (options.memorySystem === undefined) {
       const snapshot = store.knowledgeSnapshot(['longmemeval']);
       const retrievalStarted = performance.now();
-      // time-aware: read a date range off the question before searching
+      // time-aware: read a date range off the question before searching. The gate is the
+      // question's temporal flag, unless a caller named the types itself
       if (
         options.temporalRangeExtractor !== undefined &&
-        (
-          options.temporalRangeQuestionTypes ?? new Set(['temporal-reasoning'])
-        ).has(instance.question_type)
+        (options.temporalRangeQuestionTypes === undefined
+          ? kind.temporal
+          : options.temporalRangeQuestionTypes.has(instance.question_type))
       ) {
         const completion = await options.temporalRangeExtractor.completeWithUsage(
           [
@@ -1985,9 +2094,12 @@ export async function evaluateLongMemEvalAnswerInstance(
       retrievalMs,
       topScore,
     );
-    const aggregationType = (
-      options.notesQuestionTypes ?? THINKING_TYPES
-    ).has(instance.question_type);
+    // the Notes-then-Answer reading (and the aggregation reader): a question whose answer has
+    // to be gathered, ordered in time, or taken from the latest of several values
+    const aggregationType =
+      options.notesQuestionTypes === undefined
+        ? kind.aggregation || kind.temporal || kind.update
+        : options.notesQuestionTypes.has(instance.question_type);
     const notes = options.readingStrategy === 'notes' && aggregationType;
     const twoCall = options.readingStrategy === 'two-call' && aggregationType;
     let engine: { query: string; rendered: string } | undefined;
@@ -2085,6 +2197,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       options.structuredEvidence === true,
       options.tiers,
       countedLine,
+      kind.preference,
     );
     contextSessionIds = [
       ...answerContext.contextSessionIds,
@@ -2135,6 +2248,7 @@ export async function evaluateLongMemEvalAnswerInstance(
         ...(memorySystem === undefined ? {} : { memorySystem }),
         ...(rerankStats === undefined ? {} : { rerank: rerankStats }),
         ...(countedItems === undefined ? {} : { countedItems }),
+        ...(questionKind === undefined ? {} : { questionKind }),
         formationMs,
         semanticPreparationMs,
         retrievalMs,
@@ -2225,6 +2339,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       ...(memorySystem === undefined ? {} : { memorySystem }),
       ...(rerankStats === undefined ? {} : { rerank: rerankStats }),
       ...(countedItems === undefined ? {} : { countedItems }),
+      ...(questionKind === undefined ? {} : { questionKind }),
       formationMs,
       semanticPreparationMs,
       retrievalMs,
@@ -2265,6 +2380,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       ...(memorySystem === undefined ? {} : { memorySystem }),
       ...(rerankStats === undefined ? {} : { rerank: rerankStats }),
       ...(countedItems === undefined ? {} : { countedItems }),
+      ...(questionKind === undefined ? {} : { questionKind }),
       formationMs,
       semanticPreparationMs,
       retrievalMs,
@@ -2330,6 +2446,7 @@ export function summarizeLongMemEvalAnswers(
   };
   let rerankUsage: (RerankStats & { costUsd: number }) | undefined;
   let countUsage: (CountStats & { costUsd: number }) | undefined;
+  let classifyUsage: LongMemEvalAnswerSummary['classifyUsage'] | undefined;
   for (const observation of observations) {
     if (observation.rerank !== undefined) {
       rerankUsage ??= {
@@ -2362,6 +2479,28 @@ export function summarizeLongMemEvalAnswers(
       countUsage.cached += observation.countedItems.cached;
       countUsage.inputTokens += observation.countedItems.inputTokens;
       countUsage.costUsd = typesafeCostUsd(countUsage.inputTokens);
+    }
+    if (observation.questionKind !== undefined) {
+      classifyUsage ??= {
+        questions: 0,
+        calls: 0,
+        cached: 0,
+        fallbacks: 0,
+        inputTokens: 0,
+        costUsd: 0,
+      };
+      const classified = observation.questionKind;
+      classifyUsage.questions += 1;
+      if (classified.source === 'typesafe') {
+        if (classified.cached === true) classifyUsage.cached += 1;
+        else {
+          classifyUsage.calls += 1;
+          classifyUsage.inputTokens += classified.inputTokens ?? 0;
+        }
+      } else if (classified.source === 'typesafe-fallback') {
+        classifyUsage.fallbacks += 1;
+      }
+      classifyUsage.costUsd = typesafeCostUsd(classifyUsage.inputTokens);
     }
     if (observation.readerUsage !== null)
       readerUsage = addLlmUsage(readerUsage, observation.readerUsage);
@@ -2527,6 +2666,7 @@ export function summarizeLongMemEvalAnswers(
     semanticPreparationUsage,
     ...(rerankUsage === undefined ? {} : { rerankUsage }),
     ...(countUsage === undefined ? {} : { countUsage }),
+    ...(classifyUsage === undefined ? {} : { classifyUsage }),
   };
 }
 

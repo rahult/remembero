@@ -49,6 +49,10 @@ import {
   DEFAULT_COUNT_MAX,
   DEFAULT_COUNT_THRESHOLD,
 } from './typesafe-count.js';
+import {
+  DEFAULT_QUESTION_KIND_THRESHOLD,
+  type QuestionClassification,
+} from '../knowledge/question-kind.js';
 import { DEFAULT_ABSTRACT_BYTES, tiersFromFlags } from './reader-contract.js';
 import {
   assertBuiltinMemorySystemScope,
@@ -129,6 +133,11 @@ interface Args {
   typesafeCount: boolean;
   typesafeCountMax: number;
   typesafeCountThreshold: number;
+  classify: QuestionClassification;
+  classifyModel: string;
+  classifyKeyEnv: string;
+  classifyConcurrency: number;
+  classifyThreshold: number;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -267,6 +276,23 @@ Options:
                          ${DEFAULT_COUNT_MAX}); the highest question overlap is kept
   --typesafe-count-threshold <p>  Noul a candidate must reach to be counted, 0-1 (default
                          ${DEFAULT_COUNT_THRESHOLD})
+  --classify <label|text|typesafe>  Where the five answering decisions come from: retrieval
+                         depth, whether the time-range model runs, whether the Notes-then-Answer
+                         reading applies, the personalisation system prompt, and whether
+                         assistant turns reach the reader. label (default): the dataset's
+                         question_type, which a deployed system never has; text: the question
+                         itself, by the rules in knowledge/question-kind.ts, no model;
+                         typesafe: one TypeSafe request per question carrying five nouls
+                         (docs.typesafe.ai), falling back to the text rules if it fails. text
+                         and typesafe imply --turn-unit-unless-temporal, and only they give a
+                         label-free score. The judge keeps the label: grading is evaluation
+  --classify-model <id>  TypeSafe model for --classify typesafe (default ${DEFAULT_TYPESAFE_MODEL})
+  --classify-key-env <name>  Environment variable holding its key (default
+                         ${DEFAULT_RERANK_KEY_ENV}); the key is never taken from a flag
+  --classify-concurrency <n>  Classification requests in flight, 1-64 (default
+                         ${DEFAULT_RERANK_CONCURRENCY})
+  --classify-threshold <p>  Noul a flag must reach to be set, 0-1 (default
+                         ${DEFAULT_QUESTION_KIND_THRESHOLD})
   --json                 Print the complete run instead of its summary
 
 Every observation records evidenceCoverage {sessionsInContext, sessionsTotal, turnsInContext,
@@ -369,6 +395,11 @@ export function parseArgs(argv: string[]): Args {
     typesafeCount: false,
     typesafeCountMax: DEFAULT_COUNT_MAX,
     typesafeCountThreshold: DEFAULT_COUNT_THRESHOLD,
+    classify: 'label',
+    classifyModel: DEFAULT_TYPESAFE_MODEL,
+    classifyKeyEnv: DEFAULT_RERANK_KEY_ENV,
+    classifyConcurrency: DEFAULT_RERANK_CONCURRENCY,
+    classifyThreshold: DEFAULT_QUESTION_KIND_THRESHOLD,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -666,6 +697,33 @@ export function parseArgs(argv: string[]): Args {
         throw new Error(`${arg} needs a probability from 0 to 1`);
       }
       args.typesafeCountThreshold = parsed;
+    } else if (arg === '--classify') {
+      const value = requiredValue(argv, index++, arg);
+      if (value !== 'label' && value !== 'text' && value !== 'typesafe') {
+        throw new Error('--classify must be label, text or typesafe');
+      }
+      args.classify = value;
+    } else if (arg === '--classify-model') {
+      args.classifyModel = requiredValue(argv, index++, arg);
+    } else if (arg === '--classify-key-env') {
+      const value = requiredValue(argv, index++, arg);
+      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(value)) {
+        throw new Error('--classify-key-env needs an environment variable name');
+      }
+      args.classifyKeyEnv = value;
+    } else if (arg === '--classify-concurrency') {
+      args.classifyConcurrency = boundedInteger(
+        requiredValue(argv, index++, arg),
+        arg,
+        1,
+        64,
+      );
+    } else if (arg === '--classify-threshold') {
+      const parsed = Number(requiredValue(argv, index++, arg));
+      if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) {
+        throw new Error(`${arg} needs a probability from 0 to 1`);
+      }
+      args.classifyThreshold = parsed;
     } else if (arg === '--json') args.json = true;
     else if (arg === '--help' || arg === '-h') {
       console.log(USAGE);
@@ -688,6 +746,11 @@ export function parseArgs(argv: string[]): Args {
   ) {
     throw new Error(
       '--turn-unit-question-types needs --retrieval-unit turn: it picks which question types keep the turn unit',
+    );
+  }
+  if (args.classify !== 'label' && args.turnUnitQuestionTypes !== undefined) {
+    throw new Error(
+      '--classify text/typesafe already decides the retrieval unit from the question; it cannot be combined with --turn-unit-question-types',
     );
   }
   if (args.typesafeCount && args.memorySystem !== undefined) {
@@ -995,6 +1058,23 @@ async function main(): Promise<void> {
         limiter,
       });
   }
+  let classifyNouls: TypesafeNouls | undefined;
+  if (args.classify === 'typesafe') {
+    const classifyKey = process.env[args.classifyKeyEnv];
+    if (classifyKey === undefined || classifyKey.trim() === '') {
+      throw new Error(
+        `--classify typesafe needs a key in the environment variable ${args.classifyKeyEnv}`,
+      );
+    }
+    // its own limiter: one classification per question, ahead of everything else it decides
+    const limiter = createLimiter(args.classifyConcurrency);
+    classifyNouls = (state, questions) =>
+      typesafeNouls(state, questions, {
+        apiKey: classifyKey,
+        model: args.classifyModel,
+        limiter,
+      });
+  }
   let completed = 0;
   let observations: LongMemEvalAnswerObservation[];
   try {
@@ -1036,9 +1116,12 @@ async function main(): Promise<void> {
             ...(args.turnUnitQuestionTypes === undefined
               ? {}
               : { turnUnitQuestionTypes: args.turnUnitQuestionTypes }),
-            ...(args.turnUnitUnlessTemporal
+            ...(args.turnUnitUnlessTemporal && args.classify === 'label'
               ? { turnUnitRule: 'unless-temporal' as const }
               : {}),
+            classify: args.classify,
+            ...(classifyNouls === undefined ? {} : { classifyNouls }),
+            classifyThreshold: args.classifyThreshold,
             readingStrategy: args.readingStrategy,
             ...(args.readerMaxTokens === undefined
               ? {}
@@ -1190,6 +1273,13 @@ async function main(): Promise<void> {
       rerankModel: args.rerank === 'none' ? null : args.rerankModel,
       rerankKeyEnv: args.rerank === 'none' ? null : args.rerankKeyEnv,
       rerankConcurrency: args.rerank === 'none' ? null : args.rerankConcurrency,
+      classify: args.classify,
+      classifyModel: args.classify === 'typesafe' ? args.classifyModel : null,
+      classifyKeyEnv: args.classify === 'typesafe' ? args.classifyKeyEnv : null,
+      classifyConcurrency:
+        args.classify === 'typesafe' ? args.classifyConcurrency : null,
+      classifyThreshold:
+        args.classify === 'typesafe' ? args.classifyThreshold : null,
       typesafeCount: args.typesafeCount,
       typesafeCountMax: args.typesafeCount ? args.typesafeCountMax : null,
       typesafeCountThreshold: args.typesafeCount
@@ -1330,10 +1420,21 @@ async function main(): Promise<void> {
         `typesafe counted items (experimental): ${c.candidates} candidates, ${c.counted} counted, ${c.calls} requests, ${c.cached} cached; ${c.inputTokens} input tokens, est. $${c.costUsd.toFixed(6)} at $0.042/M`,
       );
     }
-    if (summary.rerankUsage !== undefined || summary.countUsage !== undefined) {
+    if (summary.classifyUsage !== undefined) {
+      const k = summary.classifyUsage;
+      console.log(
+        `question kind from ${args.classify}: ${k.questions} questions, ${k.calls} requests, ${k.cached} cached, ${k.fallbacks} fell back to the text rules; ${k.inputTokens} input tokens, est. $${k.costUsd.toFixed(6)} at $0.042/M`,
+      );
+    }
+    if (
+      summary.rerankUsage !== undefined ||
+      summary.countUsage !== undefined ||
+      summary.classifyUsage !== undefined
+    ) {
       const tokens =
         (summary.rerankUsage?.inputTokens ?? 0) +
-        (summary.countUsage?.inputTokens ?? 0);
+        (summary.countUsage?.inputTokens ?? 0) +
+        (summary.classifyUsage?.inputTokens ?? 0);
       console.log(
         `typesafe total: ${tokens} input tokens, est. $${typesafeCostUsd(tokens).toFixed(6)}`,
       );
