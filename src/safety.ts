@@ -5,9 +5,18 @@ export const REDACTED_SOURCE = '[sensitive source omitted]';
 /** What replaces one matched secret when only the span is hidden. */
 export const REDACTED_SPAN = '[redacted]';
 
+// Detecting a credential passed as an argument needs only the opening paren;
+// masking needs the arguments too, or the value survives in the clear.
+const SENSITIVE_CALL_PATTERN =
+  /\b(?:api[_ -]?key|password|passwd|secret|access[_ -]?token|refresh[_ -]?token|account[_ -]?number|credit[_ -]?card)\s*\(/i;
+const SENSITIVE_CALL_SPAN_PATTERN = new RegExp(
+  `${SENSITIVE_CALL_PATTERN.source}[^)]*\\)`,
+  SENSITIVE_CALL_PATTERN.flags,
+);
+
 const SENSITIVE_TEXT_PATTERNS = [
   /\b(?:api[_ -]?key|password|passwd|secret|access[_ -]?token|refresh[_ -]?token|account[_ -]?number|credit[_ -]?card)\b["']?\s*(?:is|=|:)\s*["']?\S+/i,
-  /\b(?:api[_ -]?key|password|passwd|secret|access[_ -]?token|refresh[_ -]?token|account[_ -]?number|credit[_ -]?card)\s*\(/i,
+  SENSITIVE_CALL_PATTERN,
   /\b(?:my|your|the)\s+(?:api[_ -]?key|password|passwd|secret|access[_ -]?token|refresh[_ -]?token)\s+(?=\S*[0-9._~+/=-])\S{6,}/i,
   /\b(?:bearer\s+)[a-z0-9._~+/=-]{8,}/i,
   /\b(?:sk|gh[pousr])[-_][a-z0-9_-]{8,}/i,
@@ -100,13 +109,20 @@ export function containsSensitiveText(value: string): boolean {
   );
 }
 
+/** A per-call global copy: a shared global regex would carry `lastIndex` between calls. */
+function globalCopy(pattern: RegExp): RegExp {
+  return pattern.flags.includes('g')
+    ? new RegExp(pattern.source, pattern.flags)
+    : new RegExp(pattern.source, `${pattern.flags}g`);
+}
+
 /**
  * Replace each sensitive span with `[redacted]` and keep the rest of the text.
  * `redactSensitiveText` throws the whole passage away, which is right for a fact's
  * source line; a stored conversation turn is mostly ordinary text, so the session
- * store masks the secret and keeps what is readable. Patterns run in declaration
- * order, so the assignment form ("api key = sk-...") consumes the bare token form
- * inside it and counts as one masked span.
+ * store masks the secret and keeps what is readable. The widest span goes first,
+ * so the call form takes its arguments with it and the assignment form
+ * ("api key = sk-...") consumes the bare token inside it: one masked span each.
  */
 export function maskSensitiveSpans(value: string): {
   text: string;
@@ -114,19 +130,16 @@ export function maskSensitiveSpans(value: string): {
 } {
   let text = value;
   let masked = 0;
-  for (const pattern of SENSITIVE_TEXT_PATTERNS) {
-    const flags = pattern.flags.includes('g')
-      ? pattern.flags
-      : `${pattern.flags}g`;
-    const global = new RegExp(pattern.source, flags);
-    text = text.replace(global, () => {
+  for (const pattern of [
+    SENSITIVE_CALL_SPAN_PATTERN,
+    ...SENSITIVE_TEXT_PATTERNS,
+  ]) {
+    text = text.replace(globalCopy(pattern), () => {
       masked += 1;
       return REDACTED_SPAN;
     });
   }
-  // A fresh regex per call: the shared constant carries `lastIndex` state.
-  const cards = new RegExp(CARD_CANDIDATE_PATTERN.source, 'g');
-  text = text.replace(cards, (candidate) => {
+  text = text.replace(globalCopy(CARD_CANDIDATE_PATTERN), (candidate) => {
     const digits = candidate.replace(/[ -]/g, '');
     if (digits.length < 13 || digits.length > 19 || !luhnValid(digits)) {
       return candidate;

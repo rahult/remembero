@@ -1,8 +1,11 @@
 import { createHash, randomUUID } from 'node:crypto';
 import {
   appendFileSync,
+  closeSync,
   existsSync,
   mkdirSync,
+  openSync,
+  readSync,
   readdirSync,
   readFileSync,
   renameSync,
@@ -137,6 +140,23 @@ function maskTurnText(text: string): { text: string; masked: boolean } {
   return { text: spans.text, masked: spans.masked > 0 };
 }
 
+/**
+ * A crash mid-append can leave a line with no newline; appending straight after it
+ * would splice the next turn into the torn one and lose it too.
+ */
+function endsWithNewline(path: string): boolean {
+  const { size } = statSync(path);
+  if (size === 0) return true;
+  const handle = openSync(path, 'r');
+  try {
+    const tail = Buffer.alloc(1);
+    readSync(handle, tail, 0, 1, size - 1);
+    return tail[0] === 0x0a;
+  } finally {
+    closeSync(handle);
+  }
+}
+
 function byStartedAt(a: SessionIndexEntry, b: SessionIndexEntry): number {
   return (
     a.startedAt.localeCompare(b.startedAt) || a.key.localeCompare(b.key)
@@ -244,7 +264,9 @@ export class SessionStore {
     }
     if (lines.length > 0) {
       mkdirSync(dir, { recursive: true, mode: 0o700 });
-      appendFileSync(path, `${lines.join('\n')}\n`, {
+      const prefix =
+        existing !== undefined && !endsWithNewline(path) ? '\n' : '';
+      appendFileSync(path, `${prefix}${lines.join('\n')}\n`, {
         encoding: 'utf8',
         mode: 0o600,
       });

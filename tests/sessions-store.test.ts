@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { appendFileSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -114,6 +114,32 @@ describe('session store', () => {
     expect(owner.deleteNamespace('scratch')).toBe(2);
     expect(owner.list('scratch')).toEqual([]);
     expect(owner.deleteNamespace('scratch')).toBe(0);
+  });
+
+  it('appends on a clean line after a torn write', () => {
+    const root = mkdtempSync(join(tmpdir(), 'rembero-sessions-torn-'));
+    const logged: string[] = [];
+    const owner = new SessionStore({
+      root,
+      capBytes: 1024 * 1024,
+      log: (message) => logged.push(message),
+    });
+    owner.appendTurns('default', header, [
+      { role: 'user', ts: '2026-09-18T00:00:00.000Z', text: 'I bought a road bike' },
+    ]);
+    const key = owner.sessionKey('claude-code', 'abc');
+    const path = join(root, 'default', `${key}.jsonl`);
+    appendFileSync(path, '{"index":1,"role":"user","ts":"2026');
+    const result = owner.appendTurns('default', header, [
+      { role: 'user', ts: '2026-09-18T00:00:02.000Z', text: 'Rode 40 km today' },
+    ]);
+    expect(result.appended).toBe(1);
+    const session = owner.readSession('default', key)!;
+    expect(session.turns.map((t) => t.text)).toEqual([
+      'I bought a road bike',
+      'Rode 40 km today',
+    ]);
+    expect(logged.join('\n')).toContain('unreadable turn');
   });
 
   it('rejects a namespace that is not [a-z0-9_-]+', () => {

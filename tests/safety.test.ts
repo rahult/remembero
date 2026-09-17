@@ -79,6 +79,15 @@ describe('sensitive text detection', () => {
     expect(stamp.masked).toBe(0);
   });
 
+  it('masks the whole call when a credential is passed as an argument', () => {
+    const result = maskSensitiveSpans(
+      "password(user, 'ordinary-looking-value')."
+    );
+    expect(result.text).toBe('[redacted].');
+    expect(result.masked).toBe(1);
+    expect(containsSensitiveText(result.text)).toBe(false);
+  });
+
   it('masks an assigned credential and leaves nothing sensitive behind', () => {
     const result = maskSensitiveSpans('My password is correct-horse.');
     expect(result.masked).toBe(1);
