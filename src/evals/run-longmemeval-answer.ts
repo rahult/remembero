@@ -34,6 +34,16 @@ import {
   type LongMemEvalSplit,
 } from './longmemeval-semantic.js';
 import { mapConcurrent } from './map-concurrent.js';
+import {
+  DEFAULT_RERANK_CONCURRENCY,
+  DEFAULT_RERANK_KEY_ENV,
+  DEFAULT_RERANK_POOL,
+  DEFAULT_RERANK_SESSION_CHARS,
+  DEFAULT_TYPESAFE_MODEL,
+  createLimiter,
+  typesafeNouls,
+  type TypesafeNouls,
+} from './typesafe-rerank.js';
 import { DEFAULT_ABSTRACT_BYTES, tiersFromFlags } from './reader-contract.js';
 import {
   assertBuiltinMemorySystemScope,
@@ -105,6 +115,12 @@ interface Args {
   memorySystem: string | undefined;
   memoryLane: MemorySystemLane;
   retrievalOnly: boolean;
+  rerank: 'none' | 'typesafe';
+  rerankPool: number;
+  rerankSessionChars: number;
+  rerankModel: string;
+  rerankKeyEnv: string;
+  rerankConcurrency: number;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -215,6 +231,21 @@ Options:
                          contract flag, the reader and the judge are never called, and no reader
                          or judge model or key is needed. Observations get status
                          "retrieval-only" and correct null
+  --rerank <none|typesafe>  EXPERIMENTAL. typesafe: after lexical retrieval (and turn
+                         aggregation), the top --rerank-pool sessions are each judged by the
+                         TypeSafe System One API (https://docs.typesafe.ai) and re-ordered by
+                         0.7 x evidence + 0.3 x relevant; the rest keep their order after them,
+                         then the range ordering and top-k cut run as usual. A candidate that
+                         fails the external-LLM safety check is not sent (counted as blocked).
+                         Answers are cached under .cache/typesafe/. Default none
+  --rerank-pool <n>      Candidate sessions to judge, 1-100 (default ${DEFAULT_RERANK_POOL})
+  --rerank-session-chars <n>  Characters of turns sent per session, 500-100000 (default
+                         ${DEFAULT_RERANK_SESSION_CHARS}); whole turns, best question overlap first
+  --rerank-model <id>    TypeSafe model (default ${DEFAULT_TYPESAFE_MODEL})
+  --rerank-key-env <name>  Environment variable holding the TypeSafe key (default
+                         ${DEFAULT_RERANK_KEY_ENV}); the key is never taken from a flag
+  --rerank-concurrency <n>  TypeSafe requests in flight across the run, 1-64 (default
+                         ${DEFAULT_RERANK_CONCURRENCY}); the API allows 1200 requests/min
   --json                 Print the complete run instead of its summary
 
 Every observation records evidenceCoverage {sessionsInContext, sessionsTotal, turnsInContext,
@@ -308,6 +339,12 @@ export function parseArgs(argv: string[]): Args {
     memorySystem: undefined,
     memoryLane: 'retrieval',
     retrievalOnly: false,
+    rerank: 'none',
+    rerankPool: DEFAULT_RERANK_POOL,
+    rerankSessionChars: DEFAULT_RERANK_SESSION_CHARS,
+    rerankModel: DEFAULT_TYPESAFE_MODEL,
+    rerankKeyEnv: DEFAULT_RERANK_KEY_ENV,
+    rerankConcurrency: DEFAULT_RERANK_CONCURRENCY,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -555,6 +592,41 @@ export function parseArgs(argv: string[]): Args {
       args.memoryLane = value;
     } else if (arg === '--retrieval-only') {
       args.retrievalOnly = true;
+    } else if (arg === '--rerank') {
+      const value = requiredValue(argv, index++, arg);
+      if (value !== 'none' && value !== 'typesafe') {
+        throw new Error('--rerank must be none or typesafe');
+      }
+      args.rerank = value;
+    } else if (arg === '--rerank-pool') {
+      args.rerankPool = boundedInteger(
+        requiredValue(argv, index++, arg),
+        arg,
+        1,
+        100,
+      );
+    } else if (arg === '--rerank-session-chars') {
+      args.rerankSessionChars = boundedInteger(
+        requiredValue(argv, index++, arg),
+        arg,
+        500,
+        100_000,
+      );
+    } else if (arg === '--rerank-model') {
+      args.rerankModel = requiredValue(argv, index++, arg);
+    } else if (arg === '--rerank-key-env') {
+      const value = requiredValue(argv, index++, arg);
+      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(value)) {
+        throw new Error('--rerank-key-env needs an environment variable name');
+      }
+      args.rerankKeyEnv = value;
+    } else if (arg === '--rerank-concurrency') {
+      args.rerankConcurrency = boundedInteger(
+        requiredValue(argv, index++, arg),
+        arg,
+        1,
+        64,
+      );
     } else if (arg === '--json') args.json = true;
     else if (arg === '--help' || arg === '-h') {
       console.log(USAGE);
@@ -577,6 +649,11 @@ export function parseArgs(argv: string[]): Args {
   ) {
     throw new Error(
       '--turn-unit-question-types needs --retrieval-unit turn: it picks which question types keep the turn unit',
+    );
+  }
+  if (args.rerank !== 'none' && args.memorySystem !== undefined) {
+    throw new Error(
+      '--rerank re-orders Remembero\'s own retrieval; it cannot be combined with --memory-system',
     );
   }
   // the reader contract's rules: positive --full-sessions, --abstract-bytes 120-2048 and only
@@ -840,6 +917,23 @@ async function main(): Promise<void> {
               }),
           ),
         );
+  let rerankNouls: TypesafeNouls | undefined;
+  if (args.rerank === 'typesafe') {
+    const rerankKey = process.env[args.rerankKeyEnv];
+    if (rerankKey === undefined || rerankKey.trim() === '') {
+      throw new Error(
+        `--rerank typesafe needs a key in the environment variable ${args.rerankKeyEnv}`,
+      );
+    }
+    // one limiter for the whole run: every question's candidates share it
+    const limiter = createLimiter(args.rerankConcurrency);
+    rerankNouls = (state, questions) =>
+      typesafeNouls(state, questions, {
+        apiKey: rerankKey,
+        model: args.rerankModel,
+        limiter,
+      });
+  }
   let completed = 0;
   let observations: LongMemEvalAnswerObservation[];
   try {
@@ -916,6 +1010,15 @@ async function main(): Promise<void> {
                   },
                 }),
             retrievalOnly: args.retrievalOnly,
+            ...(rerankNouls === undefined
+              ? {}
+              : {
+                  rerank: {
+                    nouls: rerankNouls,
+                    pool: args.rerankPool,
+                    sessionChars: args.rerankSessionChars,
+                  },
+                }),
             ...(args.engineRecall
               ? {
                   engineRecall: {
@@ -1010,6 +1113,13 @@ async function main(): Promise<void> {
       judgeTemperature: args.judgeTemperature ?? DEFAULT_LLM_TEMPERATURE,
       memorySystem: args.memorySystem ?? null,
       retrievalOnly: args.retrievalOnly,
+      rerank: args.rerank,
+      rerankPool: args.rerank === 'none' ? null : args.rerankPool,
+      rerankSessionChars:
+        args.rerank === 'none' ? null : args.rerankSessionChars,
+      rerankModel: args.rerank === 'none' ? null : args.rerankModel,
+      rerankKeyEnv: args.rerank === 'none' ? null : args.rerankKeyEnv,
+      rerankConcurrency: args.rerank === 'none' ? null : args.rerankConcurrency,
       memoryLane: args.memorySystem === undefined ? null : args.memoryLane,
       // the memory system's own embedder, recorded here rather than in the top-level
       // embeddingModel: that field means Remembero's semantic route, which --local-only turns off
@@ -1133,6 +1243,12 @@ async function main(): Promise<void> {
     console.log(
       `embedding calls/tokens/cost: ${summary.embeddingUsage.calls} / ${summary.embeddingUsage.totalTokens} / $${summary.embeddingUsage.costUsd.toFixed(6)}`,
     );
+    if (summary.rerankUsage !== undefined) {
+      const r = summary.rerankUsage;
+      console.log(
+        `typesafe rerank (experimental): ${r.candidates} candidates, ${r.calls} requests, ${r.cached} cached, ${r.blocked} blocked; ${r.inputTokens} input tokens, est. $${r.costUsd.toFixed(6)} at $0.042/M`,
+      );
+    }
     console.log(
       `preparation calls/tokens/cost: ${summary.semanticPreparationUsage.calls} / ${summary.semanticPreparationUsage.totalTokens} / $${summary.semanticPreparationUsage.costUsd.toFixed(6)}`,
     );

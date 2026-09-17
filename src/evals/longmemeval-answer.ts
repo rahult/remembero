@@ -26,6 +26,14 @@ import {
 import { recallWords } from '../llm/schema.js';
 import { assertSafeForExternalLlm, redactSensitiveText } from '../safety.js';
 import {
+  DEFAULT_RERANK_POOL,
+  DEFAULT_RERANK_SESSION_CHARS,
+  rerankSessionOrder,
+  typesafeCostUsd,
+  type RerankStats,
+  type TypesafeNouls,
+} from './typesafe-rerank.js';
+import {
   searchKnowledge,
   type KnowledgeSearchResult,
 } from '../knowledge/search.js';
@@ -198,6 +206,8 @@ export interface LongMemEvalAnswerObservation {
   engineRecall?: LongMemEvalEngineRecall;
   /** Present when an external memory layer replaced Remembero's formation and search. */
   memorySystem?: MemorySystemObservation;
+  /** Present when the experimental TypeSafe re-rank ran for this question. */
+  rerank?: RerankStats;
   formationMs: number;
   semanticPreparationMs: number;
   retrievalMs: number;
@@ -266,6 +276,8 @@ export interface LongMemEvalAnswerSummary {
     costResponses: number;
     costUsd: number;
   };
+  /** Present when any observation ran the TypeSafe re-rank; cost at $0.042 per M input tokens. */
+  rerankUsage?: RerankStats & { costUsd: number };
 }
 
 export interface LongMemEvalAnswerRun {
@@ -321,6 +333,13 @@ export interface LongMemEvalAnswerRun {
     memorySystem?: string | null;
     /** The run stopped after building the reader's context: no reader, no judge. */
     retrievalOnly?: boolean;
+    /** Experimental re-rank of the lexical session list ('none' or 'typesafe'). */
+    rerank?: 'none' | 'typesafe';
+    rerankPool?: number | null;
+    rerankSessionChars?: number | null;
+    rerankModel?: string | null;
+    rerankKeyEnv?: string | null;
+    rerankConcurrency?: number | null;
     memoryLane?: MemorySystemLane | null;
     /**
      * The embedding model the memory system itself ran on (e.g. `builtin:embed`). Kept out of
@@ -1142,6 +1161,13 @@ export async function evaluateLongMemEvalAnswerInstance(
      * observation carries status 'retrieval-only' with correct null.
      */
     retrievalOnly?: boolean;
+    /**
+     * Experimental: after lexical retrieval (and turn aggregation), the first `pool` sessions
+     * are re-ranked by a per-session relevance judgment (see typesafe-rerank.ts), then the
+     * range ordering and top-k cut run as before. The lexical search fetches at least `pool`
+     * candidates; the order of the first ones it would have fetched anyway is unchanged.
+     */
+    rerank?: { nouls: TypesafeNouls; pool?: number; sessionChars?: number };
   } = {},
 ): Promise<LongMemEvalAnswerObservation> {
   // formation can be routed by question type: a type outside the set runs raw formation,
@@ -1226,6 +1252,8 @@ export async function evaluateLongMemEvalAnswerInstance(
   let temporalRangeUsage: LlmUsage | null = null;
   let engineRecall: LongMemEvalEngineRecall | undefined;
   let memorySystem: MemorySystemObservation | undefined;
+  let rerankStats: RerankStats | undefined;
+  const rerankPool = options.rerank?.pool ?? DEFAULT_RERANK_POOL;
   try {
     const store = new MemoryStore(root);
     const formationStarted = performance.now();
@@ -1490,25 +1518,35 @@ export async function evaluateLongMemEvalAnswerInstance(
       const factClauses = reserved
         ? snapshot.clauses.filter((c) => !isPlaceholder(c))
         : [];
+      // extracted formations hold several facts per session; fetch more so top-k
+      // still counts distinct sessions after de-duplication below
+      const baseLimit = Math.min(
+        100,
+        Math.max(
+          // a range needs candidates beyond top-k to promote from
+          temporalRange ? effectiveTopK * 4 : 0,
+          turnUnit
+            ? effectiveTopK * 6
+            : formation === 'raw' || reserved || keyed
+              ? effectiveTopK
+              : effectiveTopK * 8,
+        ),
+      );
+      // the re-rank needs a pool of sessions; the turn unit needs several turns per session.
+      // The search order is deterministic, so the first baseLimit results are the same ones
+      const searchLimit =
+        options.rerank === undefined
+          ? baseLimit
+          : Math.min(
+              100,
+              Math.max(baseLimit, turnUnit ? rerankPool * 4 : rerankPool),
+            );
       const lexical = searchKnowledge(
         rawClauses,
         instance.question,
         snapshot.sources,
         {
-          // extracted formations hold several facts per session; fetch more so top-k
-          // still counts distinct sessions after de-duplication below
-          limit: Math.min(
-            100,
-            Math.max(
-              // a range needs candidates beyond top-k to promote from
-              temporalRange ? effectiveTopK * 4 : 0,
-              turnUnit
-                ? effectiveTopK * 6
-                : formation === 'raw' || reserved || keyed
-                  ? effectiveTopK
-                  : effectiveTopK * 8,
-            ),
-          ),
+          limit: searchLimit,
           minimumScore: 1,
           kinds: ['fact'],
           sourceCharacterLimit: LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS,
@@ -1582,7 +1620,11 @@ export async function evaluateLongMemEvalAnswerInstance(
       );
       // extracted facts that matched, grouped by session, minus the placeholder plumbing
       const matchedFacts = new Map<string, string[]>();
-      for (const result of search.results) {
+      // only the results a plain run would have fetched: the re-rank's extra depth must not
+      // change which facts ride along with a session
+      const baseResults =
+        search === lexical ? search.results.slice(0, baseLimit) : search.results;
+      for (const result of baseResults) {
         const source = result.sources[0];
         if (
           source === undefined ||
@@ -1625,33 +1667,82 @@ export async function evaluateLongMemEvalAnswerInstance(
               },
             ];
       });
+      // the experimental re-rank: a stable reorder of the session list, so the range
+      // ordering after it (a stable partition) keeps the re-ranked order inside each group
+      const rerank = options.rerank;
+      const rerankOrder = async <T>(
+        items: T[],
+        sessionOf: (item: T) => string,
+      ): Promise<T[]> => {
+        if (rerank === undefined) return items;
+        const rerankStarted = performance.now();
+        const result = await rerankSessionOrder(items.map(sessionOf), {
+          question: instance.question,
+          questionDate: instance.question_date,
+          pool: rerankPool,
+          sessionChars: rerank.sessionChars ?? DEFAULT_RERANK_SESSION_CHARS,
+          contextRoles,
+          sessionFor: (sessionId) => {
+            const index = instance.haystack_session_ids.indexOf(sessionId);
+            return index < 0
+              ? undefined
+              : {
+                  date: instance.haystack_dates[index]!,
+                  turns: instance.haystack_sessions[index]!,
+                };
+          },
+          nouls: rerank.nouls,
+        });
+        rerankStats = result.stats;
+        // the judgments are part of this question's retrieval time
+        retrievalMs += performance.now() - rerankStarted;
+        const bySession = new Map(items.map((item) => [sessionOf(item), item]));
+        return result.order.map((sessionId) => bySession.get(sessionId)!);
+      };
       // one entry per session, best rank first, then the usual top-k
+      const uniqueSources = rankedSources.filter(({ opId }) => {
+        if (seenSessions.has(opId)) return false;
+        seenSessions.add(opId);
+        return true;
+      });
       const dedupedSources = rangeFirst(
-        rankedSources.filter(({ opId }) => {
-          if (seenSessions.has(opId)) return false;
-          seenSessions.add(opId);
-          return true;
-        }),
+        turnUnit
+          ? uniqueSources
+          : await rerankOrder(uniqueSources, ({ opId }) => opId),
       ).slice(0, effectiveTopK);
       if (turnUnit) {
         // aggregate matching turns to their sessions: sum of 1/log2(rank+1), whole session back
-        const sessionScore = new Map<string, number>();
-        search.results.forEach((result, position) => {
-          const source = result.sources[0];
-          if (source === undefined) return;
-          const session = sourceSessionIds.get(source.opId) ?? source.opId;
-          sessionScore.set(
-            session,
-            (sessionScore.get(session) ?? 0) + 1 / Math.log2(position + 2),
-          );
-        });
-        const ordered = rangeFirst(
-          [...sessionScore.entries()]
+        const aggregate = (results: typeof search.results) => {
+          const sessionScore = new Map<string, number>();
+          results.forEach((result, position) => {
+            const source = result.sources[0];
+            if (source === undefined) return;
+            const session = sourceSessionIds.get(source.opId) ?? source.opId;
+            sessionScore.set(
+              session,
+              (sessionScore.get(session) ?? 0) + 1 / Math.log2(position + 2),
+            );
+          });
+          return [...sessionScore.entries()]
             .sort((a, b) => b[1] - a[1])
-            .map(([session]) => ({
+            .map(([session]) => session);
+        };
+        let sessionOrder = aggregate(baseResults);
+        if (baseResults.length < search.results.length) {
+          // the re-rank's extra depth only appends sessions after the plain order
+          const known = new Set(sessionOrder);
+          sessionOrder = [
+            ...sessionOrder,
+            ...aggregate(search.results).filter((session) => !known.has(session)),
+          ];
+        }
+        const ordered = rangeFirst(
+          (await rerankOrder(sessionOrder, (session) => session)).map(
+            (session) => ({
               session,
               ts: sessionRecords.get(session)?.ts ?? '',
-            })),
+            }),
+          ),
         )
           .slice(0, effectiveTopK)
           .map(({ session }) => session);
@@ -1993,6 +2084,7 @@ export async function evaluateLongMemEvalAnswerInstance(
           : { temporalRange, temporalRangeUsage }),
         ...(engineRecall === undefined ? {} : { engineRecall }),
         ...(memorySystem === undefined ? {} : { memorySystem }),
+        ...(rerankStats === undefined ? {} : { rerank: rerankStats }),
         formationMs,
         semanticPreparationMs,
         retrievalMs,
@@ -2081,6 +2173,7 @@ export async function evaluateLongMemEvalAnswerInstance(
         : { temporalRange, temporalRangeUsage }),
       ...(engineRecall === undefined ? {} : { engineRecall }),
       ...(memorySystem === undefined ? {} : { memorySystem }),
+      ...(rerankStats === undefined ? {} : { rerank: rerankStats }),
       formationMs,
       semanticPreparationMs,
       retrievalMs,
@@ -2119,6 +2212,7 @@ export async function evaluateLongMemEvalAnswerInstance(
         : { temporalRange, temporalRangeUsage }),
       ...(engineRecall === undefined ? {} : { engineRecall }),
       ...(memorySystem === undefined ? {} : { memorySystem }),
+      ...(rerankStats === undefined ? {} : { rerank: rerankStats }),
       formationMs,
       semanticPreparationMs,
       retrievalMs,
@@ -2182,7 +2276,24 @@ export function summarizeLongMemEvalAnswers(
     costResponses: 0,
     costUsd: 0,
   };
+  let rerankUsage: (RerankStats & { costUsd: number }) | undefined;
   for (const observation of observations) {
+    if (observation.rerank !== undefined) {
+      rerankUsage ??= {
+        candidates: 0,
+        calls: 0,
+        cached: 0,
+        blocked: 0,
+        inputTokens: 0,
+        costUsd: 0,
+      };
+      rerankUsage.candidates += observation.rerank.candidates;
+      rerankUsage.calls += observation.rerank.calls;
+      rerankUsage.cached += observation.rerank.cached;
+      rerankUsage.blocked += observation.rerank.blocked;
+      rerankUsage.inputTokens += observation.rerank.inputTokens;
+      rerankUsage.costUsd = typesafeCostUsd(rerankUsage.inputTokens);
+    }
     if (observation.readerUsage !== null)
       readerUsage = addLlmUsage(readerUsage, observation.readerUsage);
     if (observation.judgeUsage !== null)
@@ -2345,6 +2456,7 @@ export function summarizeLongMemEvalAnswers(
     extractionUsage: { ...extractionTotals, ...extractionCounts },
     embeddingUsage,
     semanticPreparationUsage,
+    ...(rerankUsage === undefined ? {} : { rerankUsage }),
   };
 }
 
