@@ -198,3 +198,34 @@ describe('the question itself, seasons and anchored offsets', () => {
     expect(byExpr['two days after christmas']).toBe('2023-12-27');
   });
 });
+
+describe('rule 5: bugs from the v7 temporal misses', () => {
+  it('quotes the best-matching sentence for a date, not the last one said that day', () => {
+    // 2023-06-03 is a Saturday; both sentences are dated that day
+    const notes = buildComputedNotes('I received a gift last Saturday from whom?', '2023/06/07 (Wed) 10:00', [
+      {
+        ts: '2023-06-03T10:00:00Z',
+        text: 'USER: By the way, I also got a lovely wool scarf from my uncle today.\n\nUSER: By the way, I repainted the bookshelf today, so it is ready for the books.',
+      },
+    ]);
+    expect(notes).toMatch(/closest dated event[^\n]*2023-06-03 \("[^"]*wool scarf/);
+  });
+
+  it('moves an assumed-year date back a year when a past-tense sentence would put it after the session', () => {
+    const past = resolveTemporalExpressions('USER: I have been busy, like the River Run I did on May 15th, and I would love to do more.', '2022-02-19T10:00:00Z');
+    expect(past.map((e) => e.iso)).toEqual(['2021-05-15']);
+    expect(past[0]?.yearRolledBack).toBe(true);
+    const already = resolveTemporalExpressions("USER: I'd like to learn about the charities I've already supported, like the River Run on May 15th.", '2022-02-19T10:00:00Z');
+    expect(already.map((e) => e.iso)).toEqual(['2021-05-15']);
+    const slash = resolveTemporalExpressions('USER: We have been busy since we started on 6/20.', '2023-05-29T10:00:00Z');
+    expect(slash.map((e) => e.iso)).toEqual(['2022-06-20']);
+  });
+
+  it('keeps an assumed-year date in the session year when the sentence is not past tense', () => {
+    const plain = resolveTemporalExpressions('USER: The River Run is on May 15th and I trained hard yesterday.', '2022-02-19T10:00:00Z');
+    expect(plain.map((e) => e.iso)).toContain('2022-05-15');
+    const tickets = resolveTemporalExpressions('USER: I bought tickets for the concert on May 15th.', '2022-02-19T10:00:00Z');
+    expect(tickets.map((e) => e.iso)).toEqual(['2022-05-15']);
+    expect(tickets[0]?.yearRolledBack).toBeUndefined();
+  });
+});
