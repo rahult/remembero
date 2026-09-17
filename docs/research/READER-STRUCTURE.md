@@ -511,6 +511,8 @@ exact contract the student learns from (`--date-distances --computed-notes --con
 | GLM 5.3 Flash (current teacher) | 87 | 217 | Ollama Cloud subscription |
 | Kimi K3 (`moonshotai/kimi-k3`, temperature 1) | 89 | 215 (1 error) | $3 / $15 |
 | GPT-5.6 Sol (`openai/gpt-5.6-sol`) | 82 | not run | $2 / $10 |
+| GLM 5.3 (`glm-5.3:cloud`, the full model) | 84 | 214 (2 errors) | Ollama Cloud subscription |
+| Claude Fable 5.1 (`anthropic/claude-fable-5.1`) | not run | not run | $10 / $50 |
 
 K3 ties GLM: on the 266 it gains 8 answers and loses 10 against GLM, and the per-type totals
 are identical on multi-session (100) and two lower on temporal. Sol falls five below GLM on the
@@ -519,6 +521,8 @@ search cost $5.80 of OpenRouter credit; K3 measured at about $0.008 a question, 
 estimate from list prices, because the reader prompts are short and its answers terse. Moonshot's
 own API allows this account one concurrent request, which is not enough for an evaluation, let
 alone a distillation round.
+
+GLM 5.3, the full model behind Flash, is no better either: three below Flash on the subset and three below on the 266 (7 gained, 10 lost, two errors). Claude Fable 5.1 was priced but not run: at $10 / $50 per million tokens the subset alone would cost about $7 to $11, and a distillation round from it several hundred dollars.
 
 **The teacher is not the bottleneck.** Three frontier-class readers land within noise of one
 another on these questions, and the free one is among the best. What they share is the
