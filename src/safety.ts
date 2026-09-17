@@ -2,6 +2,8 @@ export const MAX_INPUT_BYTES = 64 * 1024;
 export const MAX_OUTPUT_BYTES = 16 * 1024 * 1024;
 export const MAX_NAMESPACE_COUNT = 32;
 export const REDACTED_SOURCE = '[sensitive source omitted]';
+/** What replaces one matched secret when only the span is hidden. */
+export const REDACTED_SPAN = '[redacted]';
 
 const SENSITIVE_TEXT_PATTERNS = [
   /\b(?:api[_ -]?key|password|passwd|secret|access[_ -]?token|refresh[_ -]?token|account[_ -]?number|credit[_ -]?card)\b["']?\s*(?:is|=|:)\s*["']?\S+/i,
@@ -96,6 +98,43 @@ export function containsSensitiveText(value: string): boolean {
     SENSITIVE_TEXT_PATTERNS.some((pattern) => pattern.test(value)) ||
     containsCardNumber(value)
   );
+}
+
+/**
+ * Replace each sensitive span with `[redacted]` and keep the rest of the text.
+ * `redactSensitiveText` throws the whole passage away, which is right for a fact's
+ * source line; a stored conversation turn is mostly ordinary text, so the session
+ * store masks the secret and keeps what is readable. Patterns run in declaration
+ * order, so the assignment form ("api key = sk-...") consumes the bare token form
+ * inside it and counts as one masked span.
+ */
+export function maskSensitiveSpans(value: string): {
+  text: string;
+  masked: number;
+} {
+  let text = value;
+  let masked = 0;
+  for (const pattern of SENSITIVE_TEXT_PATTERNS) {
+    const flags = pattern.flags.includes('g')
+      ? pattern.flags
+      : `${pattern.flags}g`;
+    const global = new RegExp(pattern.source, flags);
+    text = text.replace(global, () => {
+      masked += 1;
+      return REDACTED_SPAN;
+    });
+  }
+  // A fresh regex per call: the shared constant carries `lastIndex` state.
+  const cards = new RegExp(CARD_CANDIDATE_PATTERN.source, 'g');
+  text = text.replace(cards, (candidate) => {
+    const digits = candidate.replace(/[ -]/g, '');
+    if (digits.length < 13 || digits.length > 19 || !luhnValid(digits)) {
+      return candidate;
+    }
+    masked += 1;
+    return REDACTED_SPAN;
+  });
+  return { text, masked };
 }
 
 export function redactSensitiveText(value: string): { text: string; redacted: boolean } {

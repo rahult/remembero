@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   REDACTED_SOURCE,
   containsSensitiveText,
+  maskSensitiveSpans,
   normalizeUnicodeScalarText,
   redactSensitiveText,
 } from '../src/safety.js';
@@ -49,6 +50,39 @@ describe('sensitive text detection', () => {
     ]) {
       expect(containsSensitiveText(text)).toBe(false);
     }
+  });
+
+  it('keeps the readable half of a turn and hides the secret', () => {
+    const result = maskSensitiveSpans(
+      'I set my api key = sk-abc123456789 for the deploy'
+    );
+    expect(result.masked).toBe(1);
+    expect(result.text).toBe('I set my [redacted] for the deploy');
+    expect(containsSensitiveText(result.text)).toBe(false);
+  });
+
+  it('leaves ordinary text alone', () => {
+    expect(maskSensitiveSpans('I rode 40 km on the new bike')).toEqual({
+      text: 'I rode 40 km on the new bike',
+      masked: 0,
+    });
+  });
+
+  it('masks a Luhn-valid card run but not a long digit run', () => {
+    expect(
+      maskSensitiveSpans('The card number is 4111 1111 1111 1111.')
+    ).toEqual({
+      text: 'The card number is [redacted].',
+      masked: 1,
+    });
+    const stamp = maskSensitiveSpans('The deploy finished at 1756518000000.');
+    expect(stamp.masked).toBe(0);
+  });
+
+  it('masks an assigned credential and leaves nothing sensitive behind', () => {
+    const result = maskSensitiveSpans('My password is correct-horse.');
+    expect(result.masked).toBe(1);
+    expect(containsSensitiveText(result.text)).toBe(false);
   });
 
   it('preserves valid Unicode and replaces only lone surrogate code units', () => {
