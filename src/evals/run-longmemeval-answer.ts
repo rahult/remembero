@@ -76,6 +76,7 @@ interface Args {
   hybridRetrieval: 'shared' | 'reserved' | 'keyed';
   retrievalUnit: 'session' | 'turn';
   turnUnitQuestionTypes?: Set<string>;
+  turnUnitUnlessTemporal: boolean;
   hybridQuestionTypes: Set<string> | undefined;
   reservedMinimumScore: number | undefined;
   entityRetrieval: boolean;
@@ -129,6 +130,9 @@ Options:
                          separately and aggregated to sessions; whole sessions still come back
   --turn-unit-question-types <csv>  With --retrieval-unit turn: only these question types use
                          the turn unit, the rest retrieve by session (default: every type)
+  --turn-unit-unless-temporal  With --retrieval-unit turn: questions whose text reads as temporal
+                         (knowledge/temporal-question.ts, no label, no model) retrieve by session,
+                         the rest by turn. Excludes --turn-unit-question-types
   --hybrid-question-types <csv>  Use the extractor only for these question types; others run raw
                          (and make no extraction calls)
   --reserved-min-score <n>  reserved only: minimum lexical score for an appended fact (default 1)
@@ -275,6 +279,7 @@ export function parseArgs(argv: string[]): Args {
     factsInContext: true,
     hybridRetrieval: 'shared',
     retrievalUnit: 'session',
+    turnUnitUnlessTemporal: false,
     hybridQuestionTypes: undefined,
     reservedMinimumScore: undefined,
     entityRetrieval: false,
@@ -457,6 +462,8 @@ export function parseArgs(argv: string[]): Args {
         }
       }
       args.turnUnitQuestionTypes = new Set(values);
+    } else if (arg === '--turn-unit-unless-temporal') {
+      args.turnUnitUnlessTemporal = true;
     } else if (arg === '--reader-base-url') {
       args.readerBaseUrl = requiredValue(argv, index++, arg).replace(/\/$/, '');
     } else if (arg === '--reader-api-key') {
@@ -553,6 +560,16 @@ export function parseArgs(argv: string[]): Args {
       console.log(USAGE);
       process.exit(0);
     } else throw new Error(`unknown option: ${arg}`);
+  }
+  if (args.turnUnitUnlessTemporal && args.turnUnitQuestionTypes !== undefined) {
+    throw new Error(
+      '--turn-unit-unless-temporal and --turn-unit-question-types are mutually exclusive: both pick which questions keep the turn unit',
+    );
+  }
+  if (args.turnUnitUnlessTemporal && args.retrievalUnit !== 'turn') {
+    throw new Error(
+      '--turn-unit-unless-temporal needs --retrieval-unit turn: it picks which questions keep the turn unit',
+    );
   }
   if (
     args.turnUnitQuestionTypes !== undefined &&
@@ -864,6 +881,9 @@ async function main(): Promise<void> {
             ...(args.turnUnitQuestionTypes === undefined
               ? {}
               : { turnUnitQuestionTypes: args.turnUnitQuestionTypes }),
+            ...(args.turnUnitUnlessTemporal
+              ? { turnUnitRule: 'unless-temporal' as const }
+              : {}),
             readingStrategy: args.readingStrategy,
             ...(args.readerMaxTokens === undefined
               ? {}
@@ -966,6 +986,7 @@ async function main(): Promise<void> {
         args.turnUnitQuestionTypes === undefined
           ? null
           : [...args.turnUnitQuestionTypes],
+      turnUnitRule: args.turnUnitUnlessTemporal ? 'unless-temporal' : null,
       entityRetrieval: args.entityRetrieval,
       engineRecall: args.engineRecall,
       dateDistances: args.dateDistances,

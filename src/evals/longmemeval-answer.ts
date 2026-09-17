@@ -48,6 +48,7 @@ import {
   interleaveSessions,
 } from '../knowledge/entity-retrieval.js';
 import { MemoryStore } from '../store/store.js';
+import { isTemporalQuestion } from '../knowledge/temporal-question.js';
 import { THINKING_TYPES, type ContextTiers } from './reader-contract.js';
 import {
   longMemEvalSessionText,
@@ -298,6 +299,8 @@ export interface LongMemEvalAnswerRun {
     hybridRetrieval: 'shared' | 'reserved' | 'keyed';
     retrievalUnit: 'session' | 'turn';
     turnUnitQuestionTypes?: string[] | null;
+    /** 'unless-temporal': the turn unit except for questions the text reads as temporal. */
+    turnUnitRule?: 'unless-temporal' | null;
     entityRetrieval: boolean;
     engineRecall?: boolean;
     engineRecallQuestionTypes?: string[] | null;
@@ -1062,6 +1065,12 @@ export async function evaluateLongMemEvalAnswerInstance(
      */
     turnUnitQuestionTypes?: ReadonlySet<string>;
     /**
+     * With retrievalUnit 'turn', 'unless-temporal': questions the text-only detector
+     * (knowledge/temporal-question.ts) reads as temporal retrieve by session, the rest by turn.
+     * The label-free counterpart of turnUnitQuestionTypes; the two cannot be combined.
+     */
+    turnUnitRule?: 'unless-temporal';
+    /**
      * Time-aware retrieval (the paper's time-aware query expansion): a frontier model reads
      * the absolute date range a question refers to, given the question date, or refuses when
      * there is no time cue; sessions inside the range are ranked ahead of those outside.
@@ -1154,11 +1163,22 @@ export async function evaluateLongMemEvalAnswerInstance(
       : instance.question_type === 'temporal-reasoning'
         ? (options.temporalTopK ?? DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K)
         : topK;
-  // turn-level retrieval can be routed by question type (temporal questions lose with it)
+  // turn-level retrieval can be routed by question type (temporal questions lose with it),
+  // or by the question text alone
+  if (
+    options.turnUnitRule !== undefined &&
+    options.turnUnitQuestionTypes !== undefined
+  ) {
+    throw new Error(
+      'turnUnitRule and turnUnitQuestionTypes are mutually exclusive',
+    );
+  }
   const turnUnit =
     options.retrievalUnit === 'turn' &&
-    (options.turnUnitQuestionTypes === undefined ||
-      options.turnUnitQuestionTypes.has(instance.question_type));
+    (options.turnUnitRule === 'unless-temporal'
+      ? !isTemporalQuestion(instance.question)
+      : options.turnUnitQuestionTypes === undefined ||
+        options.turnUnitQuestionTypes.has(instance.question_type));
   const contextBytes =
     options.contextBytes ?? DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES;
   validateOptions(effectiveTopK, contextBytes);

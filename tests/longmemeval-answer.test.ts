@@ -1574,3 +1574,109 @@ describe('turn-level retrieval routed by question type', () => {
     ).toThrow(/unknown question type "multi-sesion"/);
   });
 });
+
+describe('turn-level retrieval unless the question is temporal', () => {
+  // same separating fixture as above: the session unit returns 'dense', the turn unit 'spread'
+  const fixture = (question: string, questionType: string) =>
+    instance({
+      question_type: questionType,
+      question,
+      haystack_session_ids: ['dense', 'spread'],
+      haystack_dates: ['2024/01/01 (Mon) 09:00', '2024/01/02 (Tue) 09:00'],
+      haystack_sessions: [
+        [{ role: 'user', content: 'marathon marathon marathon marathon run' }],
+        [
+          {
+            role: 'user',
+            content:
+              'I ran the Berlin marathon after weeks of long training runs, early mornings, careful nutrition planning and lots of stretching.',
+            has_answer: true,
+          },
+          {
+            role: 'assistant',
+            content:
+              'A marathon in Berlin is fast and flat; many runners set personal records there because of the weather and the course.',
+          },
+          {
+            role: 'user',
+            content:
+              'The marathon expo was crowded, the shuttle buses were late, and the hotel breakfast was cold but the city was lovely.',
+          },
+          {
+            role: 'assistant',
+            content:
+              'Marathon weekends are busy everywhere; booking accommodation early and arriving a day ahead usually helps a lot.',
+          },
+        ],
+      ],
+      answer_session_ids: ['spread'],
+    });
+
+  const retrieved = async (
+    question: string,
+    questionType: string,
+    options: {
+      retrievalUnit?: 'session' | 'turn';
+      turnUnitRule?: 'unless-temporal';
+    },
+  ) => {
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      fixture(question, questionType),
+      new ScriptedCompletionClient('reader', ['Berlin']),
+      new ScriptedCompletionClient('judge', ['yes']),
+      { topK: 1, contextBytes: 4_096, formation: 'raw', ...options },
+    );
+    return observation.retrievedSessionIds;
+  };
+
+  it('picks the unit from the question text, not the label', async () => {
+    const temporal = 'How many days ago did I run the marathon?';
+    const plain = 'Which marathon did I run?';
+    // the label is deliberately wrong both ways: only the text decides
+    expect(
+      await retrieved(temporal, 'multi-session', {
+        retrievalUnit: 'turn',
+        turnUnitRule: 'unless-temporal',
+      }),
+    ).toEqual(
+      await retrieved(temporal, 'multi-session', { retrievalUnit: 'session' }),
+    );
+    expect(
+      await retrieved(plain, 'temporal-reasoning', {
+        retrievalUnit: 'turn',
+        turnUnitRule: 'unless-temporal',
+      }),
+    ).toEqual(
+      await retrieved(plain, 'temporal-reasoning', { retrievalUnit: 'turn' }),
+    );
+    expect(
+      await retrieved(plain, 'temporal-reasoning', { retrievalUnit: 'turn' }),
+    ).not.toEqual(
+      await retrieved(plain, 'temporal-reasoning', { retrievalUnit: 'session' }),
+    );
+  });
+
+  it('the runner parses the flag, needs the turn unit and excludes the type list', () => {
+    const args = parseArgs([
+      '--retrieval-unit',
+      'turn',
+      '--turn-unit-unless-temporal',
+    ]);
+    expect(args.turnUnitUnlessTemporal).toBe(true);
+    expect(parseArgs([]).turnUnitUnlessTemporal).toBe(false);
+    expect(() => parseArgs(['--turn-unit-unless-temporal'])).toThrow(
+      /--turn-unit-unless-temporal needs --retrieval-unit turn/,
+    );
+    expect(() =>
+      parseArgs([
+        '--retrieval-unit',
+        'turn',
+        '--turn-unit-unless-temporal',
+        '--turn-unit-question-types',
+        'multi-session',
+      ]),
+    ).toThrow(
+      /--turn-unit-unless-temporal and --turn-unit-question-types are mutually exclusive/,
+    );
+  });
+});
