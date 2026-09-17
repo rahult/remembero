@@ -108,18 +108,54 @@ export function sessionsRoot(env: NodeJS.ProcessEnv = process.env): string {
  * sessions setting must cost the user their sessions, not `query`, `recall` and
  * `forget` as well. The failure is named on stderr and the caller proceeds with
  * no store, which is exactly the documented off state.
+ *
+ * `log` takes that note somewhere other than stderr. A caller that reports an
+ * unusable setting itself — `remembero sessions`, which refuses and says why —
+ * holds the note back rather than printing the same sentence twice.
  */
-export function sessionStoreFromEnv(): SessionStore | undefined {
+export function sessionStoreFromEnv(
+  options: { log?: (message: string) => void } = {},
+): SessionStore | undefined {
+  const log =
+    options.log ??
+    ((message: string) => {
+      process.stderr.write(`${message}\n`);
+    });
   try {
     return sessionsEnabledFromEnv() ? new SessionStore() : undefined;
   } catch (error) {
-    process.stderr.write(
+    log(
       `rembero sessions: keeping no sessions: ${
         error instanceof Error ? error.message : String(error)
-      }\n`,
+      }`,
     );
     return undefined;
   }
+}
+
+/**
+ * A store for the sessions already on disk, whether or not new ones are being
+ * kept.
+ *
+ * `sessionStoreFromEnv` hands back nothing both when `REMBERO_SESSIONS` is off and
+ * when it cannot be read, which is right for writing. Listing and forgetting are
+ * different: turning sessions off must not trap what is already stored beyond the
+ * user's reach, and deletion is the direction that has to keep working in exactly
+ * the state a privacy-minded user picks. So `off` and unset get a plain store here,
+ * and only a setting this build cannot read refuses — then nothing knows what the
+ * user asked for. Every surface that forgets sessions goes through this, so the CLI
+ * and the `forget_sessions` tool cannot drift apart.
+ */
+export function sessionStoreEvenIfOff(
+  configured?: SessionStore,
+): SessionStore {
+  if (configured !== undefined) return configured;
+  // Throws on a `REMBERO_SESSIONS` that is neither 'on' nor 'off'. A store the
+  // caller could not build while the setting says 'on' means
+  // `REMBERO_SESSION_CAP_BYTES` is the unreadable one, and the constructor throws
+  // naming that instead.
+  sessionsEnabledFromEnv();
+  return new SessionStore();
 }
 
 function assertNamespace(namespace: string): void {

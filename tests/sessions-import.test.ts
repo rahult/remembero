@@ -380,6 +380,8 @@ describe('remembero sessions CLI', () => {
 
     expect(bad.status).toBe(1);
     expect(bad.stderr).toMatch(/REMBERO_SESSIONS/);
+    // Once, not once from the store's note and again from the refusal.
+    expect(bad.stderr.match(/REMBERO_SESSIONS/g)).toHaveLength(1);
     expect(existsSync(join(root, 'home', 'sessions'))).toBe(false);
   });
 
@@ -393,7 +395,7 @@ describe('remembero sessions CLI', () => {
     ]) {
       const result = cli(argv, { REMBERO_SESSIONS: 'yes' });
       expect(result.status).toBe(1);
-      expect(result.stderr).toMatch(/REMBERO_SESSIONS/);
+      expect(result.stderr.match(/REMBERO_SESSIONS/g)).toHaveLength(1);
     }
     expect(existsSync(storedFile(key))).toBe(true);
   });

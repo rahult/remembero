@@ -1492,9 +1492,38 @@ describe('forget_sessions', () => {
     startedAt: '2026-09-18T00:00:00.000Z',
   } as const;
 
-  const seededSessions = (): { sessions: SessionStore; key: string } => {
+  /** A sessions home the tool's own default store resolves to, never the user's. */
+  const seededHome = (): { home: string; sessions: SessionStore } => {
+    const home = mkdtempSync(join(tmpdir(), 'rembero-tools-sessions-home-'));
+    return { home, sessions: seededSessions(join(home, 'sessions')).sessions };
+  };
+
+  const withEnv = (
+    env: Record<string, string | undefined>,
+    run: () => void,
+  ): void => {
+    const previous = Object.keys(env).map(
+      (name) => [name, process.env[name]] as const,
+    );
+    const apply = (entries: readonly (readonly [string, string | undefined])[]) => {
+      for (const [name, value] of entries) {
+        if (value === undefined) delete process.env[name];
+        else process.env[name] = value;
+      }
+    };
+    apply(Object.entries(env));
+    try {
+      run();
+    } finally {
+      apply(previous);
+    }
+  };
+
+  const seededSessions = (
+    root = mkdtempSync(join(tmpdir(), 'rembero-tools-sessions-')),
+  ): { sessions: SessionStore; key: string } => {
     const sessions = new SessionStore({
-      root: mkdtempSync(join(tmpdir(), 'rembero-tools-sessions-')),
+      root,
       capBytes: 1024 * 1024,
     });
     sessions.appendTurns('scratch', session, [
@@ -1557,7 +1586,40 @@ describe('forget_sessions', () => {
     expect(sessions.list('scratch')).toHaveLength(2);
   });
 
-  it('names the setting when no session store is configured', () => {
-    expect(() => forgetSessionsTool({}, { all: true })).toThrow(/REMBERO_SESSIONS/);
+  it('still forgets what is on disk when sessions are off', () => {
+    // The CLI's `sessions forget` works in this state, and one operation must not
+    // depend on which surface asked for it: a user who turned sessions off keeps
+    // the ability to delete what was stored while they were on.
+    const { home, sessions } = seededHome();
+
+    withEnv({ REMBERO_HOME: home, REMBERO_SESSIONS: 'off' }, () => {
+      expect(
+        forgetSessionsTool({}, { namespace: 'scratch', all: true }),
+      ).toEqual({ deleted: 2 });
+    });
+    expect(sessions.list('scratch')).toEqual([]);
+  });
+
+  it('still forgets one session by key with the setting unset', () => {
+    const { home, sessions } = seededHome();
+    const key = sessions.sessionKey('import', 'past-chat');
+
+    withEnv({ REMBERO_HOME: home, REMBERO_SESSIONS: undefined }, () => {
+      expect(forgetSessionsTool({}, { namespace: 'scratch', key })).toEqual({
+        deleted: 1,
+      });
+    });
+    expect(sessions.list('scratch')).toHaveLength(1);
+  });
+
+  it('refuses, naming the setting, when the setting cannot be read', () => {
+    const { home, sessions } = seededHome();
+
+    withEnv({ REMBERO_HOME: home, REMBERO_SESSIONS: 'yes' }, () => {
+      expect(() =>
+        forgetSessionsTool({}, { namespace: 'scratch', all: true }),
+      ).toThrow(/REMBERO_SESSIONS/);
+    });
+    expect(sessions.list('scratch')).toHaveLength(2);
   });
 });

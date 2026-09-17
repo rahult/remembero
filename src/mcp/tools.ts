@@ -30,7 +30,10 @@ import type {
   SupersedeResult,
 } from '../store/store.js';
 import type { Clause } from '../engine/index.js';
-import type { SessionStore } from '../sessions/store.js';
+import {
+  sessionStoreEvenIfOff,
+  type SessionStore,
+} from '../sessions/store.js';
 import {
   explainKnowledge,
   type ExplainKnowledgeResult,
@@ -1439,17 +1442,18 @@ export interface SessionToolDeps {
  * `all` is explicit rather than implied by a missing key: a call that names
  * neither is a mistake, and answering it by deleting the whole namespace would be
  * the worst possible reading of it.
+ *
+ * With no store in `deps` — `REMBERO_SESSIONS` off, unset, or unreadable — this
+ * goes through `sessionStoreEvenIfOff`, the same resolution `remembero sessions
+ * forget` uses: one operation must not behave differently depending on which
+ * surface asked for it, and a user who has turned sessions off still gets to
+ * delete what is on disk.
  */
 export function forgetSessionsTool(
   deps: SessionToolDeps,
   args: { namespace?: string; key?: string; all?: boolean },
 ): { deleted: number } {
-  const sessions = deps.sessions;
-  if (sessions === undefined) {
-    throw new Error(
-      'no conversation sessions are kept; set REMBERO_SESSIONS=on to keep and forget them',
-    );
-  }
+  const sessions = sessionStoreEvenIfOff(deps.sessions);
   const namespace = args.namespace ?? deps.defaultNamespace ?? 'default';
   const all = args.all === true;
   if (all && args.key !== undefined) {

@@ -32,7 +32,11 @@ import {
   sessionsEnabledFromEnv,
   validTimeModeFromEnv,
 } from './env.js';
-import { SessionStore, sessionStoreFromEnv } from './sessions/store.js';
+import {
+  sessionStoreEvenIfOff,
+  sessionStoreFromEnv,
+  type SessionStore,
+} from './sessions/store.js';
 import { importClaudeTranscript } from './sessions/import.js';
 import { clientFromEnv, lazyClientFromEnv } from './llm/client.js';
 import {
@@ -1126,28 +1130,28 @@ const SESSIONS_SUBCOMMANDS = ['import', 'list', 'forget'] as const;
 /**
  * The store one `sessions` subcommand works on.
  *
- * `sessionStoreFromEnv` reports both `REMBERO_SESSIONS=off` and a setting this
- * build cannot read as no store at all, which is right for capture — but reading
- * and deleting what is already on disk has to keep working in exactly the state a
- * privacy-minded user chooses. So `off` still lists and forgets, from the default
- * store, and only `import` insists on `on`: writing a past conversation to disk is
- * what the setting consents to. A malformed setting still refuses everything,
- * naming itself, because then nothing here knows what the user asked for.
+ * `list` and `forget` reach what is already on disk however the setting stands, so
+ * they take `sessionStoreEvenIfOff` — the same resolution the `forget_sessions`
+ * tool uses. Only `import` insists on `on`: writing a past conversation to disk is
+ * what the setting consents to.
  */
 function sessionsCommandStore(
   subcommand: string,
   configured: SessionStore | undefined,
 ): SessionStore {
-  if (configured !== undefined) return configured;
-  // Throws on a `REMBERO_SESSIONS` that is neither 'on' nor 'off'. A store still
-  // missing while the setting says 'on' means `REMBERO_SESSION_CAP_BYTES` is the
-  // unreadable one, and the constructor below throws naming that instead.
-  if (!sessionsEnabledFromEnv() && subcommand === 'import') {
+  if (
+    configured === undefined &&
+    subcommand === 'import' &&
+    // Throws on a `REMBERO_SESSIONS` that is neither 'on' nor 'off'; a store
+    // missing while it says 'on' means the cap is the unreadable setting, and
+    // `sessionStoreEvenIfOff` throws naming that instead.
+    !sessionsEnabledFromEnv()
+  ) {
     throw new Error(
       'sessions import needs REMBERO_SESSIONS=on; nothing was written',
     );
   }
-  return new SessionStore();
+  return sessionStoreEvenIfOff(configured);
 }
 
 /**
@@ -1277,7 +1281,19 @@ async function main(): Promise<void> {
   // Conversation text is stored only with REMBERO_SESSIONS=on; off, or a sessions
   // setting this build cannot read, means the dependency is absent and no command
   // has a store to write turns to.
-  const sessions = sessionStoreFromEnv();
+  //
+  // Every other command reports an unreadable setting through this note and carries
+  // on. `sessions` refuses instead, saying the same thing in the error it throws, so
+  // the note is held back there rather than printed twice.
+  let sessionsNote: string | undefined;
+  const sessions = sessionStoreFromEnv({
+    log: (message: string) => {
+      sessionsNote = message;
+    },
+  });
+  if (sessionsNote !== undefined && command !== 'sessions') {
+    process.stderr.write(`${sessionsNote}\n`);
+  }
   const graphSelector = graphSelectorOption(args);
   const operationId = operationIdOption(args.opId);
   const recordedSequence =
