@@ -249,7 +249,7 @@ Options:
       --integrity-namespaces <a,b|*>  Knowledge view governed by write enforcement
       --entity-identity <mode>  Read projection: off (default) or canonical
       --trust <mode>        Writes: accepted/tentative; reads: accepted/include_tentative
-      --answer-mode <mode>  Recall phrasing: natural, deterministic, or evidence
+      --answer-mode <mode>  Recall answer: natural, deterministic, evidence, or sessions
       --related           Include local discovery evidence when recall cannot answer
       --related-limit <n> Maximum related matches (default: 20; max: ${MAX_KNOWLEDGE_SEARCH_LIMIT})
       --related-kind <kind> Related fact, rule, or constraint filter; repeatable
@@ -736,12 +736,13 @@ function recallAnswerModeOption(value: string | undefined): RecallAnswerMode {
   if (
     value === 'natural' ||
     value === 'deterministic' ||
-    value === 'evidence'
+    value === 'evidence' ||
+    value === 'sessions'
   ) {
     return value;
   }
   throw new Error(
-    "--answer-mode must be 'natural', 'deterministic', or 'evidence'",
+    "--answer-mode must be 'natural', 'deterministic', 'evidence', or 'sessions'",
   );
 }
 
@@ -1764,6 +1765,9 @@ async function main(): Promise<void> {
       const result = await recallQuestion(
         {
           store,
+          // --answer-mode sessions reads these; absent (REMBERO_SESSIONS off) it answers
+          // no_evidence and says so
+          sessions,
           llm: clientFromEnv(),
           selfAtom: selfAtomFromEnv(),
           extractionVocabulary: extractionVocabularyFromEnv(),
@@ -1802,6 +1806,7 @@ async function main(): Promise<void> {
       const result = await recallQuestion(
         {
           store,
+          sessions,
           llm: clientFromEnv(),
           selfAtom: selfAtomFromEnv(),
           extractionVocabulary: extractionVocabularyFromEnv(),

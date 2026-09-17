@@ -1418,6 +1418,49 @@ describe('CLI ingress limits', () => {
     );
   });
 
+  it('takes the sessions answer mode and says so when no conversations are kept', () => {
+    const root = mkdtempSync(join(tmpdir(), 'rembero-cli-sessions-mode-'));
+    const result = spawnSync(
+      process.execPath,
+      [
+        resolve('dist/cli.js'),
+        'recall',
+        'How many bikes do I own now?',
+        '--answer-mode',
+        'sessions',
+      ],
+      {
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          REMBERO_HOME: join(root, 'home'),
+          REMBERO_SESSIONS: 'off',
+          LLM_API_KEY: 'not-used-on-this-path',
+        },
+      },
+    );
+    expect(result.status).toBe(0);
+    // no reader and no query: the mode reaches the pipeline and short-circuits there
+    expect(result.stdout).toMatch(/REMBERO_SESSIONS is off/);
+    expect(result.stdout).toMatch(/status: no_evidence/);
+  });
+
+  it('names the sessions mode when the answer mode is unreadable', () => {
+    const root = mkdtempSync(join(tmpdir(), 'rembero-cli-answer-mode-bad-'));
+    const result = spawnSync(
+      process.execPath,
+      [resolve('dist/cli.js'), 'recall', 'anything', '--answer-mode', 'reading'],
+      {
+        encoding: 'utf8',
+        env: { ...process.env, REMBERO_HOME: join(root, 'home') },
+      },
+    );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toMatch(
+      /--answer-mode must be 'natural', 'deterministic', 'evidence', or 'sessions'/,
+    );
+  });
+
   it('queries an exact recorded snapshot without changing current knowledge', () => {
     const root = mkdtempSync(join(tmpdir(), 'rembero-cli-recorded-'));
     const home = join(root, 'home');

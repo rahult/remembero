@@ -11,6 +11,7 @@ import {
 import type { ChatMessage, LlmClient } from '../src/llm/client.js';
 import { MemoryStore } from '../src/store/store.js';
 import { SessionStore, type SessionSource } from '../src/sessions/store.js';
+import { MAX_OUTPUT_BYTES } from '../src/safety.js';
 
 const ASKED_AT = new Date('2024-03-01T09:00:00.000Z');
 
@@ -111,6 +112,7 @@ describe('the sessions answer mode', () => {
     expect(result.readerReply).toBeUndefined();
     expect(result.readerModel).toBe('reader-v7');
     const read = result.sessionsRead ?? [];
+    expect(read[0]?.namespace).toBe('default');
     expect(read[0]?.key).toBe(bikes);
     expect(read[0]?.date).toBe('2024-02-27');
     expect(read[0]?.excerpts.join(' ')).toContain('two bikes');
@@ -165,6 +167,56 @@ describe('the sessions answer mode', () => {
     );
     expect(result.status).toBe('unknown');
     expect(client.prompts).toHaveLength(1);
+  });
+
+  it('never passes a reply without an answer line off as an answer', async () => {
+    storeSession('bikes', '2024-02-27T09:00:00.000Z', [
+      { role: 'user', text: 'I now own two bikes after selling the old road bike.' },
+    ]);
+    // a reader cut off at maxTokens mid-notes, one that reached the marker and stopped,
+    // and one that said nothing at all
+    const truncated = [
+      'Notes:\n- 2024-02-27: the user mentions bikes\n- 2024-01-12: museums',
+      'Notes:\n- 2024-02-27: the user mentions bikes\nAnswer:',
+      '',
+    ];
+    for (const reply of truncated) {
+      const result = await recallQuestion(
+        { store, llm: new NeverCalledLlm(), sessions },
+        'How many bikes do I own now?',
+        ['default'],
+        {
+          answerMode: 'sessions',
+          at: ASKED_AT,
+          explain: true,
+          reader: reader(new StubReaderClient(reply)),
+        },
+      );
+      expect(result.status).toBe('unknown');
+      expect(result.answer).not.toContain('Notes:');
+      // the working is still there for recall_explain, so the truncation is visible
+      expect(result.readerReply).toBe(reply);
+    }
+  });
+
+  it('reports unknown rather than throwing on a reply too long to return', async () => {
+    storeSession('bikes', '2024-02-27T09:00:00.000Z', [
+      { role: 'user', text: 'I now own two bikes after selling the old road bike.' },
+    ]);
+    const result = await recallQuestion(
+      { store, llm: new NeverCalledLlm(), sessions },
+      'How many bikes do I own now?',
+      ['default'],
+      {
+        answerMode: 'sessions',
+        at: ASKED_AT,
+        reader: reader(
+          new StubReaderClient(`Answer: ${'x'.repeat(MAX_OUTPUT_BYTES + 1)}`),
+        ),
+      },
+    );
+    expect(result.status).toBe('unknown');
+    expect(result.answer.length).toBeLessThan(200);
   });
 
   it('refuses a sensitive prompt for a non-local reader, naming the setting', async () => {

@@ -88,7 +88,11 @@ import {
   type KnowledgeSearchClauseKind,
   type KnowledgeSearchResult,
 } from '../knowledge/search.js';
-import { assertBoundedOutput, assertSafeForExternalLlm } from '../safety.js';
+import {
+  MAX_OUTPUT_BYTES,
+  assertBoundedOutput,
+  assertSafeForExternalLlm,
+} from '../safety.js';
 import type { SessionStore } from '../sessions/store.js';
 import {
   applyPredicateAliases,
@@ -248,7 +252,9 @@ export interface RecallResult {
 
 /** One conversation the reader read, and the turns of it that matched the question. */
 export interface RecallSessionRead {
-  /** The session's file key in its namespace, as `forget_sessions` takes it. */
+  /** The namespace it is stored in; `forget_sessions` needs this with the key. */
+  namespace: string;
+  /** The session's file key in that namespace, as `forget_sessions` takes it. */
   key: string;
   /** The day the session started: the date the reader was shown. */
   date: string;
@@ -1985,6 +1991,8 @@ interface ResolvedReader {
   local: boolean;
   model?: string;
   maxTokens?: number;
+  /** The settings that chose this reader, named when it cannot be reached. */
+  settings: string;
 }
 
 /**
@@ -1997,7 +2005,11 @@ function resolvedReader(
   options: RecallOptions,
 ): ResolvedReader {
   const configured = options.reader ?? readerFromEnv();
-  if (configured === undefined) return { client: deps.llm, local: false };
+  if (configured === undefined) {
+    // no reader of its own: the product's configured LLM read the history, so its own
+    // settings are the ones to check when it fails
+    return { client: deps.llm, local: false, settings: 'LLM_BASE_URL and LLM_MODEL' };
+  }
   const client =
     configured.client ??
     new OpenRouterClient({
@@ -2012,6 +2024,7 @@ function resolvedReader(
     local: readerIsLocal(configured.baseUrl),
     model: configured.model,
     maxTokens: configured.maxTokens,
+    settings: 'REMBERO_READER_BASE_URL and REMBERO_READER_MODEL',
   };
 }
 
@@ -2065,7 +2078,7 @@ async function readSessions(
     };
   } catch (error) {
     throw new Error(
-      `the session reader failed: ${errorMessage(error)}. Check REMBERO_READER_BASE_URL and REMBERO_READER_MODEL; recall will not answer from a different model instead`,
+      `the session reader failed: ${errorMessage(error)}. Check ${reader.settings}; recall will not answer from a different model instead`,
     );
   }
 }
@@ -2193,6 +2206,31 @@ const READER_DOES_NOT_KNOW: ReadonlyArray<RegExp> = [
 ];
 
 /**
+ * The answer the reader gave, or nothing at all.
+ *
+ * The notes reading asks for the working first and the answer on a last `Answer:` line, and
+ * `finalAnswerLine` falls back to the whole reply when that line is missing or empty. That
+ * fallback is right for the direct reading, where the reply *is* the answer, and wrong here: a
+ * reply cut off at `maxTokens` mid-notes would come back as a confident answer with its own
+ * working inside it. So the notes reading requires the marker and something after it, and a
+ * reply without one is a reader that has not answered — `unknown`, with the whole reply kept
+ * for `recall_explain`. `finalAnswerLine` itself stays untouched: the harness judges the string
+ * it returns, and the product has to be judged on the same string.
+ */
+function readerAnswer(reply: string, notes: boolean): string | undefined {
+  if (!notes) {
+    const direct = reply.trim();
+    return direct === '' ? undefined : direct;
+  }
+  const marker = reply.lastIndexOf('Answer:');
+  if (marker < 0) return undefined;
+  if (reply.slice(marker + 'Answer:'.length).trim() === '') return undefined;
+  // identical to the slice above by construction; the harness's function stays the one that
+  // produces the answer text
+  return finalAnswerLine(reply);
+}
+
+/**
  * Answer by reading the stored conversations: classify the question, rank the namespace's
  * sessions, build the one reading prompt the benchmark measures, and read the reader's
  * final answer line off its reply.
@@ -2229,10 +2267,12 @@ async function answerFromSessions(
     );
   }
   assertLlmNamespacesAllowed(deps, namespaces);
-  const selected =
-    namespaces === '*' ? deps.store.listNamespaces() : namespaces;
   let loaded: LoadedSession[];
   try {
+    // listing the namespaces is part of finding the sessions, so a store that cannot be
+    // listed degrades with them rather than throwing past this
+    const selected =
+      namespaces === '*' ? deps.store.listNamespaces() : namespaces;
     loaded = loadSessions(deps.sessions, selected);
   } catch (error) {
     // Capture degrades the same way: a store that cannot be read costs the session, not
@@ -2280,20 +2320,30 @@ async function answerFromSessions(
   ]);
   // the notes reading shows its working and ends on an "Answer:" line; a plain recall
   // returns that line alone, and only recall_explain carries the whole reply
-  const answer = readsInNotes(kind) ? finalAnswerLine(reply) : reply.trim();
-  assertBoundedOutput(answer, 'sessions recall answer');
-  const unknown =
-    answer === '' || READER_DOES_NOT_KNOW.some((pattern) => pattern.test(answer));
+  const answer = readerAnswer(reply, readsInNotes(kind));
+  // an answer too long to return is not an answer either: `unknown` keeps the ruling that
+  // this path never crashes, and the reply is still there for recall_explain
+  const oversize =
+    answer !== undefined &&
+    Buffer.byteLength(answer, 'utf8') > MAX_OUTPUT_BYTES;
+  const declined =
+    !oversize &&
+    answer !== undefined &&
+    READER_DOES_NOT_KNOW.some((pattern) => pattern.test(answer));
   return {
-    status: unknown ? 'unknown' : 'answered',
+    status:
+      answer === undefined || oversize || declined ? 'unknown' : 'answered',
     answer:
-      answer === ''
+      answer === undefined
         ? 'The reader read the history and gave no answer.'
-        : answer,
+        : oversize
+          ? `The reader answered at more than the ${MAX_OUTPUT_BYTES} bytes recall may return.`
+          : answer,
     query: null,
     bindings: [],
     answerMode: 'sessions',
     sessionsRead: read.map((session) => ({
+      namespace: session.namespace,
       key: session.key,
       date: session.date.slice(0, 10),
       excerpts: matchingExcerpts(question, session, kind.assistantRecall),
