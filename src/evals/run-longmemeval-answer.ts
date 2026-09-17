@@ -1,8 +1,16 @@
 #!/usr/bin/env node
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { loadEnv } from '../env.js';
-import { DEFAULT_MODEL, OpenRouterClient } from '../llm/client.js';
+import {
+  DEFAULT_LLM_TEMPERATURE,
+  DEFAULT_LLM_TIMEOUT_MS,
+  DEFAULT_MODEL,
+  OpenRouterClient,
+  checkedTemperature,
+  checkedTimeoutMs,
+} from '../llm/client.js';
 import { embeddingClientFromEnv } from '../llm/embeddings.js';
 import { stringifyBoundedResult } from '../safety.js';
 import {
@@ -85,6 +93,9 @@ interface Args {
   aggregationReaderBaseUrl: string | undefined;
   aggregationReaderApiKey: string | undefined;
   readerMaxTokens: number | undefined;
+  readerTemperature: number | undefined;
+  readerTimeoutMs: number | undefined;
+  judgeTemperature: number | undefined;
   readerBaseUrl: string | undefined;
   readerApiKey: string | undefined;
   memorySystem: string | undefined;
@@ -119,6 +130,11 @@ Options:
   --reader-api-key <key>   Key for it (default: READER_API_KEY, else LLM_API_KEY)
   --reader-max-tokens <n>  Completion budget per reader call (default 4096; reasoning models
                          such as DeepSeek v4.1 Flash exhaust it thinking and return nothing)
+  --reader-temperature <n>  Sampling temperature for the reader, 0 to 2 (default 0; Moonshot's
+                         Kimi K3 refuses anything but 1)
+  --reader-timeout-ms <n>  Abort a reader request after n ms, 1000 to 600000 (default 60000;
+                         a reasoning model on a full reader prompt can outlast the default)
+  --judge-temperature <n>  Sampling temperature for the judge, 0 to 2 (default 0)
   --aggregation-reader-model <id>  A separate reader for multi-session, temporal and
                          knowledge-update questions; other types keep --reader-model
   --aggregation-reader-base-url <url>  OpenAI-compatible endpoint for that reader (default:
@@ -207,7 +223,7 @@ function boundedInteger(
   return parsed;
 }
 
-function parseArgs(argv: string[]): Args {
+export function parseArgs(argv: string[]): Args {
   const args: Args = {
     data: resolve('.cache/longmemeval/longmemeval_s_cleaned.json'),
     split: 'dev',
@@ -260,6 +276,9 @@ function parseArgs(argv: string[]): Args {
     aggregationReaderBaseUrl: undefined,
     aggregationReaderApiKey: undefined,
     readerMaxTokens: undefined,
+    readerTemperature: undefined,
+    readerTimeoutMs: undefined,
+    judgeTemperature: undefined,
     readerBaseUrl: undefined,
     readerApiKey: undefined,
     memorySystem: undefined,
@@ -408,6 +427,21 @@ function parseArgs(argv: string[]): Args {
       args.readerApiKey = requiredValue(argv, index++, arg);
     } else if (arg === '--reader-max-tokens') {
       args.readerMaxTokens = Number(requiredValue(argv, index++, arg));
+    } else if (arg === '--reader-temperature') {
+      args.readerTemperature = checkedTemperature(
+        requiredValue(argv, index++, arg),
+        arg,
+      );
+    } else if (arg === '--reader-timeout-ms') {
+      args.readerTimeoutMs = checkedTimeoutMs(
+        requiredValue(argv, index++, arg),
+        arg,
+      );
+    } else if (arg === '--judge-temperature') {
+      args.judgeTemperature = checkedTemperature(
+        requiredValue(argv, index++, arg),
+        arg,
+      );
     } else if (arg === '--aggregation-reader-model') {
       args.aggregationReaderModel = requiredValue(argv, index++, arg);
     } else if (arg === '--aggregation-reader-base-url') {
@@ -583,6 +617,12 @@ async function main(): Promise<void> {
     apiKey: args.readerApiKey ?? process.env.READER_API_KEY ?? apiKey,
     baseUrl: args.readerBaseUrl ?? baseUrl,
     model: args.readerModel,
+    ...(args.readerTemperature === undefined
+      ? {}
+      : { temperature: args.readerTemperature }),
+    ...(args.readerTimeoutMs === undefined
+      ? {}
+      : { timeoutMs: args.readerTimeoutMs }),
   });
   const aggregationReader =
     args.aggregationReaderModel === undefined
@@ -611,6 +651,9 @@ async function main(): Promise<void> {
     apiKey,
     baseUrl,
     model: args.judgeModel,
+    ...(args.judgeTemperature === undefined
+      ? {}
+      : { temperature: args.judgeTemperature }),
   });
   // extracted/hybrid formations run the product's transcript extraction with its own
   // model, typically the fine-tuned dialect model on a self-hosted OpenAI-compatible endpoint
@@ -825,6 +868,9 @@ async function main(): Promise<void> {
           : [...args.hybridQuestionTypes],
       factsInContext: args.factsInContext,
       readerMaxTokens: args.readerMaxTokens ?? 4096,
+      readerTemperature: args.readerTemperature ?? DEFAULT_LLM_TEMPERATURE,
+      readerTimeoutMs: args.readerTimeoutMs ?? DEFAULT_LLM_TIMEOUT_MS,
+      judgeTemperature: args.judgeTemperature ?? DEFAULT_LLM_TEMPERATURE,
       memorySystem: args.memorySystem ?? null,
       memoryLane: args.memorySystem === undefined ? null : args.memoryLane,
       // the memory system's own embedder, recorded here rather than in the top-level
@@ -940,4 +986,8 @@ async function main(): Promise<void> {
   if (run.summary.errors > 0) process.exitCode = 1;
 }
 
-await main();
+const invokedDirectly =
+  process.argv[1] !== undefined &&
+  fileURLToPath(import.meta.url) === process.argv[1];
+
+if (invokedDirectly) await main();

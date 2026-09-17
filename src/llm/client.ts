@@ -44,9 +44,86 @@ export interface LlmConfig {
   apiKey: string;
   baseUrl: string;
   model: string;
+  /**
+   * Sampling temperature (default 0). Some hosted models refuse anything else —
+   * Moonshot's Kimi K3 answers `only 1 is allowed for this model`.
+   */
+  temperature?: number;
+  /**
+   * Per-request abort timeout in milliseconds (default 60_000). A reasoning model
+   * on a ~7k-token reader prompt can outlast the default and land as an error row.
+   */
+  timeoutMs?: number;
 }
 
 export const DEFAULT_MODEL = 'anthropic/claude-sonnet-5';
+export const DEFAULT_LLM_TEMPERATURE = 0;
+export const DEFAULT_LLM_TIMEOUT_MS = 60_000;
+
+/** Sampling and deadline knobs a caller may hand a client it builds. */
+export interface LlmTuning {
+  temperature?: number;
+  timeoutMs?: number;
+}
+
+/** Validates a temperature, naming in the error the flag or field it came from. */
+export function checkedTemperature(value: unknown, label: string): number {
+  const parsed = typeof value === 'string' ? Number(value) : value;
+  if (
+    typeof parsed !== 'number' ||
+    !Number.isFinite(parsed) ||
+    parsed < 0 ||
+    parsed > 2
+  ) {
+    throw new Error(`${label} must be a finite number from 0 to 2`);
+  }
+  return parsed;
+}
+
+/** Validates a request timeout in milliseconds, naming its flag or field. */
+export function checkedTimeoutMs(value: unknown, label: string): number {
+  const parsed = typeof value === 'string' ? Number(value) : value;
+  if (
+    typeof parsed !== 'number' ||
+    !Number.isSafeInteger(parsed) ||
+    parsed < 1_000 ||
+    parsed > 600_000
+  ) {
+    throw new Error(`${label} must be an integer from 1000 to 600000`);
+  }
+  return parsed;
+}
+
+/**
+ * `--temperature` / `--timeout-ms` (optionally prefixed, e.g. `--student-timeout-ms`)
+ * for a client a command-line tool builds. A flag left out stays out of the result,
+ * so the client keeps its defaults and its request body is unchanged.
+ */
+export function llmTuningFromFlags(
+  argv: readonly string[],
+  prefix = '',
+): LlmTuning {
+  const read = (name: string): string | undefined => {
+    const index = argv.indexOf(name);
+    if (index < 0) return undefined;
+    const value = argv[index + 1];
+    if (value === undefined || value.trim() === '')
+      throw new Error(`${name} needs a value`);
+    return value;
+  };
+  const temperatureFlag = `--${prefix}temperature`;
+  const timeoutFlag = `--${prefix}timeout-ms`;
+  const temperature = read(temperatureFlag);
+  const timeoutMs = read(timeoutFlag);
+  return {
+    ...(temperature === undefined
+      ? {}
+      : { temperature: checkedTemperature(temperature, temperatureFlag) }),
+    ...(timeoutMs === undefined
+      ? {}
+      : { timeoutMs: checkedTimeoutMs(timeoutMs, timeoutFlag) }),
+  };
+}
 
 function finiteNonnegative(value: unknown): number | null {
   const parsed = typeof value === 'string' ? Number(value) : value;
@@ -114,6 +191,11 @@ export class OpenRouterClient implements LlmClient {
     private fetchFn: typeof fetch = fetch,
   ) {
     this.model = config.model;
+    // fail here rather than on the first call: a bad knob is a configuration error
+    if (config.temperature !== undefined)
+      checkedTemperature(config.temperature, 'LLM temperature');
+    if (config.timeoutMs !== undefined)
+      checkedTimeoutMs(config.timeoutMs, 'LLM timeout ms');
   }
 
   async complete(messages: ChatMessage[]): Promise<string> {
@@ -156,12 +238,14 @@ export class OpenRouterClient implements LlmClient {
                 ...message,
                 content: normalizeUnicodeScalarText(message.content),
               })),
-              temperature: 0,
+              temperature: this.config.temperature ?? DEFAULT_LLM_TEMPERATURE,
               ...(options.maxTokens === undefined
                 ? {}
                 : { max_tokens: options.maxTokens }),
             }),
-            signal: AbortSignal.timeout(60_000),
+            signal: AbortSignal.timeout(
+              this.config.timeoutMs ?? DEFAULT_LLM_TIMEOUT_MS,
+            ),
           },
         );
         if (!response.ok) {

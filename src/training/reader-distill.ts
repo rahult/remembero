@@ -100,6 +100,9 @@ export interface DistillRunIdentity {
   typeWeights: string;
   trainCount: number;
   labels: string;
+  /** The teacher's sampling knobs, recorded only when the run moved them off the defaults. */
+  temperature?: number;
+  timeoutMs?: number;
 }
 
 export function distillRunIdentity(
@@ -113,8 +116,20 @@ export function distillRunIdentity(
     typeWeights,
     trainCount,
     labels,
+    temperature,
+    timeoutMs,
   } = identity;
-  return { contract, teacher, seed, splitSeed, typeWeights, trainCount, labels };
+  return {
+    contract,
+    teacher,
+    seed,
+    splitSeed,
+    typeWeights,
+    trainCount,
+    labels,
+    ...(temperature === undefined ? {} : { temperature }),
+    ...(timeoutMs === undefined ? {} : { timeoutMs }),
+  };
 }
 
 export function pickType(

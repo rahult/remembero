@@ -54,7 +54,11 @@ import {
   contractFromFlags,
   distillManifestContract,
 } from '../evals/reader-contract.js';
-import { OpenRouterClient, type ChatMessage } from '../llm/client.js';
+import {
+  OpenRouterClient,
+  llmTuningFromFlags,
+  type ChatMessage,
+} from '../llm/client.js';
 import { rememberTranscriptText } from '../llm/pipeline.js';
 import { MemoryStore } from '../store/store.js';
 import { createRng } from './rng.js';
@@ -621,7 +625,8 @@ async function judgeUnmatched(): Promise<void> {
  * Resumable: examples are appended to the output as they finish, and `run.json` pins the
  * contract, teacher, seeds, type weights, train count and labels a resume must repeat.
  * `--split-seed <n>` (default `--seed`) fixes which sessions are train and held-out;
- * `--seed` draws the questions.
+ * `--seed` draws the questions. `--temperature <n>` and `--timeout-ms <n>` tune the
+ * teacher's endpoint (Kimi K3 allows only temperature 1); both land in `run.json`.
  */
 async function distillReader(): Promise<void> {
   const labelsPath = flag('--labels', 'data/real/labels-glmflash8.jsonl')!;
@@ -635,6 +640,9 @@ async function distillReader(): Promise<void> {
   const { seed, splitSeed } = distillSeeds(process.argv);
   const concurrency = Number(flag('--concurrency', '8'));
   const model = flag('--model', 'z-ai/glm-5.3-flash')!;
+  // --temperature / --timeout-ms tune the teacher's endpoint (Kimi K3 allows only
+  // temperature 1, and a reasoning teacher can outlast the 60s default)
+  const tuning = llmTuningFromFlags(process.argv);
   // --type-weights multi-session=40,temporal-reasoning=35,… reweights the draw; multi-session
   // and knowledge-update haystacks are seeded with sessions that carry the material
   const weightsFlag = flag('--type-weights');
@@ -651,6 +659,7 @@ async function distillReader(): Promise<void> {
       typeWeights: weightsFlag ?? 'default',
       trainCount,
       labels: labelsPath,
+      ...tuning,
     }),
   );
   const apiKey = flag('--api-key', process.env.LLM_API_KEY);
@@ -662,6 +671,7 @@ async function distillReader(): Promise<void> {
       'https://openrouter.ai/api/v1'
     ).replace(/\/$/, ''),
     model,
+    ...tuning,
   });
   const labels = readRows(labelsPath);
   const toLabelled = (s: SelectedSession): LabelledSession => ({
@@ -785,6 +795,7 @@ async function distillReader(): Promise<void> {
     labels: labelsPath,
     contract: distillManifestContract(process.argv),
     teacher: model,
+    ...tuning,
     typeWeights: weightsFlag ?? 'default',
     seed,
     splitSeed,
@@ -920,6 +931,9 @@ async function rerenderReader(): Promise<void> {
  *        --out data/training-reader-v7-think --date-distances --computed-notes \
  *        --reading notes --context-bytes 24576 [--concurrency 8] --model <teacher> \
  *        --judge-base-url <url> --judge-model <model> --judge-key-env DEEPSEEK_API_KEY
+ *        [--temperature <n>] [--timeout-ms <n>]
+ *
+ * `--temperature` and `--timeout-ms` tune the teacher's endpoint and are pinned in `run.json`.
  */
 async function thinkReader(): Promise<void> {
   const from = flag('--from', 'data/training-reader-v6')!;
@@ -938,6 +952,8 @@ async function thinkReader(): Promise<void> {
     flag('--max-tokens', String(TEACHER_MAX_TOKENS)),
   );
   const model = flag('--model', 'z-ai/glm-5.3-flash')!;
+  // --temperature / --timeout-ms tune the teacher's endpoint, as in distill
+  const tuning = llmTuningFromFlags(process.argv);
   const apiKey = flag('--api-key', process.env.LLM_API_KEY);
   if (!apiKey) throw new Error('LLM_API_KEY is not set');
   const judgeBaseUrl = flag('--judge-base-url');
@@ -956,6 +972,7 @@ async function thinkReader(): Promise<void> {
       'https://openrouter.ai/api/v1'
     ).replace(/\/$/, ''),
     model,
+    ...tuning,
   });
   const judge = new OpenRouterClient({
     apiKey: judgeKey,
@@ -969,6 +986,7 @@ async function thinkReader(): Promise<void> {
     from,
     teacher: model,
     judge: judgeModel,
+    ...tuning,
   });
   const base = existsSync(join(from, 'manifest.json'))
     ? (JSON.parse(readFileSync(join(from, 'manifest.json'), 'utf8')) as {
@@ -1019,6 +1037,7 @@ async function thinkReader(): Promise<void> {
     seed,
     poolSessions: pool.size,
     teacher: model,
+    ...tuning,
     judge: { model: judgeModel, baseUrl: judgeBaseUrl },
     byType: thinkCounts(join(out, 'progress.jsonl')),
     train: lineCount(join(out, 'conversations.jsonl')),
@@ -1040,7 +1059,8 @@ async function thinkReader(): Promise<void> {
  *
  *   node dist/training/run-real-sessions.js mine --from <distilled dir> --out <dir> \
  *        --student-model <m> --student-base-url <url> --student-key-env READER_API_KEY \
- *        --student-max-tokens <n> [--student-date-distances --student-computed-notes \
+ *        --student-max-tokens <n> [--student-temperature <n>] [--student-timeout-ms <n>] \
+ *        [--student-date-distances --student-computed-notes \
  *        --student-reading notes --student-context-bytes 24576 ...] \
  *        --judge-base-url <url> --judge-model <model> --judge-key-env DEEPSEEK_API_KEY \
  *        [--files conversations,heldout] [--limit N] [--concurrency 8]
@@ -1083,6 +1103,8 @@ async function mineReader(): Promise<void> {
     throw new Error(
       'mine needs --student-model, --student-base-url, --student-key-env and --student-max-tokens',
     );
+  // --student-temperature / --student-timeout-ms tune the student's endpoint only
+  const studentTuning = llmTuningFromFlags(process.argv, 'student-');
   const studentMaxTokens = Number(studentMaxTokensFlag);
   if (
     !Number.isInteger(studentMaxTokens) ||
@@ -1108,6 +1130,7 @@ async function mineReader(): Promise<void> {
     apiKey: studentKey,
     baseUrl: studentBaseUrl.replace(/\/$/, ''),
     model: studentModel,
+    ...studentTuning,
   });
   const judge = new OpenRouterClient({
     apiKey: judgeKey,
@@ -1121,6 +1144,12 @@ async function mineReader(): Promise<void> {
     studentContract: studentContract.id,
     studentModel,
     judge: judgeModel,
+    ...(studentTuning.temperature === undefined
+      ? {}
+      : { studentTemperature: studentTuning.temperature }),
+    ...(studentTuning.timeoutMs === undefined
+      ? {}
+      : { studentTimeoutMs: studentTuning.timeoutMs }),
   });
   const labelsPath =
     flag('--labels') ??
@@ -1182,7 +1211,7 @@ async function mineReader(): Promise<void> {
     from,
     contract: base.contract,
     studentContract,
-    student: { model: studentModel, baseUrl: studentBaseUrl },
+    student: { model: studentModel, baseUrl: studentBaseUrl, ...studentTuning },
     judge: { model: judgeModel, baseUrl: judgeBaseUrl },
     labels: labelsPath,
     seed,

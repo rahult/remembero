@@ -276,6 +276,10 @@ export interface LongMemEvalAnswerRun {
     hybridQuestionTypes: string[] | null;
     factsInContext: boolean;
     readerMaxTokens: number;
+    /** The reader client's sampling temperature and per-request abort timeout. */
+    readerTemperature?: number;
+    readerTimeoutMs?: number;
+    judgeTemperature?: number;
     memorySystem?: string | null;
     memoryLane?: MemorySystemLane | null;
     /**
