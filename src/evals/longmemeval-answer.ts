@@ -1,8 +1,13 @@
 import {
-  buildComputedNotes,
-  STOPWORDS as COMPUTED_NOTES_STOPWORDS,
-} from '../knowledge/computed-notes.js';
-import { buildStructuredEvidence } from '../knowledge/structured-evidence.js';
+  aggregateSessionsByTurnRank,
+  MAX_READING_CONTEXT_BYTES,
+  orderInRangeFirst,
+  READING_SOURCE_CHARACTERS,
+  readingDepth,
+  readingUnit,
+  renderReadingPrompt,
+  validateReadingOptions,
+} from '../knowledge/session-retrieval.js';
 import {
   existsSync,
   mkdirSync,
@@ -23,8 +28,7 @@ import {
   type LlmUsage,
   type LlmUsageTotals,
 } from '../llm/client.js';
-import { recallWords } from '../llm/schema.js';
-import { assertSafeForExternalLlm, redactSensitiveText } from '../safety.js';
+import { redactSensitiveText } from '../safety.js';
 import {
   DEFAULT_RERANK_POOL,
   DEFAULT_RERANK_SESSION_CHARS,
@@ -98,8 +102,9 @@ export const DEFAULT_LONGMEMEVAL_ANSWER_TOP_K = 4;
 export const DEFAULT_LONGMEMEVAL_MULTI_SESSION_TOP_K = 5;
 export const DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K = 5;
 export const DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES = 56 * 1024;
-export const MAX_LONGMEMEVAL_ANSWER_CONTEXT_BYTES = 160 * 1024;
-export const LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS = 16_384;
+// the budget and the source window are the shared module's, under the names the harness uses
+export const MAX_LONGMEMEVAL_ANSWER_CONTEXT_BYTES = MAX_READING_CONTEXT_BYTES;
+export const LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS = READING_SOURCE_CHARACTERS;
 export const LONGMEMEVAL_MULTI_SEMANTIC_MAX_LEXICAL_SCORE = 315;
 /** The question types LongMemEval ships (abstention is a question-id suffix, not a type). */
 export const LONGMEMEVAL_QUESTION_TYPES: ReadonlySet<string> = new Set([
@@ -452,219 +457,6 @@ function percentile(values: readonly number[], quantile: number): number {
   return sorted[Math.ceil((sorted.length - 1) * quantile)] ?? 0;
 }
 
-function boundedUtf8(value: string, maxBytes: number): string {
-  if (Buffer.byteLength(value, 'utf8') <= maxBytes) return value;
-  let low = 0;
-  let high = value.length;
-  while (low < high) {
-    const middle = Math.ceil((low + high) / 2);
-    if (Buffer.byteLength(value.slice(0, middle), 'utf8') <= maxBytes)
-      low = middle;
-    else high = middle - 1;
-  }
-  return value.slice(0, low);
-}
-
-function sourceWindow(
-  text: string,
-  question: string,
-  maxBytes: number,
-  focusCharacterOffset?: number,
-): string {
-  const boundedSource = text.slice(0, LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS);
-  if (Buffer.byteLength(boundedSource, 'utf8') <= maxBytes)
-    return boundedSource;
-  if (focusCharacterOffset !== undefined) {
-    const approximateCharacters = Math.max(
-      1,
-      Math.min(boundedSource.length, maxBytes),
-    );
-    const start = Math.max(
-      0,
-      Math.min(
-        boundedSource.length - approximateCharacters,
-        focusCharacterOffset -
-          Math.floor((approximateCharacters - SEMANTIC_CHUNK_CHARACTERS) / 2),
-      ),
-    );
-    return boundedUtf8(boundedSource.slice(start), maxBytes);
-  }
-  const words = [
-    ...new Set(recallWords(question).filter((word) => word.length >= 3)),
-  ];
-  const approximateCharacters = Math.max(
-    1,
-    Math.min(boundedSource.length, maxBytes),
-  );
-  let bestStart = 0;
-  let bestScore = -1;
-  for (let start = 0; start < boundedSource.length; start += 512) {
-    const candidate = boundedSource
-      .slice(start, start + approximateCharacters)
-      .toLowerCase();
-    const score = words.reduce(
-      (total, word) => total + (candidate.includes(word) ? 1 : 0),
-      0,
-    );
-    if (score > bestScore) {
-      bestScore = score;
-      bestStart = start;
-    }
-    if (start + approximateCharacters >= boundedSource.length) break;
-  }
-  return boundedUtf8(boundedSource.slice(bestStart), maxBytes);
-}
-
-/**
- * Words that say nothing about what a question is after: the computed-notes stopwords plus
- * the auxiliaries that otherwise dominate abstract matching on real questions. Kept local so
- * the computed-notes block, part of every reader contract, renders exactly as before.
- */
-const ABSTRACT_STOPWORDS: ReadonlySet<string> = new Set([
-  ...COMPUTED_NOTES_STOPWORDS,
-  ...'need from since about would could should there their which'.split(' '),
-]);
-
-/** The question's content words for abstract matching, canonical as recallWords makes them. */
-function abstractContentWords(question: string): string[] {
-  const raw = question
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter(Boolean);
-  const words = raw.flatMap((word) => {
-    if (ABSTRACT_STOPWORDS.has(word)) return [];
-    const canonical = recallWords(word)[0];
-    return canonical === undefined ||
-      canonical.length < 4 ||
-      ABSTRACT_STOPWORDS.has(canonical)
-      ? []
-      : [canonical];
-  });
-  return [...new Set(words)];
-}
-
-/**
- * Tokens a period follows without ending a sentence, lowercased with their inner periods kept
- * and the final one dropped (so "e.g." is "e.g"). One-letter tokens are handled by rule.
- */
-const ABBREVIATIONS: ReadonlySet<string> = new Set([
-  'dr', 'mr', 'mrs', 'ms', 'st', 'jr', 'sr', 'vs', 'etc', 'e.g', 'i.e',
-  'prof', 'sgt', 'capt', 'gen', 'rev', 'hon', 'approx', 'dept', 'univ',
-  'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'oct', 'nov', 'dec',
-]);
-
-/**
- * One turn's sentences: split after . ! ? and whitespace, and at newlines, but not after a
- * period that closes a one-letter token (an initial, or the pieces of U.S., D.C., p.m.) or a
- * known abbreviation (Dr., Mrs., e.g.). Ordinary short words (it, up, ok, so) still end one.
- */
-function turnSentences(turn: string): string[] {
-  const sentences: string[] = [];
-  for (const line of turn.split(/\n+/)) {
-    let start = 0;
-    for (const match of line.matchAll(/[.!?]+(?=\s)/g)) {
-      const end = match.index! + match[0].length;
-      if (match[0] === '.') {
-        const token = /([A-Za-z][A-Za-z.]*)$/.exec(
-          line.slice(start, match.index!),
-        )?.[1];
-        const lastPiece = token?.split('.').at(-1);
-        if (
-          token !== undefined &&
-          (lastPiece!.length === 1 || ABBREVIATIONS.has(token.toLowerCase()))
-        )
-          continue;
-      }
-      sentences.push(line.slice(start, end));
-      start = end;
-    }
-    sentences.push(line.slice(start));
-  }
-  return sentences
-    .map((sentence) => sentence.replace(/\s+/g, ' ').trim())
-    .filter((sentence) => sentence !== '');
-}
-
-/** The sentences of a session's user turns, in order; assistant turns never contribute. */
-function userSentences(text: string): string[] {
-  const turns = [...text.matchAll(/^(user|assistant)[ \t]*:/gim)];
-  // a source with no role markers (a memory layer's own text) is the user's words throughout
-  const userText =
-    turns.length === 0
-      ? [text]
-      : turns.flatMap((turn, index) =>
-          turn[1]!.toLowerCase() === 'user'
-            ? [
-                text.slice(
-                  turn.index! + turn[0].length,
-                  turns[index + 1]?.index ?? text.length,
-                ),
-              ]
-            : [],
-        );
-  return userText.flatMap(turnSentences);
-}
-
-/** Cut to maxBytes, backing off to the last word boundary when the cut lands inside a word. */
-function boundedAtWord(value: string, maxBytes: number): string {
-  const bounded = boundedUtf8(value, maxBytes);
-  if (bounded.length === value.length) return bounded;
-  const space = bounded.lastIndexOf(' ');
-  return space > 0 ? bounded.slice(0, space) : bounded;
-}
-
-/**
- * A tiered session's abstract: its header, then the user sentences that name the question.
- * Sentences rank by how many distinct content words they contain (ties by position) and are
- * taken greedily in that order, skipping any that no longer fit, then shown in their original
- * order. With no matching sentence, the first user sentence cut at a word boundary.
- */
-function abstractSection(
-  header: string,
-  text: string,
-  words: readonly string[],
-  maxBytes: number,
-): string {
-  const room = maxBytes - Buffer.byteLength(header, 'utf8') - 1;
-  if (room <= 0) return `${boundedUtf8(header, maxBytes - 1)}\n`;
-  const sentences = userSentences(text);
-  const ranked = sentences
-    .map((sentence, position) => {
-      const tokens = new Set(recallWords(sentence));
-      return {
-        sentence,
-        position,
-        bytes: Buffer.byteLength(sentence, 'utf8'),
-        score: words.reduce((n, word) => n + (tokens.has(word) ? 1 : 0), 0),
-      };
-    })
-    .filter(({ score }) => score > 0)
-    .sort((a, b) => b.score - a.score || a.position - b.position);
-  let body = '';
-  if (ranked.length === 0) {
-    if (sentences.length > 0) body = boundedAtWord(sentences[0]!, room);
-  } else {
-    const chosen: typeof ranked = [];
-    let used = 0;
-    for (const candidate of ranked) {
-      const cost = candidate.bytes + (chosen.length === 0 ? 0 : 1);
-      if (used + cost > room) continue;
-      chosen.push(candidate);
-      used += cost;
-    }
-    body =
-      chosen.length === 0
-        ? // every matching sentence is longer than the room: the best one, cut at a word
-          boundedAtWord(ranked[0]!.sentence, room)
-        : chosen
-            .sort((a, b) => a.position - b.position)
-            .map(({ sentence }) => sentence)
-            .join(' ');
-  }
-  return `${header}${body}\n`;
-}
-
 /** USER:/ASSISTANT: blocks, the shape the product's transcript capture and its training data use. */
 export function longMemEvalTranscript(
   session: LongMemEvalInstance['haystack_sessions'][number],
@@ -760,21 +552,6 @@ function datasetDate(value: string): Date {
   );
 }
 
-function validateOptions(topK: number, contextBytes: number): void {
-  if (!Number.isSafeInteger(topK) || topK < 1 || topK > 100) {
-    throw new Error('LongMemEval answer topK must be an integer from 1 to 100');
-  }
-  if (
-    !Number.isSafeInteger(contextBytes) ||
-    contextBytes < 4_096 ||
-    contextBytes > MAX_LONGMEMEVAL_ANSWER_CONTEXT_BYTES
-  ) {
-    throw new Error(
-      `LongMemEval answer context bytes must be an integer from 4096 to ${MAX_LONGMEMEVAL_ANSWER_CONTEXT_BYTES}`,
-    );
-  }
-}
-
 interface AnswerContext {
   messages: ChatMessage[];
   contextSessionIds: string[];
@@ -835,52 +612,16 @@ export function longMemEvalEvidenceCoverage(
   };
 }
 
-const MAX_ENGINE_RENDER_CHARACTERS = 4_000;
-
-/** Question dates come as "2024/03/01 (Fri) 09:00"; sessions as ISO instants. */
-function questionDay(questionDate: string): string {
-  const match = /(\d{4})[/-](\d{2})[/-](\d{2})/.exec(questionDate);
-  return match === null
-    ? questionDate.slice(0, 10)
-    : `${match[1]}-${match[2]}-${match[3]}`;
-}
+/** The session-date distance line, computed once in the shared reading module. */
+export { describeDistance } from '../knowledge/session-retrieval.js';
 
 /**
- * "63 days, about 9 weeks or 2 months, before the question date 2024-03-01": the
- * arithmetic a reader would otherwise do itself, done once and exactly.
+ * The harness's context builder, now a thin adapter: the prompt itself is
+ * `renderReadingPrompt` in knowledge/session-retrieval.ts, which the product's reading path
+ * calls too, so a measured prompt and a shipped prompt cannot drift apart. The positional
+ * signature is unchanged — the training data builders, the reader contract and the runner all
+ * call it this way.
  */
-export function describeDistance(
-  sessionTs: string,
-  questionDate: string,
-): string {
-  const day = questionDay(questionDate);
-  const from = Date.UTC(
-    Number(sessionTs.slice(0, 4)),
-    Number(sessionTs.slice(5, 7)) - 1,
-    Number(sessionTs.slice(8, 10)),
-  );
-  const to = Date.UTC(
-    Number(day.slice(0, 4)),
-    Number(day.slice(5, 7)) - 1,
-    Number(day.slice(8, 10)),
-  );
-  const days = Math.round((to - from) / 86_400_000);
-  if (!Number.isFinite(days)) return `question date ${questionDate}`;
-  const relation = days >= 0 ? 'before' : 'after';
-  const abs = Math.abs(days);
-  const parts = [`${abs} day${abs === 1 ? '' : 's'}`];
-  if (abs >= 14) {
-    const weeks = Math.round(abs / 7);
-    const months = Math.round(abs / 30.44);
-    parts.push(
-      abs >= 60
-        ? `about ${weeks} weeks or ${months} month${months === 1 ? '' : 's'}`
-        : `about ${weeks} weeks`,
-    );
-  }
-  return `${parts.join(', ')}${parts.length > 1 ? ',' : ''} ${relation} the question date ${day}`;
-}
-
 export function buildLongMemEvalAnswerContext(
   instance: LongMemEvalInstance,
   rankedSources: Array<{
@@ -909,169 +650,30 @@ export function buildLongMemEvalAnswerContext(
    */
   personalize = instance.question_type === 'single-session-preference',
 ): AnswerContext {
-  validateOptions(Math.max(1, rankedSources.length), contextBytes);
-  if (tiers !== undefined) {
-    if (focusedBudget)
-      throw new Error(
-        'context tiers cannot be combined with the focused budget: two budget policies in one prompt',
-      );
-    if (!Number.isInteger(tiers.fullSessions) || tiers.fullSessions <= 0)
-      throw new Error(
-        `context tiers need a positive integer fullSessions, got ${tiers.fullSessions}`,
-      );
-    if (!Number.isInteger(tiers.abstractBytes) || tiers.abstractBytes <= 0)
-      throw new Error(
-        `context tiers need a positive integer abstractBytes, got ${tiers.abstractBytes}`,
-      );
-  }
-  const usable = rankedSources.filter(
-    (source) => source.redacted !== true && source.text !== undefined,
-  );
-  // tiers: the first fullSessions by rank keep a sourceWindow body; the rest become abstracts,
-  // and the full sessions split what the abstracts leave, exactly as the even split divides
-  const fullCount =
-    tiers === undefined
-      ? usable.length
-      : Math.min(usable.length, tiers.fullSessions);
-  const abstractFor = (rank: number) =>
-    tiers !== undefined && rank >= fullCount;
-  const dateLineFor = (ts: string) =>
-    dateDistances
-      ? `Session date: ${ts.slice(0, 10)} (${describeDistance(ts, instance.question_date)})`
-      : `Session date: ${ts}`;
-  const factsLineFor = (facts: string[] | undefined) =>
-    facts !== undefined && facts.length > 0
-      ? `Remembered facts (stated in this session): ${facts.join(' ')}\n`
-      : '';
-  const abstractWords =
-    tiers === undefined ? [] : abstractContentWords(instance.question);
-  const abstracts = new Map<number, string>();
-  if (tiers !== undefined)
-    for (let rank = fullCount; rank < usable.length; rank += 1) {
-      const source = usable[rank]!;
-      abstracts.set(
-        rank,
-        abstractSection(
-          // an abstract is the lines matching the question only: no facts line
-          `### Retrieved session ${rank + 1} (abstract)\n${dateLineFor(source.ts)}\n`,
-          source.text!,
-          abstractWords,
-          tiers.abstractBytes,
-        ),
-      );
-    }
-  const abstractBytesUsed = [...abstracts.values()].reduce(
-    (sum, section) => sum + Buffer.byteLength(section, 'utf8'),
-    0,
-  );
-  if (abstracts.size > 0 && abstractBytesUsed > contextBytes - 256 * fullCount)
-    throw new Error(
-      `abstract sections take ${abstractBytesUsed} bytes, more than the ${contextBytes - 256 * fullCount} bytes the context leaves after 256 per full session; lower abstractBytes or the retrieval depth`,
-    );
-  const evenBytes = Math.max(
-    256,
-    Math.floor((contextBytes - abstractBytesUsed) / Math.max(1, fullCount)),
-  );
-  // focused budget: a session's share of the context grows with the number of the question's
-  // content words it contains, so fifteen retrieved sessions do not each get a 1.6 KB sliver
-  // that cuts the one sentence the question needs
-  const focusWords = focusedBudget
-    ? [...new Set(recallWords(instance.question).filter((word) => word.length >= 4))]
-    : [];
-  const weights = usable.map((source) => {
-    if (!focusedBudget) return 1;
-    const low = source.text!.toLowerCase();
-    return 1 + focusWords.reduce((n, w) => n + (low.includes(w) ? 1 : 0), 0) * 2;
+  const prompt = renderReadingPrompt({
+    question: instance.question,
+    questionDate: instance.question_date,
+    sources: rankedSources,
+    contextBytes,
+    extraFacts,
+    reading,
+    ...(engine === undefined ? {} : { engine }),
+    dateDistances,
+    computedNotes,
+    focusedBudget,
+    structuredEvidence,
+    ...(tiers === undefined ? {} : { tiers }),
+    ...(countedLine === undefined ? {} : { countedLine }),
+    personalize,
   });
-  const weightSum = weights.reduce((a, b) => a + b, 0);
-  const budgetFor = (index: number) =>
-    focusedBudget
-      ? Math.max(256, Math.floor((contextBytes * weights[index]!) / weightSum))
-      : evenBytes;
-  const selected = usable.map((source, rank) => {
-    if (abstractFor(rank))
-      return { ...source, rank, section: abstracts.get(rank)! };
-    const facts = factsLineFor(source.facts);
-    const dateLine = dateLineFor(source.ts);
-    const header = `### Retrieved session ${rank + 1}\n${dateLine}\n${facts}`;
-    const body = sourceWindow(
-      source.text!,
-      instance.question,
-      Math.max(1, budgetFor(rank) - Buffer.byteLength(header, 'utf8') - 2),
-      source.focusCharacterOffset,
-    );
-    return { ...source, rank, section: `${header}${body}\n` };
-  });
-  const history = selected
-    .sort(
-      (left, right) =>
-        left.ts.localeCompare(right.ts) || left.rank - right.rank,
-    )
-    .map(({ section }) => section)
-    .join('\n');
-  const remembered =
-    extraFacts.length === 0
-      ? ''
-      : `\n### Supplementary remembered facts (extracted earlier, with the session date; they may be unrelated to the question, so ignore any that do not concern it and never treat them as evidence on their own)\n${extraFacts
-          .map(({ ts, clause }) => `- ${ts}: ${clause}`)
-          .join('\n')}\n`;
-  const engineBlock =
-    engine === undefined
-      ? ''
-      : `\n### Memory engine result\nThe memory system wrote this Datalog program over the facts it remembered from the whole history (every session, not only the chats above) and executed it. The rows are exact for the remembered facts, but the program may be broader than the question and facts can be missing or misread, so keep only the rows that fit the question, cross-check with the chats, and prefer the chats where they disagree.\nProgram: ${engine.query.replace(/\s*\n\s*/g, ' ')}\n${engine.rendered.slice(0, MAX_ENGINE_RENDER_CHARACTERS)}\n`;
-  const pinnedLines = countedLine === undefined || countedLine === '' ? [] : [countedLine];
-  const computedBlock =
-    computedNotes || pinnedLines.length > 0
-      ? (() => {
-          const block = buildComputedNotes(
-            instance.question,
-            instance.question_date,
-            // without --computed-notes the block carries the counted line alone
-            computedNotes ? selected.map(({ ts, text }) => ({ ts, text: text! })) : [],
-            {},
-            pinnedLines,
-          );
-          return block === '' ? '' : `\n${block}`;
-        })()
-      : '';
-  // structured evidence goes first: dated claims to compose from, then the chats to check
-  const evidenceBlock = structuredEvidence
-    ? (() => {
-        const block = buildStructuredEvidence(
-          instance.question,
-          instance.question_date,
-          [
-            ...selected.map(({ ts, text, facts }) => ({ ts, text: text!, facts })),
-            // supplementary facts have no session text here; they ground against themselves
-            ...extraFacts.map(({ ts, clause }) => ({ ts, text: `USER: ${clause}`, facts: [clause] })),
-          ],
-        );
-        return block === '' ? '' : `${block}\n`;
-      })()
-    : '';
-  const user = `${evidenceBlock}History chats:\n\n${history || '[no safe relevant history retrieved]'}\n${remembered}${engineBlock}${computedBlock}Current date: ${instance.question_date}\nQuestion: ${instance.question}\nAnswer:`;
-  assertSafeForExternalLlm(user, 'LongMemEval answer prompt');
-  const system =
-    personalize
-      ? 'Use the supplied history to personalize the answer. You may use general knowledge for recommendations, but do not invent facts about the user. Briefly make the remembered preference or context driving the answer explicit.'
-      : reading === 'enumerate'
-        ? 'Do not answer the question yet. From the supplied history, list every item relevant to the question, one per line, each with its session date and the exact detail the history states (a count, a name, a date, an amount, a quote). Include every occurrence across sessions, keep duplicates apart, and add nothing the history does not say. If nothing is relevant, write "No relevant items." Output the list only.'
-        : reading === 'notes'
-          ? 'Answer only from the supplied history. Work in two steps. First, under "Notes:", list every relevant item the history states, one per line, each with its session date and the exact detail (a count, a name, a date, an amount). Then, on a final line starting with "Answer:", give the answer derived from those notes, concise and with the arithmetic or ordering made explicit when the question needs it. If the notes do not support an answer, the Answer line must say that you do not know. Do not invent details.'
-          : 'Answer only from the supplied history. If it does not support an answer, say that you do not know. Be concise and do not invent details.';
   return {
     messages: [
-      {
-        role: 'system',
-        content: system,
-      },
-      { role: 'user', content: user },
+      { role: 'system', content: prompt.system },
+      { role: 'user', content: prompt.user },
     ],
-    contextSessionIds: selected
-      .sort((left, right) => left.rank - right.rank)
-      .map(({ opId }) => opId),
-    redactedRetrievedSessions: rankedSources.length - usable.length,
-    sections: selected.map(({ opId, section }) => ({ opId, section })),
+    contextSessionIds: prompt.contextSessionIds,
+    redactedRetrievedSessions: prompt.redactedRetrievedSessions,
+    sections: prompt.sections,
   };
 }
 
@@ -1319,11 +921,14 @@ export async function evaluateLongMemEvalAnswerInstance(
             : {}),
         };
   const topK = options.topK ?? DEFAULT_LONGMEMEVAL_ANSWER_TOP_K;
-  const effectiveTopK = kind.aggregation
-    ? (options.multiSessionTopK ?? DEFAULT_LONGMEMEVAL_MULTI_SESSION_TOP_K)
-    : kind.temporal
-      ? (options.temporalTopK ?? DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K)
-      : topK;
+  // the depth decision is the shared module's; the harness only supplies its own three numbers
+  const effectiveTopK = readingDepth(kind, {
+    topK,
+    aggregationTopK:
+      options.multiSessionTopK ?? DEFAULT_LONGMEMEVAL_MULTI_SESSION_TOP_K,
+    temporalTopK:
+      options.temporalTopK ?? DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K,
+  });
   // turn-level retrieval can be routed by question type (temporal questions lose with it),
   // or by the question text alone
   if (
@@ -1339,14 +944,14 @@ export async function evaluateLongMemEvalAnswerInstance(
   const turnUnit =
     options.retrievalUnit === 'turn' &&
     (classify !== 'label'
-      ? !kind.temporal
+      ? readingUnit(kind) === 'turn'
       : options.turnUnitRule === 'unless-temporal'
         ? !isTemporalQuestion(instance.question)
         : options.turnUnitQuestionTypes === undefined ||
           options.turnUnitQuestionTypes.has(instance.question_type));
   const contextBytes =
     options.contextBytes ?? DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES;
-  validateOptions(effectiveTopK, contextBytes);
+  validateReadingOptions(effectiveTopK, contextBytes);
   const multiSessionSemanticMaximumLexicalScore =
     options.multiSessionSemanticMaximumLexicalScore ??
     LONGMEMEVAL_MULTI_SEMANTIC_MAX_LEXICAL_SCORE;
@@ -1626,18 +1231,9 @@ export async function evaluateLongMemEvalAnswerInstance(
         temporalRangeUsage = completion.usage;
         temporalRange = parseTemporalRange(completion.content);
       }
-      const inRange = (ts: string): boolean =>
-        temporalRange !== null &&
-        temporalRange !== undefined &&
-        ts.slice(0, 10) >= temporalRange.start &&
-        ts.slice(0, 10) <= temporalRange.end;
+      // "in range first" is the shared module's stable partition
       const rangeFirst = <T extends { ts: string }>(items: T[]): T[] =>
-        temporalRange === null || temporalRange === undefined
-          ? items
-          : [
-              ...items.filter((i) => inRange(i.ts)),
-              ...items.filter((i) => !inRange(i.ts)),
-            ];
+        orderInRangeFirst(items, temporalRange);
       const semanticQuestionTypes =
         options.semanticQuestionTypes ??
         DEFAULT_LONGMEMEVAL_SEMANTIC_QUESTION_TYPES;
@@ -1850,21 +1446,15 @@ export async function evaluateLongMemEvalAnswerInstance(
       ).slice(0, effectiveTopK);
       if (turnUnit) {
         // aggregate matching turns to their sessions: sum of 1/log2(rank+1), whole session back
-        const aggregate = (results: typeof search.results) => {
-          const sessionScore = new Map<string, number>();
-          results.forEach((result, position) => {
-            const source = result.sources[0];
-            if (source === undefined) return;
-            const session = sourceSessionIds.get(source.opId) ?? source.opId;
-            sessionScore.set(
-              session,
-              (sessionScore.get(session) ?? 0) + 1 / Math.log2(position + 2),
-            );
-          });
-          return [...sessionScore.entries()]
-            .sort((a, b) => b[1] - a[1])
-            .map(([session]) => session);
-        };
+        const aggregate = (results: typeof search.results) =>
+          aggregateSessionsByTurnRank(
+            results.map((result) => {
+              const source = result.sources[0];
+              return source === undefined
+                ? undefined
+                : (sourceSessionIds.get(source.opId) ?? source.opId);
+            }),
+          );
         let sessionOrder = aggregate(baseResults);
         if (baseResults.length < search.results.length) {
           // the re-rank's extra depth only appends sessions after the plain order
@@ -2699,9 +2289,9 @@ export function longMemEvalAnswerRun(
     options.temporalTopK ?? DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K;
   const contextBytes =
     options.contextBytes ?? DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES;
-  validateOptions(topK, contextBytes);
-  validateOptions(multiSessionTopK, contextBytes);
-  validateOptions(temporalTopK, contextBytes);
+  validateReadingOptions(topK, contextBytes);
+  validateReadingOptions(multiSessionTopK, contextBytes);
+  validateReadingOptions(temporalTopK, contextBytes);
   const questionTypes = [
     ...new Set(observations.map(({ questionType }) => questionType)),
   ].sort();
