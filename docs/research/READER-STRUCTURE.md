@@ -741,3 +741,42 @@ of the GLM teacher's 440. The same caveat as 414 applies: the harness still take
 the time-range call, the reading format, the preference prompt and assistant-turn roles from the
 dataset label, and the rules behind the notes and the unit detector were written on these 500.
 
+## Label-free routing, and counting as a negative result (2026-09-18)
+
+Two more TypeSafe uses, measured with GLM 5.3 Flash on the 266 (free, one judge, same day) on top of
+the re-ranked, turn-routed setup:
+
+- **`--classify text|typesafe`** (commit 6d30321) moves all five answer-side decisions — retrieval
+  depth, the time-range call, the Notes-then-Answer reading, the personalisation prompt and
+  assistant-turn visibility — off the dataset label and onto the question's wording, either by
+  deterministic rules (`src/knowledge/question-kind.ts`) or one TypeSafe request carrying five noul
+  questions (`src/evals/typesafe-question-kind.ts`). The judge keeps the label.
+- **`--typesafe-count`** (commit 02f9e82) detects a counting question, splits the retrieved user
+  turns into sentences, asks TypeSafe one noul per candidate sentence ("states one instance of the
+  thing the question counts"), counts the ones above 0.5 **in code**, and pins the result as the
+  first line of the computed-notes block. This follows TypeSafe's own guidance: Jev cannot count, so
+  the count belongs in code.
+
+| Arm | Correct / 266 | Multi-session | Temporal | Answer turns in context |
+|---|---|---|---|---|
+| dataset labels | 227 | 105 | 122 | 93.1% |
+| `--classify text` | 227 | 106 | 121 | 93.5% |
+| `--classify typesafe` | 227 | 105 | 122 | 91.1% |
+| labels + `--typesafe-count` | 224 | 100 | 124 | 93.1% |
+
+**Routing from the question's wording costs nothing.** Both label-free variants tie the
+label-driven run, and the deterministic rules match the TypeSafe classifier at no cost per question,
+so `--classify text` is the default worth shipping. Per-flag agreement with the labels over the 500:
+text rules — preference 100/100, assistantRecall 100/98, temporal 90/97, aggregation 65/82, update
+51/63; TypeSafe — preference 77/100, assistantRecall 100/88, temporal 50/99, aggregation 49/83,
+update 36/69 (precision/recall). TypeSafe over-flags temporal, which would send half the questions
+back to the weaker session unit; the rules are sharper.
+
+**Counting loses.** It fired on 53 questions, judged 1,130 candidate sentences for $0.017, and
+finished 3 behind: multi-session 105 → 100, temporal 122 → 124, paired flips +8 / -11. Counting the
+right things is not the problem TypeSafe solves here — the candidate sentences it judges are chosen
+by word overlap, so an instance phrased differently is never offered, and a sentence that mentions
+the subject without being an instance is offered and sometimes accepted. The flag stays off by
+default. A future attempt should fix candidate selection first (the items the reader must count,
+not the sentences that share a word with the question).
+
