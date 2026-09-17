@@ -56,12 +56,69 @@ export interface AutoCaptureResult {
   sessionError?: string;
 }
 
+/** Session turns, by the store's `appendTurns` signature. */
+type StampedTurn = { role: 'user' | 'assistant'; ts: string; text: string };
+
+/**
+ * The turns this session does not already hold, in transcript order and bounded
+ * to `tailBytes`.
+ *
+ * Two things have to be kept off every stop hook. One is old turns: a window
+ * with no user text is re-read four times further back (up to 16 MB), so a
+ * capture can see turns far older than the ones already stored, and appending
+ * those would put a newer `index` on an older `ts` — the file order `readSession`
+ * returns would stop matching time. `lastTs` comes from the namespace index
+ * rather than the session file, so the high-water mark costs one small read
+ * instead of a second parse of a file that grows without bound. The other is
+ * volume: the store masks and hashes every turn it is handed, inside the
+ * namespace lock, so a 192 KB window would be re-masked on every hook. Only the
+ * newest `tailBytes` of new turns is handed over, and never fewer than one turn,
+ * so a single turn larger than the budget is still stored.
+ */
+function sessionTurnsToWrite(
+  sessions: SessionStore,
+  namespace: string,
+  sourceSessionId: string,
+  turns: Array<{ role: 'user' | 'assistant'; ts?: string; text: string }>,
+  at: string,
+  tailBytes: number,
+): StampedTurn[] {
+  const key = sessions.sessionKey('claude-code', sourceSessionId);
+  const lastTs = sessions
+    .list(namespace)
+    .find((entry) => entry.key === key)?.lastTs;
+  const floor = lastTs === undefined ? undefined : Date.parse(lastTs);
+  const fresh: StampedTurn[] = [];
+  for (const turn of turns) {
+    const stamped: StampedTurn = {
+      role: turn.role,
+      ts: turn.ts ?? at,
+      text: turn.text,
+    };
+    // Turns sharing the last stored timestamp stay: several transcript entries
+    // can carry one timestamp, and the store skips the stored ones by hash.
+    if (floor !== undefined && Date.parse(stamped.ts) < floor) continue;
+    fresh.push(stamped);
+  }
+  const bounded: StampedTurn[] = [];
+  let used = 0;
+  for (let index = fresh.length - 1; index >= 0; index -= 1) {
+    const bytes = Buffer.byteLength(fresh[index].text, 'utf8');
+    if (bounded.length > 0 && used + bytes > tailBytes) break;
+    bounded.push(fresh[index]);
+    used += bytes;
+  }
+  return bounded.reverse();
+}
+
 /**
  * Store the transcript's turns as a session, and never let that failure reach the
- * stop hook: a contended namespace lock, a full disk or a read-only sessions root
- * must not cost the user their captured facts. The next stop hook re-reads an
- * overlapping tail and the store skips by turn hash, so a lost write is recovered
- * rather than a lost turn.
+ * stop hook: an invalid sessions setting, a contended namespace lock, a full disk
+ * or a read-only sessions root must not cost the user their captured facts. Every
+ * step runs inside the catch for that reason, the setting check included —
+ * `sessionsEnabled` throws on a `REMBERO_SESSIONS` that is neither 'on' nor
+ * 'off'. The next stop hook re-reads an overlapping tail and the store skips by
+ * turn hash, so a lost write is recovered rather than a lost turn.
  */
 function writeSessionTurns(
   deps: AutoCaptureDeps,
@@ -69,27 +126,33 @@ function writeSessionTurns(
   input: ReturnType<typeof parseClaudeStopHookInput>,
   turns: Array<{ role: 'user' | 'assistant'; ts?: string; text: string }>,
   now: Date,
+  tailBytes: number,
 ): Pick<AutoCaptureResult, 'sessionTurns' | 'sessionError'> {
   const sessions = deps.sessions;
-  if (sessions === undefined || !sessions.sessionsEnabled()) return {};
-  const at = now.toISOString();
-  const stamped = turns.map((turn) => ({
-    role: turn.role,
-    ts: turn.ts ?? at,
-    text: turn.text,
-  }));
-  if (stamped.length === 0) return {};
+  if (sessions === undefined) return {};
   try {
+    if (!sessions.sessionsEnabled()) return {};
+    const selected = sessionTurnsToWrite(
+      sessions,
+      namespace,
+      input.sessionId,
+      turns,
+      now.toISOString(),
+      tailBytes,
+    );
+    if (selected.length === 0) {
+      return { sessionTurns: { appended: 0, skipped: 0 } };
+    }
     const result = sessions.appendTurns(
       namespace,
       {
         version: 1,
         source: 'claude-code',
         sourceSessionId: input.sessionId,
-        startedAt: stamped[0].ts,
+        startedAt: selected[0].ts,
         cwd: input.cwd,
       },
-      stamped,
+      selected,
     );
     return {
       sessionTurns: { appended: result.appended, skipped: result.skipped },
@@ -253,6 +316,7 @@ export async function autoCaptureClaudeStop(
       input,
       tail.turns,
       now,
+      tailBytes,
     );
     try {
       deps.store.finishAutoCapture(

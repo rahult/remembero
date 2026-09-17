@@ -99,6 +99,29 @@ export function sessionsRoot(env: NodeJS.ProcessEnv = process.env): string {
   return join(env.REMBERO_HOME ?? join(homedir(), '.rembero'), 'sessions');
 }
 
+/**
+ * The conversation store when `REMBERO_SESSIONS=on`, and nothing at all when it
+ * is off or when either sessions setting is invalid. An unusable
+ * `REMBERO_SESSIONS` or `REMBERO_SESSION_CAP_BYTES` throws from
+ * `sessionsEnabledFromEnv` and from the constructor, and the CLI and the MCP
+ * server build this store for every command and every tool call: a mistyped
+ * sessions setting must cost the user their sessions, not `query`, `recall` and
+ * `forget` as well. The failure is named on stderr and the caller proceeds with
+ * no store, which is exactly the documented off state.
+ */
+export function sessionStoreFromEnv(): SessionStore | undefined {
+  try {
+    return sessionsEnabledFromEnv() ? new SessionStore() : undefined;
+  } catch (error) {
+    process.stderr.write(
+      `rembero sessions: keeping no sessions: ${
+        error instanceof Error ? error.message : String(error)
+      }\n`,
+    );
+    return undefined;
+  }
+}
+
 function assertNamespace(namespace: string): void {
   if (!NAMESPACE_PATTERN.test(namespace)) {
     throw new Error(

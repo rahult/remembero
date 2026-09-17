@@ -5,14 +5,16 @@ import {
   readdirSync,
   writeFileSync,
 } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   autoCaptureClaudeStop,
   type AutoCaptureOptions,
 } from '../src/autocapture/capture.js';
 import type { ChatMessage, LlmClient } from '../src/llm/client.js';
+import { createServer } from '../src/mcp/server.js';
 import { rememberText } from '../src/llm/pipeline.js';
 import { SessionStore } from '../src/sessions/store.js';
 import { MemoryStore } from '../src/store/store.js';
@@ -170,6 +172,29 @@ describe('capture writes conversation turns to the session store', () => {
     );
     expect(repeat.status).toBe('skipped');
     expect(storedTurns()!.turns).toHaveLength(2);
+    // That repeat is refused by the fact store before the session write, so the
+    // skipping itself is asserted directly: the same two turns handed to the store
+    // again are both recognised and neither is stored twice.
+    expect(
+      sessions.appendTurns(
+        'default',
+        {
+          version: 1,
+          source: 'claude-code',
+          sourceSessionId: 'session-1',
+          startedAt: CAPTURE_AT.toISOString(),
+        },
+        [
+          {
+            role: 'user',
+            ts: CAPTURE_AT.toISOString(),
+            text: 'I prefer dark mode.',
+          },
+          { role: 'assistant', ts: CAPTURE_AT.toISOString(), text: 'Noted.' },
+        ],
+      ),
+    ).toMatchObject({ appended: 0, skipped: 2 });
+    expect(storedTurns()!.turns).toHaveLength(2);
 
     // A grown transcript: the two stored turns are skipped by hash, the new one appended.
     writeTranscript([first, second, transcriptLine('user', 'I live in Melbourne.')]);
@@ -184,6 +209,91 @@ describe('capture writes conversation turns to the session store', () => {
       'Noted.',
       'I live in Melbourne.',
     ]);
+  });
+
+  it('never appends a turn older than the ones already stored', async () => {
+    // A window with no user text is re-read four times further back, so a capture
+    // can see turns older than the stored ones. Appending those would give a newer
+    // index to an older ts and the file would stop being in time order.
+    writeTranscript([
+      transcriptLine('user', 'I prefer dark mode.', '2026-08-17T02:00:00.000Z'),
+      transcriptLine('assistant', 'Noted.', '2026-08-17T02:01:00.000Z'),
+    ]);
+    const llm = new ScriptedLlm([
+      'prefers_theme(user, dark).',
+      'lives_in(user, melbourne).',
+    ]);
+    await autoCaptureClaudeStop(
+      { store, llm, sessions },
+      stopInput(),
+      captureOptions(),
+    );
+
+    writeTranscript([
+      // Older than the stored turns, and never stored: dropped, not appended.
+      transcriptLine('user', 'I set this up last week.', '2026-08-17T01:00:00.000Z'),
+      transcriptLine('user', 'I live in Melbourne.', '2026-08-17T02:02:00.000Z'),
+    ]);
+    const later = await autoCaptureClaudeStop(
+      { store, llm, sessions },
+      stopInput(),
+      captureOptions(),
+    );
+
+    expect(later.sessionTurns).toEqual({ appended: 1, skipped: 0 });
+    expect(storedTurns()!.turns.map((turn) => [turn.index, turn.ts])).toEqual([
+      [0, '2026-08-17T02:00:00.000Z'],
+      [1, '2026-08-17T02:01:00.000Z'],
+      [2, '2026-08-17T02:02:00.000Z'],
+    ]);
+    expect(storedTurns()!.turns.map((turn) => turn.text)).not.toContain(
+      'I set this up last week.',
+    );
+  });
+
+  it('hands the store only the newest tailBytes of the window', async () => {
+    // The store masks and hashes every turn it is handed, inside the namespace
+    // lock, so the whole read window must not reach it on every stop hook.
+    writeTranscript([
+      transcriptLine('user', `old ${'a'.repeat(2000)}`, '2026-08-17T01:00:00.000Z'),
+      transcriptLine('user', `mid ${'b'.repeat(2000)}`, '2026-08-17T01:30:00.000Z'),
+      transcriptLine('user', `new ${'c'.repeat(2000)}`, '2026-08-17T02:00:00.000Z'),
+    ]);
+    // Padding is not memorable, so extraction keeps nothing; the session write
+    // runs on the empty capture all the same.
+    const llm = new ScriptedLlm(['% nothing']);
+
+    const result = await autoCaptureClaudeStop(
+      { store, llm, sessions },
+      stopInput(),
+      captureOptions({ tailBytes: 3000 }),
+    );
+
+    expect(result.status).toBe('empty');
+    expect(result.sessionTurns).toEqual({ appended: 1, skipped: 0 });
+    const turns = storedTurns()!.turns;
+    expect(turns).toHaveLength(1);
+    expect(turns[0].text.startsWith('new ')).toBe(true);
+  });
+
+  it('keeps the capture when REMBERO_SESSIONS is neither on nor off', async () => {
+    // sessionsEnabledFromEnv throws on any other value, and that must not reach
+    // the stop hook: the facts are already committed by then.
+    process.env.REMBERO_SESSIONS = 'true';
+    writeTranscript([transcriptLine('user', 'I prefer dark mode.')]);
+    const llm = new ScriptedLlm(['prefers_theme(user, dark).']);
+
+    const result = await autoCaptureClaudeStop(
+      { store, llm, sessions },
+      stopInput(),
+      captureOptions(),
+    );
+
+    expect(result.status).toBe('captured');
+    expect(result.added).toEqual(['prefers_theme(user, dark).']);
+    expect(result.sessionError).toMatch(/REMBERO_SESSIONS/);
+    expect(result.sessionTurns).toBeUndefined();
+    expect(existsSync(sessionsDir)).toBe(false);
   });
 
   it('lets the stop hook succeed when the session store cannot be written', async () => {
@@ -246,6 +356,46 @@ describe('capture writes conversation turns to the session store', () => {
   });
 });
 
+describe('a bad sessions setting costs sessions and nothing else', () => {
+  it('starts the MCP server anyway', () => {
+    process.env.REMBERO_SESSIONS = 'true';
+    expect(() =>
+      createServer({ store, llm: new ScriptedLlm([]) }),
+    ).not.toThrow();
+
+    process.env.REMBERO_SESSIONS = 'on';
+    process.env.REMBERO_SESSION_CAP_BYTES = 'lots';
+    try {
+      expect(() =>
+        createServer({ store, llm: new ScriptedLlm([]) }),
+      ).not.toThrow();
+    } finally {
+      delete process.env.REMBERO_SESSION_CAP_BYTES;
+    }
+  });
+
+  it('runs an unrelated CLI command anyway', () => {
+    const home = join(root, 'cli-home');
+    const query = (env: Record<string, string>) =>
+      spawnSync(process.execPath, [resolve('dist/cli.js'), 'query', 'pet(a, B)'], {
+        encoding: 'utf8',
+        env: { ...process.env, REMBERO_HOME: home, ...env },
+      });
+
+    const unreadable = query({ REMBERO_SESSIONS: 'true' });
+    expect(unreadable.status).toBe(0);
+    expect(unreadable.stderr).toMatch(/REMBERO_SESSIONS/);
+
+    const badCap = query({
+      REMBERO_SESSIONS: 'on',
+      REMBERO_SESSION_CAP_BYTES: 'lots',
+    });
+    expect(badCap.status).toBe(0);
+    expect(badCap.stderr).toMatch(/REMBERO_SESSION_CAP_BYTES/);
+    expect(existsSync(join(home, 'sessions'))).toBe(false);
+  });
+});
+
 describe('remember writes a one-turn session', () => {
   it('stores the remembered text as a user turn under source remember', async () => {
     const llm = new ScriptedLlm(['owns(user, bike).']);
@@ -302,6 +452,53 @@ describe('remember writes a one-turn session', () => {
       'default',
       { at: CAPTURE_AT },
     );
+    expect(existsSync(sessionsDir)).toBe(false);
+  });
+
+  it('stores the turn even when extraction finds no fact to keep', async () => {
+    const result = await rememberText(
+      { store, llm: new ScriptedLlm(['% nothing']), sessions },
+      'I bought a road bike',
+      'default',
+      { at: CAPTURE_AT },
+    );
+
+    expect(result.added).toEqual([]);
+    const entries = sessions.list('default');
+    expect(entries).toHaveLength(1);
+    expect(sessions.readSession('default', entries[0].key)!.turns).toHaveLength(1);
+  });
+
+  it('keeps nothing on disk for a remember the product refused', async () => {
+    // The namespace allowlist and the sensitive-text refusal both throw out of
+    // extraction; text the product would not process is text it must not store.
+    await expect(
+      rememberText(
+        {
+          store,
+          llm: new ScriptedLlm(['owns(user, bike).']),
+          sessions,
+          llmAllowedNamespaces: new Set(['other']),
+        },
+        'I bought a road bike',
+        'default',
+        { at: CAPTURE_AT },
+      ),
+    ).rejects.toThrow(/local-only/i);
+    expect(existsSync(sessionsDir)).toBe(false);
+  });
+
+  it('answers when REMBERO_SESSIONS is neither on nor off', async () => {
+    process.env.REMBERO_SESSIONS = 'true';
+
+    const result = await rememberText(
+      { store, llm: new ScriptedLlm(['owns(user, bike).']), sessions },
+      'I bought a road bike',
+      'default',
+      { at: CAPTURE_AT },
+    );
+
+    expect(result.added).toEqual(['owns(user, bike).']);
     expect(existsSync(sessionsDir)).toBe(false);
   });
 

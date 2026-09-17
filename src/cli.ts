@@ -29,10 +29,9 @@ import {
   recallAnswerModeFromEnv,
   recallSchemaPredicateLimitFromEnv,
   selfAtomFromEnv,
-  sessionsEnabledFromEnv,
   validTimeModeFromEnv,
 } from './env.js';
-import { SessionStore } from './sessions/store.js';
+import { sessionStoreFromEnv } from './sessions/store.js';
 import { clientFromEnv, lazyClientFromEnv } from './llm/client.js';
 import {
   rememberText,
@@ -1153,9 +1152,10 @@ async function main(): Promise<void> {
     return;
   }
   const store = new MemoryStore();
-  // Conversation text is stored only with REMBERO_SESSIONS=on; off means the
-  // dependency is absent and no command has a store to write turns to.
-  const sessions = sessionsEnabledFromEnv() ? new SessionStore() : undefined;
+  // Conversation text is stored only with REMBERO_SESSIONS=on; off, or a sessions
+  // setting this build cannot read, means the dependency is absent and no command
+  // has a store to write turns to.
+  const sessions = sessionStoreFromEnv();
   const graphSelector = graphSelectorOption(args);
   const operationId = operationIdOption(args.opId);
   const recordedSequence =

@@ -10,10 +10,9 @@ import {
   recallAnswerModeFromEnv,
   recallSchemaPredicateLimitFromEnv,
   selfAtomFromEnv,
-  sessionsEnabledFromEnv,
   validTimeModeFromEnv,
 } from '../env.js';
-import { SessionStore } from '../sessions/store.js';
+import { sessionStoreFromEnv } from '../sessions/store.js';
 import type {
   PipelineDeps,
   RecallRelatedKnowledgeOptions,
@@ -616,10 +615,9 @@ export function createServer(deps: PipelineDeps): McpServer {
   const configuredChecks =
     deps.knowledgeCheckEnforcement ?? knowledgeCheckEnforcementFromEnv();
   // Conversation text is stored only when the setting is on, so the dependency
-  // itself is absent otherwise and nothing downstream has a store to write to.
-  const sessions =
-    deps.sessions ??
-    (sessionsEnabledFromEnv() ? new SessionStore() : undefined);
+  // itself is absent otherwise and nothing downstream has a store to write to. An
+  // unreadable sessions setting must not stop the server from starting.
+  const sessions = deps.sessions ?? sessionStoreFromEnv();
   const resolvedDeps: PipelineDeps = {
     ...deps,
     ...(sessions === undefined ? {} : { sessions }),

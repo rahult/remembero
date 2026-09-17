@@ -756,13 +756,17 @@ export async function extractRememberText(
 
 /**
  * A `remember` call becomes a one-turn session, keyed by the text itself so the
- * same statement twice is one session with one turn. It is stored before
- * extraction and whatever extraction makes of it: the sentence the user wrote is
- * what reading recall needs, whether or not a fact came out of it.
+ * same statement twice is one session with one turn. It is stored once extraction
+ * has come back and whatever extraction made of it: the sentence the user wrote
+ * is what reading recall needs, whether or not a fact came out of it. A call the
+ * product refused to process — sensitive text, a local-only namespace — throws
+ * out of extraction and leaves nothing on disk.
  *
- * The write is best-effort. Being unable to keep conversation text must never
- * cost the caller a remembered fact, so a contended namespace lock or an
- * unwritable sessions root is reported on stderr and otherwise ignored.
+ * The write is best-effort, and every step of it runs inside the catch —
+ * `sessionsEnabled` throws on a `REMBERO_SESSIONS` that is neither 'on' nor
+ * 'off'. Being unable to keep conversation text must never cost the caller a
+ * remembered fact, so a bad setting, a contended namespace lock or an unwritable
+ * sessions root is reported on stderr and otherwise ignored.
  */
 function writeRememberSession(
   deps: PipelineDeps,
@@ -771,9 +775,10 @@ function writeRememberSession(
   at?: Date,
 ): void {
   const sessions = deps.sessions;
-  if (sessions === undefined || !sessions.sessionsEnabled()) return;
-  const ts = (at ?? new Date()).toISOString();
+  if (sessions === undefined) return;
   try {
+    if (!sessions.sessionsEnabled()) return;
+    const ts = (at ?? new Date()).toISOString();
     sessions.appendTurns(
       namespace,
       {
@@ -807,8 +812,10 @@ export async function rememberText(
   if (validTimeMode !== 'delete' && validTimeMode !== 'archive_until') {
     throw new Error("valid-time mode must be 'delete' or 'archive_until'");
   }
-  writeRememberSession(deps, text, namespace, options.at);
   const extraction = await extractRememberText(deps, text, namespace, options);
+  // Extraction came back, so the text was accepted rather than refused. One call
+  // here covers every path out of this function below.
+  writeRememberSession(deps, text, namespace, options.at);
   if (extraction === null) return { added: [], duplicates: 0, retracted: 0 };
   if (trust === 'tentative' && extraction.retractions.length > 0) {
     throw new Error(
