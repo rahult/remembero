@@ -239,8 +239,10 @@ describe('session store', () => {
       [{ role: 'user', ts: '2026-09-01T00:00:00.000Z', text: 'x'.repeat(300) }]
     );
     let nested: unknown;
+    let waited = 0;
     onLog = () => {
       if (nested !== undefined) return;
+      const started = Date.now();
       try {
         second.appendTurns('default', { ...header, sourceSessionId: 'rival' }, [
           { role: 'user', ts: '2026-09-18T00:00:00.000Z', text: 'racing' },
@@ -249,6 +251,7 @@ describe('session store', () => {
       } catch (error) {
         nested = error;
       }
+      waited = Date.now() - started;
     };
     // The drop inside the locked region is where the second writer tries to cut in.
     first.appendTurns(
@@ -258,6 +261,9 @@ describe('session store', () => {
     );
     expect(nested).toBeInstanceOf(Error);
     expect((nested as Error).message).toMatch(/lock/i);
+    // The wait is a synchronous stall, so it has to be short: a contended writer
+    // gives up in well under a second rather than parking the event loop.
+    expect(waited).toBeLessThan(1000);
     onLog = () => {};
     // The lock is released, so the rival can write once the first writer is done.
     expect(

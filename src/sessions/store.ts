@@ -34,9 +34,18 @@ const INDEX_FILE = 'index.json';
 // The same lock discipline as the fact store's `withLock` (src/store/store.ts): a
 // `wx` create for the lock, the owner's pid inside it, and an age-plus-liveness
 // test before a crashed writer's lock is taken over.
-const LOCK_WAIT_MS = 2_000;
+//
+// The wait is short rather than asynchronous. `appendTurns` returns its result
+// synchronously — the brief's interface, and capture runs inside a Claude Code stop
+// hook — so an async lock would change that signature and every caller. A
+// synchronous wait parks the whole event loop, which inside the MCP server means
+// the server answers nothing while it waits, so the stall is bounded instead: 250 ms
+// in 5 ms sleeps, 50 sleeps at worst, and then a contended writer fails fast with an
+// error naming the lock. Failing is safe here because turns are identified by hash:
+// the next stop hook re-reads the same transcript tail and stores each turn once.
+const LOCK_WAIT_MS = 250;
 const LOCK_STALE_MS = 30_000;
-const LOCK_RETRY_MS = 10;
+const LOCK_RETRY_MS = 5;
 const sleepCell = new Int32Array(new SharedArrayBuffer(4));
 
 export type SessionSource = 'claude-code' | 'remember' | 'import';
@@ -579,6 +588,13 @@ export class SessionStore {
     mkdirSync(this.root, { recursive: true, mode: 0o700 });
     const lockPath = join(this.root, `.${name}.lock`);
     const deadline = Date.now() + LOCK_WAIT_MS;
+    // Every retry path checks this, including the ones that loop straight back:
+    // a lock being created and removed under us must not spin without end.
+    const assertDeadline = (): void => {
+      if (Date.now() >= deadline) {
+        throw new Error(`timed out waiting for session lock '${name}'`);
+      }
+    };
     let descriptor: number | undefined;
     let ownedDevice: number | undefined;
     let ownedInode: number | undefined;
@@ -612,15 +628,18 @@ export class SessionStore {
             !lockOwnerAlive(lockPath)
           ) {
             unlinkSync(lockPath);
+            assertDeadline();
             continue;
           }
         } catch (statError) {
-          if ((statError as NodeJS.ErrnoException).code === 'ENOENT') continue;
+          if ((statError as NodeJS.ErrnoException).code === 'ENOENT') {
+            // The owner released it between our create and our stat.
+            assertDeadline();
+            continue;
+          }
           throw statError;
         }
-        if (Date.now() >= deadline) {
-          throw new Error(`timed out waiting for session lock '${name}'`);
-        }
+        assertDeadline();
         Atomics.wait(sleepCell, 0, 0, LOCK_RETRY_MS);
       }
     }

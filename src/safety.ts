@@ -112,23 +112,51 @@ function globalCopy(pattern: RegExp): RegExp {
 }
 
 /**
+ * How far past the opening paren a credential call's arguments may run when the
+ * parens never balance. A turn is often a whole formatted code block, so the span
+ * has to cross newlines — stopping at the first one left `password(\n 'hunter2'\n)`
+ * readable — but it must not swallow the turn either, or masking is no better than
+ * throwing the passage away. 512 characters covers any realistically formatted
+ * call (roughly ten lines, or one long token) and bounds the collateral loss at
+ * half a kilobyte. Anything still credential-shaped in the tail is caught by
+ * `containsSensitiveText`, which is what makes the store fall back to
+ * `REDACTED_SOURCE` for the whole turn.
+ */
+const MAX_CALL_SPAN_CHARS = 512;
+
+/** True when the line beginning at `start` holds nothing but whitespace. */
+function isBlankLineAt(value: string, start: number): boolean {
+  for (let index = start; index < value.length; index += 1) {
+    const character = value[index];
+    if (character === '\n') return true;
+    if (character !== ' ' && character !== '\t' && character !== '\r') {
+      return false;
+    }
+  }
+  return false;
+}
+
+/**
  * Where a credential call's arguments end: the matching close paren, counting
- * nesting, and the end of the line when the parens never balance. A regex cannot
- * do this — `[^)]*\)` stops at the first close paren of a nested call and matches
- * nothing at all when there is no close paren, which left the secret in the clear.
+ * nesting; failing that a blank line, which ends the code block and lets the prose
+ * after it survive; failing that `MAX_CALL_SPAN_CHARS`. A regex cannot do this —
+ * `[^)]*\)` stops at the first close paren of a nested call and matches nothing at
+ * all when there is no close paren, which left the secret in the clear.
  */
 function callSpanEnd(value: string, afterOpenParen: number): number {
+  const limit = Math.min(value.length, afterOpenParen + MAX_CALL_SPAN_CHARS);
   let depth = 1;
-  for (let index = afterOpenParen; index < value.length; index += 1) {
+  for (let index = afterOpenParen; index < limit; index += 1) {
     const character = value[index];
-    if (character === '\n') return index;
     if (character === '(') depth += 1;
     else if (character === ')') {
       depth -= 1;
       if (depth === 0) return index + 1;
+    } else if (character === '\n' && isBlankLineAt(value, index + 1)) {
+      return index;
     }
   }
-  return value.length;
+  return limit;
 }
 
 /** Mask `password(...)` and friends, arguments and all. */
