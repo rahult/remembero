@@ -223,8 +223,9 @@ Then create the pod, follow it, and pull the result back:
 
 `create-train` takes `--run`, `--gpu` (default `NVIDIA H100 80GB HBM3`), `--datacenter` (default
 `US-GA-2`, where the training volume lives), `--volume` (default `RUNPOD_VOLUME_ID`),
-`--cloud COMMUNITY|SECURE`, and the run flags `--max-length`, `--batch-size`, `--grad-accum`,
-`--quant` and `--no-liger`, which are `submit.py`'s flags and default to the same values. It
+`--cloud COMMUNITY|SECURE`, `--max-hours` (default 8, the self-stop watchdog), and the run flags
+`--max-length`, `--batch-size`, `--grad-accum`, `--quant` and `--no-liger`, which are `submit.py`'s
+flags and default to the same values. It
 creates the pod on `runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04` with an 80 GB
 container disk, the volume at `/workspace`, `HF_HOME=/workspace/hf` and
 `PYTHONPATH=/workspace/code`, and no HTTP port (only `22/tcp`, for a shell if
@@ -239,15 +240,22 @@ benchmarks.runpod.train_pod --run <run> ...`. Every line of both stages is tee'd
 and no console needed. The run ends with one marker line in that log:
 
 - `TRAIN_DONE {...}` from `train_pod` (the metrics, also written to `runs/<run>/metrics.json`),
-  then `TRAIN_DONE: <run>; the pod is parked ...` from the start command;
+  then `TRAIN_DONE: <run>; the pod is stopping itself` from the start command;
 - `TRAIN_FAILED <error>` from `train_pod`, with the traceback above it, or
   `TRAIN_FAILED: bootstrap failed ...` if the install or the llama.cpp build died.
 
-**The pod is never stopped for you.** Whatever the outcome, the container parks on
-`exec sleep infinity` rather than exiting, because RunPod restarts an exited container and each
-restart would train again from the last checkpoint. A parked pod keeps the GPU reserved and
-**bills at its hourly rate until `pod.py stop --pod "$RUNPOD_TRAIN_POD_ID"`** (or `terminate`).
-Check `train-log` for the `TRAIN_DONE`/`TRAIN_FAILED` line, pull the GGUF, then stop it.
+**The pod stops itself.** Whatever the outcome, the start command writes its `TRAIN_DONE` or
+`TRAIN_FAILED` marker and then calls `self_stop`, which stops the pod from inside — a finished or
+failed run can no longer sit parked and billing (one did, for about $20). A watchdog does the same
+after **`--max-hours` (default 8)**, so a hung run cannot bill forever either. The container still
+never simply exits, because RunPod restarts an exited container and each restart would train again
+from the last checkpoint.
+
+**Check `pod.py status --pod "$RUNPOD_TRAIN_POD_ID"` after a run anyway.** If the stop itself fails,
+the log gets a `SELF_STOP_FAILED: <reason>` line and the pod falls back to the old
+`exec sleep infinity` park, so it can be inspected — and it bills until
+`pod.py stop --pod "$RUNPOD_TRAIN_POD_ID"` (or `terminate`). Check `train-log` for the
+`TRAIN_DONE`/`TRAIN_FAILED`/`SELF_STOP` lines and pull the GGUF.
 
 Checkpointing is the serverless one, unchanged: the newest `runs/<run>/trainer/checkpoint-N` is
 kept on the volume and replaced at each save, so a pod that dies (or is stopped) is resumed by
@@ -371,7 +379,8 @@ touch /tmp/empty-init.py && .venv/bin/python benchmarks/runpod/volume.py put /tm
 
 `create-serve` takes `--run` and `--served-name` (once each, or twice for two readers, below),
 `--gpu`, `--datacenter` (default EUR-NO-1), `--volume` (default
-`RUNPOD_VOLUME_ID`) and `--cloud COMMUNITY|SECURE` (default COMMUNITY; network volumes may be
+`RUNPOD_VOLUME_ID`), `--max-hours` (default 4) and `--idle-minutes` (default 45), the two
+self-stop watchdogs, and `--cloud COMMUNITY|SECURE` (default COMMUNITY; network volumes may be
 Secure Cloud only, so retry with `--cloud SECURE` if community placement is refused). It reads `RUNPOD_API_KEY` from the environment or `.env`, generates a
 `VLLM_API_KEY` once (`secrets.token_urlsafe(32)`) if `.env` has none, passes
 `~/.ssh/id_ed25519.pub` as `PUBLIC_KEY` if it exists, prints the pod id (to stdout, as soon as the
@@ -413,15 +422,16 @@ either prepare fails, that run gets `PREPARE_FAILED` and the pod parks as below 
 server started (an empty key marks both runs).
 
 Neither start command lets the container exit, because RunPod would restart it into a loop that
-bills for every attempt. Besides a failed prepare, each parks on `sleep infinity` when:
+bills for every attempt. Besides a failed prepare, each stops its own pod when:
 
 - a server does not answer `/health` within 30 minutes of its start (on a two-run pod, the first
   on 8000 and then the second on 8001);
 - a server exits, before it is healthy or later.
 
 It writes `SERVE_FAILED: <reason>` (for example `SERVE_FAILED: reader-v8-gemma4-e4b exited with 1`)
-to `serve.log` on the volume (on a two-run pod, to **both** runs' `serve.log`) and stops any
-server that is still up. The lines above it in that run's `serve.log` show vLLM's own error.
+to `serve.log` on the volume (on a two-run pod, to **both** runs' `serve.log`), stops any
+server that is still up and then stops the pod. The lines above it in that run's `serve.log` show
+vLLM's own error.
 
 0.44 of the GPU is about 14 GB on a 32 GB RTX 5090, no more than the text-only bf16 weights
 alone. So a two-run `create-serve` refuses, before any API call, unless `--gpu` is one of the
@@ -439,18 +449,33 @@ today), so everything is written to the volume and fetched with `volume.py get`:
 ```
 
 If the install or prepare fails (or `VLLM_API_KEY` is empty), the start command writes
-`runs/<run>/PREPARE_FAILED` and parks the container on `sleep infinity` instead of exiting, because
-RunPod restarts an exited container and each restart would redo the merge. `wait` then times out
-and stops the pod; read `prepare.log`, fix, and terminate the pod (a new boot removes the marker and
-tries again).
+`runs/<run>/PREPARE_FAILED` and then stops the pod rather than exiting, because RunPod restarts an
+exited container and each restart would redo the merge. Read `prepare.log`, fix, and terminate the
+pod (a new boot removes the marker and tries again).
 The console's pod **Logs** tab shows the same lines while the pod runs.
 
-**A parked pod still bills.** `sleep infinity` keeps the GPU reserved and charged at the pod's
-hourly rate until it is stopped. `wait` stops it on timeout (unless `--no-stop-on-timeout`); a pod
-that parks after `wait` returned (a server that exits mid-run) bills until you stop it. Check the
+**The pod stops itself.** Both start commands carry a `self_stop` shell function: it appends
+`SELF_STOP: <reason>` to the run's log on the volume and then runs `runpodctl stop pod
+"$RUNPOD_POD_ID"` from inside the pod, installing `runpodctl` first if the image has none. No
+RunPod API key ever goes into a pod: `runpodctl` inside a pod is authenticated by the pod itself,
+and `RUNPOD_POD_ID` is already in its environment. A serving pod stops itself
+
+- on any `SERVE_FAILED` path above (and on a failed prepare);
+- after **`--max-hours`** (default **4**), whatever the servers are doing;
+- after **`--idle-minutes`** (default **45**) with no request served — idleness is read from
+  `serve.log`'s mtime, which vLLM moves by logging a line for every request.
+
+Both watchdogs are plain shell loops inside the pod, ticking once a minute
+(`WATCHDOG_INTERVAL_S`), started before the health wait, and they cover both runs' `serve.log` on
+a two-run pod. `wait` still stops the pod on its own timeout (unless `--no-stop-on-timeout`).
+
+**Still check `pod.py status` after a run.** A stop can fail: the log then gets
+`SELF_STOP_FAILED: <reason>` and the pod falls back to the old `exec sleep infinity` park so it can
+be inspected — and a parked pod keeps the GPU reserved and charged until it is stopped. Check the
 logs:
 
 - `runs/<run>/PREPARE_FAILED` and `prepare.log` for a failed prepare;
-- `runs/<run>/serve.log` for a `SERVE_FAILED: <reason>` line.
+- `runs/<run>/serve.log` for a `SERVE_FAILED: <reason>`, `SELF_STOP: <reason>` or
+  `SELF_STOP_FAILED: <reason>` line.
 
-Then run `pod.py stop` (if `wait` has not), or `pod.py terminate`.
+Then run `pod.py stop` (if nothing else has), or `pod.py terminate`.

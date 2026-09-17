@@ -123,9 +123,29 @@ def fake_bin(directory, name, body):
     path.chmod(0o755)
 
 
-def boot(tmp_path, prepare_exit, key="test-key", vllm_then="", healthy=True):
-    """Run the start command with stub python3/uv/vllm/sleep on PATH and the volume in tmp_path.
-    vllm_then is shell run by the vllm stub after it logs; healthy=False fails the /health probe."""
+POD_ID = "pod-test-1"
+
+
+def stub_self_stop(bin_dir, calls, runpodctl, runpodctl_exit):
+    """The two binaries self_stop reaches for, so no test ever stops a pod or touches the network.
+    runpodctl=None is an image that has none: the wget stub then installs one, as the pod does."""
+    body = f'echo "runpodctl $*" >> {calls}\nexit {runpodctl_exit}'
+    install = f"cat > {bin_dir}/runpodctl <<'EOS'\n#!/bin/bash\n{body}\nEOS\nchmod +x {bin_dir}/runpodctl"
+    fake_bin(bin_dir, "wget", f'echo "wget $*" >> {calls}\n' + (install if runpodctl is None else "exit 1"))
+    if runpodctl is not None:
+        fake_bin(bin_dir, "runpodctl", body)
+
+
+def steps(calls):
+    """calls.txt without the watchdogs' own `sleep <interval>` ticks, which run while the pod does."""
+    return [line for line in calls.splitlines() if not line.startswith("sleep ") or line == "sleep infinity"]
+
+
+def boot(tmp_path, prepare_exit, key="test-key", vllm_then="", healthy=True, runpodctl="", runpodctl_exit=0,
+         **flags):
+    """Run the start command with stub python3/uv/vllm/sleep/runpodctl on PATH and the volume in
+    tmp_path. vllm_then is shell run by the vllm stub after it logs; healthy=False fails the
+    /health probe; flags go to serve_command (--max-hours, --idle-minutes)."""
     bin_dir, root = tmp_path / "bin", tmp_path / "volume"
     bin_dir.mkdir()
     (root / "code").mkdir(parents=True)
@@ -135,8 +155,10 @@ def boot(tmp_path, prepare_exit, key="test-key", vllm_then="", healthy=True):
     fake_bin(bin_dir, "python3", f'echo "python3 $* (cwd $PWD)" >> {calls}; {probe}echo "prepare says hello"; echo "prepare error" >&2; exit {prepare_exit}')
     fake_bin(bin_dir, "vllm", f'echo "vllm $*" >> {calls}; echo "vllm is serving"; {vllm_then}')
     fake_bin(bin_dir, "sleep", f'echo "sleep $*" >> {calls}')
-    env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "VLLM_API_KEY": key}
-    subprocess.run(["bash", "-c", serve_command(RUN, NAME, root=str(root))], env=env, cwd=tmp_path, timeout=30)
+    stub_self_stop(bin_dir, calls, runpodctl, runpodctl_exit)
+    env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "VLLM_API_KEY": key, "RUNPOD_POD_ID": POD_ID}
+    subprocess.run(["bash", "-c", serve_command(RUN, NAME, root=str(root), **flags)], env=env, cwd=tmp_path,
+                   timeout=30)
     run_dir = root / "runs" / RUN
     for _ in range(50):  # the serve log is written by a tee that may outlive bash by a moment
         if prepare_exit or not key or (run_dir / "serve.log").exists() and "vllm is serving" in (run_dir / "serve.log").read_text():
@@ -177,7 +199,7 @@ def test_one_run_never_exits_the_container_it_parks_with_a_serve_failed_reason()
 def test_one_run_server_that_exits_before_healthy_is_logged_and_parks(tmp_path):
     calls, run_dir = boot(tmp_path, prepare_exit=0, healthy=False, vllm_then="exit 3")
     assert one_run_failures(run_dir) == [f"SERVE_FAILED: {RUN} exited with 3 before it was healthy on 8000"]
-    assert calls.splitlines()[-1] == "sleep infinity"
+    assert steps(calls)[-1] == "sleep infinity"
 
 
 def test_one_run_server_not_healthy_within_the_cap_is_logged_and_parks(tmp_path, monkeypatch):
@@ -186,19 +208,19 @@ def test_one_run_server_not_healthy_within_the_cap_is_logged_and_parks(tmp_path,
     monkeypatch.setattr(pod, "SERVE_HEALTH_TIMEOUT_S", 0)
     calls, run_dir = boot(tmp_path, prepare_exit=0, healthy=False, vllm_then="/bin/sleep 3")
     assert one_run_failures(run_dir) == [f"SERVE_FAILED: {RUN} was not healthy on 8000 within 0 s"]
-    assert calls.splitlines()[-1] == "sleep infinity"
+    assert steps(calls)[-1] == "sleep infinity"
 
 
 def test_one_run_server_that_exits_later_is_logged_with_its_code_and_parks(tmp_path):
     calls, run_dir = boot(tmp_path, prepare_exit=0, vllm_then="exit 7")
     assert one_run_failures(run_dir) == [f"SERVE_FAILED: {RUN} exited with 7"]
-    assert calls.splitlines()[-1] == "sleep infinity"
+    assert steps(calls)[-1] == "sleep infinity"
 
 
 def test_an_empty_key_parks_the_pod_before_anything_runs(tmp_path):
     calls, run_dir = boot(tmp_path, prepare_exit=0, key="")
     assert (run_dir / "PREPARE_FAILED").exists() and "VLLM_API_KEY is empty" in (run_dir / "prepare.log").read_text()
-    assert calls.splitlines() == ["sleep infinity"]
+    assert steps(calls) == [f"runpodctl stop pod {POD_ID}", "sleep infinity"]
 
 
 def test_the_serve_command_refuses_a_run_name_that_escapes_the_volume():
@@ -280,7 +302,8 @@ def test_two_runs_refuse_a_bad_or_repeated_second_run():
         serve_command(RUN, NAME, second=(RUN_2, NAME))
 
 
-def boot_two(tmp_path, failing_run=None, key="test-key", vllm_then="", healthy=True, unhealthy_port=None):
+def boot_two(tmp_path, failing_run=None, key="test-key", vllm_then="", healthy=True, unhealthy_port=None,
+             runpodctl="", runpodctl_exit=0, **flags):
     """Boot the two-run command with stubs; the python3 stub fails when its arguments name failing_run.
     vllm_then is shell run by the vllm stub after it logs (e.g. stay up, or exit with a code);
     healthy=False makes the /health probe (python3 -c) fail."""
@@ -297,8 +320,9 @@ def boot_two(tmp_path, failing_run=None, key="test-key", vllm_then="", healthy=T
     fake_bin(bin_dir, "python3", f'echo "python3 $*" >> {calls}; {probe}echo "prepare says $*"; {fail_on}exit 0')
     fake_bin(bin_dir, "vllm", f'echo "vllm $*" >> {calls}; echo "vllm is serving $*"; {vllm_then}')
     fake_bin(bin_dir, "sleep", f'echo "sleep $*" >> {calls}')
-    env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "VLLM_API_KEY": key}
-    command = serve_command(RUN, NAME, second=(RUN_2, NAME_2), root=str(root))
+    stub_self_stop(bin_dir, calls, runpodctl, runpodctl_exit)
+    env = {"PATH": f"{bin_dir}:/usr/bin:/bin", "VLLM_API_KEY": key, "RUNPOD_POD_ID": POD_ID}
+    command = serve_command(RUN, NAME, second=(RUN_2, NAME_2), root=str(root), **flags)
     subprocess.run(["bash", "-c", command], env=env, cwd=tmp_path, timeout=30)
     dirs = root / "runs" / RUN, root / "runs" / RUN_2
     for _ in range(50):  # the serve logs are written by tees that may outlive bash by a moment
@@ -341,7 +365,7 @@ def test_two_runs_with_an_empty_key_mark_both_runs_and_park(tmp_path):
     calls, dirs = boot_two(tmp_path, key="")
     for run_dir in dirs:
         assert (run_dir / "PREPARE_FAILED").exists() and "VLLM_API_KEY is empty" in (run_dir / "prepare.log").read_text()
-    assert calls.splitlines() == ["sleep infinity"]
+    assert steps(calls) == [f"runpodctl stop pod {POD_ID}", "sleep infinity"]
 
 
 def serve_failures(dirs):
@@ -361,7 +385,7 @@ def test_two_runs_never_exit_the_container_they_park_with_a_serve_failed_reason(
 def test_a_first_server_that_exits_before_healthy_is_logged_to_both_runs_and_parks(tmp_path):
     calls, dirs = boot_two(tmp_path, healthy=False, vllm_then='case "$*" in *"--port 8000"*) exit 3;; esac')
     assert serve_failures(dirs) == [[f"SERVE_FAILED: {RUN} exited with 3 before it was healthy on 8000"]] * 2
-    assert "--port 8001" not in calls and calls.splitlines()[-1] == "sleep infinity"
+    assert "--port 8001" not in calls and steps(calls)[-1] == "sleep infinity"
 
 
 def test_a_first_server_not_healthy_within_the_cap_is_logged_to_both_runs_and_parks(tmp_path, monkeypatch):
@@ -370,7 +394,7 @@ def test_a_first_server_not_healthy_within_the_cap_is_logged_to_both_runs_and_pa
     monkeypatch.setattr(pod, "SERVE_HEALTH_TIMEOUT_S", 0)
     calls, dirs = boot_two(tmp_path, healthy=False, vllm_then="/bin/sleep 3")
     assert serve_failures(dirs) == [[f"SERVE_FAILED: {RUN} was not healthy on 8000 within 0 s"]] * 2
-    assert "--port 8001" not in calls and calls.splitlines()[-1] == "sleep infinity"
+    assert "--port 8001" not in calls and steps(calls)[-1] == "sleep infinity"
 
 
 def test_a_second_server_not_healthy_within_the_cap_is_logged_to_both_runs_and_parks(tmp_path, monkeypatch):
@@ -379,20 +403,20 @@ def test_a_second_server_not_healthy_within_the_cap_is_logged_to_both_runs_and_p
     monkeypatch.setattr(pod, "SERVE_HEALTH_TIMEOUT_S", 0)
     calls, dirs = boot_two(tmp_path, unhealthy_port=8001, vllm_then="/bin/sleep 3")
     assert serve_failures(dirs) == [[f"SERVE_FAILED: {RUN_2} was not healthy on 8001 within 0 s"]] * 2
-    assert "8001/health" in calls and calls.splitlines()[-1] == "sleep infinity"
+    assert "8001/health" in calls and steps(calls)[-1] == "sleep infinity"
 
 
 def test_a_second_server_that_exits_before_healthy_is_logged_to_both_runs_and_parks(tmp_path):
     calls, dirs = boot_two(tmp_path, unhealthy_port=8001,
                            vllm_then='case "$*" in *"--port 8001"*) exit 5;; *) /bin/sleep 3;; esac')
     assert serve_failures(dirs) == [[f"SERVE_FAILED: {RUN_2} exited with 5 before it was healthy on 8001"]] * 2
-    assert calls.splitlines()[-1] == "sleep infinity"
+    assert steps(calls)[-1] == "sleep infinity"
 
 
 def test_a_server_that_exits_later_is_logged_to_both_runs_with_its_code_and_parks(tmp_path):
     calls, dirs = boot_two(tmp_path, vllm_then='case "$*" in *"--port 8001"*) exit 7;; *) /bin/sleep 3;; esac')
     assert serve_failures(dirs) == [[f"SERVE_FAILED: {RUN_2} exited with 7"]] * 2
-    assert calls.splitlines()[-1] == "sleep infinity"
+    assert steps(calls)[-1] == "sleep infinity"
 
 
 def test_create_serve_with_two_runs_refuses_a_gpu_under_80_gb_before_any_api_call(monkeypatch, capsys):
@@ -458,7 +482,7 @@ def test_create_serve_with_two_runs_records_both_urls(monkeypatch, tmp_path):
     monkeypatch.delenv("VLLM_API_KEY", raising=False)
     monkeypatch.setattr(pod, "api", lambda method, path, key, body=None: bodies.append(body) or {"id": "pod9"})
     a = Namespace(run=[RUN, RUN_2], served_name=[NAME, NAME_2], volume="vol-abc", gpu="NVIDIA H100 NVL",
-                  datacenter="EUR-NO-1", cloud="COMMUNITY")
+                  datacenter="EUR-NO-1", cloud="COMMUNITY", max_hours=4, idle_minutes=45)
     pod.create_serve(a, read_env(env_file), "runpod-key")
     [body] = bodies
     assert body["ports"] == ["8000/http", "8001/http", "22/tcp"] and body["gpuTypeIds"] == ["NVIDIA H100 NVL"]
@@ -561,7 +585,7 @@ def test_create_serve_prints_the_pod_id_before_writing_env(monkeypatch, tmp_path
 
     monkeypatch.setattr(pod, "upsert_env", broken)
     a = Namespace(run=[RUN], served_name=[NAME], volume="vol-abc", gpu="NVIDIA H100 NVL",
-                  datacenter="US-GA-2", cloud="COMMUNITY")
+                  datacenter="US-GA-2", cloud="COMMUNITY", max_hours=4, idle_minutes=45)
     with pytest.raises(OSError):
         pod.create_serve(a, {}, "runpod-key")
     assert "pod9" in capsys.readouterr().out
@@ -861,7 +885,7 @@ def test_the_train_command_bootstraps_then_trains_then_parks():
     assert pod.TRAIN_BOOTSTRAP in command
     assert (command.index("mkdir -p") < command.index("pip install -q")
             < command.index("llama-quantize") < command.index("benchmarks.runpod.train_pod"))
-    assert command.endswith("exec sleep infinity")  # the pod parks whatever the outcome
+    assert command.endswith('self_stop "training finished"')  # the pod stops itself, whatever the outcome
     assert "TRAIN_FAILED" in command and "TRAIN_DONE" in command
     assert command.index("TRAIN_FAILED") < command.index("benchmarks.runpod.train_pod")
 
@@ -954,7 +978,7 @@ def test_create_train_prints_the_pod_id_before_writing_env_and_says_to_stop_the_
     monkeypatch.setattr(pod, "ENV_FILE", env_file)
     monkeypatch.setattr(pod, "api", lambda method, path, key, body=None: bodies.append((method, path, body)) or {"id": "pod9", "costPerHr": 3.29})
     a = Namespace(run=TRAIN_RUN, volume="vol-abc", gpu="NVIDIA H100 NVL", datacenter="US-GA-2", cloud="COMMUNITY",
-                  max_length=8192, batch_size=4, grad_accum=16, quant="Q8_0", no_liger=False)
+                  max_length=8192, batch_size=4, grad_accum=16, quant="Q8_0", no_liger=False, max_hours=8)
     pod.create_train(a, {}, "runpod-key")
     [(method, path, body)] = bodies
     assert (method, path) == ("POST", "/pods")
@@ -980,7 +1004,7 @@ def test_create_train_needs_a_volume_and_makes_no_call_without_one(monkeypatch):
     called = []
     monkeypatch.setattr(pod, "api", lambda *args, **kwargs: called.append(args))
     a = Namespace(run=TRAIN_RUN, volume=None, gpu="NVIDIA H100 NVL", datacenter="US-GA-2", cloud="COMMUNITY",
-                  max_length=8192, batch_size=4, grad_accum=16, quant="Q8_0", no_liger=False)
+                  max_length=8192, batch_size=4, grad_accum=16, quant="Q8_0", no_liger=False, max_hours=8)
     monkeypatch.delenv("RUNPOD_VOLUME_ID", raising=False)
     with pytest.raises(SystemExit):
         pod.create_train(a, {}, "runpod-key")
@@ -1029,3 +1053,194 @@ def test_train_log_needs_no_runpod_api_key(monkeypatch, capsys):
     monkeypatch.setattr(pod, "read_env", lambda path: {"RUNPOD_VOLUME_ID": "vol-abc"})
     pod.main(["train-log", "--run", TRAIN_RUN])
     assert "training" in capsys.readouterr().out
+
+
+# --- the pod stops itself ----------------------------------------------------------------------
+
+
+def start_commands():
+    """Every start command pod.py builds, one per kind of pod, with today's defaults."""
+    return {"one-run serve": serve_command(RUN, NAME),
+            "two-run serve": serve_command(RUN, NAME, second=(RUN_2, NAME_2)),
+            "train": train_command()}
+
+
+def test_every_start_command_can_stop_its_own_pod_with_runpodctl():
+    from benchmarks.runpod import pod
+
+    for kind, command in start_commands().items():
+        assert "self_stop() {" in command, kind
+        assert 'runpodctl stop pod "$RUNPOD_POD_ID"' in command, kind
+        assert pod.RUNPODCTL_INSTALL in command, kind
+        assert "chmod +x /usr/local/bin/runpodctl" in command, kind
+        assert 'echo "SELF_STOP: $1"' in command and 'echo "SELF_STOP_FAILED: $1"' in command, kind
+        # no RunPod key ever reaches a pod: runpodctl inside a pod authenticates as the pod itself
+        assert "RUNPOD_API_KEY" not in command, kind
+        # the park is only the fallback for a stop that failed, and it lives in self_stop alone
+        assert command.count("exec sleep infinity") == 1, kind
+        subprocess.run(["bash", "-n", "-c", command], check=True)
+
+
+def test_self_stop_marks_the_log_of_every_run_on_the_pod():
+    one, two, train = start_commands().values()
+    assert one.count('echo "SELF_STOP: $1" | tee -a "$RUN_DIR/serve.log"') == 1
+    assert 'RUN_DIR_2' not in one
+    assert 'echo "SELF_STOP: $1" | tee -a "$RUN_DIR/serve.log"' in two
+    assert 'echo "SELF_STOP: $1" | tee -a "$RUN_DIR_2/serve.log"' in two
+    assert 'echo "SELF_STOP_FAILED: $1" | tee -a "$RUN_DIR_2/serve.log"' in two
+    assert 'echo "SELF_STOP: $1" | tee -a "$RUN_DIR/train.log"' in train
+    assert "serve.log" not in train
+
+
+def test_every_park_path_of_the_serving_commands_now_self_stops():
+    for command in (serve_command(RUN, NAME), serve_command(RUN, NAME, second=(RUN_2, NAME_2))):
+        # fail (prepare) and serve_fail (health timeout, a server exiting) both end in self_stop
+        bodies = [part for part in command.split("; ") if part.startswith(("fail()", "serve_fail()"))]
+        assert len(bodies) == 2
+        for definition in ("fail()", "serve_fail()"):
+            body = command[command.index(definition):]
+            body = body[:body.index("; }") + 3] if "; }" in body else body
+            assert "self_stop " in body, definition
+        assert 'self_stop "$1"' in command  # serve_fail hands its reason on to self_stop
+
+
+def test_the_training_command_self_stops_after_its_markers_on_every_exit_path():
+    command = train_command()
+    assert 'fail() { echo "TRAIN_FAILED: $1" | tee -a "$RUN_DIR/train.log"; self_stop "$1"; }' in command
+    assert command.endswith('self_stop "training finished"')
+    # the markers still come first, so train-log shows what happened before the pod went away
+    assert command.index("TRAIN_DONE") < command.rindex("self_stop ")
+    assert command.index("TRAIN_FAILED") < command.index("benchmarks.runpod.train_pod")
+    # the bootstrap failing goes through the same fail()
+    assert 'fail "bootstrap failed; see $RUN_DIR/train.log"' in command
+
+
+def test_the_serving_watchdogs_use_the_flag_values_and_start_before_the_health_wait():
+    from benchmarks.runpod import pod
+
+    assert (pod.SERVE_MAX_HOURS, pod.SERVE_IDLE_MINUTES, pod.WATCHDOG_INTERVAL_S) == (4, 45, 60)
+    command = serve_command(RUN, NAME)
+    assert f"+ {4 * 3600} ))" in command and 'self_stop "max hours reached' in command
+    assert f'- NEWEST )) " -lt {45 * 60} ]' in command or f"-lt {45 * 60} ]" in command
+    assert 'self_stop "idle for 45 minutes"' in command
+    assert f"sleep {pod.WATCHDOG_INTERVAL_S}" in command  # the interval is a constant, not a number
+    assert command.index('self_stop "max hours reached') < command.index("SERVE_DEADLINE")
+    assert command.index('self_stop "idle for') < command.index("SERVE_DEADLINE")
+
+    other = serve_command(RUN, NAME, max_hours=2, idle_minutes=5)
+    assert f"+ {2 * 3600} ))" in other and 'self_stop "idle for 5 minutes"' in other
+    assert f"+ {4 * 3600} ))" not in other
+    subprocess.run(["bash", "-n", "-c", other], check=True)
+
+
+def test_the_idle_watchdog_reads_the_mtime_of_every_serve_log():
+    one = serve_command(RUN, NAME)
+    assert 'stat -c %Y "$RUN_DIR/serve.log"' in one
+    two = serve_command(RUN, NAME, second=(RUN_2, NAME_2))
+    assert 'stat -c %Y "$RUN_DIR/serve.log"' in two and 'stat -c %Y "$RUN_DIR_2/serve.log"' in two
+    assert two.index('self_stop "idle for 45 minutes"') < two.index("SERVE_DEADLINE")
+    subprocess.run(["bash", "-n", "-c", two], check=True)
+
+
+def test_the_training_watchdog_uses_max_hours_and_defaults_to_eight():
+    from benchmarks.runpod import pod
+
+    assert pod.TRAIN_MAX_HOURS == 8
+    command = train_command()
+    assert f"+ {8 * 3600} ))" in command and 'self_stop "max hours reached' in command
+    assert "stat -c %Y" not in command  # nothing serves requests on a training pod
+    assert command.index("self_stop()") < command.index("+ 28800 ))") < command.index("pip install -q")
+    one_hour = train_command(max_hours=1)
+    assert f"+ {3600} ))" in one_hour and f"+ {8 * 3600} ))" not in one_hour
+    subprocess.run(["bash", "-n", "-c", one_hour], check=True)
+
+
+def test_create_serve_and_create_train_take_the_watchdog_flags(monkeypatch):
+    from benchmarks.runpod import pod
+
+    seen = []
+    monkeypatch.setattr(pod, "read_env", lambda path: {"RUNPOD_API_KEY": "k"})
+    monkeypatch.setattr(pod, "create_serve", lambda a, env, key: seen.append(vars(a)))
+    monkeypatch.setattr(pod, "create_train", lambda a, env, key: seen.append(vars(a)))
+    pod.main(["create-serve", "--run", RUN, "--served-name", NAME])
+    pod.main(["create-serve", "--run", RUN, "--served-name", NAME, "--max-hours", "2", "--idle-minutes", "10"])
+    pod.main(["create-train", "--run", TRAIN_RUN])
+    pod.main(["create-train", "--run", TRAIN_RUN, "--max-hours", "3"])
+    serve_default, serve_flagged, train_default, train_flagged = seen
+    assert (serve_default["max_hours"], serve_default["idle_minutes"]) == (4, 45)
+    assert (serve_flagged["max_hours"], serve_flagged["idle_minutes"]) == (2, 10)
+    assert train_default["max_hours"] == 8 and train_flagged["max_hours"] == 3
+
+
+def test_the_payloads_carry_the_watchdog_flags_into_the_start_command():
+    assert payload(max_hours=2, idle_minutes=5)["dockerStartCmd"] == [
+        serve_command(RUN, NAME, max_hours=2, idle_minutes=5)]
+    assert payload()["dockerStartCmd"] == [serve_command(RUN, NAME)]
+    assert train_payload(max_hours=3)["dockerStartCmd"] == [train_command(max_hours=3)]
+
+
+def test_a_serve_failure_stops_the_pod_from_inside_and_logs_it(tmp_path):
+    calls, run_dir = boot(tmp_path, prepare_exit=0, vllm_then="exit 7")
+    log = (run_dir / "serve.log").read_text()
+    assert f"SERVE_FAILED: {RUN} exited with 7" in log
+    assert f"SELF_STOP: {RUN} exited with 7" in log and "SELF_STOP_FAILED" not in log
+    assert f"runpodctl stop pod {POD_ID}" in calls
+    assert steps(calls)[-1] == "sleep infinity"  # the park is what runs while RunPod stops the pod
+
+
+def test_a_failed_prepare_stops_the_pod_from_inside(tmp_path):
+    calls, run_dir = boot(tmp_path, prepare_exit=1)
+    assert (run_dir / "PREPARE_FAILED").exists()
+    assert "SELF_STOP: prepare failed" in (run_dir / "serve.log").read_text()
+    assert f"runpodctl stop pod {POD_ID}" in calls
+
+
+def test_a_two_run_failure_stops_the_pod_and_marks_both_serve_logs(tmp_path):
+    calls, dirs = boot_two(tmp_path, vllm_then='case "$*" in *"--port 8001"*) exit 7;; *) /bin/sleep 3;; esac')
+    for run_dir in dirs:
+        assert f"SELF_STOP: {RUN_2} exited with 7" in (run_dir / "serve.log").read_text()
+    assert f"runpodctl stop pod {POD_ID}" in calls
+
+
+def test_a_pod_without_runpodctl_installs_it_and_retries(tmp_path):
+    calls, run_dir = boot(tmp_path, prepare_exit=1, runpodctl=None)
+    assert "wget -qO /usr/local/bin/runpodctl" in calls  # installed on demand, then retried
+    assert f"runpodctl stop pod {POD_ID}" in calls
+
+
+def test_a_stop_that_fails_marks_the_log_and_parks_for_inspection(tmp_path):
+    calls, run_dir = boot(tmp_path, prepare_exit=1, runpodctl_exit=1)
+    log = (run_dir / "serve.log").read_text()
+    assert "SELF_STOP_FAILED: prepare failed" in log
+    assert steps(calls)[-1] == "sleep infinity"
+
+
+def test_the_max_hours_watchdog_stops_a_pod_whose_servers_are_healthy(tmp_path, monkeypatch):
+    from benchmarks.runpod import pod
+
+    monkeypatch.setattr(pod, "WATCHDOG_INTERVAL_S", 1)
+    calls, run_dir = boot(tmp_path, prepare_exit=0, vllm_then="/bin/sleep 4", max_hours=0)
+    assert f"runpodctl stop pod {POD_ID}" in calls
+    assert "SELF_STOP: max hours reached" in (run_dir / "serve.log").read_text()
+
+
+def test_the_idle_watchdog_leaves_a_pod_that_is_serving_requests_alone(tmp_path, monkeypatch):
+    """The idleness clock is serve.log's mtime, which every logged request moves: a server that
+    keeps logging (here for 4 s, with a 3 s idle window) is never stopped for being idle."""
+    from benchmarks.runpod import pod
+
+    monkeypatch.setattr(pod, "WATCHDOG_INTERVAL_S", 1)
+    requests = 'for i in 1 2 3 4 5 6 7 8 9 10; do echo "INFO: POST /v1/chat/completions"; /bin/sleep 0.4; done'
+    calls, run_dir = boot(tmp_path, prepare_exit=0, vllm_then=requests, idle_minutes=0.05)
+    log = (run_dir / "serve.log").read_text()
+    assert "SELF_STOP: idle for" not in log
+    assert f"SERVE_FAILED: {RUN} exited with 0" in log  # it only stopped once the server was gone
+
+
+def test_the_idle_watchdog_stops_a_pod_no_one_is_using(tmp_path, monkeypatch):
+    from benchmarks.runpod import pod
+
+    monkeypatch.setattr(pod, "WATCHDOG_INTERVAL_S", 1)
+    calls, run_dir = boot(tmp_path, prepare_exit=0, vllm_then="/bin/sleep 4", idle_minutes=0)
+    assert f"runpodctl stop pod {POD_ID}" in calls
+    assert "SELF_STOP: idle for 0 minutes" in (run_dir / "serve.log").read_text()

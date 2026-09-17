@@ -1,10 +1,10 @@
 """Launch and manage the pod that serves a reader with vLLM, for the harness on the Mac.
-  python benchmarks/runpod/pod.py create-serve --run reader-v4-gemma4-e4b --served-name rembero-reader-v4
+  python benchmarks/runpod/pod.py create-serve --run reader-v4-gemma4-e4b --served-name rembero-reader-v4 [--max-hours 4] [--idle-minutes 45]
   python benchmarks/runpod/pod.py create-serve --run <a> --served-name <n> --run <b> --served-name <m>
   python benchmarks/runpod/pod.py wait [--pod <id>] [--served-name rembero-reader-v4] [--port 8001] [--no-stop-on-timeout]
   python benchmarks/runpod/pod.py stop|start|terminate [--pod <id>]
   python benchmarks/runpod/pod.py status [--pod <id>]
-  python benchmarks/runpod/pod.py create-train --run reader-v7-gemma4-e4b [--gpu ...] [--max-length 8192]
+  python benchmarks/runpod/pod.py create-train --run reader-v7-gemma4-e4b [--gpu ...] [--max-length 8192] [--max-hours 8]
   python benchmarks/runpod/pod.py train-log --run reader-v7-gemma4-e4b [--tail 40]
 The pod runs the official vLLM image on a community GPU with the network volume at /workspace:
 its start command rebuilds the reader's merged weights from runs/<run>/adapter once
@@ -19,8 +19,13 @@ to the pod: the base model is public and the adapter is already on the volume.
 `create-train` is the other job this file does: when the serverless endpoint has no GPU capacity,
 it trains a reader on a pod instead, on the public PyTorch image, with the same pipeline the
 serverless worker runs (benchmarks.runpod.train_pod -> handler.run_job). It writes
-RUNPOD_TRAIN_POD_ID to .env; `train-log` tails runs/<run>/train.log off the volume. A training pod
-is never stopped for you — it parks on `sleep infinity` when the run ends, so `stop` it by hand."""
+RUNPOD_TRAIN_POD_ID to .env; `train-log` tails runs/<run>/train.log off the volume.
+
+Every pod this file creates stops itself, so nothing a run leaves behind can keep billing: the
+start commands end in `self_stop`, which logs why and then runs `runpodctl stop pod` from inside
+the pod. A training pod stops when the run ends or after --max-hours (8); a serving pod stops on a
+SERVE_FAILED, after --max-hours (4), or after --idle-minutes (45) with no request served. Check
+`pod.py status` after a run anyway: a stop that fails leaves the pod parked for inspection."""
 
 from __future__ import annotations
 
@@ -101,6 +106,72 @@ TRAIN_BOOTSTRAP = (
 )
 
 
+# --- stopping the pod from inside (self_stop and the watchdogs) -----------------------------
+# A pod stops itself with runpodctl, which inside a pod is authenticated by the pod itself: no
+# RUNPOD_API_KEY ever goes into a pod's environment, and RUNPOD_POD_ID is already there. Neither
+# image ships runpodctl, so self_stop installs it on demand from the release of record.
+RUNPODCTL_INSTALL = ("wget -qO /usr/local/bin/runpodctl "
+                     "https://github.com/runpod/runpodctl/releases/latest/download/runpodctl-linux-amd64"
+                     " && chmod +x /usr/local/bin/runpodctl")
+# how often each watchdog looks at the clock (and at serve.log's mtime)
+WATCHDOG_INTERVAL_S = 60
+# create-serve: the pod stops itself after this long whatever the servers are doing ...
+SERVE_MAX_HOURS = 4
+# ... and after this long without a request
+SERVE_IDLE_MINUTES = 45
+# create-train: a hung training run cannot bill longer than this
+TRAIN_MAX_HOURS = 8
+
+
+def _self_stop(*logs: str) -> str:
+    """`self_stop <reason>`, the shell function both start commands park through.
+
+    It writes `SELF_STOP: <reason>` to each of `logs` (shell expressions, already quoted) on the
+    network volume first, so `pod.py train-log` and `volume.py get` still show why the pod went
+    away; then it stops the pod from inside with `runpodctl stop pod "$RUNPOD_POD_ID"`, installing
+    runpodctl first if the image has none. If the stop fails anyway, `SELF_STOP_FAILED: <reason>`
+    goes to the same logs and the pod falls back to `exec sleep infinity`, the park of old, so it
+    can still be inspected — an exited container is restarted by RunPod into a billed loop.
+    The park is also what runs while RunPod acts on a *successful* stop."""
+    def mark(marker: str) -> str:
+        return " ".join(f'echo "{marker}: $1" | tee -a {log};' for log in logs)
+
+    return ("self_stop() { " + mark("SELF_STOP")
+            + f" command -v runpodctl >/dev/null 2>&1 || {{ {RUNPODCTL_INSTALL}; }};"
+            + ' runpodctl stop pod "$RUNPOD_POD_ID" || { ' + mark("SELF_STOP_FAILED") + " };"
+            + " exec sleep infinity; }")
+
+
+def _watchdog(body: str, pid_var: str) -> str:
+    """A background loop that ticks every WATCHDOG_INTERVAL_S and gives up when the start command
+    it belongs to is gone (`$$` is the pod's main process, which the park keeps alive)."""
+    return (f"( while sleep {int(WATCHDOG_INTERVAL_S)}; do"
+            ' kill -0 "$$" 2>/dev/null || exit 0;'
+            f" {body} done ) & {pid_var}=$!")
+
+
+def _max_hours_watchdog(hours: float) -> str:
+    """Stop the pod `hours` after boot, whatever it is doing: the cap on what one pod can bill."""
+    return (f"MAX_DEADLINE=$(( $(date +%s) + {int(float(hours) * 3600)} )); "
+            + _watchdog('[ "$(date +%s)" -lt "$MAX_DEADLINE" ] ||'
+                        f' self_stop "max hours reached ({hours} h)";', "MAX_WATCHDOG_PID"))
+
+
+def _idle_watchdog(minutes: float, *logs: str) -> str:
+    """Stop the pod when no request has been served for `minutes`.
+
+    Idleness is read off vLLM's own access logging: **it depends on vLLM logging a line for each
+    request**, which moves that serve.log's mtime, so the newest mtime of the pod's serve.logs is
+    the last time a request was served. IDLE_SINCE starts at boot, so the wait for the first
+    request is counted from there rather than from a log that does not exist yet."""
+    # -c is GNU stat (both images are Linux); -f is the BSD spelling, so this also runs on a Mac
+    newest = " ".join(f'MTIME=$(stat -c %Y {log} 2>/dev/null || stat -f %m {log} 2>/dev/null || echo 0);'
+                      ' [ "$MTIME" -gt "$IDLE_SINCE" ] && IDLE_SINCE="$MTIME";' for log in logs)
+    return ("IDLE_SINCE=$(date +%s); "
+            + _watchdog(f'{newest} [ "$(( $(date +%s) - IDLE_SINCE ))" -lt {int(float(minutes) * 60)} ]'
+                        f' || self_stop "idle for {minutes} minutes";', "IDLE_WATCHDOG_PID"))
+
+
 def serve_url(pod_id: str, port: int = PORTS[0]) -> str:
     return f"https://{pod_id}-{port}.proxy.runpod.net/v1"
 
@@ -143,7 +214,8 @@ def _health_wait(run: str, port: int, pid_var: str, *, watch: tuple[tuple[str, s
 
 
 def serve_command(run: str, served_name: str, *, second: tuple[str, str] | None = None,
-                  root: str = ROOT, base_model: str = BASE_MODEL) -> str:
+                  root: str = ROOT, base_model: str = BASE_MODEL,
+                  max_hours: float = SERVE_MAX_HOURS, idle_minutes: float = SERVE_IDLE_MINUTES) -> str:
     """The pod's whole start command, for `bash -lc`: install PEFT (the image has transformers but
     not PEFT), rebuild the weights once, then serve with vLLM without ever letting the container exit.
 
@@ -151,11 +223,13 @@ def serve_command(run: str, served_name: str, *, second: tuple[str, str] | None 
       `benchmarks` package, which `python3 -m benchmarks...` would import from there instead.
     - Prepare's output goes to runs/<run>/prepare.log and vLLM's to runs/<run>/serve.log, on the
       volume, so both can be fetched with volume.py get (the image has no SSH).
-    - A failed prepare (or an empty key) writes runs/<run>/PREPARE_FAILED and parks the container
-      on `sleep infinity`: an exited container is restarted by RunPod and would redo the merge.
+    - A failed prepare (or an empty key) writes runs/<run>/PREPARE_FAILED and stops the pod through
+      `self_stop`: an exited container is restarted by RunPod and would redo the merge.
     - vLLM runs in the background. If it is not healthy within SERVE_HEALTH_TIMEOUT_S, or it exits
       (before healthy or later), `serve_fail` writes "SERVE_FAILED: <reason>" to serve.log, stops
-      the server if it is still up and parks on `sleep infinity`, as the two-run command does.
+      the server if it is still up and stops the pod, as the two-run command does.
+    - Two watchdogs run alongside the servers, so a pod nobody is using cannot keep billing:
+      one stops it `max_hours` after boot, the other after `idle_minutes` without a request.
     - The API key is read from the pod's env, never written into the command.
 
     `second=(run, served_name)` serves a second reader on the same GPU: see _two_run_command."""
@@ -167,7 +241,8 @@ def serve_command(run: str, served_name: str, *, second: tuple[str, str] | None 
     if second:
         if second[0] == run or second[1] == served_name:
             raise ValueError(f"the two readers need different runs and served names, got {run!r}/{served_name!r} twice")
-        return _two_run_command((run, served_name), second, root=root, base_model=base_model)
+        return _two_run_command((run, served_name), second, root=root, base_model=base_model,
+                                max_hours=max_hours, idle_minutes=idle_minutes)
     run_dir = f"{root}/runs/{run}"
     vllm = _vllm(run_dir, served_name, PORTS[0])
     steps = _prepare_steps(run, root=root, base_model=base_model, install=True)
@@ -177,18 +252,22 @@ def serve_command(run: str, served_name: str, *, second: tuple[str, str] | None 
         f"RUN_DIR={shlex.quote(run_dir)}",
         'mkdir -p "$RUN_DIR"',
         'rm -f "$RUN_DIR/PREPARE_FAILED"',
-        'fail() { echo "$1" | tee -a "$RUN_DIR/prepare.log"; touch "$RUN_DIR/PREPARE_FAILED"; exec sleep infinity; }',
+        _self_stop('"$RUN_DIR/serve.log"'),
+        'fail() { echo "$1" | tee -a "$RUN_DIR/prepare.log"; touch "$RUN_DIR/PREPARE_FAILED"; self_stop "$1"; }',
         'test -n "$VLLM_API_KEY" || fail "VLLM_API_KEY is empty; refusing to serve on a public URL without a key"',
         f'{{ {steps}; }} 2>&1 | tee -a "$RUN_DIR/prepare.log" || fail "prepare failed; see $RUN_DIR/prepare.log"',
-        # serve_fail <reason>: SERVE_FAILED to serve.log, stop the server if it is still up, park
-        'serve_fail() { echo "SERVE_FAILED: $1" | tee -a "$RUN_DIR/serve.log"; kill "$SERVE_PID" 2>/dev/null; exec sleep infinity; }',
+        # serve_fail <reason>: SERVE_FAILED to serve.log, stop the server if it is still up, stop the pod
+        'serve_fail() { echo "SERVE_FAILED: $1" | tee -a "$RUN_DIR/serve.log"; kill "$SERVE_PID" 2>/dev/null; self_stop "$1"; }',
         f'{shlex.join(vllm)} --api-key "$VLLM_API_KEY" > >(tee -a "$RUN_DIR/serve.log") 2>&1 & SERVE_PID=$!',
+        _max_hours_watchdog(max_hours),
+        _idle_watchdog(idle_minutes, '"$RUN_DIR/serve.log"'),
         *_health_wait(run, PORTS[0], "SERVE_PID"),
         f'wait "$SERVE_PID"; serve_fail "{run} exited with $?"',
     ])
 
 
-def _two_run_command(first: tuple[str, str], second: tuple[str, str], *, root: str, base_model: str) -> str:
+def _two_run_command(first: tuple[str, str], second: tuple[str, str], *, root: str, base_model: str,
+                     max_hours: float = SERVE_MAX_HOURS, idle_minutes: float = SERVE_IDLE_MINUTES) -> str:
     """Two readers on one GPU, each with SHARED_GPU_MEMORY_UTILIZATION of its memory.
 
     - Both runs are prepared, one after the other, before either server starts, so the two merges
@@ -199,8 +278,8 @@ def _two_run_command(first: tuple[str, str], second: tuple[str, str], *, root: s
     - The container never exits, because RunPod would restart it into a billed loop. If either
       server is not healthy within SERVE_HEALTH_TIMEOUT_S of its start, or either server exits
       (before healthy or later), `serve_fail` writes "SERVE_FAILED: <reason>" to both runs' serve.log, stops whatever
-      server is still up and parks on `sleep infinity`, like PREPARE_FAILED. A parked pod still
-      bills until it is stopped."""
+      server is still up and then stops the pod through `self_stop`, like PREPARE_FAILED.
+    - The two watchdogs cover both servers: the idle one takes the newer of the two serve.logs."""
     (run_1, name_1), (run_2, name_2) = first, second
     dir_1, dir_2 = f"{root}/runs/{run_1}", f"{root}/runs/{run_2}"
     vllm_1 = _vllm(dir_1, name_1, PORTS[0], SHARED_GPU_MEMORY_UTILIZATION)
@@ -214,16 +293,19 @@ def _two_run_command(first: tuple[str, str], second: tuple[str, str], *, root: s
         f"RUN_DIR_2={shlex.quote(dir_2)}",
         'mkdir -p "$RUN_DIR" "$RUN_DIR_2"',
         'rm -f "$RUN_DIR/PREPARE_FAILED" "$RUN_DIR_2/PREPARE_FAILED"',
-        # fail <message> <run dir>...: log and mark each named run, then park
+        _self_stop('"$RUN_DIR/serve.log"', '"$RUN_DIR_2/serve.log"'),
+        # fail <message> <run dir>...: log and mark each named run, then stop the pod
         'fail() { local message="$1" dir; shift; for dir in "$@"; do echo "$message" | tee -a "$dir/prepare.log";'
-        ' touch "$dir/PREPARE_FAILED"; done; exec sleep infinity; }',
+        ' touch "$dir/PREPARE_FAILED"; done; self_stop "$message"; }',
         'test -n "$VLLM_API_KEY" || fail "VLLM_API_KEY is empty; refusing to serve on a public URL without a key" "$RUN_DIR" "$RUN_DIR_2"',
         f'{{ {steps_1}; }} 2>&1 | tee -a "$RUN_DIR/prepare.log" || fail "prepare failed; see $RUN_DIR/prepare.log" "$RUN_DIR"',
         f'{{ {steps_2}; }} 2>&1 | tee -a "$RUN_DIR_2/prepare.log" || fail "prepare failed; see $RUN_DIR_2/prepare.log" "$RUN_DIR_2"',
-        # serve_fail <reason>: SERVE_FAILED to both runs' serve.log, stop any server still up, park
+        # serve_fail <reason>: SERVE_FAILED to both runs' serve.log, stop any server still up, stop the pod
         'serve_fail() { local dir pid; for dir in "$RUN_DIR" "$RUN_DIR_2"; do echo "SERVE_FAILED: $1" | tee -a "$dir/serve.log"; done;'
-        ' for pid in $SERVE_PID $SERVE_PID_2; do kill "$pid" 2>/dev/null; done; exec sleep infinity; }',
+        ' for pid in $SERVE_PID $SERVE_PID_2; do kill "$pid" 2>/dev/null; done; self_stop "$1"; }',
         f'{shlex.join(vllm_1)} --api-key "$VLLM_API_KEY" > >(tee -a "$RUN_DIR/serve.log") 2>&1 & SERVE_PID=$!',
+        _max_hours_watchdog(max_hours),
+        _idle_watchdog(idle_minutes, '"$RUN_DIR/serve.log"', '"$RUN_DIR_2/serve.log"'),
         *_health_wait(run_1, PORTS[0], "SERVE_PID"),
         f'{shlex.join(vllm_2)} --api-key "$VLLM_API_KEY" > >(tee -a "$RUN_DIR_2/serve.log") 2>&1 & SERVE_PID_2=$!',
         *_health_wait(run_2, PORTS[1], "SERVE_PID_2", watch=((run_1, "SERVE_PID"),)),
@@ -237,9 +319,10 @@ def train_command(run: str, *, root: str = ROOT, local_root: str = TRAIN_LOCAL_R
                   max_length: int = TRAIN_DEFAULTS["max_length"],
                   batch_size: int = TRAIN_DEFAULTS["batch_size"],
                   grad_accum: int = TRAIN_DEFAULTS["grad_accum"],
-                  quant: str = TRAIN_DEFAULTS["quant"], liger: bool = True) -> str:
+                  quant: str = TRAIN_DEFAULTS["quant"], liger: bool = True,
+                  max_hours: float = TRAIN_MAX_HOURS) -> str:
     """The training pod's whole start command, for `bash -lc`: make the run directory on the
-    volume, bootstrap the image, train, then park.
+    volume, bootstrap the image, train, then stop the pod.
 
     - Every line of both stages is tee'd to <root>/runs/<run>/train.log **on the volume**, so
       `pod.py train-log` can follow the run without SSH and the log outlives the pod.
@@ -248,9 +331,10 @@ def train_command(run: str, *, root: str = ROOT, local_root: str = TRAIN_LOCAL_R
     - Training runs from <root>/code (PYTHONPATH is set to the same place) as
       `python3 -u -m benchmarks.runpod.train_pod`, which supplies handler.run_job with the pod's
       paths: data and outputs on the volume, everything heavy on the container disk.
-    - Whatever the outcome, the container parks on `exec sleep infinity` after a TRAIN_FAILED or
-      TRAIN_DONE line: an exited container is restarted by RunPod, which would redo the training.
-      **A parked pod bills until it is stopped by hand.**"""
+    - Whatever the outcome, the pod stops itself through `self_stop` after the TRAIN_FAILED or
+      TRAIN_DONE line, so a finished run cannot keep billing. It never simply exits: an exited
+      container is restarted by RunPod, which would redo the training.
+    - A watchdog stops the pod `max_hours` after boot, so a hung run cannot bill forever either."""
     if not RUN_NAME.match(run):
         raise ValueError(f"run must match {RUN_NAME.pattern}, got {run!r}")
     if quant not in QUANTS:
@@ -267,24 +351,28 @@ def train_command(run: str, *, root: str = ROOT, local_root: str = TRAIN_LOCAL_R
         f"export PYTHONPATH={shlex.quote(f'{root}/code')} HF_HOME={shlex.quote(f'{root}/hf')}",
         f"RUN_DIR={shlex.quote(run_dir)}",
         'mkdir -p "$RUN_DIR"',
-        # fail <reason>: TRAIN_FAILED to the log on the volume, then park instead of exiting
-        'fail() { echo "TRAIN_FAILED: $1" | tee -a "$RUN_DIR/train.log"; exec sleep infinity; }',
+        _self_stop('"$RUN_DIR/train.log"'),
+        _max_hours_watchdog(max_hours),
+        # fail <reason>: TRAIN_FAILED to the log on the volume, then stop the pod instead of exiting
+        'fail() { echo "TRAIN_FAILED: $1" | tee -a "$RUN_DIR/train.log"; self_stop "$1"; }',
         f'( set -e; {TRAIN_BOOTSTRAP} ) 2>&1 | tee -a "$RUN_DIR/train.log"'
         ' || fail "bootstrap failed; see $RUN_DIR/train.log"',
         f'{{ cd {shlex.quote(f"{root}/code")} && {shlex.join(train)}; }} 2>&1 | tee -a "$RUN_DIR/train.log"'
         ' || fail "training failed; see $RUN_DIR/train.log"',
-        f'echo "TRAIN_DONE: {run}; the pod is parked and still billing until you stop it"'
+        f'echo "TRAIN_DONE: {run}; the pod is stopping itself"'
         ' | tee -a "$RUN_DIR/train.log"',
-        "exec sleep infinity",
+        'self_stop "training finished"',
     ])
 
 
 def build_pod_payload(*, run: str, served_name: str, api_key: str, volume_id: str,
                       gpu: str = "NVIDIA GeForce RTX 5090", datacenter: str = "EUR-NO-1",
                       public_key: str | None = None, image: str = IMAGE, min_ram_gb: int = 48,
-                      cloud_type: str = "COMMUNITY", second: tuple[str, str] | None = None) -> dict:
+                      cloud_type: str = "COMMUNITY", second: tuple[str, str] | None = None,
+                      max_hours: float = SERVE_MAX_HOURS, idle_minutes: float = SERVE_IDLE_MINUTES) -> dict:
     """PodCreateInput for the serving pod. Pure: everything it sends is in its arguments.
-    `second=(run, served_name)` adds a second reader on port 8001 (serve_command)."""
+    `second=(run, served_name)` adds a second reader on port 8001 (serve_command); `max_hours` and
+    `idle_minutes` are the two watchdogs that stop the pod from inside."""
     if cloud_type not in CLOUD_TYPES:
         raise ValueError(f"cloud type must be one of {CLOUD_TYPES}, got {cloud_type!r}")
     env = {"VLLM_API_KEY": api_key, "HF_HOME": f"{ROOT}/hf", "PYTHONPATH": f"{ROOT}/code"}
@@ -310,7 +398,8 @@ def build_pod_payload(*, run: str, served_name: str, api_key: str, volume_id: st
         "env": env,
         "imageName": image,
         "dockerEntrypoint": ["bash", "-lc"],
-        "dockerStartCmd": [serve_command(run, served_name, second=second)],
+        "dockerStartCmd": [serve_command(run, served_name, second=second, max_hours=max_hours,
+                                        idle_minutes=idle_minutes)],
     }
 
 
@@ -427,7 +516,7 @@ def create_serve(a, env: dict[str, str], key: str) -> None:
     second = (a.run[1], a.served_name[1]) if len(a.run) == 2 else None
     payload = build_pod_payload(run=a.run[0], served_name=a.served_name[0], api_key=api_key, volume_id=volume,
                                 gpu=a.gpu, datacenter=a.datacenter, public_key=public_key, cloud_type=a.cloud,
-                                second=second)
+                                second=second, max_hours=a.max_hours, idle_minutes=a.idle_minutes)
     pod = api("POST", "/pods", key, payload)
     pod_id = pod["id"]
     # the pod bills from here: its id reaches stdout before anything else can fail
@@ -436,14 +525,15 @@ def create_serve(a, env: dict[str, str], key: str) -> None:
     # a one-run pod blanks RUNPOD_SERVE_URL_2 so a stale second URL never points at a dead pod
     url_2 = serve_url(pod_id, PORTS[1]) if second else ""
     upsert_env(ENV_FILE, {"RUNPOD_SERVE_POD_ID": pod_id, "RUNPOD_SERVE_URL": url, "RUNPOD_SERVE_URL_2": url_2})
+    print(f"the pod stops itself after {a.max_hours} h, or {a.idle_minutes} min without a request")
     print(f"{url}  ({a.served_name[0]})")
     if second:
         print(f"{url_2}  ({second[1]})")
 
 
 def create_train(a, env: dict[str, str], key: str) -> None:
-    """Create the training pod and record its id. Nothing waits for it and nothing stops it:
-    the run is followed with `train-log` and the pod is stopped by hand when it is done."""
+    """Create the training pod and record its id. Nothing waits for it: the run is followed with
+    `train-log`, and the pod stops itself when the run ends (or after --max-hours)."""
     volume = a.volume or setting("RUNPOD_VOLUME_ID", env)
     if not volume:
         raise SystemExit("no network volume: pass --volume or set RUNPOD_VOLUME_ID")
@@ -452,14 +542,14 @@ def create_train(a, env: dict[str, str], key: str) -> None:
     payload = build_train_payload(run=a.run, volume_id=volume, gpu=a.gpu, datacenter=a.datacenter,
                                   public_key=public_key, cloud_type=a.cloud, max_length=a.max_length,
                                   batch_size=a.batch_size, grad_accum=a.grad_accum, quant=a.quant,
-                                  liger=not a.no_liger)
+                                  liger=not a.no_liger, max_hours=a.max_hours)
     pod = api("POST", "/pods", key, payload)
     pod_id = pod["id"]
     # the pod bills from here: its id reaches stdout before anything else can fail
     print(f"pod {pod_id} ({pod.get('costPerHr', '?')} $/h, {pod.get('desiredStatus', '?')})", flush=True)
     upsert_env(ENV_FILE, {"RUNPOD_TRAIN_POD_ID": pod_id})
     print(f"follow it with: pod.py train-log --run {a.run}")
-    print(f"it parks when the run ends and bills until you stop it: pod.py stop --pod {pod_id}")
+    print(f"it stops itself when the run ends, or after {a.max_hours} h; check: pod.py status --pod {pod_id}")
 
 
 def train_log(a, env: dict[str, str]) -> None:
@@ -537,6 +627,9 @@ def main(argv: list[str] | None = None) -> None:
     create.add_argument("--served-name", action="append", required=True)
     create.add_argument("--gpu", default="NVIDIA GeForce RTX 5090"); create.add_argument("--datacenter", default="EUR-NO-1")
     create.add_argument("--volume"); create.add_argument("--cloud", choices=CLOUD_TYPES, default="COMMUNITY")
+    # the pod stops itself: after --max-hours whatever it is doing, or --idle-minutes with no request
+    create.add_argument("--max-hours", type=float, default=SERVE_MAX_HOURS)
+    create.add_argument("--idle-minutes", type=float, default=SERVE_IDLE_MINUTES)
     training = sub.add_parser("create-train")
     training.add_argument("--run", required=True)
     training.add_argument("--gpu", default=TRAIN_GPU); training.add_argument("--datacenter", default=TRAIN_DATACENTER)
@@ -546,6 +639,8 @@ def main(argv: list[str] | None = None) -> None:
     training.add_argument("--grad-accum", type=int, default=TRAIN_DEFAULTS["grad_accum"])
     training.add_argument("--quant", choices=QUANTS, default=TRAIN_DEFAULTS["quant"])
     training.add_argument("--no-liger", action="store_true")
+    training.add_argument("--max-hours", type=float, default=TRAIN_MAX_HOURS,
+                          help="the pod stops itself after this long, however the run is going")
     tailing = sub.add_parser("train-log")
     tailing.add_argument("--run", required=True)
     tailing.add_argument("--tail", type=int, default=40, help="0 prints the whole log")
