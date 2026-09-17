@@ -329,4 +329,12 @@ describe('rule 2: dates for events stated without one', () => {
     expect(booking).toMatchObject({ iso: '2023-03-01', approximate: true });
     expect(booking?.anchor?.iso).toBe('2023-05-01');
   });
+
+  it('looks for the anchor in the other sessions when the chained sentence\'s own session has none', () => {
+    const notes = buildComputedNotes('When did I book the cabin?', '2023/06/01 (Thu) 20:00', [
+      { ts: '2023-06-01T18:00:00Z', text: "USER: I stayed at a cabin for my sister's graduation and had to book two months in advance." },
+      { ts: '2023-06-01T09:00:00Z', text: "USER: I went to my sister's graduation exactly one month ago." },
+    ]);
+    expect(notes).toMatch(/- 2023-03-01: "[^"]*book two months in advance\.?" \[[^\]]*counted from 2023-05-01/);
+  });
 });

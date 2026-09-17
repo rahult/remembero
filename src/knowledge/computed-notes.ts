@@ -281,7 +281,15 @@ const VAGUE_COUNT = /\b(?:few|several|couple)\b/i;
  * `extended`, also "for three months now" (a start date) and "in January" (a month); those
  * are for the notes block, not for callers that read a question's own time reference.
  */
-export function resolveTemporalExpressions(text: string, sessionTs: string, options: { extended?: boolean } = {}): DatedEvent[] {
+export function resolveTemporalExpressions(
+  text: string,
+  sessionTs: string,
+  options: {
+    extended?: boolean;
+    /** Dated events from other sessions a chained expression may count from when this text has none. */
+    anchors?: DatedEvent[];
+  } = {},
+): DatedEvent[] {
   const sessionDay = dayOf(sessionTs);
   const base = msOf(sessionDay);
   const year = Number(sessionDay.slice(0, 4));
@@ -489,19 +497,21 @@ export function resolveTemporalExpressions(text: string, sessionTs: string, opti
   for (const c of pending) {
     // a date inside the referenced phrase is the anchor itself
     let anchor = c.reference === undefined ? undefined : plain.find((e) => e.sentence === c.sentence && e.index !== undefined && e.index >= c.reference![0] && e.index < c.reference![1]);
-    if (anchor === undefined) {
-      // otherwise the one dated event elsewhere that shares the most words with the reference;
-      // a tie between different dates means the reference is ambiguous, so nothing is dated
-      const need = c.reference === undefined ? 2 : 1;
-      const scored = plain
-        .filter((e) => e.sentence !== c.sentence)
+    // otherwise the one dated event elsewhere that shares the most words with the reference,
+    // in this session first, then in the others; a tie between different dates means the
+    // reference is ambiguous, so nothing is dated
+    const need = c.reference === undefined ? 2 : 1;
+    const pick = (pool: DatedEvent[]) => {
+      const scored = pool
+        .filter((e) => e.sentence !== c.sentence && !e.start && e.anchor === undefined && e.kind !== 'undated')
         .map((e) => ({ e, score: c.terms.filter((t) => wordSet(e.sentence).has(t)).length }))
         .filter((x) => x.score >= need);
       const top = Math.max(0, ...scored.map((x) => x.score));
       const best = scored.filter((x) => x.score === top);
-      if (best.length === 0 || new Set(best.map((x) => x.e.iso)).size > 1) continue;
-      anchor = best[0]!.e;
-    }
+      return best.length === 0 || new Set(best.map((x) => x.e.iso)).size > 1 ? undefined : best[0]!.e;
+    };
+    anchor ??= pick(plain) ?? pick(options.anchors ?? []);
+    if (anchor === undefined) continue;
     const approximate = c.approximate || anchor.approximate === true;
     const slack = c.slack + (anchor.slack ?? 0);
     push({
@@ -697,8 +707,12 @@ export function buildComputedNotes(
   const allEvents: DatedEvent[] = [];
   const undatedEvents: DatedEvent[] = [];
   const quantities: Quantity[] = [];
-  for (const source of [...sources].sort((l, r) => l.ts.localeCompare(r.ts))) {
-    const resolved = resolveTemporalExpressions(source.text, source.ts, { extended: true });
+  const ordered = [...sources].sort((l, r) => l.ts.localeCompare(r.ts));
+  // a first reading of every session, so a chained expression can count from another session's event
+  const firstReading = ordered.map((source) => resolveTemporalExpressions(source.text, source.ts, { extended: true }));
+  for (const [i, source] of ordered.entries()) {
+    const anchors = firstReading.flatMap((events, j) => (j === i ? [] : events));
+    const resolved = resolveTemporalExpressions(source.text, source.ts, { extended: true, anchors });
     for (const e of resolved) {
       allEvents.push(e);
       if (keywordHits(e.sentence) > 0) events.push(e);
