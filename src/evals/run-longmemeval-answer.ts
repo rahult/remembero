@@ -41,9 +41,14 @@ import {
   DEFAULT_RERANK_SESSION_CHARS,
   DEFAULT_TYPESAFE_MODEL,
   createLimiter,
+  typesafeCostUsd,
   typesafeNouls,
   type TypesafeNouls,
 } from './typesafe-rerank.js';
+import {
+  DEFAULT_COUNT_MAX,
+  DEFAULT_COUNT_THRESHOLD,
+} from './typesafe-count.js';
 import { DEFAULT_ABSTRACT_BYTES, tiersFromFlags } from './reader-contract.js';
 import {
   assertBuiltinMemorySystemScope,
@@ -121,6 +126,9 @@ interface Args {
   rerankModel: string;
   rerankKeyEnv: string;
   rerankConcurrency: number;
+  typesafeCount: boolean;
+  typesafeCountMax: number;
+  typesafeCountThreshold: number;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -246,6 +254,19 @@ Options:
                          ${DEFAULT_RERANK_KEY_ENV}); the key is never taken from a flag
   --rerank-concurrency <n>  TypeSafe requests in flight across the run, 1-64 (default
                          ${DEFAULT_RERANK_CONCURRENCY}); the API allows 1200 requests/min
+  --typesafe-count       EXPERIMENTAL. For a question whose text asks for a number of things
+                         the user did or has, every user sentence of the sessions in the
+                         reader's context that shares a content word with the question is sent
+                         to TypeSafe on its own ("this sentence states one instance of the thing
+                         the question counts"), and the ones above the threshold are counted in
+                         code: Jev cannot count, so the harness does
+                         (docs.typesafe.ai/model-jaggedness/jev-1.13). The tally leads the
+                         computed-notes block. Uses --rerank-model, --rerank-key-env and
+                         --rerank-concurrency; answers are cached under .cache/typesafe/
+  --typesafe-count-max <n>  Candidate sentences per question, 1-500 (default
+                         ${DEFAULT_COUNT_MAX}); the highest question overlap is kept
+  --typesafe-count-threshold <p>  Noul a candidate must reach to be counted, 0-1 (default
+                         ${DEFAULT_COUNT_THRESHOLD})
   --json                 Print the complete run instead of its summary
 
 Every observation records evidenceCoverage {sessionsInContext, sessionsTotal, turnsInContext,
@@ -345,6 +366,9 @@ export function parseArgs(argv: string[]): Args {
     rerankModel: DEFAULT_TYPESAFE_MODEL,
     rerankKeyEnv: DEFAULT_RERANK_KEY_ENV,
     rerankConcurrency: DEFAULT_RERANK_CONCURRENCY,
+    typesafeCount: false,
+    typesafeCountMax: DEFAULT_COUNT_MAX,
+    typesafeCountThreshold: DEFAULT_COUNT_THRESHOLD,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -627,6 +651,21 @@ export function parseArgs(argv: string[]): Args {
         1,
         64,
       );
+    } else if (arg === '--typesafe-count') {
+      args.typesafeCount = true;
+    } else if (arg === '--typesafe-count-max') {
+      args.typesafeCountMax = boundedInteger(
+        requiredValue(argv, index++, arg),
+        arg,
+        1,
+        500,
+      );
+    } else if (arg === '--typesafe-count-threshold') {
+      const parsed = Number(requiredValue(argv, index++, arg));
+      if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) {
+        throw new Error(`${arg} needs a probability from 0 to 1`);
+      }
+      args.typesafeCountThreshold = parsed;
     } else if (arg === '--json') args.json = true;
     else if (arg === '--help' || arg === '-h') {
       console.log(USAGE);
@@ -649,6 +688,11 @@ export function parseArgs(argv: string[]): Args {
   ) {
     throw new Error(
       '--turn-unit-question-types needs --retrieval-unit turn: it picks which question types keep the turn unit',
+    );
+  }
+  if (args.typesafeCount && args.memorySystem !== undefined) {
+    throw new Error(
+      '--typesafe-count counts the sessions Remembero retrieved; it cannot be combined with --memory-system',
     );
   }
   if (args.rerank !== 'none' && args.memorySystem !== undefined) {
@@ -934,6 +978,23 @@ async function main(): Promise<void> {
         limiter,
       });
   }
+  let countNouls: TypesafeNouls | undefined;
+  if (args.typesafeCount) {
+    const countKey = process.env[args.rerankKeyEnv];
+    if (countKey === undefined || countKey.trim() === '') {
+      throw new Error(
+        `--typesafe-count needs a key in the environment variable ${args.rerankKeyEnv}`,
+      );
+    }
+    // its own limiter, so counting never starves the re-rank of slots (or the other way round)
+    const limiter = createLimiter(args.rerankConcurrency);
+    countNouls = (state, questions) =>
+      typesafeNouls(state, questions, {
+        apiKey: countKey,
+        model: args.rerankModel,
+        limiter,
+      });
+  }
   let completed = 0;
   let observations: LongMemEvalAnswerObservation[];
   try {
@@ -1017,6 +1078,15 @@ async function main(): Promise<void> {
                     nouls: rerankNouls,
                     pool: args.rerankPool,
                     sessionChars: args.rerankSessionChars,
+                  },
+                }),
+            ...(countNouls === undefined
+              ? {}
+              : {
+                  typesafeCount: {
+                    nouls: countNouls,
+                    max: args.typesafeCountMax,
+                    threshold: args.typesafeCountThreshold,
                   },
                 }),
             ...(args.engineRecall
@@ -1120,6 +1190,11 @@ async function main(): Promise<void> {
       rerankModel: args.rerank === 'none' ? null : args.rerankModel,
       rerankKeyEnv: args.rerank === 'none' ? null : args.rerankKeyEnv,
       rerankConcurrency: args.rerank === 'none' ? null : args.rerankConcurrency,
+      typesafeCount: args.typesafeCount,
+      typesafeCountMax: args.typesafeCount ? args.typesafeCountMax : null,
+      typesafeCountThreshold: args.typesafeCount
+        ? args.typesafeCountThreshold
+        : null,
       memoryLane: args.memorySystem === undefined ? null : args.memoryLane,
       // the memory system's own embedder, recorded here rather than in the top-level
       // embeddingModel: that field means Remembero's semantic route, which --local-only turns off
@@ -1247,6 +1322,20 @@ async function main(): Promise<void> {
       const r = summary.rerankUsage;
       console.log(
         `typesafe rerank (experimental): ${r.candidates} candidates, ${r.calls} requests, ${r.cached} cached, ${r.blocked} blocked; ${r.inputTokens} input tokens, est. $${r.costUsd.toFixed(6)} at $0.042/M`,
+      );
+    }
+    if (summary.countUsage !== undefined) {
+      const c = summary.countUsage;
+      console.log(
+        `typesafe counted items (experimental): ${c.candidates} candidates, ${c.counted} counted, ${c.calls} requests, ${c.cached} cached; ${c.inputTokens} input tokens, est. $${c.costUsd.toFixed(6)} at $0.042/M`,
+      );
+    }
+    if (summary.rerankUsage !== undefined || summary.countUsage !== undefined) {
+      const tokens =
+        (summary.rerankUsage?.inputTokens ?? 0) +
+        (summary.countUsage?.inputTokens ?? 0);
+      console.log(
+        `typesafe total: ${tokens} input tokens, est. $${typesafeCostUsd(tokens).toFixed(6)}`,
       );
     }
     console.log(

@@ -34,6 +34,13 @@ import {
   type TypesafeNouls,
 } from './typesafe-rerank.js';
 import {
+  DEFAULT_COUNT_MAX,
+  DEFAULT_COUNT_THRESHOLD,
+  countHistoryInstances,
+  type CountStats,
+} from './typesafe-count.js';
+import { isCountQuestion } from '../knowledge/count-question.js';
+import {
   searchKnowledge,
   type KnowledgeSearchResult,
 } from '../knowledge/search.js';
@@ -208,6 +215,8 @@ export interface LongMemEvalAnswerObservation {
   memorySystem?: MemorySystemObservation;
   /** Present when the experimental TypeSafe re-rank ran for this question. */
   rerank?: RerankStats;
+  /** Present when the TypeSafe counted-items block ran for this question. */
+  countedItems?: CountStats;
   formationMs: number;
   semanticPreparationMs: number;
   retrievalMs: number;
@@ -278,6 +287,8 @@ export interface LongMemEvalAnswerSummary {
   };
   /** Present when any observation ran the TypeSafe re-rank; cost at $0.042 per M input tokens. */
   rerankUsage?: RerankStats & { costUsd: number };
+  /** Present when any observation counted items through TypeSafe, at the same token price. */
+  countUsage?: CountStats & { costUsd: number };
 }
 
 export interface LongMemEvalAnswerRun {
@@ -340,6 +351,10 @@ export interface LongMemEvalAnswerRun {
     rerankModel?: string | null;
     rerankKeyEnv?: string | null;
     rerankConcurrency?: number | null;
+    /** Experimental code-counted items for count questions, through TypeSafe. */
+    typesafeCount?: boolean;
+    typesafeCountMax?: number | null;
+    typesafeCountThreshold?: number | null;
     memoryLane?: MemorySystemLane | null;
     /**
      * The embedding model the memory system itself ran on (e.g. `builtin:embed`). Kept out of
@@ -840,6 +855,8 @@ export function buildLongMemEvalAnswerContext(
   focusedBudget = false,
   structuredEvidence = false,
   tiers?: ContextTiers,
+  /** A code-counted tally (see typesafe-count.ts): the computed-notes block's first line. */
+  countedLine?: string,
 ): AnswerContext {
   validateOptions(Math.max(1, rankedSources.length), contextBytes);
   if (tiers !== undefined) {
@@ -951,16 +968,21 @@ export function buildLongMemEvalAnswerContext(
     engine === undefined
       ? ''
       : `\n### Memory engine result\nThe memory system wrote this Datalog program over the facts it remembered from the whole history (every session, not only the chats above) and executed it. The rows are exact for the remembered facts, but the program may be broader than the question and facts can be missing or misread, so keep only the rows that fit the question, cross-check with the chats, and prefer the chats where they disagree.\nProgram: ${engine.query.replace(/\s*\n\s*/g, ' ')}\n${engine.rendered.slice(0, MAX_ENGINE_RENDER_CHARACTERS)}\n`;
-  const computedBlock = computedNotes
-    ? (() => {
-        const block = buildComputedNotes(
-          instance.question,
-          instance.question_date,
-          selected.map(({ ts, text }) => ({ ts, text: text! })),
-        );
-        return block === '' ? '' : `\n${block}`;
-      })()
-    : '';
+  const pinnedLines = countedLine === undefined || countedLine === '' ? [] : [countedLine];
+  const computedBlock =
+    computedNotes || pinnedLines.length > 0
+      ? (() => {
+          const block = buildComputedNotes(
+            instance.question,
+            instance.question_date,
+            // without --computed-notes the block carries the counted line alone
+            computedNotes ? selected.map(({ ts, text }) => ({ ts, text: text! })) : [],
+            {},
+            pinnedLines,
+          );
+          return block === '' ? '' : `\n${block}`;
+        })()
+      : '';
   // structured evidence goes first: dated claims to compose from, then the chats to check
   const evidenceBlock = structuredEvidence
     ? (() => {
@@ -1168,6 +1190,12 @@ export async function evaluateLongMemEvalAnswerInstance(
      * candidates; the order of the first ones it would have fetched anyway is unchanged.
      */
     rerank?: { nouls: TypesafeNouls; pool?: number; sessionChars?: number };
+    /**
+     * Experimental: when the question text reads as a count question, the user sentences of the
+     * sessions that reached the context are judged one at a time (see typesafe-count.ts) and
+     * counted in code; the tally leads the computed-notes block.
+     */
+    typesafeCount?: { nouls: TypesafeNouls; max?: number; threshold?: number };
   } = {},
 ): Promise<LongMemEvalAnswerObservation> {
   // formation can be routed by question type: a type outside the set runs raw formation,
@@ -1253,6 +1281,7 @@ export async function evaluateLongMemEvalAnswerInstance(
   let engineRecall: LongMemEvalEngineRecall | undefined;
   let memorySystem: MemorySystemObservation | undefined;
   let rerankStats: RerankStats | undefined;
+  let countedItems: CountStats | undefined;
   const rerankPool = options.rerank?.pool ?? DEFAULT_RERANK_POOL;
   try {
     const store = new MemoryStore(root);
@@ -2024,6 +2053,25 @@ export async function evaluateLongMemEvalAnswerInstance(
         };
       }
     }
+    // Jev cannot count, so the candidates are judged one at a time and added up here; only a
+    // question whose text asks for a number of things is counted at all
+    let countedLine: string | undefined;
+    if (
+      options.typesafeCount !== undefined &&
+      isCountQuestion(instance.question)
+    ) {
+      const counting = await countHistoryInstances({
+        question: instance.question,
+        sources: rankedSources
+          .filter((source) => source.redacted !== true && source.text !== undefined)
+          .map(({ ts, text }) => ({ ts, text: text! })),
+        nouls: options.typesafeCount.nouls,
+        max: options.typesafeCount.max ?? DEFAULT_COUNT_MAX,
+        threshold: options.typesafeCount.threshold ?? DEFAULT_COUNT_THRESHOLD,
+      });
+      countedItems = counting.stats;
+      if (counting.line !== '') countedLine = counting.line;
+    }
     const answerContext = buildLongMemEvalAnswerContext(
       instance,
       rankedSources,
@@ -2036,6 +2084,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       options.focusedBudget === true,
       options.structuredEvidence === true,
       options.tiers,
+      countedLine,
     );
     contextSessionIds = [
       ...answerContext.contextSessionIds,
@@ -2085,6 +2134,7 @@ export async function evaluateLongMemEvalAnswerInstance(
         ...(engineRecall === undefined ? {} : { engineRecall }),
         ...(memorySystem === undefined ? {} : { memorySystem }),
         ...(rerankStats === undefined ? {} : { rerank: rerankStats }),
+        ...(countedItems === undefined ? {} : { countedItems }),
         formationMs,
         semanticPreparationMs,
         retrievalMs,
@@ -2174,6 +2224,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       ...(engineRecall === undefined ? {} : { engineRecall }),
       ...(memorySystem === undefined ? {} : { memorySystem }),
       ...(rerankStats === undefined ? {} : { rerank: rerankStats }),
+      ...(countedItems === undefined ? {} : { countedItems }),
       formationMs,
       semanticPreparationMs,
       retrievalMs,
@@ -2213,6 +2264,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       ...(engineRecall === undefined ? {} : { engineRecall }),
       ...(memorySystem === undefined ? {} : { memorySystem }),
       ...(rerankStats === undefined ? {} : { rerank: rerankStats }),
+      ...(countedItems === undefined ? {} : { countedItems }),
       formationMs,
       semanticPreparationMs,
       retrievalMs,
@@ -2277,6 +2329,7 @@ export function summarizeLongMemEvalAnswers(
     costUsd: 0,
   };
   let rerankUsage: (RerankStats & { costUsd: number }) | undefined;
+  let countUsage: (CountStats & { costUsd: number }) | undefined;
   for (const observation of observations) {
     if (observation.rerank !== undefined) {
       rerankUsage ??= {
@@ -2293,6 +2346,22 @@ export function summarizeLongMemEvalAnswers(
       rerankUsage.blocked += observation.rerank.blocked;
       rerankUsage.inputTokens += observation.rerank.inputTokens;
       rerankUsage.costUsd = typesafeCostUsd(rerankUsage.inputTokens);
+    }
+    if (observation.countedItems !== undefined) {
+      countUsage ??= {
+        candidates: 0,
+        counted: 0,
+        calls: 0,
+        cached: 0,
+        inputTokens: 0,
+        costUsd: 0,
+      };
+      countUsage.candidates += observation.countedItems.candidates;
+      countUsage.counted += observation.countedItems.counted;
+      countUsage.calls += observation.countedItems.calls;
+      countUsage.cached += observation.countedItems.cached;
+      countUsage.inputTokens += observation.countedItems.inputTokens;
+      countUsage.costUsd = typesafeCostUsd(countUsage.inputTokens);
     }
     if (observation.readerUsage !== null)
       readerUsage = addLlmUsage(readerUsage, observation.readerUsage);
@@ -2457,6 +2526,7 @@ export function summarizeLongMemEvalAnswers(
     embeddingUsage,
     semanticPreparationUsage,
     ...(rerankUsage === undefined ? {} : { rerankUsage }),
+    ...(countUsage === undefined ? {} : { countUsage }),
   };
 }
 

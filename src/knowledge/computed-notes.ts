@@ -966,6 +966,8 @@ export function buildComputedNotes(
   questionDate: string,
   sources: Array<{ ts: string; text: string }>,
   limits: { maxEvents?: number; maxQuantities?: number; maxChars?: number } = {},
+  /** Lines a caller computed in code (a counted tally); they lead the block and are never cut. */
+  pinnedLines: readonly string[] = [],
 ): string {
   const questionDay = dayOf(questionDate);
   const terms = questionTerms(question);
@@ -1250,11 +1252,18 @@ export function buildComputedNotes(
       }
     }
   }
+  if (pinnedLines.length > 0) lines.unshift(...pinnedLines);
   if (lines.length === 0) return '';
   const header = '### Computed from the history (deterministic: dates resolved against each session\'s date, arithmetic exact; use these figures rather than recomputing, and check each against the sentence it quotes)\n';
   let block = header + lines.join('\n') + '\n';
   // the lines the question asks for directly are never cut
-  const floor = header.length + (pinned > 0 || lines[0]!.startsWith('Which came first:') ? lines[0]!.length + 2 : 0);
+  const askedLine = lines[pinnedLines.length];
+  const protectedLines =
+    pinnedLines.length +
+    (pinned > 0 || askedLine?.startsWith('Which came first:') === true ? 1 : 0);
+  const floor =
+    header.length +
+    lines.slice(0, protectedLines).reduce((total, line) => total + line.length + 2, 0);
   const limit = Math.max(maxChars, floor);
   if (block.length > limit) block = `${block.slice(0, limit - 2)}…\n`;
   return block;
