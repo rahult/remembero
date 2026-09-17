@@ -10,6 +10,7 @@ import {
   type LongMemEvalCompletionClient,
 } from '../src/evals/longmemeval-answer.js';
 import type { LongMemEvalInstance } from '../src/evals/longmemeval.js';
+import { parseArgs } from '../src/evals/run-longmemeval-answer.js';
 
 class ScriptedCompletionClient implements LongMemEvalCompletionClient {
   readonly calls: Array<{ messages: ChatMessage[]; maxTokens?: number }> = [];
@@ -1465,5 +1466,111 @@ describe('evidence coverage and retrieval-only mode', () => {
       { ...complete, evidenceCoverage: undefined },
     ] as never);
     expect(legacy.evidenceSessionsCompleteRate).toBe(0);
+  });
+});
+
+describe('turn-level retrieval routed by question type', () => {
+  // session unit: the short, dense session wins; turn unit: the session with many
+  // matching turns wins
+  const fixture = (questionType: string) =>
+    instance({
+      question_type: questionType,
+      question: 'Which marathon did I run?',
+      haystack_session_ids: ['dense', 'spread'],
+      haystack_dates: ['2024/01/01 (Mon) 09:00', '2024/01/02 (Tue) 09:00'],
+      haystack_sessions: [
+        [{ role: 'user', content: 'marathon marathon marathon marathon run' }],
+        [
+          {
+            role: 'user',
+            content:
+              'I ran the Berlin marathon after weeks of long training runs, early mornings, careful nutrition planning and lots of stretching.',
+            has_answer: true,
+          },
+          {
+            role: 'assistant',
+            content:
+              'A marathon in Berlin is fast and flat; many runners set personal records there because of the weather and the course.',
+          },
+          {
+            role: 'user',
+            content:
+              'The marathon expo was crowded, the shuttle buses were late, and the hotel breakfast was cold but the city was lovely.',
+          },
+          {
+            role: 'assistant',
+            content:
+              'Marathon weekends are busy everywhere; booking accommodation early and arriving a day ahead usually helps a lot.',
+          },
+        ],
+      ],
+      answer_session_ids: ['spread'],
+    });
+
+  const run = async (
+    questionType: string,
+    options: {
+      retrievalUnit?: 'session' | 'turn';
+      turnUnitQuestionTypes?: ReadonlySet<string>;
+    },
+  ) => {
+    const reader = new ScriptedCompletionClient('reader', ['Berlin']);
+    const judge = new ScriptedCompletionClient('judge', ['yes']);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      fixture(questionType),
+      reader,
+      judge,
+      { topK: 1, contextBytes: 4_096, formation: 'raw', ...options },
+    );
+    return {
+      retrieved: observation.retrievedSessionIds,
+      prompt: reader.calls[0]?.messages.at(-1)?.content ?? '',
+    };
+  };
+
+  it('the fixture separates the two units', async () => {
+    const session = await run('multi-session', { retrievalUnit: 'session' });
+    const turn = await run('multi-session', { retrievalUnit: 'turn' });
+    expect(session.retrieved).not.toEqual(turn.retrieved);
+  });
+
+  it('a type outside the set retrieves as the session unit; a type inside as the turn unit', async () => {
+    const only = new Set(['multi-session']);
+    for (const [questionType, plainUnit] of [
+      ['temporal-reasoning', 'session'],
+      ['multi-session', 'turn'],
+    ] as const) {
+      const routed = await run(questionType, {
+        retrievalUnit: 'turn',
+        turnUnitQuestionTypes: only,
+      });
+      const plain = await run(questionType, { retrievalUnit: plainUnit });
+      expect(routed).toEqual(plain);
+    }
+  });
+
+  it('the runner parses the flag and refuses it without --retrieval-unit turn', () => {
+    const args = parseArgs([
+      '--retrieval-unit',
+      'turn',
+      '--turn-unit-question-types',
+      'multi-session,knowledge-update',
+    ]);
+    expect([...(args.turnUnitQuestionTypes ?? [])]).toEqual([
+      'multi-session',
+      'knowledge-update',
+    ]);
+    expect(parseArgs([]).turnUnitQuestionTypes).toBeUndefined();
+    expect(() =>
+      parseArgs(['--turn-unit-question-types', 'multi-session']),
+    ).toThrow(/--turn-unit-question-types needs --retrieval-unit turn/);
+    expect(() =>
+      parseArgs([
+        '--retrieval-unit',
+        'turn',
+        '--turn-unit-question-types',
+        'multi-sesion',
+      ]),
+    ).toThrow(/unknown question type "multi-sesion"/);
   });
 });

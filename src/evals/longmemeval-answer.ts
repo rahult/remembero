@@ -77,6 +77,16 @@ export const DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES = 56 * 1024;
 export const MAX_LONGMEMEVAL_ANSWER_CONTEXT_BYTES = 160 * 1024;
 export const LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS = 16_384;
 export const LONGMEMEVAL_MULTI_SEMANTIC_MAX_LEXICAL_SCORE = 315;
+/** The question types LongMemEval ships (abstention is a question-id suffix, not a type). */
+export const LONGMEMEVAL_QUESTION_TYPES: ReadonlySet<string> = new Set([
+  'single-session-user',
+  'single-session-assistant',
+  'single-session-preference',
+  'multi-session',
+  'knowledge-update',
+  'temporal-reasoning',
+]);
+
 export const DEFAULT_LONGMEMEVAL_SEMANTIC_QUESTION_TYPES = new Set([
   'single-session-preference',
   'multi-session',
@@ -287,6 +297,7 @@ export interface LongMemEvalAnswerRun {
     readingStrategy: 'direct' | 'notes' | 'two-call';
     hybridRetrieval: 'shared' | 'reserved' | 'keyed';
     retrievalUnit: 'session' | 'turn';
+    turnUnitQuestionTypes?: string[] | null;
     entityRetrieval: boolean;
     engineRecall?: boolean;
     engineRecallQuestionTypes?: string[] | null;
@@ -1046,6 +1057,11 @@ export async function evaluateLongMemEvalAnswerInstance(
      */
     retrievalUnit?: 'session' | 'turn';
     /**
+     * With retrievalUnit 'turn': only these question types use the turn unit; the rest
+     * retrieve by session. Undefined: every type uses the turn unit.
+     */
+    turnUnitQuestionTypes?: ReadonlySet<string>;
+    /**
      * Time-aware retrieval (the paper's time-aware query expansion): a frontier model reads
      * the absolute date range a question refers to, given the question date, or refuses when
      * there is no time cue; sessions inside the range are ranked ahead of those outside.
@@ -1138,6 +1154,11 @@ export async function evaluateLongMemEvalAnswerInstance(
       : instance.question_type === 'temporal-reasoning'
         ? (options.temporalTopK ?? DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K)
         : topK;
+  // turn-level retrieval can be routed by question type (temporal questions lose with it)
+  const turnUnit =
+    options.retrievalUnit === 'turn' &&
+    (options.turnUnitQuestionTypes === undefined ||
+      options.turnUnitQuestionTypes.has(instance.question_type));
   const contextBytes =
     options.contextBytes ?? DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES;
   validateOptions(effectiveTopK, contextBytes);
@@ -1343,7 +1364,7 @@ export async function evaluateLongMemEvalAnswerInstance(
                 .map((fact) => fact.replace(/[_(),.']+/g, ' ').trim())
                 .join('. ')}.\n\n`
             : '';
-        if (options.retrievalUnit === 'turn') {
+        if (turnUnit) {
           // one document per user turn; the session is what comes back to the reader
           let turnIndex = 0;
           for (const turn of session) {
@@ -1449,7 +1470,6 @@ export async function evaluateLongMemEvalAnswerInstance(
       const factClauses = reserved
         ? snapshot.clauses.filter((c) => !isPlaceholder(c))
         : [];
-      const turnUnit = options.retrievalUnit === 'turn';
       const lexical = searchKnowledge(
         rawClauses,
         instance.question,

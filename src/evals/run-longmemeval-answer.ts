@@ -20,6 +20,7 @@ import {
   DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K,
   LONGMEMEVAL_MULTI_SEMANTIC_MAX_LEXICAL_SCORE,
   DEFAULT_LONGMEMEVAL_SEMANTIC_QUESTION_TYPES,
+  LONGMEMEVAL_QUESTION_TYPES,
   MAX_LONGMEMEVAL_ANSWER_CONTEXT_BYTES,
   evaluateLongMemEvalAnswerInstance,
   longMemEvalAnswerRun,
@@ -74,6 +75,7 @@ interface Args {
   factsInContext: boolean;
   hybridRetrieval: 'shared' | 'reserved' | 'keyed';
   retrievalUnit: 'session' | 'turn';
+  turnUnitQuestionTypes?: Set<string>;
   hybridQuestionTypes: Set<string> | undefined;
   reservedMinimumScore: number | undefined;
   entityRetrieval: boolean;
@@ -125,6 +127,8 @@ Options:
                          session's facts are prepended to its own key (fact-augmented keys)
   --retrieval-unit <session|turn>  session (default) or one document per user turn, scored
                          separately and aggregated to sessions; whole sessions still come back
+  --turn-unit-question-types <csv>  With --retrieval-unit turn: only these question types use
+                         the turn unit, the rest retrieve by session (default: every type)
   --hybrid-question-types <csv>  Use the extractor only for these question types; others run raw
                          (and make no extraction calls)
   --reserved-min-score <n>  reserved only: minimum lexical score for an appended fact (default 1)
@@ -437,6 +441,22 @@ export function parseArgs(argv: string[]): Args {
         throw new Error('--retrieval-unit must be session or turn');
       }
       args.retrievalUnit = value;
+    } else if (arg === '--turn-unit-question-types') {
+      const values = requiredValue(argv, index++, arg)
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean);
+      if (values.length === 0) {
+        throw new Error('--turn-unit-question-types needs at least one value');
+      }
+      for (const value of values) {
+        if (!LONGMEMEVAL_QUESTION_TYPES.has(value)) {
+          throw new Error(
+            `--turn-unit-question-types: unknown question type "${value}" (known: ${[...LONGMEMEVAL_QUESTION_TYPES].join(', ')})`,
+          );
+        }
+      }
+      args.turnUnitQuestionTypes = new Set(values);
     } else if (arg === '--reader-base-url') {
       args.readerBaseUrl = requiredValue(argv, index++, arg).replace(/\/$/, '');
     } else if (arg === '--reader-api-key') {
@@ -533,6 +553,14 @@ export function parseArgs(argv: string[]): Args {
       console.log(USAGE);
       process.exit(0);
     } else throw new Error(`unknown option: ${arg}`);
+  }
+  if (
+    args.turnUnitQuestionTypes !== undefined &&
+    args.retrievalUnit !== 'turn'
+  ) {
+    throw new Error(
+      '--turn-unit-question-types needs --retrieval-unit turn: it picks which question types keep the turn unit',
+    );
   }
   // the reader contract's rules: positive --full-sessions, --abstract-bytes 120-2048 and only
   // with tiers, and never tiers with --focused-budget (two budget policies are not a pair)
@@ -833,6 +861,9 @@ async function main(): Promise<void> {
             factsInContext: args.factsInContext,
             hybridRetrieval: args.hybridRetrieval,
             retrievalUnit: args.retrievalUnit,
+            ...(args.turnUnitQuestionTypes === undefined
+              ? {}
+              : { turnUnitQuestionTypes: args.turnUnitQuestionTypes }),
             readingStrategy: args.readingStrategy,
             ...(args.readerMaxTokens === undefined
               ? {}
@@ -931,6 +962,10 @@ async function main(): Promise<void> {
       readingStrategy: args.readingStrategy,
       hybridRetrieval: args.hybridRetrieval,
       retrievalUnit: args.retrievalUnit,
+      turnUnitQuestionTypes:
+        args.turnUnitQuestionTypes === undefined
+          ? null
+          : [...args.turnUnitQuestionTypes],
       entityRetrieval: args.entityRetrieval,
       engineRecall: args.engineRecall,
       dateDistances: args.dateDistances,
