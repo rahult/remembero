@@ -653,3 +653,38 @@ choice is made from the question text and re-measured, 30 short of the GLM teach
 not part of the reader contract (the prompt shape is unchanged), so no retraining is needed; the
 product's own search has to adopt the same per-type unit before a user sees the gain.
 
+## Label-free: a text detector for the unit, and computed notes that order and chain dates (2026-09-17)
+
+Two changes, both code, both measured with reader v7 unchanged:
+
+- **`isTemporalQuestion`** (src/knowledge/temporal-question.ts, commit ffba6e3) decides from the
+  question's wording whether it asks about time; `--turn-unit-unless-temporal` routes those to the
+  session unit and everything else to the turn unit. Against the dataset labels on the 500:
+  precision 90.2% (129/143), recall 97.0% (129/133).
+- **Computed notes** (commits 7ff6ae5 to 00dd690) gain an ordering verdict for "which came first",
+  dates for undated events (the session date, marked on-or-before), "for N units now" start dates
+  and ages, month-only ranges, chained offsets ("two weeks before <event>" no longer reads as "two
+  weeks ago"), the question's own gap stated first in its unit, whole-word relevance, and two
+  date bugs fixed. An analysis of the 15 temporal questions v7 missed with every evidence turn in
+  context found the needed fact in the block for 1 of them; now 13. Every new ordering and gap line
+  across the 500 was checked against the gold answers and the wrong ones fixed with general rules.
+
+One pod, v7, all 500, DeepSeek judge:
+
+| Setup | Total | Multi-session | Knowledge-update | SS-assistant | SS-preference | SS-user | Temporal |
+|---|---|---|---|---|---|---|---|
+| old notes, session unit | 397 | 95 | 59 | 50 | 19 | 67 | 107 |
+| old notes, unit routed by dataset label | 410 | 101 | 64 | 53 | 21 | 65 | 106 |
+| new notes, session unit | 405 | 94 | 59 | 50 | 21 | 65 | 116 |
+| **new notes, unit routed by the text detector** | **414** | 102 | 64 | 52 | 17 | 64 | 115 |
+
+Paired flips: new notes alone +29 / -21 (+8, the gain all temporal, 107 → 116); detector routing on
+top +31 / -22 (+9, the gain multi-session and knowledge-update); both against the old setup
++43 / -26 (+17). **Reader v7, unchanged, reaches 414/500 without any label information** — the best
+system measured and 26 short of its teacher's 440. v7 never trained on the new notes lines, so a
+retrain on them may add more.
+
+Caveat: the detector's rules and the notes' rules were both written from misses on these same 500
+questions (no ids or answers special-cased, but no held-out set either), so part of the gain may
+not transfer. Single-session preference fell 21 → 17 under turn routing and is worth a look.
+
