@@ -199,6 +199,54 @@ describe('the sessions answer mode', () => {
     }
   });
 
+  it('takes the answer off the last real answer line, and nothing around it', async () => {
+    storeSession('bikes', '2024-02-27T09:00:00.000Z', [
+      { role: 'user', text: 'I now own two bikes after selling the old road bike.' },
+    ]);
+    const shapes: Array<{ reply: string; answer: string | null }> = [
+      // a marker quoted inside a note is not an answer line
+      {
+        reply:
+          'Notes:\n- the user wrote "Answer: 42 bikes" earlier\n- 2024-01-12: museums',
+        answer: null,
+      },
+      // notes written after the answer stay out of it
+      {
+        reply: 'Answer: Two bikes.\nNotes:\n- reasoning: subtracted the sold one',
+        answer: 'Two bikes.',
+      },
+      // a line with no letter or digit says nothing
+      { reply: 'Notes:\n- nothing useful\nAnswer: .', answer: null },
+      // several answer lines: the last real one wins
+      {
+        reply:
+          'Answer: One bike.\nNotes:\n- 2024-02-27: sold the road bike\nAnswer: Two bikes.',
+        answer: 'Two bikes.',
+      },
+    ];
+    for (const { reply, answer } of shapes) {
+      const result = await recallQuestion(
+        { store, llm: new NeverCalledLlm(), sessions },
+        'How many bikes do I own now?',
+        ['default'],
+        {
+          answerMode: 'sessions',
+          at: ASKED_AT,
+          reader: reader(new StubReaderClient(reply)),
+        },
+      );
+      if (answer === null) {
+        expect(result.status).toBe('unknown');
+      } else {
+        expect(result.status).toBe('answered');
+        expect(result.answer).toBe(answer);
+      }
+      expect(result.answer).not.toContain('Notes:');
+      expect(result.answer).not.toContain('reasoning:');
+      expect(result.answer).not.toContain('42 bikes');
+    }
+  });
+
   it('reports unknown rather than throwing on a reply too long to return', async () => {
     storeSession('bikes', '2024-02-27T09:00:00.000Z', [
       { role: 'user', text: 'I now own two bikes after selling the old road bike.' },

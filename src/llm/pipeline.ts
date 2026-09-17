@@ -2206,28 +2206,53 @@ const READER_DOES_NOT_KNOW: ReadonlyArray<RegExp> = [
 ];
 
 /**
+ * A real `Answer:` marker starts its own line, after at most the bullet or bold a reader puts
+ * in front of it. A marker inside a note — `- the user wrote "Answer: 42 bikes" earlier` — does
+ * not, which is why the position is what counts and `lastIndexOf('Answer:')` cannot be asked:
+ * it would hand the user the rest of that note as their answer.
+ */
+const ANSWER_MARKER = /^[ \t]*(?:[-*>#]+[ \t]*)*(?:\*\*)?Answer:/gim;
+
+/** The whole last line that really begins with the marker, marker included. */
+function lastAnswerLine(reply: string): string | undefined {
+  let line: string | undefined;
+  for (const match of reply.matchAll(ANSWER_MARKER)) {
+    if (match.index === undefined) continue;
+    const end = reply.indexOf('\n', match.index);
+    line = reply.slice(match.index, end < 0 ? undefined : end);
+  }
+  return line;
+}
+
+/**
  * The answer the reader gave, or nothing at all.
  *
- * The notes reading asks for the working first and the answer on a last `Answer:` line, and
- * `finalAnswerLine` falls back to the whole reply when that line is missing or empty. That
- * fallback is right for the direct reading, where the reply *is* the answer, and wrong here: a
- * reply cut off at `maxTokens` mid-notes would come back as a confident answer with its own
- * working inside it. So the notes reading requires the marker and something after it, and a
- * reply without one is a reader that has not answered — `unknown`, with the whole reply kept
- * for `recall_explain`. `finalAnswerLine` itself stays untouched: the harness judges the string
- * it returns, and the product has to be judged on the same string.
+ * The notes reading asks for the working first and the answer on a last `Answer:` line, so the
+ * product takes that one line and applies the harness's `finalAnswerLine` to it. The harness
+ * applies the same function to the whole reply, where it falls back to all of it when the
+ * marker is missing and runs to the end of the reply when it is not. Both are wrong for a
+ * product answer, and all three failures are reachable: a reply cut off at `maxTokens`
+ * mid-notes, a reply whose notes quote the marker, and a reply that writes its notes after the
+ * answer would each be presented to the user as a confident answer with the reader's working
+ * inside it.
+ *
+ * So the notes reading needs a marker that starts a line, and something with a letter or digit
+ * after it on that line. Anything else is a reader that has not answered: `unknown`, with the
+ * whole reply kept for `recall_explain`, where the truncation or the quoting is visible.
+ * `src/knowledge/answer-line.ts` is untouched and stays byte-identical to the harness's copy.
  */
 function readerAnswer(reply: string, notes: boolean): string | undefined {
   if (!notes) {
     const direct = reply.trim();
     return direct === '' ? undefined : direct;
   }
-  const marker = reply.lastIndexOf('Answer:');
-  if (marker < 0) return undefined;
-  if (reply.slice(marker + 'Answer:'.length).trim() === '') return undefined;
-  // identical to the slice above by construction; the harness's function stays the one that
-  // produces the answer text
-  return finalAnswerLine(reply);
+  const line = lastAnswerLine(reply);
+  if (line === undefined) return undefined;
+  const answer = finalAnswerLine(line);
+  // finalAnswerLine returns its input when the marker has nothing after it: "Answer:" alone
+  if (answer === line.trim()) return undefined;
+  // "Answer: ." and "Answer: --" say nothing either
+  return /[A-Za-z0-9]/.test(answer) ? answer : undefined;
 }
 
 /**
