@@ -469,3 +469,93 @@ describe("rule 4: the question's own gap comes first", () => {
     expect(notes).not.toMatch(/Gap the question asks for/);
   });
 });
+
+describe('safeguards found by rebuilding the block for every LongMemEval question', () => {
+  const at = '2023-03-10T10:00:00Z';
+
+  it('does not stem "care" into "car"', () => {
+    const notes = buildComputedNotes('Which vehicle did I take care of first, the bike or the car?', '2023/03/10 (Fri) 10:00', [
+      { ts: at, text: "USER: I'm glad I got my bike repaired back in mid-February.\n\nUSER: I got my flu shot on March 1st, which reminded me how important it is to take care of my health." },
+    ]);
+    expect(notes).not.toMatch(/"car" [^\n]*flu shot/);
+  });
+
+  it('reads "how many days ago did I X when I Y" as the gap from X to Y', () => {
+    const notes = buildComputedNotes('How many days ago did I launch my blog when I signed my first sponsor?', '2023/03/25 (Sat) 10:00', [
+      { ts: '2023-02-10T10:00:00Z', text: 'USER: I launched my blog today, finally!' },
+      { ts: '2023-03-01T10:00:00Z', text: 'USER: I signed my first sponsor today.' },
+    ]);
+    expect(notes.split('\n')[1]).toMatch(/^Gap the question asks for: "launch my blog" 2023-02-10 [^\n]*to "signed my first sponsor" 2023-03-01 [^\n]*= 19 days/);
+  });
+
+  it('counts a capitalised question word only where the sentence capitalises it too', () => {
+    const notes = buildComputedNotes('How many days passed between my visit to the Museum of Modern Art and the Ancient Coins exhibit?', '2023/02/01 (Wed) 10:00', [
+      { ts: '2023-01-15T10:00:00Z', text: 'USER: I visit a museum in the city and see a great show on modern art today.\n\nUSER: I attended the Ancient Coins exhibit today.' },
+      { ts: '2023-01-08T10:00:00Z', text: 'USER: I just got back from a tour at the Museum of Modern Art.' },
+    ]);
+    expect(notes).not.toMatch(/Gap the question asks for/);
+  });
+
+  it('drops a side whose best sentence matches the other side as well, and a gap whose order contradicts the question', () => {
+    const mixed = buildComputedNotes("How many days before my sister's birthday party did I order her gift?", '2022/05/15 (Sun) 10:00', [
+      { ts: '2022-05-15T10:00:00Z', text: "USER: I recently ordered a photo album gift for my sister's birthday.\n\nUSER: My sister's birthday party was on the 22nd of April." },
+    ]);
+    expect(mixed).not.toMatch(/Gap the question asks for/);
+    const backwards = buildComputedNotes('How many days before the concert did I buy the tickets?', '2022/05/15 (Sun) 10:00', [
+      { ts: '2022-05-15T10:00:00Z', text: 'USER: The concert was on April 2nd.\n\nUSER: I bought the tickets on April 9th.' },
+    ]);
+    expect(backwards).not.toMatch(/Gap the question asks for/);
+  });
+
+  it('gives no two-way verdict for a question about three events or their ranks', () => {
+    const three = buildComputedNotes('Which three events happened in the order from first to last: the day I painted the shed, the day I planted the roses, and the day I fixed the gate?', '2023/03/10 (Fri) 10:00', [
+      { ts: at, text: 'USER: I planted the roses two weeks ago.\n\nUSER: I fixed the gate three weeks ago.\n\nUSER: I painted the shed a week ago.' },
+    ]);
+    expect(three).not.toMatch(/Which came first/);
+    const ranks = buildComputedNotes('Who graduated first, second and third among Ana, Ben and Cy?', '2023/03/10 (Fri) 10:00', [
+      { ts: at, text: 'USER: Ana graduated two weeks ago.\n\nUSER: Ben and Cy graduated a week ago.' },
+    ]);
+    expect(ranks).not.toMatch(/Which came first/);
+  });
+
+  it('says which way an undated end can move the gap', () => {
+    const notes = buildComputedNotes('How many days passed between the day I cancelled my gym membership and the day I joined the climbing club?', '2023/03/18 (Sat) 10:00', [
+      { ts: '2023-02-01T10:00:00Z', text: "USER: I'm glad I cancelled my gym membership at FitWorks." },
+      { ts: '2023-03-01T10:00:00Z', text: 'USER: I joined the climbing club today.' },
+    ]);
+    expect(notes.split('\n')[1]).toMatch(/the earlier end was told without a date[^\n]*so the real gap may be longer/);
+  });
+});
+
+describe('more safeguards from the full rebuild', () => {
+  const ext = (text: string, at: string) => resolveTemporalExpressions(`USER: ${text}`, at, { extended: true });
+
+  it('reads the tense of a month-only date from the words before it', () => {
+    const at = '2022-03-09T10:00:00Z';
+    expect(ext("I'm tracking races in California, as I'll be heading there for an event in August.", at).map((e) => e.iso)).toEqual(['2022-08-01']);
+    expect(ext("I'm planning a trip to Tokyo in mid-April and I need ideas.", '2023-05-25T10:00:00Z').map((e) => e.iso)).toEqual(['2024-04-01']);
+    expect(ext("Since I've been getting fresh produce since late July, I'm looking forward to more.", at).map((e) => e.iso)).toEqual(['2021-07-01']);
+  });
+
+  it('takes a start date only from a present-perfect sentence that is not a question', () => {
+    const at = '2023-03-10T10:00:00Z';
+    expect(ext('I had been training for six months before my first marathon.', at)).toEqual([]);
+    expect(ext('Can you help me track my costs for the past few months?', at)).toEqual([]);
+    expect(ext("I've had my cat, Luna, for about 9 months now.", at).map((e) => e.iso)).toEqual(['2022-06-10']);
+  });
+
+  it('takes the question\'s event verb from after "I", not from an adjective', () => {
+    const notes = buildComputedNotes('How many weeks passed between the time I sold homemade baked goods and the time I joined the choir?', '2023/03/10 (Fri) 10:00', [
+      { ts: '2023-02-26T10:00:00Z', text: 'USER: I\'m thinking of offering a bundle of my seasonal baked goods at the market.' },
+    ]);
+    expect(notes).not.toMatch(/no date stated/);
+  });
+
+  it('writes "1 day"', () => {
+    const notes = buildComputedNotes('How many days passed between the day I adopted my cat and the day I took her to the vet?', '2023/04/01 (Sat) 10:00', [
+      { ts: '2023-03-01T10:00:00Z', text: 'USER: I adopted my cat today, she is tiny.' },
+      { ts: '2023-03-02T10:00:00Z', text: 'USER: I took my cat to the vet today for her shots.' },
+    ]);
+    expect(notes.split('\n')[1]).toMatch(/= 1 day \(2 counting both/);
+  });
+});

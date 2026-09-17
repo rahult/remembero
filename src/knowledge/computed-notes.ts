@@ -85,9 +85,14 @@ const IRREGULAR: Record<string, string> = {
 };
 /** Past forms that end in -ed but usually describe a plan or a feeling, not a finished event. */
 const NOT_PAST_ED = new Set('booked scheduled planned reserved interested excited supposed expected registered signed invited needed wanted hoped used tired prepared concerned worried pleased thrilled'.split(' '));
-const FUTURE_CUE = /\b(?:will|won't|going to|gonna|plan(?:ning)? to|planned|upcoming|next|scheduled|booked|reserved|tickets?|coming up|looking forward|hope to|hoping to|want to|would like|appointment|deadline|due|(?:i'm|i’m|i am|we're|we’re|we are)\s+(?:flying|going|heading|traveling|travelling|visiting|moving|leaving|driving))\b/i;
+const FUTURE_CUE = /\b(?:will|won't|\w+['’]ll|going to|gonna|plan(?:ning)? to|planning|planned|upcoming|next|scheduled|booked|reserved|tickets?|coming up|looking forward|hope to|hoping to|want to|would like|appointment|deadline|due|(?:i'm|i’m|i am|we're|we’re|we are)\s+(?:flying|going|heading|traveling|travelling|visiting|moving|leaving|driving))\b/i;
 
-/** A word as the notes compare it: lower case, an irregular past mapped to its base, a light stem. */
+/**
+ * A word as the notes compare it: lower case, an irregular past mapped to its base, plurals
+ * singular. A stem made by removing -ed or -ing ends in "~" ("loved" → "lov~",
+ * "cancelled" → "cancel~"), so it can match "love" and "cancel" without "care" matching "car";
+ * compare with `sameWord` / `hasWord`.
+ */
 export function canonicalWord(word: string): string {
   let w = word.toLowerCase();
   w = IRREGULAR[w] ?? w;
@@ -96,13 +101,38 @@ export function canonicalWord(word: string): string {
   else if (w.length > 3 && w.endsWith('s') && !/(?:ss|us|is)$/.test(w)) w = w.slice(0, -1);
   for (const suffix of ['ing', 'ed']) {
     if (w.endsWith(suffix) && w.length - suffix.length >= 3) {
-      w = w.slice(0, -suffix.length);
-      break;
+      let stem = w.slice(0, -suffix.length);
+      if (/([b-df-hj-np-tv-z])\1$/.test(stem) && !/(?:ll|ss)$/.test(stem)) stem = stem.slice(0, -1);
+      else if (/ll$/.test(stem) && stem.length > 4) stem = stem.slice(0, -1);
+      return `${stem}~`;
     }
   }
-  if (/([b-df-hj-np-tv-z])\1$/.test(w)) w = w.slice(0, -1);
-  if (w.length > 3 && w.endsWith('e')) w = w.slice(0, -1);
   return w;
+}
+
+/** Two canonical words name the same word: equal, or a stem and its base ("lov~" and "love"). */
+export function sameWord(a: string, b: string): boolean {
+  if (a === b) return true;
+  const stemA = a.endsWith('~');
+  const stemB = b.endsWith('~');
+  if (stemA === stemB) return false;
+  const [stem, base] = stemA ? [a.slice(0, -1), b] : [b.slice(0, -1), a];
+  return base === stem || base === `${stem}e` || (base.endsWith('e') && base.slice(0, -1) === stem);
+}
+
+/** Does a set of canonical words contain this word, as itself or as its stem/base? */
+function hasWord(words: ReadonlySet<string>, word: string): boolean {
+  if (words.has(word)) return true;
+  if (word.endsWith('~')) {
+    const stem = word.slice(0, -1);
+    return words.has(stem) || words.has(`${stem}e`);
+  }
+  return words.has(`${word}~`) || (word.endsWith('e') && words.has(`${word.slice(0, -1)}~`));
+}
+
+/** The word without its stem marker, for stopword checks. */
+function plainWord(word: string): string {
+  return word.endsWith('~') ? word.slice(0, -1) : word;
 }
 
 function tokenize(text: string): string[] {
@@ -142,7 +172,7 @@ function verbClasses(text: string): Set<number> {
   const words = wordSet(text);
   const out = new Set<number>();
   VERB_CLASSES.forEach((cls, i) => {
-    for (const w of cls) if (words.has(w)) out.add(i);
+    for (const w of cls) if (hasWord(words, w)) out.add(i);
   });
   return out;
 }
@@ -456,9 +486,10 @@ export function resolveTemporalExpressions(
     if (options.extended) {
       // "I've been getting into bird watching for about three months now": started about then
       const since = new RegExp(`\\bfor\\s+(?:about\\s+|around\\s+|almost\\s+|nearly\\s+|over\\s+|roughly\\s+)?(the\\s+(?:past|last)\\s+)?(?:about\\s+|around\\s+)?(${COUNT_RE})\\s+(day|week|month|year)s?(\\s+now)?\\b`, 'gi');
-      const ongoing = /\b(?:been\s+\w+ing|(?:'ve|’ve|have|has)\s+(?:been|lived|worked|known|had|owned|played|practiced|practised|studied|used|collected))\b/i;
+      // present perfect only: "I had been training for six months before the marathon" is not now
+      const ongoing = /(?:['’]ve|\bhave|\bhas)\s+(?:been|lived|worked|known|had|owned|played|practiced|practised|studied|used|collected)\b/i;
       while ((m = since.exec(s)) !== null) {
-        if (!(m[1] || m[4] || ongoing.test(s)) || FUTURE_CUE.test(s)) continue;
+        if (s.trim().endsWith('?') || /\bhad\s+been\b/i.test(s) || !(m[4] || ongoing.test(s)) || FUTURE_CUE.test(s)) continue;
         const n = parseCount(m[2]!);
         if (n === undefined) continue;
         const days = unitDays(n, m[3]!);
@@ -475,7 +506,8 @@ export function resolveTemporalExpressions(
         let y = year;
         if (m[3]) y = Number(m[3]);
         else if (m[1]!.toLowerCase() === 'this') y = year;
-        else if (FUTURE_CUE.test(s)) y = mo >= sessionMonth ? year : year + 1;
+        // only the words before the month tell its tense ("since late July, I'm looking forward")
+        else if (FUTURE_CUE.test(s.slice(0, m.index + m[0].length))) y = mo >= sessionMonth ? year : year + 1;
         else y = mo <= sessionMonth ? year : year - 1;
         push({ iso: `${y}-${String(mo).padStart(2, '0')}-01`, expression: m[0], sentence, sessionDay, kind: 'month', approximate: true, monthOnly: true, index: m.index, ...(m[3] ? {} : { assumedYear: true }) });
       }
@@ -504,7 +536,7 @@ export function resolveTemporalExpressions(
     const pick = (pool: DatedEvent[]) => {
       const scored = pool
         .filter((e) => e.sentence !== c.sentence && !e.start && e.anchor === undefined && e.kind !== 'undated')
-        .map((e) => ({ e, score: c.terms.filter((t) => wordSet(e.sentence).has(t)).length }))
+        .map((e) => ({ e, score: c.terms.filter((t) => hasWord(wordSet(e.sentence), t)).length }))
         .filter((x) => x.score >= need);
       const top = Math.max(0, ...scored.map((x) => x.score));
       const best = scored.filter((x) => x.score === top);
@@ -582,7 +614,7 @@ export function questionTerms(text: string): string[] {
     if (STOPWORDS.has(lower) || EXTRA_STOP.has(lower) || SMALL_NUMBERS[lower] !== undefined) continue;
     if (lower.length < 3 && !(/^[A-Z]/.test(raw) && raw.length >= 2)) continue;
     const word = canonicalWord(lower);
-    if (!STOPWORDS.has(word) && !EXTRA_STOP.has(word)) out.add(word);
+    if (!STOPWORDS.has(plainWord(word)) && !EXTRA_STOP.has(plainWord(word))) out.add(word);
   }
   return [...out];
 }
@@ -628,12 +660,17 @@ function aliasReferences(sentence: string, aliases: Map<string, string>): string
 
 /** The verbs a question asks about, in canonical form: "did I cancel", "when I moved". */
 function questionVerbs(question: string): Set<string> {
-  const out = new Set<string>(pastVerbs(question));
-  const re = /\b(?:did|do|does)\s+i\s+(?:first\s+|finally\s+|last\s+|ever\s+)?([a-z]+)/gi;
+  const out = new Set<string>();
+  // the word right after the subject: "the day I cancelled", "did I cancel", "since I started";
+  // not "baked" in "baked goods"
+  const re = /\b(?:i|we)\s+(?:(?:did|had|have|has|first|finally|just|last|ever|recently|also|actually)\s+)*([a-z]+)/gi;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(question)) !== null) out.add(canonicalWord(m[1]!));
-  for (const generic of ['do', 'be', 'have', 'pass']) out.delete(generic);
-  return out;
+  while ((m = re.exec(question)) !== null) {
+    const raw = m[1]!.toLowerCase();
+    if (['when', 'was', 'were', 'am', 'the', 'a', 'my', 'to', 'and', 'or', 'in', 'on', 'at', 'with', 'for', 'need', 'want', 'like', 'think', 'should', 'would', 'could', 'can', 'will', 'might', 'must'].includes(raw)) continue;
+    out.add(canonicalWord(raw));
+  }
+  return new Set([...out].filter((v) => !['do', 'be', 'have', 'pass'].includes(plainWord(v))));
 }
 
 const AGE_RE = /\b(?:i'm|i’m|i am|as)\s+(?:a\s+|an\s+)?(\d{1,3})[- ]years?[- ]old\b/i;
@@ -698,11 +735,12 @@ function focusSnippet(e: DatedEvent, max = 90, mustShow: string[] = []): string 
   const sentence = e.sentence;
   if (sentence.length <= max) return snippet(sentence, max);
   let [from, to] = clauseRange(e, max);
-  if (mustShow.length > 0 && !mustShow.some((t) => wordSet(sentence.slice(from, to)).has(t))) {
+  if (mustShow.length > 0 && !mustShow.some((t) => hasWord(wordSet(sentence.slice(from, to)), t))) {
     const word = /[A-Za-z0-9'-]+/g;
     let m: RegExpExecArray | null;
     while ((m = word.exec(sentence)) !== null) {
-      if (mustShow.includes(canonicalWord(m[0].replace(/^['-]+|['-]+$/g, '').replace(/'.*$/, '')))) break;
+      const token = canonicalWord(m[0].replace(/^['-]+|['-]+$/g, '').replace(/'.*$/, ''));
+      if (mustShow.some((t) => sameWord(t, token))) break;
     }
     if (m !== null) {
       const at = m.index;
@@ -756,7 +794,8 @@ const ORDINALS = new Set(['first', 'last', 'second', 'third', 'next', 'previous'
 
 /** "X or Y", "A, B and C", "did I do X before or after Y": the question's alternatives. */
 function questionAlternatives(question: string): Alternative[] {
-  const q = question.replace(/[?]+\s*$/, '').trim();
+  // "Which three events happened in order: A, B, and C?" lists the alternatives after the colon
+  const q = question.replace(/[?]+\s*$/, '').replace(/^[^:]*:\s*/, '').trim();
   const beforeOrAfter = /^(.*?)\s+before or after\s+(.*)$/i.exec(q);
   const parts = beforeOrAfter
     ? [beforeOrAfter[1]!.replace(/^(?:did|do|does|was|were|have|had|has)\s+(?:i|we)\s+/i, ''), beforeOrAfter[2]!]
@@ -791,7 +830,7 @@ function orderVerdict(
   questionClasses: Set<number>,
 ): string | undefined {
   if (alternatives.length !== 2) return undefined;
-  const names = (words: Set<string>, a: Alternative) => a.terms.some((t) => words.has(t));
+  const names = (words: Set<string>, a: Alternative) => a.terms.some((t) => hasWord(words, t));
   // the distance from the event's date to the nearest verb of the kind the question asks about
   const verbDistance = (e: DatedEvent) => {
     if (e.index === undefined || questionClasses.size === 0) return Number.POSITIVE_INFINITY;
@@ -802,7 +841,7 @@ function orderVerdict(
     let m: RegExpExecArray | null;
     while ((m = word.exec(clause)) !== null) {
       const c = canonicalWord(m[0]);
-      if (VERB_CLASSES.some((cls, i) => questionClasses.has(i) && cls.has(c))) best = Math.min(best, Math.abs(from + m.index - e.index));
+      if (VERB_CLASSES.some((cls, i) => questionClasses.has(i) && [...cls].some((w) => sameWord(w, c)))) best = Math.min(best, Math.abs(from + m.index - e.index));
     }
     return best;
   };
@@ -816,7 +855,7 @@ function orderVerdict(
       return names(sentence, alt) && !names(sentence, other) ? [{ e, clause: 0 }] : [];
     });
     const ranked = found
-      .map((x) => ({ ...x, distance: verbDistance(x.e), hits: alt.terms.filter((t) => sentenceWords(x.e.sentence).has(t)).length }))
+      .map((x) => ({ ...x, distance: verbDistance(x.e), hits: alt.terms.filter((t) => hasWord(sentenceWords(x.e.sentence), t)).length }))
       .sort((l, r) => Number(Number.isFinite(r.distance)) - Number(Number.isFinite(l.distance)) || l.distance - r.distance || r.clause - l.clause || r.hits - l.hits);
     return { alt, ranked };
   });
@@ -847,6 +886,8 @@ interface GapQuestion {
   unit: GapUnit | undefined;
   /** "how long had I been X when Y": X is something that began */
   firstIsStart?: boolean;
+  /** The question implies the first side happened no later than the second. */
+  ordered?: boolean;
 }
 
 /** A question asking for the time between two events (or from one event to now), split into its sides. */
@@ -862,25 +903,28 @@ function gapQuestion(question: string): GapQuestion | undefined {
     return { first: rest.slice(0, split.index), second: rest.slice(split.index + split[0].length), unit: unitOf(m[1]) };
   }
   if ((m = new RegExp(`\\bhow many ${U}\\s+(?:have\\s+|had\\s+|has\\s+)?(?:passed|elapsed|gone by|been)\\s+since\\s+(.+?)\\s+(?:when|until|by the time|before)\\s+(.+)$`, 'i').exec(q))) {
-    return { first: m[2]!, second: m[3]!, unit: unitOf(m[1]) };
+    return { first: m[2]!, second: m[3]!, unit: unitOf(m[1]), ordered: true };
   }
   if ((m = new RegExp(`\\bhow many ${U}\\s+ago\\s+(?:did|was|were|had|have)\\s+(?:i|we)\\s+(.+)$`, 'i').exec(q))) {
+    // "how many days ago did I launch my website when I signed my first client": X counted to Y
+    const when = /\s+when\s+(?:i|we)\s+(.+)$/i.exec(m[2]!);
+    if (when !== null) return { first: m[2]!.slice(0, when.index), second: when[1]!, unit: unitOf(m[1]), ordered: true };
     return { first: m[2]!, second: undefined, unit: unitOf(m[1]) };
   }
   if ((m = new RegExp(`\\bhow many ${U}\\s+(?:have\\s+|had\\s+|has\\s+)?(?:passed|elapsed|gone by|been)\\s+since\\s+(.+)$`, 'i').exec(q))) {
     return { first: m[2]!, second: undefined, unit: unitOf(m[1]) };
   }
   if ((m = new RegExp(`\\bhow many ${U}\\s+after\\s+(.+?)\\s+did\\s+(?:i|we)\\s+(.+)$`, 'i').exec(q))) {
-    return { first: m[2]!, second: m[3]!, unit: unitOf(m[1]) };
+    return { first: m[2]!, second: m[3]!, unit: unitOf(m[1]), ordered: true };
   }
   if ((m = new RegExp(`\\bhow many ${U}\\s+before\\s+(.+?)\\s+did\\s+(?:i|we)\\s+(.+)$`, 'i').exec(q))) {
-    return { first: m[3]!, second: m[2]!, unit: unitOf(m[1]) };
+    return { first: m[3]!, second: m[2]!, unit: unitOf(m[1]), ordered: true };
   }
   if ((m = new RegExp(`\\bhow many ${U}\\s+(?:did it take|had passed|passed|was it)(?:\\s+for\\s+(?:me|us))?(?:\\s+(?:me|us))?(?:\\s+to)?\\s+(.+?)\\s+after\\s+(.+)$`, 'i').exec(q))) {
-    return { first: m[3]!, second: m[2]!, unit: unitOf(m[1]) };
+    return { first: m[3]!, second: m[2]!, unit: unitOf(m[1]), ordered: true };
   }
   if ((m = /\bhow long\s+(?:had|have)\s+(?:i|we)\s+been\s+(.+?)\s+(?:when|before|by the time)\s+(?:i\s+|we\s+)?(.+)$/i.exec(q))) {
-    return { first: m[1]!, second: m[2]!, unit: undefined, firstIsStart: true };
+    return { first: m[1]!, second: m[2]!, unit: undefined, firstIsStart: true, ordered: true };
   }
   return undefined;
 }
@@ -910,7 +954,7 @@ function inUnit(days: number, unit: GapUnit | undefined): string {
   if (u === 'week') return `${Number.isInteger(days / 7) ? days / 7 : (days / 7).toFixed(1)} weeks (${days} days)`;
   if (u === 'month') return `about ${Math.round(days / 30.44)} months (${(days / 30.44).toFixed(1)} months, ${days} days)`;
   if (u === 'year') return `about ${Math.round(days / 365.25)} years (${(days / 365.25).toFixed(1)} years, ${days} days)`;
-  return `${days} days (${days + 1} counting both the first and the last day)`;
+  return `${days} ${days === 1 ? 'day' : 'days'} (${days + 1} counting both the first and the last day)`;
 }
 
 /**
@@ -963,7 +1007,7 @@ export function buildComputedNotes(
   if (/\bpercent|%|percentage\b/.test(q)) unitsInQuestion.add('percent');
   const keywordHits = (sentence: string) => {
     const words = wordsOf(sentence);
-    return terms.filter((t) => words.has(t)).length;
+    return terms.filter((t) => hasWord(words, t)).length;
   };
 
   const asksTime = /\b(when|how long|how old|how many (?:days|weeks|months|years)|ago|first|earlier|later|before|after|since|between|date|passed|order)\b/.test(q);
@@ -989,9 +1033,9 @@ export function buildComputedNotes(
       const sessionDay = dayOf(source.ts);
       for (const sentence of new Set(userSentences(source.text))) {
         if (withDate.has(sentence) || sentence.endsWith('?') || FUTURE_CUE.test(sentence)) continue;
-        if (![...pastVerbs(sentence)].some((v) => verbs.has(v))) continue;
+        if (![...pastVerbs(sentence)].some((v) => [...verbs].some((q) => sameWord(q, v)))) continue;
         const words = wordsOf(sentence);
-        if (terms.filter((t) => !verbs.has(t) && words.has(t)).length === 0) continue;
+        if (terms.filter((t) => ![...verbs].some((q) => sameWord(q, t)) && hasWord(words, t)).length === 0) continue;
         const e: DatedEvent = { iso: sessionDay, expression: '', sentence, sessionDay, kind: 'undated', approximate: true };
         undatedEvents.push(e);
         events.push(e);
@@ -1006,7 +1050,8 @@ export function buildComputedNotes(
   const lines: string[] = [];
   const questionClasses = verbClasses(question);
   const alternatives = asksOrder ? questionAlternatives(question) : [];
-  if (/\b(first|earlier|sooner)\b|\bbefore or after\b/.test(q)) {
+  // a two-way verdict only: not for "which three events ... in order" or "first, second and third"
+  if (/\b(first|earlier|sooner)\b|\bbefore or after\b/.test(q) && !/\b(second|third|fourth|three|four|five|order|sequence|last)\b/.test(q)) {
     const verdict = orderVerdict(alternatives, events, wordsOf, clauseWordsOf, questionClasses);
     if (verdict !== undefined) lines.push(verdict);
   }
@@ -1066,13 +1111,13 @@ export function buildComputedNotes(
     if (asksOrder) {
       // "X or Y": which alternatives the dated events actually cover
       if (alternatives.length >= 2) {
-        const coverage = alternatives.map((a) => ({ ...a, dated: dated.some((e) => a.terms.some((t) => wordsOf(e.sentence).has(t))) }));
+        const coverage = alternatives.map((a) => ({ ...a, dated: dated.some((e) => a.terms.some((t) => hasWord(wordsOf(e.sentence), t))) }));
         const undated = coverage.filter((c) => !c.dated);
         if (undated.length > 0 && coverage.some((c) => c.dated)) {
           const label = (c: { ks: string[] }) => `"${c.ks.slice(0, 4).join(' ')}"`;
           // a side the user never names is unknown; a side the user names without a date is only undated
-          const unnamed = undated.filter((c) => !c.terms.some((t) => allUserWords.has(t)));
-          const named = undated.filter((c) => c.terms.some((t) => allUserWords.has(t)));
+          const unnamed = undated.filter((c) => !c.terms.some((t) => hasWord(allUserWords, t)));
+          const named = undated.filter((c) => c.terms.some((t) => hasWord(allUserWords, t)));
           if (unnamed.length > 0) {
             lines.push(`Coverage: the dated events above match ${coverage.filter((c) => c.dated).map(label).join(', ')} but none match ${unnamed.map(label).join(', ')}; if the history never dates one side of the question, the honest answer is that it does not say.`);
           }
@@ -1092,7 +1137,7 @@ export function buildComputedNotes(
       }
       // the pair whose two sentences together cover the most question words comes first: a
       // small reader copies the first gap it sees
-      const covered = (a: DatedEvent, b: DatedEvent) => new Set(terms.filter((t) => wordsOf(a.sentence).has(t) || wordsOf(b.sentence).has(t))).size;
+      const covered = (a: DatedEvent, b: DatedEvent) => new Set(terms.filter((t) => hasWord(wordsOf(a.sentence), t) || hasWord(wordsOf(b.sentence), t))).size;
       const distinctCover = (a: DatedEvent, b: DatedEvent) => Math.min(keywordHits(a.sentence), keywordHits(b.sentence));
       pairs.sort((l, r) => covered(r[0], r[1]) - covered(l[0], l[1]) || distinctCover(r[0], r[1]) - distinctCover(l[0], l[1]));
       const shown = pairs.slice(0, 4);
@@ -1137,17 +1182,27 @@ export function buildComputedNotes(
     const secondTerms = asked.second === undefined ? [] : questionTerms(asked.second);
     const pick = (side: string, terms: string[], other: string[], exclude: DatedEvent | undefined, preferStart: boolean) => {
       const specific = terms.filter((t) => !other.includes(t));
+      const otherSpecific = other.filter((t) => !terms.includes(t));
       const use = specific.length > 0 ? specific : terms;
       if (use.length === 0) return undefined;
       const need = Math.min(2, use.length);
       const verb = sideVerb(side);
+      // a word the question capitalises ("Museum of Modern Art") is a name: it counts only
+      // where the sentence capitalises it too (or refers to it through "the <noun>")
+      const sideNames = new Set(questionNames(side).map(canonicalWord));
+      const hits = (sentence: string, list: string[]) => {
+        const words = wordsOf(sentence);
+        const capitals = new Set([...tokenize(sentence).filter((w) => /^[A-Z]/.test(w)).map(canonicalWord), ...aliasReferences(sentence, sentenceAliases.get(sentence) ?? new Map())]);
+        return list.filter((t) => hasWord(words, t) && (!sideNames.has(t) || hasWord(capitals, t))).length;
+      };
       const scored = pool
         .filter((e) => e !== exclude && !(exclude !== undefined && e.sentence === exclude.sentence && e.iso === exclude.iso))
         .map((e) => {
-          const words = wordsOf(e.sentence);
-          return { e, key: [use.filter((t) => words.has(t)).length, verb !== undefined && words.has(verb) ? 1 : 0, preferStart && e.start ? 1 : 0, e.kind === 'undated' ? 0 : 1] };
+          const own = hits(e.sentence, use);
+          return { e, own, other: hits(e.sentence, otherSpecific), key: [own, verb !== undefined && hasWord(wordsOf(e.sentence), verb) ? 1 : 0, preferStart && e.start ? 1 : 0, e.kind === 'undated' ? 0 : 1] };
         })
-        .filter((x) => x.key[0]! >= need)
+        // a sentence that could serve as the other side's event just as well is ambiguous
+        .filter((x) => x.own >= need && !(x.other >= x.own && x.other >= Math.min(2, otherSpecific.length)))
         .sort((l, r) => r.key[0]! - l.key[0]! || r.key[1]! - l.key[1]! || r.key[2]! - l.key[2]! || r.key[3]! - l.key[3]!);
       const top = scored[0];
       if (top === undefined) return undefined;
@@ -1177,13 +1232,22 @@ export function buildComputedNotes(
         : [{ text: label(asked.first, firstEvent), ms: msOf(firstEvent.iso) }, { text: label(asked.second, secondEvent), ms: msOf(secondEvent.iso) }].sort((l, r) => l.ms - r.ms);
       const days = Math.round(Math.abs(ends[1]!.ms - ends[0]!.ms) / DAY_MS);
       const involved = [firstEvent, secondEvent].filter((e): e is DatedEvent => e !== undefined);
+      // "N days before the party did I order the gift": an order the dates contradict means a
+      // side was matched to the wrong sentence
+      const [firstFrom] = windowOf(firstEvent);
+      const [, secondTo] = secondEvent === undefined ? [0, msOf(questionDay)] : windowOf(secondEvent);
+      const contradicted = (asked.ordered === true || secondEvent === undefined) && firstFrom > secondTo;
+      const earlier = secondEvent === undefined || msOf(firstEvent.iso) <= msOf(secondEvent.iso) ? firstEvent : secondEvent;
+      const undatedEnd = involved.find((e) => e.kind === 'undated');
       const caveats = [
-        involved.some((e) => e.kind === 'undated') ? 'an end told without a date uses the day it was said, so the real gap may be longer' : '',
+        undatedEnd === undefined ? '' : `the ${undatedEnd === earlier ? 'earlier' : 'later'} end was told without a date and is dated by the day it was said, so the real gap may be ${undatedEnd === earlier ? 'longer' : 'shorter'}`,
         involved.some((e) => e.monthOnly) ? 'a month-only end is counted from the first of that month' : '',
         involved.some((e) => e.approximate && e.kind !== 'undated' && !e.monthOnly) ? 'an end is a rough expression' : '',
       ].filter(Boolean);
-      lines.unshift(`Gap the question asks for: ${ends[0]!.text} to ${ends[1]!.text} = ${inUnit(days, asked.unit)}${caveats.length > 0 ? ` [approximate: ${caveats.join('; ')}]` : ''}.`);
-      pinned = 1;
+      if (!contradicted) {
+        lines.unshift(`Gap the question asks for: ${ends[0]!.text} to ${ends[1]!.text} = ${inUnit(days, asked.unit)}${caveats.length > 0 ? ` [approximate: ${caveats.join('; ')}]` : ''}.`);
+        pinned = 1;
+      }
     }
   }
   if (lines.length === 0) return '';
