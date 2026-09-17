@@ -680,11 +680,22 @@ One pod, v7, all 500, DeepSeek judge:
 
 Paired flips: new notes alone +29 / -21 (+8, the gain all temporal, 107 → 116); detector routing on
 top +31 / -22 (+9, the gain multi-session and knowledge-update); both against the old setup
-+43 / -26 (+17). **Reader v7, unchanged, reaches 414/500 without any label information** — the best
++43 / -26 (+17). **Reader v7, unchanged, reaches 414/500 with the retrieval unit chosen from the question text** — the best
 system measured and 26 short of its teacher's 440. v7 never trained on the new notes lines, so a
 retrain on them may add more.
 
 Caveat: the detector's rules and the notes' rules were both written from misses on these same 500
 questions (no ids or answers special-cased, but no held-out set either), so part of the gain may
 not transfer. Single-session preference fell 21 → 17 under turn routing and is worth a look.
+
+**Correction (same day): 414 is not label-free.** The detector removed the dataset label from one
+decision, the retrieval unit. The harness still reads `question_type` in five answer-side decisions:
+retrieval depth (multi-session 12, temporal 10, other types 4), whether the time-range model runs
+(temporal only), whether the Notes-then-Answer reading applies (multi-session, temporal,
+knowledge-update), the personalisation system prompt (preference), and whether assistant turns reach
+the reader (single-session-assistant). Every LongMemEval score in this project shares those choices,
+so comparisons between rows stay fair, but none is a score a deployed system could reach unchanged.
+The judge's type-specific grading prompt is evaluation, not answering, and stays. A product needs a
+text classifier for all five decisions, and the benchmark needs a fully label-free arm before any
+product claim.
 
