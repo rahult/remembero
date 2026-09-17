@@ -20,14 +20,18 @@ test("server-renders the Remembero marketing homepage with lab and playground na
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
   assert.match(html, /<title>Remembero — Memory you can reason with<\/title>/i);
-  assert.match(html, /Memory you(?:<br\/>|\s)+can reason with\./);
+  assert.match(html, /Memory you(?:<br\/>|\s)+can <em>reason<\/em> with\./);
   assert.match(html, /Not another vector store\./);
   assert.match(html, /The database is the demo\./);
-  assert.match(html, /See what better tools do for a small model\./);
+  assert.match(html, /Structure first\./);
+  assert.match(html, /Four workbenches\./);
   assert.match(html, /Models translate\./);
-  assert.match(html, /Runs on our own/);
+  assert.match(html, /Measured, never served\./);
+  assert.match(html, /This site ships no model weights and calls no model API\./);
   assert.match(html, /Worked examples, with the/);
   assert.match(html, /425<i>\/500<\/i>/);
+  assert.match(html, /318 <i>→ 359<\/i>/);
+  assert.match(html, /href="#research"/);
   assert.match(html, /href="#models"/);
   assert.match(html, /href="#examples"/);
   assert.match(html, /remembro-eval\/README\.md/);
@@ -36,9 +40,29 @@ test("server-renders the Remembero marketing homepage with lab and playground na
   assert.match(html, /href="\/playground"/);
   assert.match(html, /href="\/labs\/chat-memory"/);
   assert.match(html, /href="\/labs\/grounded-agent"/);
+  assert.match(html, /href="\/labs\/reading-recall"/);
   assert.match(html, /href="\/guides\/agent-harness"/);
   assert.match(html, /http:\/\/localhost(?::3000)?\/og\.png/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/i);
+});
+
+test("server-renders the deterministic reading recall lab", async () => {
+  const response = await render("/labs/reading-recall");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /<title>Reading Recall Lab — The reader contract, model taken out<\/title>/i);
+  assert.match(html, /Watch the reading pipeline assemble/);
+  assert.match(html, /no model executes on this page/);
+  assert.match(html, /Replayed answers/);
+  assert.match(html, /No weights served/);
+  assert.match(html, /How long after moving to the Marina did I run my first 10K\?/);
+  assert.match(html, /How much would I lose if I sell the road bike at my asking price\?/);
+  assert.match(html, /When exactly did I move to the Marina\?/);
+  assert.match(html, /COMPUTED NOTES — written by code, not a model/);
+  assert.match(html, /full text/);
+  assert.match(html, /Reader v7, notes \+ thinking step — replay/);
+  assert.match(html, /docs\/research\/READER-STRUCTURE\.md/);
+  assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 
 test("server-renders both real-life browser labs", async () => {
@@ -124,13 +148,15 @@ test("server-renders the agent harness integration guide", async () => {
 });
 
 test("labs run real browser-safe tool and policy loops without remote model APIs or persistence surfaces", async () => {
-  const [chatClient, chatEngine, chatTools, agentClient, agentEngine, browserModel] = await Promise.all([
+  const [chatClient, chatEngine, chatTools, agentClient, agentEngine, browserModel, recallClient, recallFixture] = await Promise.all([
     readFile(new URL("../app/labs/chat-memory/chat-memory-lab.tsx", import.meta.url), "utf8"),
     readFile(new URL("../lib/chat-memory-lab.ts", import.meta.url), "utf8"),
     readFile(new URL("../lib/chat-memory-tools.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/labs/grounded-agent/grounded-agent-lab.tsx", import.meta.url), "utf8"),
     readFile(new URL("../lib/grounded-agent-lab.ts", import.meta.url), "utf8"),
     readFile(new URL("../lib/browser-language-model.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/labs/reading-recall/reading-recall-lab.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../lib/reading-recall-fixture.ts", import.meta.url), "utf8"),
   ]);
 
   assert.match(chatEngine, /from "\.\/engine"/);
@@ -193,7 +219,13 @@ test("labs run real browser-safe tool and policy loops without remote model APIs
   assert.match(browserModel, /role: "system",\s*content: systemPrompt/);
   assert.match(browserModel, /role: "user",\s*content: userPrompt/);
 
-  const hostedLabSource = `${chatClient}\n${chatEngine}\n${chatTools}\n${agentClient}\n${agentEngine}\n${browserModel}`;
+  assert.match(recallClient, /buildComputedNotes/);
+  assert.match(recallClient, /runPipeline/);
+  assert.match(recallFixture, /No model weights are served, fetched, or/);
+  assert.match(recallFixture, /previousSaturday/);
+  assert.match(recallFixture, /84% to 95%/);
+
+  const hostedLabSource = `${chatClient}\n${chatEngine}\n${chatTools}\n${agentClient}\n${agentEngine}\n${browserModel}\n${recallClient}\n${recallFixture}`;
   assert.doesNotMatch(hostedLabSource, /fetch\s*\(|XMLHttpRequest|WebSocket|EventSource/);
   assert.doesNotMatch(hostedLabSource, /localStorage|sessionStorage|document\.cookie|indexedDB/);
   assert.doesNotMatch(hostedLabSource, /OPENAI_API_KEY|LLM_API_KEY/);
@@ -268,34 +300,38 @@ test("GitHub Pages export is self-contained when present", async () => {
   const exportedPlayground = new URL("../dist/pages/playground/index.html", import.meta.url);
   const exportedChatLab = new URL("../dist/pages/labs/chat-memory/index.html", import.meta.url);
   const exportedAgentLab = new URL("../dist/pages/labs/grounded-agent/index.html", import.meta.url);
+  const exportedRecallLab = new URL("../dist/pages/labs/reading-recall/index.html", import.meta.url);
   const exportedAgentGuide = new URL("../dist/pages/guides/agent-harness/index.html", import.meta.url);
   await access(exported);
   await access(exportedPlayground);
   await access(exportedChatLab);
   await access(exportedAgentLab);
+  await access(exportedRecallLab);
   await access(exportedAgentGuide);
-  const [html, playgroundHtml, chatLabHtml, agentLabHtml, agentGuideHtml] = await Promise.all([
+  const [html, playgroundHtml, chatLabHtml, agentLabHtml, recallLabHtml, agentGuideHtml] = await Promise.all([
     readFile(exported, "utf8"),
     readFile(exportedPlayground, "utf8"),
     readFile(exportedChatLab, "utf8"),
     readFile(exportedAgentLab, "utf8"),
+    readFile(exportedRecallLab, "utf8"),
     readFile(exportedAgentGuide, "utf8"),
   ]);
-  assert.match(html, /Memory you(?:<br\/>|\s)+can reason with\./);
+  assert.match(html, /Memory you(?:<br\/>|\s)+can <em>reason<\/em> with\./);
   assert.match(html, /href="\/playground"/);
   assert.match(playgroundHtml, /SQLite \+ Datalog IDE/);
   assert.match(playgroundHtml, /The database is the demo\./);
   assert.match(chatLabHtml, /Same database\. Same model\. Different powers\./);
   assert.match(agentLabHtml, /Let the model propose\. Let the gate show its work\./);
+  assert.match(recallLabHtml, /no model executes on this page/);
   assert.match(agentGuideHtml, /Wire one narrow tool loop\./);
-  for (const labHtml of [chatLabHtml, agentLabHtml]) {
+  for (const labHtml of [chatLabHtml, agentLabHtml, recallLabHtml]) {
     assert.doesNotMatch(
       labHtml,
       /lib-[A-Za-z0-9_-]+\.js/,
       "the multi-megabyte WebLLM chunk must stay behind the explicit load action",
     );
   }
-  for (const rendered of [html, playgroundHtml, chatLabHtml, agentLabHtml, agentGuideHtml]) {
+  for (const rendered of [html, playgroundHtml, chatLabHtml, agentLabHtml, recallLabHtml, agentGuideHtml]) {
     assert.match(rendered, /href="\/_next\/static\/css\//);
     assert.match(rendered, /src="\/_next\/static\/chunks\//);
     assert.match(rendered, /https:\/\/remembero\.rahultrikha\.com\/og\.png/);

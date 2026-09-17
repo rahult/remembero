@@ -1,11 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { buildLongMemEvalAnswerContext } from '../src/evals/longmemeval-answer.js';
+import {
+  buildLongMemEvalAnswerContext,
+  evaluateLongMemEvalAnswerInstance,
+  type LongMemEvalCompletionClient,
+} from '../src/evals/longmemeval-answer.js';
+import type { ChatMessage, LlmCompletion } from '../src/llm/client.js';
 import type { LongMemEvalInstance } from '../src/evals/longmemeval.js';
 import { questionKindFromText } from '../src/knowledge/question-kind.js';
 import type { QuestionKind } from '../src/knowledge/question-kind.js';
 import {
   buildReadingPrompt,
+  readingContextRoles,
   readingQuestionDate,
+  readsInNotes,
   retrieveSessions,
   sessionReadingText,
   type RetrievableSession,
@@ -77,13 +84,13 @@ function harnessPrompt(
   options: SessionRetrievalOptions,
 ): { system: string; user: string } {
   const { kind } = options;
-  const notes = kind.aggregation || kind.temporal || kind.update;
+  const notes = readsInNotes(kind);
   const context = buildLongMemEvalAnswerContext(
     instanceFor(question, askedAt, chosen),
     chosen.map((session) => ({
       opId: session.id,
       ts: session.date,
-      text: sessionReadingText(session, kind.assistantRecall),
+      text: sessionReadingText(session, readingContextRoles(kind)),
     })),
     options.contextBytes,
     [],
@@ -216,6 +223,110 @@ describe('the shared session retrieval module builds the harness prompt', () => 
   });
 });
 
+/** The dataset spelling of each fixture session's date; `SESSIONS` carries the same instants. */
+const DATASET_DATES = [
+  '2024/01/12 (Fri) 09:00',
+  '2024/02/03 (Sat) 09:00',
+  '2024/02/27 (Tue) 09:00',
+];
+
+class ScriptedClient implements LongMemEvalCompletionClient {
+  readonly calls: ChatMessage[][] = [];
+
+  constructor(
+    readonly model: string,
+    private readonly reply: string,
+  ) {}
+
+  async completeWithUsage(messages: ChatMessage[]): Promise<LlmCompletion> {
+    this.calls.push(structuredClone(messages));
+    return {
+      content: this.reply,
+      model: this.model,
+      usage: {
+        promptTokens: 1,
+        completionTokens: 1,
+        totalTokens: 2,
+        cachedPromptTokens: 0,
+        reasoningTokens: 0,
+        costUsd: 0,
+      },
+    };
+  }
+}
+
+/**
+ * The parity that matters: the harness's whole path — its own store, its own turn documents, its
+ * own search and its own context builder — against the product's `retrieveSessions` and
+ * `buildReadingPrompt`. Nothing here is built from the module's helpers, so the two sides can
+ * genuinely disagree, on the chosen sessions and on the prompt alike.
+ */
+describe('the product and the harness retrieve and read alike, end to end', () => {
+  const questions = [
+    'How many museums did I visit in total?',
+    'Which museum did I like best in Lisbon?',
+    'What did you tell me about the Gulbenkian?',
+  ];
+
+  for (const question of questions) {
+    it(`agrees with the harness run for: ${question}`, async () => {
+      const reader = new ScriptedClient('reader', 'Notes: one\nAnswer: the tile museum');
+      const judge = new ScriptedClient('judge', 'yes');
+      const observation = await evaluateLongMemEvalAnswerInstance(
+        {
+          ...instanceFor(question, ASKED_AT, SESSIONS),
+          question_type: 'multi-session',
+          haystack_dates: DATASET_DATES,
+        },
+        reader,
+        judge,
+        {
+          classify: 'text',
+          formation: 'raw',
+          retrievalUnit: 'turn',
+          topK: 4,
+          multiSessionTopK: 12,
+          temporalTopK: 10,
+          contextBytes: 24_576,
+          dateDistances: true,
+          computedNotes: true,
+          readingStrategy: 'notes',
+        },
+      );
+      expect(observation.status).toBe('judged');
+
+      const kind = questionKindFromText(question);
+      const options: SessionRetrievalOptions = {
+        kind,
+        topK: 4,
+        aggregationTopK: 12,
+        temporalTopK: 10,
+        contextBytes: 24_576,
+        dateDistances: true,
+        computedNotes: true,
+      };
+      const retrieved = await retrieveSessions(
+        question,
+        ASKED_AT,
+        SESSIONS,
+        options,
+      );
+      // the same sessions, in the same order, from two independent indexes
+      expect(retrieved.chosen).toEqual(observation.retrievedSessionIds);
+      const byId = new Map(SESSIONS.map((session) => [session.id, session]));
+      const product = buildReadingPrompt(
+        question,
+        ASKED_AT,
+        retrieved.chosen.map((id) => byId.get(id)!),
+        options,
+      );
+      const sent = reader.calls[0]!;
+      expect(product.system).toBe(sent[0]!.content);
+      expect(product.user).toBe(sent[1]!.content);
+    });
+  }
+});
+
 describe('retrieveSessions', () => {
   const baseOptions: SessionRetrievalOptions = {
     kind: kindOf(),
@@ -249,6 +360,40 @@ describe('retrieveSessions', () => {
     expect(result.ranked.length).toBeGreaterThan(1);
   });
 
+  it('a re-rank pool never reorders the head a plain run would have seen', async () => {
+    // the harness aggregates the results a plain run would have fetched and only appends what
+    // the deeper re-rank search found; a module that summed the whole deep list instead would
+    // hand the pool a different order, and the benchmark's numbers would stop describing it
+    const question = 'How much coffee did I drink on my trips?';
+    const many: RetrievableSession[] = Array.from({ length: 26 }, (_, i) => ({
+      id: `s${String(i).padStart(2, '0')}`,
+      date: `2024-01-${String((i % 28) + 1).padStart(2, '0')}T09:00:00.000Z`,
+      // the early sessions each hold one strong turn; the late ones hold many weak ones, which
+      // only a deeper search sees and which would climb if the whole list were summed
+      turns:
+        i < 13
+          ? [{ role: 'user' as const, text: 'I drank coffee on my trips to Porto.' }]
+          : Array.from({ length: 6 }, () => ({
+              role: 'user' as const,
+              text: 'The trips were long.',
+            })),
+    }));
+    const constant: TypesafeNouls = async () => ({
+      nouls: { relevant: 0.5, evidence: 0.5 },
+      inputTokens: 1,
+      cached: false,
+    });
+    const plain = await retrieveSessions(question, ASKED_AT, many, baseOptions);
+    const pooled = await retrieveSessions(question, ASKED_AT, many, {
+      ...baseOptions,
+      rerank: { client: constant },
+    });
+    expect(plain.ranked.length).toBeGreaterThan(4);
+    // the deeper search really does find more than the plain one
+    expect(pooled.ranked.length).toBeGreaterThan(plain.ranked.length);
+    expect(pooled.ranked.slice(0, plain.ranked.length)).toEqual(plain.ranked);
+  });
+
   it('orders the sessions inside a time range ahead of those outside it', async () => {
     const question = 'What did I buy in February?';
     const plain = await retrieveSessions(question, ASKED_AT, SESSIONS, {
@@ -267,6 +412,19 @@ describe('retrieveSessions', () => {
     const outside = ranged.chosen.findIndex((id) => !february.has(id));
     const inside = ranged.chosen.findIndex((id) => february.has(id));
     if (outside >= 0 && inside >= 0) expect(inside).toBeLessThan(outside);
+  });
+
+  it('reads nothing for a question the index cannot be searched for', async () => {
+    // a product question, unlike a benchmark one, can carry no content word at all or run long
+    for (const question of ['why?', 'and the of a to']) {
+      await expect(
+        retrieveSessions(question, ASKED_AT, SESSIONS, baseOptions),
+      ).resolves.toEqual({ ranked: [], chosen: [] });
+    }
+    const tooLong = Array.from({ length: 400 }, (_, i) => `museum${i}`).join(' ');
+    await expect(
+      retrieveSessions(tooLong, ASKED_AT, SESSIONS, baseOptions),
+    ).resolves.toEqual({ ranked: [], chosen: [] });
   });
 
   it('re-ranks the pool with the TypeSafe client and never touches the network', async () => {

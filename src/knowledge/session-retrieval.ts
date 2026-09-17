@@ -19,6 +19,7 @@ import { canonicalKey, parseProgram, type Clause } from '../engine/index.js';
 import { recallWords } from '../llm/schema.js';
 import { assertSafeForExternalLlm } from '../safety.js';
 import type { MemorySource } from '../store/store.js';
+import { type ContextTiers } from '../evals/reader-contract.js';
 import {
   DEFAULT_RERANK_POOL,
   DEFAULT_RERANK_SESSION_CHARS,
@@ -30,7 +31,7 @@ import {
   buildComputedNotes,
   STOPWORDS as COMPUTED_NOTES_STOPWORDS,
 } from './computed-notes.js';
-import { searchKnowledge } from './search.js';
+import { searchKnowledge, type KnowledgeSearchResult } from './search.js';
 import { SEMANTIC_CHUNK_CHARACTERS } from './semantic-search.js';
 import { buildStructuredEvidence } from './structured-evidence.js';
 import type { QuestionKind } from './question-kind.js';
@@ -78,15 +79,15 @@ export interface SessionRetrievalOptions {
 export function readingDepth(
   kind: QuestionKind,
   depths: {
-    topK: number;
+    topK?: number;
     aggregationTopK?: number;
     temporalTopK?: number;
-  },
+  } = {},
 ): number {
   if (kind.aggregation)
     return depths.aggregationTopK ?? DEFAULT_AGGREGATION_DEPTH;
   if (kind.temporal) return depths.temporalTopK ?? DEFAULT_TEMPORAL_DEPTH;
-  return depths.topK;
+  return depths.topK ?? DEFAULT_READING_DEPTH;
 }
 
 /**
@@ -103,20 +104,36 @@ export function readsInNotes(kind: QuestionKind): boolean {
   return kind.aggregation || kind.temporal || kind.update;
 }
 
+/** Whose turns are evidence: only a question about the assistant's own words needs its turns. */
+export function readingContextRoles(kind: QuestionKind): 'user' | 'all' {
+  return kind.assistantRecall ? 'all' : 'user';
+}
+
 /**
- * The session text the reader is shown: the user's turns, because assistant turns are ~87% of
- * the characters and state no facts — unless the question asks what the assistant said. A
- * session with no user turn at all falls back to every turn, so it is never empty.
+ * The session text the reader is shown, as "role: content" lines: the user's turns, because
+ * assistant turns are ~87% of the characters and state no facts — unless the question asks what
+ * the assistant said. A session with no user turn at all falls back to every turn, so it is
+ * never empty.
  */
+export function readingSessionText(
+  turns: ReadonlyArray<{ role: string; content: string }>,
+  roles: 'user' | 'all',
+): string {
+  const wanted =
+    roles === 'all' ? turns : turns.filter(({ role }) => role === 'user');
+  const shown = wanted.length === 0 ? turns : wanted;
+  return shown.map(({ role, content }) => `${role}: ${content}`).join('\n');
+}
+
+/** The same rule over a stored session. */
 export function sessionReadingText(
   session: RetrievableSession,
-  assistantTurns: boolean,
+  roles: 'user' | 'all',
 ): string {
-  const wanted = assistantTurns
-    ? session.turns
-    : session.turns.filter(({ role }) => role === 'user');
-  const turns = wanted.length === 0 ? session.turns : wanted;
-  return turns.map(({ role, text }) => `${role}: ${text}`).join('\n');
+  return readingSessionText(
+    session.turns.map(({ role, text }) => ({ role, content: text })),
+    roles,
+  );
 }
 
 /** The question date the reader is given: the day the question was asked. */
@@ -124,12 +141,17 @@ export function readingQuestionDate(askedAt: Date): string {
   return askedAt.toISOString().slice(0, 10);
 }
 
+/**
+ * `label` names the caller in the two messages, so the benchmark keeps the wording its runner
+ * has always printed and the product does not tell a user about LongMemEval.
+ */
 export function validateReadingOptions(
   topK: number,
   contextBytes: number,
+  label = 'reading',
 ): void {
   if (!Number.isSafeInteger(topK) || topK < 1 || topK > 100) {
-    throw new Error('LongMemEval answer topK must be an integer from 1 to 100');
+    throw new Error(`${label} topK must be an integer from 1 to 100`);
   }
   if (
     !Number.isSafeInteger(contextBytes) ||
@@ -137,7 +159,7 @@ export function validateReadingOptions(
     contextBytes > MAX_READING_CONTEXT_BYTES
   ) {
     throw new Error(
-      `LongMemEval answer context bytes must be an integer from 4096 to ${MAX_READING_CONTEXT_BYTES}`,
+      `${label} context bytes must be an integer from 4096 to ${MAX_READING_CONTEXT_BYTES}`,
     );
   }
 }
@@ -451,10 +473,7 @@ export interface ReadingSource {
 }
 
 /** Full text for the top-ranked few, code-built abstracts for the rest. */
-export interface ReadingContextTiers {
-  fullSessions: number;
-  abstractBytes: number;
-}
+export type { ContextTiers };
 
 export interface ReadingPromptRequest {
   question: string;
@@ -470,11 +489,13 @@ export interface ReadingPromptRequest {
   computedNotes?: boolean;
   focusedBudget?: boolean;
   structuredEvidence?: boolean;
-  tiers?: ReadingContextTiers;
+  tiers?: ContextTiers;
   /** A code-counted tally (see evals/typesafe-count.ts): the computed-notes block's first line. */
   countedLine?: string;
   /** Personalise the answer rather than look a fact up. */
   personalize?: boolean;
+  /** Names this caller in the validation and safety messages (default "reading"). */
+  label?: string;
 }
 
 export interface ReadingPrompt {
@@ -508,7 +529,12 @@ export function renderReadingPrompt(
   const tiers = request.tiers;
   const countedLine = request.countedLine;
   const personalize = request.personalize ?? false;
-  validateReadingOptions(Math.max(1, rankedSources.length), contextBytes);
+  const label = request.label ?? 'reading';
+  validateReadingOptions(
+    Math.max(1, rankedSources.length),
+    contextBytes,
+    label,
+  );
   if (tiers !== undefined) {
     if (focusedBudget)
       throw new Error(
@@ -649,7 +675,7 @@ export function renderReadingPrompt(
       })()
     : '';
   const user = `${evidenceBlock}History chats:\n\n${history || '[no safe relevant history retrieved]'}\n${remembered}${engineBlock}${computedBlock}Current date: ${questionDate}\nQuestion: ${question}\nAnswer:`;
-  assertSafeForExternalLlm(user, 'LongMemEval answer prompt');
+  assertSafeForExternalLlm(user, `${label} prompt`);
   const system =
     personalize
       ? 'Use the supplied history to personalize the answer. You may use general knowledge for recommendations, but do not invent facts about the user. Briefly make the remembered preference or context driving the answer explicit.'
@@ -685,7 +711,7 @@ export function buildReadingPrompt(
     sources: chosen.map((session) => ({
       opId: session.id,
       ts: session.date,
-      text: sessionReadingText(session, options.kind.assistantRecall),
+      text: sessionReadingText(session, readingContextRoles(options.kind)),
     })),
     contextBytes: options.contextBytes,
     reading: readsInNotes(options.kind) ? 'notes' : 'direct',
@@ -696,6 +722,15 @@ export function buildReadingPrompt(
   return { system: prompt.system, user: prompt.user };
 }
 
+/** The two errors `searchKnowledge` raises for a question it cannot search for at all. */
+function unsearchableQuestion(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message === 'knowledge search text has no searchable words' ||
+    /^knowledge search text exceeds \d+ (?:words|bytes)$/.test(message)
+  );
+}
+
 /** One indexed document: a turn, or a whole session when the unit is the session. */
 interface SessionDocument {
   clause: Clause;
@@ -704,9 +739,10 @@ interface SessionDocument {
 }
 
 /**
- * The turn index the ranking reads. The clause is plumbing — the text under it is what scores —
- * and every document of a run carries the same predicate, so its words shift each score
- * equally and never reorder two candidates.
+ * The turn index the ranking reads. The clause is plumbing — the text under it is what scores.
+ * Every turn of a run carries the predicate `session_turn`, and a session with no non-empty turn
+ * falls back to one `session_text` document, so the predicate words are the same for every
+ * candidate of a kind and shift their scores equally rather than reordering them.
  */
 function sessionDocuments(
   sessions: readonly RetrievableSession[],
@@ -732,7 +768,7 @@ function sessionDocuments(
       indexed.push({
         opId: session.id,
         clause: `session_text(s_${index}).`,
-        text: sessionReadingText(session, true),
+        text: sessionReadingText(session, 'all'),
       });
     }
     for (const document of indexed) {
@@ -770,7 +806,7 @@ export async function retrieveSessions(
   const depth = readingDepth(kind, options);
   validateReadingOptions(depth, options.contextBytes);
   const unit = readingUnit(kind);
-  const assistantTurns = kind.assistantRecall;
+  const contextRoles = readingContextRoles(kind);
   if (sessions.length === 0) return { ranked: [], chosen: [] };
   const documents = sessionDocuments(sessions, unit);
   const sourceIndex = new Map<string, MemorySource[]>();
@@ -798,27 +834,53 @@ export async function retrieveSessions(
     options.rerank === undefined
       ? baseLimit
       : Math.min(100, Math.max(baseLimit, unit === 'turn' ? pool * 4 : pool));
-  const search = searchKnowledge(
-    documents.map(({ clause }) => clause),
-    question,
-    sourceIndex,
-    {
-      limit: searchLimit,
-      minimumScore: 1,
-      kinds: ['fact'],
-      sourceCharacterLimit: READING_SOURCE_CHARACTERS,
-    },
-  );
+  let search: KnowledgeSearchResult;
+  try {
+    search = searchKnowledge(
+      documents.map(({ clause }) => clause),
+      question,
+      sourceIndex,
+      {
+        limit: searchLimit,
+        minimumScore: 1,
+        kinds: ['fact'],
+        sourceCharacterLimit: READING_SOURCE_CHARACTERS,
+      },
+    );
+  } catch (error) {
+    // A question the index cannot be searched for — "why?", or one longer than the search
+    // takes — is not a fault in the product: there is nothing to read. The harness never
+    // reaches this (a benchmark question always has content words). Anything else is a fault.
+    if (!unsearchableQuestion(error)) throw error;
+    return { ranked: [], chosen: [] };
+  }
   const sessionsByRank = search.results.map((result) => {
     const source = result.sources[0];
     return source === undefined
       ? undefined
       : (sessionOf.get(source.opId) ?? source.opId);
   });
-  let order =
-    unit === 'turn'
-      ? aggregateSessionsByTurnRank(sessionsByRank)
-      : [...new Set(sessionsByRank.flatMap((id) => (id === undefined ? [] : [id])))];
+  let order: string[];
+  if (unit === 'turn') {
+    // exactly the harness's split: the sessions a plain run would have seen come first, in
+    // their own summed order, and whatever the re-rank's extra depth found is appended after
+    // them, so widening the pool never reorders the head
+    const base = sessionsByRank.slice(0, baseLimit);
+    order = aggregateSessionsByTurnRank(base);
+    if (base.length < sessionsByRank.length) {
+      const known = new Set(order);
+      order = [
+        ...order,
+        ...aggregateSessionsByTurnRank(sessionsByRank).filter(
+          (session) => !known.has(session),
+        ),
+      ];
+    }
+  } else {
+    order = [
+      ...new Set(sessionsByRank.flatMap((id) => (id === undefined ? [] : [id]))),
+    ];
+  }
   let rerankUsage: RerankUsage | undefined;
   const rerank = options.rerank;
   if (rerank !== undefined && order.length > 0) {
@@ -828,7 +890,7 @@ export async function retrieveSessions(
       questionDate: readingQuestionDate(askedAt),
       pool,
       sessionChars: rerank.sessionChars ?? DEFAULT_RERANK_SESSION_CHARS,
-      contextRoles: assistantTurns ? 'all' : 'user',
+      contextRoles,
       sessionFor: (sessionId) => {
         const session = byId.get(sessionId);
         return session === undefined

@@ -4,6 +4,7 @@ const github = "https://github.com/rahult/remembero";
 const playground = "/playground";
 const chatMemoryLab = "/labs/chat-memory";
 const groundedAgentLab = "/labs/grounded-agent";
+const readingRecallLab = "/labs/reading-recall";
 const agentHarnessGuide = "/guides/agent-harness";
 const readerDoc = `${github}/blob/main/docs/research/READER-STRUCTURE.md`;
 const modelComparison = `${github}/blob/main/docs/research/MODEL-COMPARISON.md`;
@@ -14,6 +15,7 @@ const extractionBench = `${github}/blob/main/docs/research/EXTRACTION-BENCH.md`;
 function HeroProof() {
   return (
     <div className="hero-proof" aria-label="Example proof-carrying answer">
+      <span className="stamp stamp-proven hero-proof-stamp" aria-hidden="true">Proof-carrying</span>
       <div className="hero-proof-row"><span>Question</span><p>Who is collaborating on Atlas?</p></div>
       <div className="hero-proof-row"><span>Query</span><code>collaborator(Person, atlas)</code></div>
       <div className="hero-proof-row hero-answer"><span>Answer</span><p>Maya is collaborating on Atlas.</p></div>
@@ -29,36 +31,77 @@ function HeroProof() {
   );
 }
 
+const computedNotesSample = `COMPUTED NOTES — written by code, not a model
+
+Dated events (the user's own words, resolved)
+  "two weeks ago I moved to the Marina"
+      said 2026-03-03 → 2026-02-17 · 153 days before the question
+  "ran my first 10K yesterday"
+      said 2026-04-02 → 2026-04-01 · 110 days before the question
+
+Gaps
+  Marina move → first 10K: 43 days (~6 weeks)
+
+Quantities (each line quotes its sentence)
+  $1,100  "bought the road bike in March"
+  $700    "selling it for $700"
+  exactly two figures → difference: $400`;
+
+const deltas = [
+  {
+    label: "Computed notes",
+    detail: "Dates resolved against the day they were said, distances and gaps stated, totals summed — a deterministic block placed in the prompt before the reader reads. No training, no added model call.",
+    value: "+29",
+  },
+  {
+    label: "The thinking step, trained",
+    detail: "Reader v7, distilled to write its own working: the dated items it relies on and the arithmetic first, then one answer line. Only the final line is judged.",
+    value: "+10",
+  },
+  {
+    label: "Turn-level retrieval, routed by question text",
+    detail: "The retrieval unit is chosen from the question itself — whole sessions for some types, single turns for others — with dated-notes rules rebuilt to match.",
+    value: "+17",
+  },
+  {
+    label: "TypeSafe re-rank of the shortlist",
+    detail: "A typed re-ranker reorders the lexical shortlist so the sessions that carry the answer land in context. Answer turns in context rose from 84% to 95% for $0.28 of calls.",
+    value: "+13",
+  },
+];
+
 export default function Home() {
   return (
     <main className="marketing-home">
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Remembero home">remembero</a>
         <nav className="desktop-nav" aria-label="Main navigation">
-          <a href="#product">Product</a><a href="#models">Models</a><a href="#labs">Labs</a><a href="#examples">Examples</a><a href={agentHarnessGuide}>Agent guide</a><a href={playground}>Playground</a><a href={github}>GitHub</a>
+          <a href="#product">Product</a><a href="#research">Research</a><a href="#labs">Labs</a><a href="#models">Models</a><a href="#examples">Examples</a><a href={playground}>Playground</a><a href={github}>GitHub</a>
         </nav>
         <div className="header-actions">
           <a className="button primary header-try" href={playground}>Try the playground</a>
           <a className="button secondary desktop-source" href={github}>View on GitHub</a>
           <details className="mobile-menu">
             <summary aria-label="Open menu"><i /><i /><i /></summary>
-            <nav aria-label="Mobile navigation"><a href="#product">Product</a><a href="#models">Models</a><a href="#labs">Labs</a><a href="#examples">Examples</a><a href={agentHarnessGuide}>Agent guide</a><a href={playground}>Playground</a><a href={github}>GitHub</a></nav>
+            <nav aria-label="Mobile navigation"><a href="#product">Product</a><a href="#research">Research</a><a href="#labs">Labs</a><a href="#models">Models</a><a href="#examples">Examples</a><a href={agentHarnessGuide}>Agent guide</a><a href={playground}>Playground</a><a href={github}>GitHub</a></nav>
           </details>
         </div>
       </header>
 
       <section className="hero" id="top">
         <div className="hero-copy">
-          <h1>Memory you<br />can reason with.</h1>
-          <p>Store facts and rules as readable knowledge. Ask useful questions. Get deterministic answers with the proof attached.</p>
+          <p className="hero-eyebrow">Proof-carrying memory · deterministic core</p>
+          <h1>Memory you<br />can <em>reason</em> with.</h1>
+          <p>Store facts and rules as readable knowledge. Ask useful questions. Get deterministic answers with the proof attached — and a research trail behind every number we claim.</p>
           <div className="hero-actions"><a className="button primary" href={playground}>Try the playground</a><a className="button secondary" href={github}>View on GitHub</a></div>
-          <span className="hero-boundary">Local-first by default. Runs on our own 2.3B model. Logic owns the answer.</span>
+          <span className="hero-boundary">Every demo on this site runs in your browser. No weights served, nothing stored, nothing leaves the tab.</span>
         </div>
         <HeroProof />
       </section>
 
       <section className="difference section-dark" id="product">
         <div className="section-shell">
+          <p className="section-tag">01 · Product</p>
           <h2>Not another vector store.</h2>
           <p className="section-lede">Similarity finds nearby text. Remembero proves what follows.</p>
           <div className="difference-grid">
@@ -74,8 +117,58 @@ status(atlas, blocked).`}</code></pre></article>
         </div>
       </section>
 
-      <section className="product-showcase section" aria-labelledby="showcase-title">
+      <section className="research section" id="research" aria-labelledby="research-title">
         <div className="section-shell">
+          <p className="section-tag">02 · Research</p>
+          <h2 id="research-title">Structure first.<br />Then <em>reading.</em></h2>
+          <div className="research-grid">
+            <div>
+              <p className="section-lede" style={{ marginTop: 0 }}>We kept asking why a small reader loses on long chat histories when the evidence is right there. The answer shaped everything we have built since.</p>
+              <p className="section-lede">It reads the right sentences and computes wrong:</p>
+              <ul className="miss-list">
+                <li><span><b>Counts drift across sessions</b> — three festivals counted for four.</span></li>
+                <li><span><b>Relative dates stay unanchored</b> — “just got back,” said July 15, asked Aug 5, answered without the three weeks.</span></li>
+                <li><span><b>Gaps get mis-subtracted</b> — “4:22 minus 4:10” answered as 17 minutes.</span></li>
+                <li><span><b>Sums drop an item</b> — two of three road-trip legs; 50 lb of feed for 70.</span></li>
+              </ul>
+              <p className="section-lede">A small model can read a sentence and cannot be trusted with the arithmetic. So the structure moved into code, and the model was trained on what the structure hands it.</p>
+            </div>
+            <div>
+              <div className="note-block">
+                <div className="note-block-header"><span>Inserted before the reader reads</span><span>0 model calls</span></div>
+                <pre>{computedNotesSample}</pre>
+              </div>
+              <div className="pair-callout">
+                <strong>318 <i>→ 359</i></strong>
+                <span>LongMemEval, 500 questions, reader v4 — the same reader, the same retrieval, before and after the computed-notes block. One paired run, one judge (gpt-4o), and the block is identical on every run.</span>
+              </div>
+            </div>
+          </div>
+          <div className="delta-ledger" aria-labelledby="delta-title">
+            <div className="delta-heading">
+              <h3 id="delta-title">The delta ledger: how the reader closed on its teacher</h3>
+              <span>paired runs · one judge (DeepSeek) · noise ±7</span>
+            </div>
+            {deltas.map((delta) => (
+              <div className="delta-item" key={delta.label}>
+                <div><strong>{delta.label}</strong><small>{delta.detail}</small></div>
+                <code>{delta.value}</code>
+                <span className="delta-chip" aria-label="questions gained">▲</span>
+              </div>
+            ))}
+            <div className="delta-item">
+              <div><strong>Reader v7, full stack — against its teacher</strong><small>Gemma 4 E4B distilled from GLM 5.3 Flash, the same model that taught it. Fifteen questions short of the teacher on the 500.</small></div>
+              <code>425<i>/500</i></code>
+              <span className="delta-chip teacher">teacher 440</span>
+            </div>
+            <p className="delta-footnote">Each row is a measured paired run — two arms differing in exactly one setting with identical retrieval — from <a href={readerDoc}>the method and every run</a>. Nothing on this page required serving a model: the deltas were measured in the repository, and the lab below shows you the machinery instead.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="product-showcase section-dark" aria-labelledby="showcase-title">
+        <div className="section-shell">
+          <p className="section-tag">03 · The database</p>
           <div className="showcase-heading">
             <div><h2 id="showcase-title">The database is the demo.</h2><p>Insert a SQLite row, run Datalog, then inspect the exact facts and rule behind the answer—all inside your browser.</p></div>
             <a className="button primary" href={playground}>Open the full playground</a>
@@ -91,42 +184,38 @@ status(atlas, blocked).`}</code></pre></article>
         </div>
       </section>
 
-      <section className="labs-showcase section-dark" id="labs" aria-labelledby="labs-title">
+      <section className="labs-showcase section" id="labs" aria-labelledby="labs-title">
         <div className="section-shell">
           <div className="labs-heading">
-            <h2 id="labs-title">See what better tools do for a small model.</h2>
-            <p>Three browser workbenches expose the full chain: optional Hermes 7B WebLLM inference with native tool calls, deterministic memory and policy, then SQLite + Wasm execution with the call, result, proof, and timing evidence on screen.</p>
+            <p className="section-tag">04 · Labs</p>
+            <h2 id="labs-title">Four workbenches.<br />Zero served <em>weights.</em></h2>
+            <p>Everything below runs browser-local: deterministic engines, SQLite compiled to WebAssembly with our C extension linked in, and model output only where it is clearly labeled — as an optional third-party WebLLM load or a replay of a recorded run.</p>
           </div>
-          <div className="lab-links">
-            <a href={chatMemoryLab}>
-              <span>Chat recall lab</span>
-              <strong>Same small model.<br /><em>Better tool.</em></strong>
-              <p>Watch Hermes 7B issue native WebLLM tool calls against one shared SQLite database: raw SQL rows in one lane, Remembero bindings and proof in the other.</p>
-              <b aria-hidden="true">Open lab →</b>
+          <div className="lab-grid">
+            <a className="lab-card" href={readingRecallLab}>
+              <span className="lab-kind">Deterministic · New</span>
+              <h3>The reader contract,<br /><em>model taken out.</em></h3>
+              <p>Pick a question and watch the reading pipeline assemble: the shortlist retrieved and re-ranked, sessions tiered into abstracts and full text, computed notes written by code in front of you — then both arms of a recorded paired run, the same reader with and without the notes.</p>
+              <div className="lab-foot"><span>live deterministic code · replayed answers</span><b>Open lab →</b></div>
             </a>
-            <a href={groundedAgentLab}>
-              <span>Grounded agent lab</span>
-              <strong>Let the model propose.<br /><em>Let rules decide.</em></strong>
-              <p>Run the same Hermes 7B model with and without memory, then watch the request facts, packet swap, gate query, rule, and proof chain stay visible while the action resolves.</p>
-              <b aria-hidden="true">Open lab →</b>
+            <a className="lab-card" data-kind="model" href={chatMemoryLab}>
+              <span className="lab-kind">Optional model</span>
+              <h3>Same small model.<br /><em>Better tool.</em></h3>
+              <p>A model issues tool calls against one shared SQLite database: raw SQL rows in one lane, Remembero bindings and proof in the other, across four questions where the lanes structurally diverge.</p>
+              <div className="lab-foot"><span>SQLite + Wasm · optional Hermes 7B</span><b>Open lab →</b></div>
             </a>
-            <a href={playground}>
-              <span>SQLite + Datalog playground</span>
-              <strong>Mutate SQLite.<br /><em>Measure the proof.</em></strong>
+            <a className="lab-card" data-kind="model" href={groundedAgentLab}>
+              <span className="lab-kind">Optional model</span>
+              <h3>Let the model propose.<br /><em>Let rules decide.</em></h3>
+              <p>The same model with and without memory, proposing an action it must never own. Request facts, packet swap, gate query, rule, and decision proof stay on screen while the action resolves.</p>
+              <div className="lab-foot"><span>gate rule · decision proof</span><b>Open lab →</b></div>
+            </a>
+            <a className="lab-card" href={playground}>
+              <span className="lab-kind">Deterministic</span>
+              <h3>Mutate SQLite.<br /><em>Measure the proof.</em></h3>
               <p>Insert real rows, execute the Remembero extension inside SQLite WebAssembly, and inspect the browser-local tables, compiled rule, proof graph, and current-browser timings.</p>
-              <b aria-hidden="true">Open playground →</b>
+              <div className="lab-foot"><span>SQLite + Wasm · C extension</span><b>Open playground →</b></div>
             </a>
-          </div>
-        </div>
-      </section>
-
-      <section className="how section" id="how-it-works">
-        <div className="section-shell">
-          <h2>An answer is only useful if you can inspect <em>why.</em></h2>
-          <div className="steps">
-            <article><div className="step-title"><b>1</b><h3>Store evidence</h3></div><p>Capture a fact with the statement it came from.</p><code>project_owner(atlas, rahul).</code></article>
-            <article><div className="step-title"><b>2</b><h3>Apply reviewed rules</h3></div><p>Derive useful knowledge without storing invented conclusions.</p><code>collaborator(Person, Project) :- …</code></article>
-            <article><div className="step-title"><b>3</b><h3>Return the support chain</h3></div><p>Inspect the exact claims and rules behind every answer.</p><code>answer → rule → sourced facts</code></article>
           </div>
         </div>
       </section>
@@ -134,8 +223,16 @@ status(atlas, blocked).`}</code></pre></article>
       <section className="models section-dark" id="models" aria-labelledby="models-title">
         <div className="section-shell">
           <div className="models-heading">
-            <div><h2 id="models-title">Runs on our own <em>small models.</em></h2><p>The model that translates is a 2.3B fine-tune that runs on a laptop. The frontier model is the teacher and the yardstick, not a dependency at runtime.</p></div>
+            <div>
+              <p className="section-tag">05 · Models</p>
+              <h2 id="models-title">Our own small models. <em>Measured, never served.</em></h2>
+              <p>The writer translates and the reader answers; both are fine-tunes we trained, measured against their teacher, and published as paired runs. The frontier model is the teacher and the yardstick — not a runtime dependency, and not a download on this site.</p>
+            </div>
             <a className="button secondary" href={modelComparison}>Model comparison</a>
+          </div>
+          <div className="not-served">
+            <span className="stamp stamp-ink">Not served here</span>
+            <p><b>This site ships no model weights and calls no model API.</b> The playground and labs run deterministic code in your browser. Where model output appears, it is either a clearly labeled replay of a recorded run or the optional third-party Hermes 7B your own browser loads via WebLLM. Our fine-tuned readers and writers stay in the repository as research artifacts — <a href={readerDoc}>with every run that measured them</a>.</p>
           </div>
           <div className="model-grid">
             <article>
@@ -152,7 +249,7 @@ status(atlas, blocked).`}</code></pre></article>
             <article>
               <span>Reader</span>
               <h3>Gemma 4 E4B, distilled</h3>
-              <p>Answers from retrieved history. Distilled from GLM 5.3 Flash over real sessions, handed computed notes before it reads (dates resolved, distances stated, totals summed, deterministically), and trained to write its own working: the dated items and the arithmetic first, then one answer line.</p>
+              <p>Answers from retrieved history. Distilled from GLM 5.3 Flash over real sessions, handed computed notes before it reads, and trained to write its own working: the dated items and the arithmetic first, then one answer line.</p>
               <dl>
                 <div><dt>LongMemEval, 500 questions</dt><dd>425<i>/500</i></dd></div>
                 <div><dt>Teacher, same judge</dt><dd>440<i>/500</i></dd></div>
@@ -169,12 +266,13 @@ status(atlas, blocked).`}</code></pre></article>
             <span><strong>Evidence mode by default.</strong> One model call to translate, none to phrase; recalled facts never leave the process.</span>
             <span><strong>Empty results explain themselves.</strong> The engine reports which goal matched nothing and which swap would return rows.</span>
           </div>
-          <p className="models-note">Numbers under one judge (DeepSeek) and one protocol; the reader is 57 behind its teacher on the 500 and the gap is the work. Local embeddings (nomic-embed-text) tie the hosted model on the semantic route. <a href={readerDoc}>Method and every run</a>.</p>
+          <p className="models-note">Numbers under one judge (DeepSeek) and one protocol; the reader is 15 behind its teacher on the 500 and the gap is the work. Local embeddings (nomic-embed-text) tie the hosted model on the semantic route. <a href={readerDoc}>Method and every run</a>.</p>
         </div>
       </section>
 
       <section className="examples section" id="examples" aria-labelledby="examples-title">
         <div className="section-shell">
+          <p className="section-tag">06 · Examples</p>
           <h2 id="examples-title">Worked examples, with the <em>numbers attached.</em></h2>
           <p className="examples-lede">Each one is executable from the repository and reports what it refused as carefully as what it answered.</p>
           <div className="examples-grid">
@@ -209,11 +307,13 @@ status(atlas, blocked).`}</code></pre></article>
       <section className="boundary section-dark">
         <div className="section-shell boundary-grid">
           <article className="model-boundary">
+            <p className="section-tag">07 · The boundary</p>
             <h2>Models translate.<br />Rules <em>decide.</em></h2>
-            <p>Our own writer translates a question into a query. Remembero evaluates the accepted query against explicit knowledge, adds the computed notes, and returns the evidence locally. No model phrases the answer unless you ask for one.</p>
-            <ol className="boundary-flow"><li>Question <span>natural language</span></li><li>Translate <span>our 2.3B writer</span></li><li>Query <span>accepted</span></li><li>Evaluate <span>rules + facts</span></li><li>Notes <span>dates, distances, totals</span></li><li>Answer + evidence</li></ol>
+            <p>A writer translates a question into a query. Remembero evaluates the accepted query against explicit knowledge, adds the computed notes, and returns the evidence locally. No model phrases the answer unless you ask for one.</p>
+            <ol className="boundary-flow"><li>Question <span>natural language</span></li><li>Translate <span>small fine-tuned writer</span></li><li>Query <span>accepted</span></li><li>Evaluate <span>rules + facts</span></li><li>Notes <span>dates, distances, totals</span></li><li>Answer + evidence</li></ol>
           </article>
           <article className="integrations">
+            <p className="section-tag">08 · Integration</p>
             <h2>One memory layer.<br />Three ways <em>in.</em></h2>
             <div className="integration-list"><div><strong>MCP</strong><span>An eight-tool core profile for agents; <code>remembero init</code> installs the Claude Code hooks and a session brief.</span></div><div><strong>TypeScript</strong><span>Use the typed library API inside your applications.</span></div><div><strong>CLI</strong><code>npx -y remembero</code></div></div>
           </article>
@@ -222,14 +322,14 @@ status(atlas, blocked).`}</code></pre></article>
 
       <section className="final-cta section">
         <div className="section-shell final-cta-grid">
-          <div><h2>Build agents that can <em>show their work.</em></h2><p>Try a real-life lab first, then open the IDE when you want to inspect the machinery.</p></div>
-          <div className="final-actions"><a className="button primary" href={chatMemoryLab}>Open a lab</a><a className="button link-button" href={playground}>Open the playground <span aria-hidden="true">→</span></a></div>
+          <div><h2>Build agents that can <em>show their work.</em></h2><p>Work a lab first — the reading pipeline without a model, or a gated agent — then open the IDE when you want to inspect the machinery.</p></div>
+          <div className="final-actions"><a className="button primary" href={readingRecallLab}>Open the reading lab</a><a className="button link-button" href={playground}>Open the playground <span aria-hidden="true">→</span></a></div>
         </div>
       </section>
 
       <footer className="site-footer">
         <strong>remembero</strong>
-        <nav aria-label="Footer navigation"><a href="#models">Models</a><a href="#examples">Examples</a><a href={chatMemoryLab}>Chat lab</a><a href={groundedAgentLab}>Agent lab</a><a href={playground}>Playground</a><a href={github}>GitHub</a><a href={`${github}#readme`}>Docs</a><a href="https://www.npmjs.com/package/remembero">npm</a><span>MIT licensed</span></nav>
+        <nav aria-label="Footer navigation"><a href="#research">Research</a><a href="#models">Models</a><a href="#examples">Examples</a><a href={readingRecallLab}>Reading lab</a><a href={chatMemoryLab}>Chat lab</a><a href={groundedAgentLab}>Agent lab</a><a href={playground}>Playground</a><a href={github}>GitHub</a><a href={`${github}#readme`}>Docs</a><a href="https://www.npmjs.com/package/remembero">npm</a><span>MIT licensed</span></nav>
       </footer>
     </main>
   );

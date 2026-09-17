@@ -3,8 +3,11 @@ import {
   MAX_READING_CONTEXT_BYTES,
   orderInRangeFirst,
   READING_SOURCE_CHARACTERS,
+  readingContextRoles,
   readingDepth,
+  readingSessionText,
   readingUnit,
+  readsInNotes,
   renderReadingPrompt,
   validateReadingOptions,
 } from '../knowledge/session-retrieval.js';
@@ -78,7 +81,6 @@ import {
 import { typesafeQuestionKind } from './typesafe-question-kind.js';
 import { type ContextTiers } from './reader-contract.js';
 import {
-  longMemEvalSessionText,
   LONGMEMEVAL_S_COMMIT,
   LONGMEMEVAL_S_SHA256,
   scoreLongMemEvalRetrievedSessions,
@@ -106,6 +108,8 @@ export const DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES = 56 * 1024;
 export const MAX_LONGMEMEVAL_ANSWER_CONTEXT_BYTES = MAX_READING_CONTEXT_BYTES;
 export const LONGMEMEVAL_ANSWER_SOURCE_CHARACTERS = READING_SOURCE_CHARACTERS;
 export const LONGMEMEVAL_MULTI_SEMANTIC_MAX_LEXICAL_SCORE = 315;
+/** Names the harness in the shared module's validation and prompt-safety messages. */
+const LONGMEMEVAL_READING_LABEL = 'LongMemEval answer';
 /** The question types LongMemEval ships (abstention is a question-id suffix, not a type). */
 export const LONGMEMEVAL_QUESTION_TYPES: ReadonlySet<string> = new Set([
   'single-session-user',
@@ -665,6 +669,7 @@ export function buildLongMemEvalAnswerContext(
     ...(tiers === undefined ? {} : { tiers }),
     ...(countedLine === undefined ? {} : { countedLine }),
     personalize,
+    label: LONGMEMEVAL_READING_LABEL,
   });
   return {
     messages: [
@@ -951,7 +956,7 @@ export async function evaluateLongMemEvalAnswerInstance(
           options.turnUnitQuestionTypes.has(instance.question_type));
   const contextBytes =
     options.contextBytes ?? DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES;
-  validateReadingOptions(effectiveTopK, contextBytes);
+  validateReadingOptions(effectiveTopK, contextBytes, LONGMEMEVAL_READING_LABEL);
   const multiSessionSemanticMaximumLexicalScore =
     options.multiSessionSemanticMaximumLexicalScore ??
     LONGMEMEVAL_MULTI_SEMANTIC_MAX_LEXICAL_SCORE;
@@ -973,7 +978,7 @@ export async function evaluateLongMemEvalAnswerInstance(
   let judgeMs = 0;
   let retrievedSessionIds: string[] = [];
   let contextSessionIds: string[] = [];
-  const contextRoles = kind.assistantRecall ? ('all' as const) : ('user' as const);
+  const contextRoles = readingContextRoles(kind);
   let redactedRetrievedSessions = 0;
   let retrievalRoute: 'local' | 'semantic' = 'local';
   let embeddingModel: string | null = null;
@@ -1035,14 +1040,9 @@ export async function evaluateLongMemEvalAnswerInstance(
     for (const [index, session] of instance.haystack_sessions.entries()) {
       const operationId = `longmemeval:${index}:${instance.haystack_session_ids[index]!}`;
       sourceSessionIds.set(operationId, instance.haystack_session_ids[index]!);
-      const userText = longMemEvalSessionText(
-        session.filter(({ role }) => role === 'user'),
-      );
-      userSourceText.set(
-        operationId,
-        userText === '' ? longMemEvalSessionText(session) : userText,
-      );
-      const sessionText = longMemEvalSessionText(session);
+      // the reader's view of a session is the shared module's rule, not a copy of it
+      userSourceText.set(operationId, readingSessionText(session, 'user'));
+      const sessionText = readingSessionText(session, 'all');
       const at = datasetDate(instance.haystack_dates[index]!);
       sessionRecords.set(instance.haystack_session_ids[index]!, {
         ts: at.toISOString(),
@@ -1688,7 +1688,7 @@ export async function evaluateLongMemEvalAnswerInstance(
     // to be gathered, ordered in time, or taken from the latest of several values
     const aggregationType =
       options.notesQuestionTypes === undefined
-        ? kind.aggregation || kind.temporal || kind.update
+        ? readsInNotes(kind)
         : options.notesQuestionTypes.has(instance.question_type);
     const notes = options.readingStrategy === 'notes' && aggregationType;
     const twoCall = options.readingStrategy === 'two-call' && aggregationType;
@@ -2289,9 +2289,9 @@ export function longMemEvalAnswerRun(
     options.temporalTopK ?? DEFAULT_LONGMEMEVAL_TEMPORAL_TOP_K;
   const contextBytes =
     options.contextBytes ?? DEFAULT_LONGMEMEVAL_ANSWER_CONTEXT_BYTES;
-  validateReadingOptions(topK, contextBytes);
-  validateReadingOptions(multiSessionTopK, contextBytes);
-  validateReadingOptions(temporalTopK, contextBytes);
+  validateReadingOptions(topK, contextBytes, LONGMEMEVAL_READING_LABEL);
+  validateReadingOptions(multiSessionTopK, contextBytes, LONGMEMEVAL_READING_LABEL);
+  validateReadingOptions(temporalTopK, contextBytes, LONGMEMEVAL_READING_LABEL);
   const questionTypes = [
     ...new Set(observations.map(({ questionType }) => questionType)),
   ].sort();
