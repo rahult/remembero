@@ -15,10 +15,17 @@ import {
   parseClaudeStopHookInput,
   readClaudeTranscriptTail,
 } from './transcript.js';
+import type { SessionStore } from '../sessions/store.js';
 
 export interface AutoCaptureDeps {
   store: MemoryStore;
   llm: LlmClient;
+  /**
+   * Optional conversation store. Present only when `REMBERO_SESSIONS=on`, and
+   * asked again here: the store writes whatever it is handed, so the setting is
+   * checked on the way in rather than inside it.
+   */
+  sessions?: SessionStore;
   llmAllowedNamespaces?: ReadonlySet<string>;
   integrityEnforcement?: IntegrityEnforcementOptions | false;
   knowledgeCheckEnforcement?: KnowledgeCheckEnforcementOptions | false;
@@ -43,6 +50,55 @@ export interface AutoCaptureResult {
   added: string[];
   duplicates: number;
   reason?: 'duplicate' | 'daily_cap' | 'no_user_text';
+  /** Turns written to the session store, when one is configured and it accepted them. */
+  sessionTurns?: { appended: number; skipped: number };
+  /** Why the session write was given up on; the capture itself still succeeded. */
+  sessionError?: string;
+}
+
+/**
+ * Store the transcript's turns as a session, and never let that failure reach the
+ * stop hook: a contended namespace lock, a full disk or a read-only sessions root
+ * must not cost the user their captured facts. The next stop hook re-reads an
+ * overlapping tail and the store skips by turn hash, so a lost write is recovered
+ * rather than a lost turn.
+ */
+function writeSessionTurns(
+  deps: AutoCaptureDeps,
+  namespace: string,
+  input: ReturnType<typeof parseClaudeStopHookInput>,
+  turns: Array<{ role: 'user' | 'assistant'; ts?: string; text: string }>,
+  now: Date,
+): Pick<AutoCaptureResult, 'sessionTurns' | 'sessionError'> {
+  const sessions = deps.sessions;
+  if (sessions === undefined || !sessions.sessionsEnabled()) return {};
+  const at = now.toISOString();
+  const stamped = turns.map((turn) => ({
+    role: turn.role,
+    ts: turn.ts ?? at,
+    text: turn.text,
+  }));
+  if (stamped.length === 0) return {};
+  try {
+    const result = sessions.appendTurns(
+      namespace,
+      {
+        version: 1,
+        source: 'claude-code',
+        sourceSessionId: input.sessionId,
+        startedAt: stamped[0].ts,
+        cwd: input.cwd,
+      },
+      stamped,
+    );
+    return {
+      sessionTurns: { appended: result.appended, skipped: result.skipped },
+    };
+  } catch (error) {
+    return {
+      sessionError: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
 
 function safeFailureReason(error: unknown): string {
@@ -191,6 +247,13 @@ export async function autoCaptureClaudeStop(
       result.added.length === 0 && result.duplicates === 0
         ? 'empty'
         : 'captured';
+    const session = writeSessionTurns(
+      deps,
+      namespace,
+      input,
+      tail.turns,
+      now,
+    );
     try {
       deps.store.finishAutoCapture(
         namespace,
@@ -217,6 +280,7 @@ export async function autoCaptureClaudeStop(
       status,
       added: result.added,
       duplicates: result.duplicates,
+      ...session,
     };
   } catch (error) {
     try {

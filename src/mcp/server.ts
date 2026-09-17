@@ -10,8 +10,10 @@ import {
   recallAnswerModeFromEnv,
   recallSchemaPredicateLimitFromEnv,
   selfAtomFromEnv,
+  sessionsEnabledFromEnv,
   validTimeModeFromEnv,
 } from '../env.js';
+import { SessionStore } from '../sessions/store.js';
 import type {
   PipelineDeps,
   RecallRelatedKnowledgeOptions,
@@ -613,8 +615,14 @@ export function createServer(deps: PipelineDeps): McpServer {
     deps.integrityEnforcement ?? integrityEnforcementFromEnv();
   const configuredChecks =
     deps.knowledgeCheckEnforcement ?? knowledgeCheckEnforcementFromEnv();
+  // Conversation text is stored only when the setting is on, so the dependency
+  // itself is absent otherwise and nothing downstream has a store to write to.
+  const sessions =
+    deps.sessions ??
+    (sessionsEnabledFromEnv() ? new SessionStore() : undefined);
   const resolvedDeps: PipelineDeps = {
     ...deps,
+    ...(sessions === undefined ? {} : { sessions }),
     selfAtom: deps.selfAtom ?? selfAtomFromEnv(),
     extractionVocabulary:
       deps.extractionVocabulary ?? extractionVocabularyFromEnv(),

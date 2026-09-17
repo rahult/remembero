@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { buildComputedNotes, computedNoteLines } from '../knowledge/computed-notes.js';
 import {
   CLOSURE_SUFFIX,
@@ -73,6 +74,7 @@ import {
   type KnowledgeSearchResult,
 } from '../knowledge/search.js';
 import { assertBoundedOutput, assertSafeForExternalLlm } from '../safety.js';
+import type { SessionStore } from '../sessions/store.js';
 import {
   applyPredicateAliases,
   applyPredicateAliasesToGoals,
@@ -117,6 +119,12 @@ export interface PipelineDeps {
   semanticLedger?: SemanticLedger;
   /** Optional semantic-retrieval provider; structured reasoning never requires it. */
   embeddings?: EmbeddingClient;
+  /**
+   * Optional conversation store for reading recall. Present only when
+   * `REMBERO_SESSIONS=on`, and asked again before every write: the store writes
+   * whatever it is handed.
+   */
+  sessions?: SessionStore;
   /** Optional process-local document-vector cache for semantic retrieval. */
   semanticCache?: EmbeddingCache;
   /** When set, natural-language operations may export only these namespaces to the LLM. */
@@ -746,6 +754,48 @@ export async function extractRememberText(
   );
 }
 
+/**
+ * A `remember` call becomes a one-turn session, keyed by the text itself so the
+ * same statement twice is one session with one turn. It is stored before
+ * extraction and whatever extraction makes of it: the sentence the user wrote is
+ * what reading recall needs, whether or not a fact came out of it.
+ *
+ * The write is best-effort. Being unable to keep conversation text must never
+ * cost the caller a remembered fact, so a contended namespace lock or an
+ * unwritable sessions root is reported on stderr and otherwise ignored.
+ */
+function writeRememberSession(
+  deps: PipelineDeps,
+  text: string,
+  namespace: string,
+  at?: Date,
+): void {
+  const sessions = deps.sessions;
+  if (sessions === undefined || !sessions.sessionsEnabled()) return;
+  const ts = (at ?? new Date()).toISOString();
+  try {
+    sessions.appendTurns(
+      namespace,
+      {
+        version: 1,
+        source: 'remember',
+        sourceSessionId: createHash('sha256')
+          .update(text, 'utf8')
+          .digest('hex')
+          .slice(0, 32),
+        startedAt: ts,
+      },
+      [{ role: 'user', ts, text }],
+    );
+  } catch (error) {
+    process.stderr.write(
+      `rembero sessions: kept no session for this remember call: ${
+        error instanceof Error ? error.message : String(error)
+      }\n`,
+    );
+  }
+}
+
 export async function rememberText(
   deps: PipelineDeps,
   text: string,
@@ -757,6 +807,7 @@ export async function rememberText(
   if (validTimeMode !== 'delete' && validTimeMode !== 'archive_until') {
     throw new Error("valid-time mode must be 'delete' or 'archive_until'");
   }
+  writeRememberSession(deps, text, namespace, options.at);
   const extraction = await extractRememberText(deps, text, namespace, options);
   if (extraction === null) return { added: [], duplicates: 0, retracted: 0 };
   if (trust === 'tentative' && extraction.retractions.length > 0) {

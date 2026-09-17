@@ -37,11 +37,25 @@ export interface TranscriptReadOptions {
   userOnly?: boolean;
 }
 
+export interface TranscriptMessage {
+  role: 'user' | 'assistant';
+  text: string;
+  /** The transcript entry's own timestamp, when it carries a usable one. */
+  ts?: string;
+}
+
 export interface ClaudeTranscriptTail {
   text: string;
   bytes: number;
   messageCount: number;
   userMessageCount: number;
+  /**
+   * Every user and assistant turn parsed from the read window, in order and
+   * whole, whatever `userOnly` and the byte budget did to `text`. The session
+   * store is the consumer: extraction reads `text`, conversation storage reads
+   * these.
+   */
+  turns: TranscriptMessage[];
 }
 
 function requireString(
@@ -176,8 +190,13 @@ function removeTranscriptNoise(text: string): string {
     .trim();
 }
 
-function parseTranscriptMessages(text: string): { role: 'user' | 'assistant'; text: string }[] {
-  const messages: { role: 'user' | 'assistant'; text: string }[] = [];
+/**
+ * The user and assistant turns of a JSONL transcript window, noise removed and a
+ * repeated turn collapsed. Exported for the session store, which stores the turns
+ * themselves rather than the flattened extraction tail.
+ */
+export function parseTranscriptMessages(text: string): TranscriptMessage[] {
+  const messages: TranscriptMessage[] = [];
   for (const line of text.split('\n')) {
     if (line.trim() === '') continue;
     let entry: Record<string, unknown>;
@@ -198,15 +217,23 @@ function parseTranscriptMessages(text: string): { role: 'user' | 'assistant'; te
     if (content === '') continue;
     const previous = messages.at(-1);
     if (previous?.role === role && previous.text === content) continue;
-    messages.push({ role, text: content });
+    // A turn's `ts` reaches the session index and the reader's date arithmetic, so
+    // an entry whose timestamp is missing or unparseable carries none and the
+    // caller substitutes its own clock.
+    const stamp = entry.timestamp;
+    const ts =
+      typeof stamp === 'string' && stamp !== '' && !Number.isNaN(Date.parse(stamp))
+        ? stamp
+        : undefined;
+    messages.push({ role, text: content, ...(ts === undefined ? {} : { ts }) });
   }
   return messages;
 }
 
 function boundedMessages(
-  messages: { role: 'user' | 'assistant'; text: string }[],
+  messages: TranscriptMessage[],
   maxBytes: number
-): { role: 'user' | 'assistant'; text: string }[] {
+): TranscriptMessage[] {
   const suffix = (value: string, bytes: number): string => {
     const buffer = Buffer.from(value, 'utf8');
     if (buffer.length <= bytes) return value;
@@ -226,7 +253,7 @@ function boundedMessages(
       break;
     }
   }
-  const selected = new Map<number, { role: 'user' | 'assistant'; text: string }>();
+  const selected = new Map<number, TranscriptMessage>();
   let used = 0;
   if (latestUserIndex >= 0) {
     const message = compact[latestUserIndex];
@@ -291,6 +318,8 @@ export function readClaudeTranscriptTail(
     readBytes = Math.min(size, MAX_READ_WINDOW_BYTES, readBytes * 4);
     messages = parseTranscriptMessages(readTranscriptWindow(trusted, size, readBytes));
   }
+  // The whole parsed window, kept aside before the tail is filtered and bounded.
+  const turns = [...messages];
   if (options.userOnly === true) {
     const users = messages.filter((message) => message.role === 'user');
     const selected = boundedMessages(users, tailBytes);
@@ -302,6 +331,7 @@ export function readClaudeTranscriptTail(
       bytes: Buffer.byteLength(text, 'utf8'),
       messageCount: selected.length,
       userMessageCount: selected.length,
+      turns,
     };
   }
   const lastAssistant = removeTranscriptNoise(input.lastAssistantMessage);
@@ -320,5 +350,6 @@ export function readClaudeTranscriptTail(
     bytes: Buffer.byteLength(text, 'utf8'),
     messageCount: selected.length,
     userMessageCount: selected.filter((message) => message.role === 'user').length,
+    turns,
   };
 }

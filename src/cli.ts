@@ -29,8 +29,10 @@ import {
   recallAnswerModeFromEnv,
   recallSchemaPredicateLimitFromEnv,
   selfAtomFromEnv,
+  sessionsEnabledFromEnv,
   validTimeModeFromEnv,
 } from './env.js';
+import { SessionStore } from './sessions/store.js';
 import { clientFromEnv, lazyClientFromEnv } from './llm/client.js';
 import {
   rememberText,
@@ -1151,6 +1153,9 @@ async function main(): Promise<void> {
     return;
   }
   const store = new MemoryStore();
+  // Conversation text is stored only with REMBERO_SESSIONS=on; off means the
+  // dependency is absent and no command has a store to write turns to.
+  const sessions = sessionsEnabledFromEnv() ? new SessionStore() : undefined;
   const graphSelector = graphSelectorOption(args);
   const operationId = operationIdOption(args.opId);
   const recordedSequence =
@@ -1490,6 +1495,7 @@ async function main(): Promise<void> {
         const result = await autoCaptureClaudeStop(
           {
             store,
+            sessions,
             llm: lazyClientFromEnv(),
             selfAtom: selfAtomFromEnv(),
             extractionVocabulary: extractionVocabularyFromEnv(),
@@ -1521,6 +1527,7 @@ async function main(): Promise<void> {
       const result = await rememberText(
         {
           store,
+          sessions,
           llm: clientFromEnv(),
           selfAtom: selfAtomFromEnv(),
           extractionVocabulary: extractionVocabularyFromEnv(),

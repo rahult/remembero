@@ -197,9 +197,11 @@ export {
   MAX_TRANSCRIPT_TAIL_BYTES,
   defaultClaudeConfigDir,
   parseClaudeStopHookInput,
+  parseTranscriptMessages,
   readClaudeTranscriptTail,
   type ClaudeStopHookInput,
   type ClaudeTranscriptTail,
+  type TranscriptMessage,
   type TranscriptReadOptions,
 } from './autocapture/transcript.js';
 export { createServer, serveStdio } from './mcp/server.js';
