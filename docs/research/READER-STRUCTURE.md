@@ -625,3 +625,15 @@ Flips: multi-session +17 / -9, temporal +11 / -13. The student gains more than i
 without it, and again the gain is multi-session. Two readers now agree on direction and type;
 both gains sit inside the 266's noise, so the verdict belongs to the paired 500.
 
+The paired 500 (one H100 pod, same day):
+
+| v7, all 500 | Total | Multi-session | Knowledge-update | SS-assistant | SS-preference | SS-user | Temporal |
+|---|---|---|---|---|---|---|---|
+| session unit, 15 / 10 / 24 KB | 395 | 97 | 58 | 50 | 19 | 66 | 105 |
+| turn unit, 12 / 10 / 24 KB | 400 | 103 | 62 | 53 | 19 | 65 | 98 |
+
++5 overall, below the ~8 the verdict needs, because temporal falls 105 → 98 (10 gained, 17
+lost) while every aggregation-free or multi-session type gains. On the 266 temporal had moved
+only -2; the other 234 questions carry the gain. Next arm: turn unit for every type except
+temporal (`--turn-unit-question-types`).
+
