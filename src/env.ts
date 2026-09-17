@@ -182,6 +182,42 @@ export function knowledgeCheckEnforcementFromEnv(
   return { mode, suite, namespaces };
 }
 
+/** The session store holds 200 MB of conversation text per namespace before it drops the oldest. */
+export const DEFAULT_SESSION_CAP_BYTES = 200 * 1024 * 1024;
+/** Below a megabyte the cap would drop a session as fast as capture writes one. */
+export const MIN_SESSION_CAP_BYTES = 1024 * 1024;
+
+/**
+ * REMBERO_SESSIONS: 'off' (default) or 'on'. Off means no conversation text is
+ * stored at all; capture and import check this before they write.
+ */
+export function sessionsEnabledFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  const configured = env.REMBERO_SESSIONS ?? 'off';
+  if (configured === 'on') return true;
+  if (configured === 'off') return false;
+  throw new Error("REMBERO_SESSIONS must be 'on' or 'off'");
+}
+
+/** REMBERO_SESSION_CAP_BYTES: per-namespace byte cap for stored sessions. */
+export function sessionCapBytesFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): number {
+  const configured = env.REMBERO_SESSION_CAP_BYTES;
+  if (configured === undefined) return DEFAULT_SESSION_CAP_BYTES;
+  if (!/^\d+$/.test(configured)) {
+    throw new Error('REMBERO_SESSION_CAP_BYTES must be an integer');
+  }
+  const parsed = Number(configured);
+  if (!Number.isSafeInteger(parsed) || parsed < MIN_SESSION_CAP_BYTES) {
+    throw new Error(
+      `REMBERO_SESSION_CAP_BYTES must be at least ${MIN_SESSION_CAP_BYTES}`,
+    );
+  }
+  return parsed;
+}
+
 export function entityIdentityFromEnv(
   env: NodeJS.ProcessEnv = process.env,
 ): EntityIdentityMode | undefined {
