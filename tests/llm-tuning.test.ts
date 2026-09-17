@@ -5,7 +5,11 @@ import {
   OpenRouterClient,
   llmTuningFromFlags,
 } from '../src/llm/client.js';
-import { parseArgs } from '../src/evals/run-longmemeval-answer.js';
+import {
+  parseArgs,
+  runnerApiKey,
+  unusedModelClient,
+} from '../src/evals/run-longmemeval-answer.js';
 import { distillRunIdentity } from '../src/training/reader-distill.js';
 
 const ok = () =>
@@ -246,5 +250,47 @@ describe('LongMemEval answer runner reader tuning flags', () => {
     expect(source).toMatch(/--reader-temperature <n>/);
     expect(source).toMatch(/--reader-timeout-ms <n>/);
     expect(source).toMatch(/--judge-temperature <n>/);
+  });
+});
+
+describe('LongMemEval answer runner: retrieval-only mode', () => {
+  it('parses --retrieval-only and documents it with the evidence summary fields', () => {
+    expect(parseArgs([]).retrievalOnly).toBe(false);
+    expect(parseArgs(['--retrieval-only']).retrievalOnly).toBe(true);
+    const source = runnerSource();
+    expect(source).toContain('--retrieval-only');
+    expect(source).toContain('evidenceSessionsCompleteRate');
+    expect(source).toContain('evidenceTurnsCompleteRate');
+    expect(source).toContain('meanEvidenceTurnCoverage');
+  });
+
+  it('asks for no main LLM key and gives reader and judge clients that refuse to run', async () => {
+    const retrievalOnly = parseArgs(['--retrieval-only']);
+    expect(runnerApiKey(retrievalOnly, {})).toBeUndefined();
+    expect(() => runnerApiKey(parseArgs([]), {})).toThrow(/LLM_API_KEY/);
+    expect(runnerApiKey(parseArgs([]), { LLM_API_KEY: 'k' })).toBe('k');
+    // a temporal-range model still needs a key from somewhere
+    expect(() =>
+      runnerApiKey(
+        parseArgs(['--retrieval-only', '--temporal-range-model', 'glm']),
+        {},
+      ),
+    ).toThrow(/key/);
+    expect(
+      runnerApiKey(
+        parseArgs([
+          '--retrieval-only',
+          '--temporal-range-model',
+          'glm',
+          '--temporal-range-api-key',
+          'ollama',
+        ]),
+        {},
+      ),
+    ).toBeUndefined();
+    const reader = unusedModelClient('reader');
+    await expect(
+      reader.completeWithUsage([{ role: 'user', content: 'hi' }]),
+    ).rejects.toThrow(/retrieval-only/);
   });
 });

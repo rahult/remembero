@@ -24,6 +24,7 @@ import {
   evaluateLongMemEvalAnswerInstance,
   longMemEvalAnswerRun,
   type LongMemEvalAnswerObservation,
+  type LongMemEvalCompletionClient,
   type LongMemEvalFormation,
 } from './longmemeval-answer.js';
 import { loadLongMemEvalS } from './longmemeval.js';
@@ -100,6 +101,7 @@ interface Args {
   readerApiKey: string | undefined;
   memorySystem: string | undefined;
   memoryLane: MemorySystemLane;
+  retrievalOnly: boolean;
 }
 
 const USAGE = `Usage: npm run bench:longmemeval:answer -- [options]
@@ -200,7 +202,20 @@ Options:
                          the adapter returns its own memory text and the reader answers from
                          that alone, inside the same byte budget
   --no-semantic-preferences  Compatibility alias for --local-only
+  --retrieval-only       Stop after building the reader's context: retrieval (the temporal-range
+                         model included, when set) and the context builder run with every
+                         contract flag, the reader and the judge are never called, and no reader
+                         or judge model or key is needed. Observations get status
+                         "retrieval-only" and correct null
   --json                 Print the complete run instead of its summary
+
+Every observation records evidenceCoverage {sessionsInContext, sessionsTotal, turnsInContext,
+turnsTotal}: evidence sessions the reader's context renders, and evidence turns (has_answer)
+whose whole text is in their session's rendered section. The summary, overall and per question
+type, over answerable questions (abstention "_abs" left out):
+  evidenceSessionsCompleteRate  share with every evidence session in context
+  evidenceTurnsCompleteRate     share with every evidence turn in context
+  meanEvidenceTurnCoverage      mean share of evidence turns in context
 `;
 
 function requiredValue(argv: string[], index: number, flag: string): string {
@@ -283,6 +298,7 @@ export function parseArgs(argv: string[]): Args {
     readerApiKey: undefined,
     memorySystem: undefined,
     memoryLane: 'retrieval',
+    retrievalOnly: false,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
@@ -510,6 +526,8 @@ export function parseArgs(argv: string[]): Args {
         throw new Error('--memory-lane must be retrieval or memories');
       }
       args.memoryLane = value;
+    } else if (arg === '--retrieval-only') {
+      args.retrievalOnly = true;
     } else if (arg === '--json') args.json = true;
     else if (arg === '--help' || arg === '-h') {
       console.log(USAGE);
@@ -526,6 +544,56 @@ export function parseArgs(argv: string[]): Args {
 
 function percent(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
+}
+
+/**
+ * The main endpoint's key (LLM_API_KEY). A retrieval-only run calls no reader or judge, so it
+ * needs the key only when a model it does call (temporal range, extraction) has no key of its
+ * own; every other run needs it always.
+ */
+export function runnerApiKey(
+  args: Args,
+  env: NodeJS.ProcessEnv,
+): string | undefined {
+  const apiKey = env.LLM_API_KEY || undefined;
+  if (apiKey !== undefined) return apiKey;
+  if (!args.retrievalOnly) {
+    throw new Error(
+      'LLM_API_KEY is not set — add it to .env or the environment',
+    );
+  }
+  if (
+    args.temporalRangeModel !== undefined &&
+    args.temporalRangeApiKey === undefined &&
+    !env.TEMPORAL_RANGE_API_KEY
+  ) {
+    throw new Error(
+      '--temporal-range-model needs a key: pass --temporal-range-api-key, or set TEMPORAL_RANGE_API_KEY or LLM_API_KEY',
+    );
+  }
+  const extracting =
+    args.formation !== 'raw' || args.extractionModel !== undefined;
+  if (
+    extracting &&
+    args.extractionApiKey === undefined &&
+    !env.EXTRACTION_API_KEY &&
+    !env.MODAL_SERVE_API_KEY
+  ) {
+    throw new Error(
+      'extraction needs a key: pass --extraction-api-key, or set EXTRACTION_API_KEY, MODAL_SERVE_API_KEY or LLM_API_KEY',
+    );
+  }
+  return undefined;
+}
+
+/** Stands in for the reader and the judge in a retrieval-only run: any call is a bug. */
+export function unusedModelClient(role: string): LongMemEvalCompletionClient {
+  return {
+    model: 'none (retrieval-only)',
+    completeWithUsage: async () => {
+      throw new Error(`the ${role} must not be called in a retrieval-only run`);
+    },
+  };
 }
 
 async function warmUp(
@@ -586,11 +654,9 @@ async function main(): Promise<void> {
       retrievalUnit: args.retrievalUnit,
     });
   }
-  const apiKey = process.env.LLM_API_KEY;
-  if (!apiKey)
-    throw new Error(
-      'LLM_API_KEY is not set — add it to .env or the environment',
-    );
+  // a retrieval-only run may have no main key: the clients that would need it are either
+  // never built or carry their own key (runnerApiKey refuses the rest)
+  const apiKey = runnerApiKey(args, process.env) ?? '';
   const baseUrl = (
     process.env.LLM_BASE_URL ?? 'https://openrouter.ai/api/v1'
   ).replace(/\/$/, '');
@@ -612,20 +678,22 @@ async function main(): Promise<void> {
   const available = selected.slice(args.offset);
   const instances =
     args.limit === undefined ? available : available.slice(0, args.limit);
-  const reader = new OpenRouterClient({
-    // the reader may live on another endpoint (e.g. Ollama Cloud) while the judge stays put
-    apiKey: args.readerApiKey ?? process.env.READER_API_KEY ?? apiKey,
-    baseUrl: args.readerBaseUrl ?? baseUrl,
-    model: args.readerModel,
-    ...(args.readerTemperature === undefined
-      ? {}
-      : { temperature: args.readerTemperature }),
-    ...(args.readerTimeoutMs === undefined
-      ? {}
-      : { timeoutMs: args.readerTimeoutMs }),
-  });
+  const reader: LongMemEvalCompletionClient = args.retrievalOnly
+    ? unusedModelClient('reader')
+    : new OpenRouterClient({
+        // the reader may live on another endpoint (e.g. Ollama Cloud) while the judge stays put
+        apiKey: args.readerApiKey ?? process.env.READER_API_KEY ?? apiKey,
+        baseUrl: args.readerBaseUrl ?? baseUrl,
+        model: args.readerModel,
+        ...(args.readerTemperature === undefined
+          ? {}
+          : { temperature: args.readerTemperature }),
+        ...(args.readerTimeoutMs === undefined
+          ? {}
+          : { timeoutMs: args.readerTimeoutMs }),
+      });
   const aggregationReader =
-    args.aggregationReaderModel === undefined
+    args.aggregationReaderModel === undefined || args.retrievalOnly
       ? undefined
       : new OpenRouterClient({
           // e.g. a local Ollama daemon signed in to Ollama Cloud (http://127.0.0.1:11434/v1)
@@ -647,14 +715,16 @@ async function main(): Promise<void> {
           baseUrl: args.temporalRangeBaseUrl ?? baseUrl,
           model: args.temporalRangeModel,
         });
-  const judge = new OpenRouterClient({
-    apiKey,
-    baseUrl,
-    model: args.judgeModel,
-    ...(args.judgeTemperature === undefined
-      ? {}
-      : { temperature: args.judgeTemperature }),
-  });
+  const judge: LongMemEvalCompletionClient = args.retrievalOnly
+    ? unusedModelClient('judge')
+    : new OpenRouterClient({
+        apiKey,
+        baseUrl,
+        model: args.judgeModel,
+        ...(args.judgeTemperature === undefined
+          ? {}
+          : { temperature: args.judgeTemperature }),
+      });
   // extracted/hybrid formations run the product's transcript extraction with its own
   // model, typically the fine-tuned dialect model on a self-hosted OpenAI-compatible endpoint
   // raw formation makes no extraction calls of its own, but builtin:remembero-hybrid does
@@ -685,7 +755,8 @@ async function main(): Promise<void> {
   // than one request's timeout; wake it before the questions start.
   if (extractor !== undefined) await warmUp(extractor, 'extraction endpoint');
   // a self-hosted reader scales to zero as well
-  if (args.readerBaseUrl !== undefined) await warmUp(reader, 'reader endpoint');
+  if (args.readerBaseUrl !== undefined && reader instanceof OpenRouterClient)
+    await warmUp(reader, 'reader endpoint');
   // builtin:embed needs a vector client even though --local-only turns Remembero's own
   // semantic route off: there the embedding model is the memory system under test
   const memorySystemEmbeddings =
@@ -793,6 +864,7 @@ async function main(): Promise<void> {
                     lane: args.memoryLane,
                   },
                 }),
+            retrievalOnly: args.retrievalOnly,
             ...(args.engineRecall
               ? {
                   engineRecall: {
@@ -816,8 +888,17 @@ async function main(): Promise<void> {
         );
         completed++;
         if (!args.json) {
+          const coverage = observation.evidenceCoverage;
+          const outcome =
+            observation.status === 'judged'
+              ? observation.correct
+                ? 'correct'
+                : 'incorrect'
+              : observation.status === 'retrieval-only'
+                ? 'context built'
+                : `error (${observation.error})`;
           console.error(
-            `[${completed}/${instances.length}] ${instance.question_id}: ${observation.status === 'judged' ? (observation.correct ? 'correct' : 'incorrect') : `error (${observation.error})`}`,
+            `[${completed}/${instances.length}] ${instance.question_id}: ${outcome}${coverage === null ? '' : `; evidence sessions ${coverage.sessionsInContext}/${coverage.sessionsTotal}, turns ${coverage.turnsInContext}/${coverage.turnsTotal}`}`,
           );
         }
         return observation;
@@ -872,6 +953,7 @@ async function main(): Promise<void> {
       readerTimeoutMs: args.readerTimeoutMs ?? DEFAULT_LLM_TIMEOUT_MS,
       judgeTemperature: args.judgeTemperature ?? DEFAULT_LLM_TEMPERATURE,
       memorySystem: args.memorySystem ?? null,
+      retrievalOnly: args.retrievalOnly,
       memoryLane: args.memorySystem === undefined ? null : args.memoryLane,
       // the memory system's own embedder, recorded here rather than in the top-level
       // embeddingModel: that field means Remembero's semantic route, which --local-only turns off
@@ -928,16 +1010,32 @@ async function main(): Promise<void> {
         console.log(`  error x${count}: ${kind}`);
       }
     }
-    console.log(
-      `accuracy: ${percent(summary.accuracy)} (${summary.correct}/${summary.questions})`,
-    );
+    if (args.retrievalOnly) {
+      console.log(
+        'accuracy: not measured (retrieval-only: no reader, no judge)',
+      );
+    } else {
+      console.log(
+        `accuracy: ${percent(summary.accuracy)} (${summary.correct}/${summary.questions})`,
+      );
+    }
     console.log(`errors: ${summary.errors}`);
     console.log(
       `retrieval/context recall: ${percent(summary.retrievalRecallAtK)} / ${percent(summary.contextRecallAtK)} (top-k ${args.topK}; multi-session ${args.multiSessionTopK}; temporal ${args.temporalTopK})`,
     );
     console.log(
-      `full/incomplete evidence accuracy: ${percent(summary.fullContextEvidenceAccuracy)} / ${percent(summary.incompleteContextEvidenceAccuracy)}`,
+      `evidence complete, sessions/turns: ${percent(summary.evidenceSessionsCompleteRate)} / ${percent(summary.evidenceTurnsCompleteRate)}; mean turn coverage ${percent(summary.meanEvidenceTurnCoverage)} (${summary.evidenceCoverageQuestions} answerable questions)`,
     );
+    for (const [type, typed] of Object.entries(run.byQuestionType)) {
+      console.log(
+        `  ${type}: sessions ${percent(typed.evidenceSessionsCompleteRate)}, turns ${percent(typed.evidenceTurnsCompleteRate)}, mean turn coverage ${percent(typed.meanEvidenceTurnCoverage)} (${typed.evidenceCoverageQuestions})`,
+      );
+    }
+    if (!args.retrievalOnly) {
+      console.log(
+        `full/incomplete evidence accuracy: ${percent(summary.fullContextEvidenceAccuracy)} / ${percent(summary.incompleteContextEvidenceAccuracy)}`,
+      );
+    }
     console.log(
       `formation p50/p95: ${summary.medianFormationMs.toFixed(1)} / ${summary.p95FormationMs.toFixed(1)} ms`,
     );

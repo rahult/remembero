@@ -1249,3 +1249,221 @@ describe('structured evidence in the answer context', () => {
     expect(text).toMatch(/2023-05-23.*completed 3 courses on Coursera/);
   });
 });
+
+class ForbiddenCompletionClient implements LongMemEvalCompletionClient {
+  constructor(readonly model: string) {}
+
+  async completeWithUsage(): Promise<LlmCompletion> {
+    throw new Error(`${this.model} must not be called in retrieval-only mode`);
+  }
+}
+
+/** An evidence session whose answer turn sits beyond a 4 KB window of question-word text. */
+function cutEvidenceInstance(): LongMemEvalInstance {
+  return instance({
+    question_id: 'cut-1',
+    question_type: 'multi-session',
+    question: 'Which bicycle model did I choose?',
+    answer: 'Trek Domane',
+    haystack_sessions: [
+      [
+        { role: 'user', content: 'Compare credit card rewards for travel.' },
+        { role: 'assistant', content: 'Long generic reward-card explanation.' },
+      ],
+      [
+        {
+          role: 'user',
+          content: 'I am shopping for a bicycle model and need to choose soon.',
+        },
+        { role: 'assistant', content: 'Happy to help.' },
+        { role: 'user', content: 'lorem ipsum dolor sit amet '.repeat(260) },
+        {
+          role: 'user',
+          content: 'In the end I went with the Trek Domane.',
+          has_answer: true,
+        },
+      ],
+    ],
+  });
+}
+
+describe('evidence coverage and retrieval-only mode', () => {
+  it('counts an evidence session in context whose answer turn the byte budget cut', async () => {
+    const reader = new ScriptedCompletionClient('reader', ['I do not know']);
+    const judge = new ScriptedCompletionClient('judge', ['no']);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      cutEvidenceInstance(),
+      reader,
+      judge,
+      { multiSessionTopK: 1, contextBytes: 4_096 },
+    );
+    expect(observation.status).toBe('judged');
+    expect(observation.contextSessionIds).toEqual(['evidence']);
+    expect(reader.calls[0]?.messages.at(-1)?.content).not.toContain(
+      'Trek Domane',
+    );
+    expect(observation.evidenceCoverage).toEqual({
+      sessionsInContext: 1,
+      sessionsTotal: 1,
+      turnsInContext: 0,
+      turnsTotal: 1,
+    });
+  });
+
+  it('counts the answer turn once the budget leaves room for it', async () => {
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      cutEvidenceInstance(),
+      new ForbiddenCompletionClient('reader'),
+      new ForbiddenCompletionClient('judge'),
+      { multiSessionTopK: 1, contextBytes: 16_384, retrievalOnly: true },
+    );
+    expect(observation.evidenceCoverage).toEqual({
+      sessionsInContext: 1,
+      sessionsTotal: 1,
+      turnsInContext: 1,
+      turnsTotal: 1,
+    });
+  });
+
+  it('retrieval-only mode builds the context and never calls the reader or the judge', async () => {
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      cutEvidenceInstance(),
+      new ForbiddenCompletionClient('reader'),
+      new ForbiddenCompletionClient('judge'),
+      { multiSessionTopK: 1, contextBytes: 4_096, retrievalOnly: true },
+    );
+    expect(observation).toMatchObject({
+      status: 'retrieval-only',
+      correct: null,
+      hypothesis: null,
+      judgeResponse: null,
+      readerUsage: null,
+      judgeUsage: null,
+      readerMs: 0,
+      judgeMs: 0,
+      retrievedSessionIds: ['evidence'],
+      contextSessionIds: ['evidence'],
+      evidenceCoverage: {
+        sessionsInContext: 1,
+        sessionsTotal: 1,
+        turnsInContext: 0,
+        turnsTotal: 1,
+      },
+    });
+    expect(observation.error).toBeUndefined();
+    expect(observation.context?.recallAtK).toBe(1);
+    const run = longMemEvalAnswerRun([observation], 'none', 'none', {
+      generatedAt: '2026-09-17T00:00:00.000Z',
+    });
+    // a retrieval-only observation is not an error
+    expect(run.summary).toMatchObject({ questions: 1, errors: 0 });
+  });
+
+  it('retrieval-only mode still runs the temporal-range model, which is part of retrieval', async () => {
+    const ranger = new ScriptedCompletionClient('ranger', ['{"none":true}']);
+    const observation = await evaluateLongMemEvalAnswerInstance(
+      { ...cutEvidenceInstance(), question_type: 'temporal-reasoning' },
+      new ForbiddenCompletionClient('reader'),
+      new ForbiddenCompletionClient('judge'),
+      {
+        temporalTopK: 1,
+        contextBytes: 4_096,
+        retrievalOnly: true,
+        temporalRangeExtractor: ranger,
+      },
+    );
+    expect(observation.status).toBe('retrieval-only');
+    expect(ranger.calls).toHaveLength(1);
+    expect(observation.temporalRange).toBeNull();
+  });
+
+  it('summarizes evidence completeness overall and per type, leaving abstention out', () => {
+    const base = {
+      questionType: 'multi-session',
+      abstention: false,
+      status: 'retrieval-only' as const,
+      correct: null,
+      retrievedSessionIds: [],
+      contextSessionIds: [],
+      contextRoles: 'user' as const,
+      redactedRetrievedSessions: 0,
+      retrievalRoute: 'local' as const,
+      embeddingModel: null,
+      embeddingCalls: 0,
+      embeddingUsage: null,
+      semanticPreparationCalls: 0,
+      semanticPreparationUsage: null,
+      retrieval: null,
+      context: null,
+      hypothesis: null,
+      judgeResponse: null,
+      readerUsage: null,
+      judgeUsage: null,
+      formationMs: 1,
+      semanticPreparationMs: 0,
+      retrievalMs: 0,
+      readerMs: 0,
+      judgeMs: 0,
+      totalMs: 1,
+      userTurnMs: 0,
+    };
+    const complete = {
+      ...base,
+      questionId: 'complete',
+      evidenceCoverage: {
+        sessionsInContext: 2,
+        sessionsTotal: 2,
+        turnsInContext: 2,
+        turnsTotal: 2,
+      },
+    };
+    const cut = {
+      ...base,
+      questionId: 'cut',
+      questionType: 'temporal-reasoning',
+      evidenceCoverage: {
+        sessionsInContext: 1,
+        sessionsTotal: 1,
+        turnsInContext: 1,
+        turnsTotal: 4,
+      },
+    };
+    const abstention = {
+      ...base,
+      questionId: 'missing_abs',
+      abstention: true,
+      evidenceCoverage: {
+        sessionsInContext: 0,
+        sessionsTotal: 1,
+        turnsInContext: 0,
+        turnsTotal: 1,
+      },
+    };
+    const summary = summarizeLongMemEvalAnswers([complete, cut, abstention]);
+    expect(summary.evidenceSessionsCompleteRate).toBe(1);
+    expect(summary.evidenceTurnsCompleteRate).toBe(0.5);
+    expect(summary.meanEvidenceTurnCoverage).toBeCloseTo((1 + 0.25) / 2);
+    expect(summary.errors).toBe(0);
+    const run = longMemEvalAnswerRun(
+      [complete, cut, abstention],
+      'none',
+      'none',
+      { generatedAt: '2026-09-17T00:00:00.000Z' },
+    );
+    expect(run.byQuestionType['multi-session']).toMatchObject({
+      evidenceSessionsCompleteRate: 1,
+      evidenceTurnsCompleteRate: 1,
+      meanEvidenceTurnCoverage: 1,
+    });
+    expect(run.byQuestionType['temporal-reasoning']).toMatchObject({
+      evidenceSessionsCompleteRate: 1,
+      evidenceTurnsCompleteRate: 0,
+      meanEvidenceTurnCoverage: 0.25,
+    });
+    // stored runs from before the field existed summarize without it
+    const legacy = summarizeLongMemEvalAnswers([
+      { ...complete, evidenceCoverage: undefined },
+    ] as never);
+    expect(legacy.evidenceSessionsCompleteRate).toBe(0);
+  });
+});

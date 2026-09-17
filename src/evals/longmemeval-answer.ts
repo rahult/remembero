@@ -141,11 +141,24 @@ export interface LongMemEvalEngineRecall {
   error?: string;
 }
 
+/**
+ * How much of a question's evidence reached the reader. A session counts when the context
+ * builder rendered it; an evidence turn (`has_answer: true`) counts when its whole content is
+ * in its session's rendered section (see longMemEvalEvidenceCoverage).
+ */
+export interface LongMemEvalEvidenceCoverage {
+  sessionsInContext: number;
+  sessionsTotal: number;
+  turnsInContext: number;
+  turnsTotal: number;
+}
+
 export interface LongMemEvalAnswerObservation {
   questionId: string;
   questionType: string;
   abstention: boolean;
-  status: 'judged' | 'error';
+  /** retrieval-only: the run stopped after building the reader's context (no reader, no judge). */
+  status: 'judged' | 'error' | 'retrieval-only';
   correct: boolean | null;
   retrievedSessionIds: string[];
   contextSessionIds: string[];
@@ -159,6 +172,8 @@ export interface LongMemEvalAnswerObservation {
   semanticPreparationUsage: EmbeddingUsage | null;
   retrieval: LongMemEvalQuestionResult | null;
   context: LongMemEvalQuestionResult | null;
+  /** null when the question failed before its context was built. */
+  evidenceCoverage: LongMemEvalEvidenceCoverage | null;
   hypothesis: string | null;
   judgeResponse: string | null;
   readerUsage: LlmUsage | null;
@@ -194,6 +209,15 @@ export interface LongMemEvalAnswerSummary {
   incompleteContextEvidenceAccuracy: number;
   retrievalRecallAtK: number;
   contextRecallAtK: number;
+  /**
+   * Over answerable questions (no `_abs`) with a measured evidenceCoverage: the share whose
+   * evidence sessions are all in context, the share whose evidence turns all are, and the
+   * mean share of evidence turns in context (a question with no marked turns counts as 1).
+   */
+  evidenceCoverageQuestions: number;
+  evidenceSessionsCompleteRate: number;
+  evidenceTurnsCompleteRate: number;
+  meanEvidenceTurnCoverage: number;
   redactedRetrievedSessions: number;
   medianFormationMs: number;
   p95FormationMs: number;
@@ -281,6 +305,8 @@ export interface LongMemEvalAnswerRun {
     readerTimeoutMs?: number;
     judgeTemperature?: number;
     memorySystem?: string | null;
+    /** The run stopped after building the reader's context: no reader, no judge. */
+    retrievalOnly?: boolean;
     memoryLane?: MemorySystemLane | null;
     /**
      * The embedding model the memory system itself ran on (e.g. `builtin:embed`). Kept out of
@@ -659,6 +685,60 @@ interface AnswerContext {
   messages: ChatMessage[];
   contextSessionIds: string[];
   redactedRetrievedSessions: number;
+  /** Each rendered session's section, exactly as it appears in the user message. */
+  sections: Array<{ opId: string; section: string }>;
+}
+
+function collapseWhitespace(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Evidence coverage of one built context. A session is in context when the builder rendered
+ * it (contextSessionIds; a session only reached through appended facts does not count). An
+ * evidence turn is in context when its whole content, whitespace collapsed, is a substring of
+ * its own session's rendered section. The builder copies turn text verbatim ("role: content"
+ * lines cut by a byte window), so the whole-content check is exact: a turn the window cut
+ * partway counts as missing, and matching inside the session's own section keeps an identical
+ * line in some other session from counting. Assistant evidence turns under the user-turns
+ * context policy never count, because the reader never sees them. Abstracts (context tiers)
+ * count only when they happen to contain the whole turn.
+ */
+export function longMemEvalEvidenceCoverage(
+  instance: LongMemEvalInstance,
+  sections: ReadonlyArray<{ opId: string; section: string }>,
+): LongMemEvalEvidenceCoverage {
+  const rendered = new Map<string, string>();
+  for (const { opId, section } of sections) {
+    rendered.set(
+      opId,
+      `${rendered.get(opId) ?? ''} ${collapseWhitespace(section)}`,
+    );
+  }
+  const evidence = [...new Set(instance.answer_session_ids)];
+  let turnsInContext = 0;
+  let turnsTotal = 0;
+  for (const sessionId of evidence) {
+    const text = rendered.get(sessionId);
+    instance.haystack_session_ids.forEach((id, index) => {
+      if (id !== sessionId) return;
+      for (const turn of instance.haystack_sessions[index] ?? []) {
+        if (turn.has_answer !== true) continue;
+        turnsTotal += 1;
+        if (
+          text !== undefined &&
+          text.includes(collapseWhitespace(turn.content))
+        )
+          turnsInContext += 1;
+      }
+    });
+  }
+  return {
+    sessionsInContext: evidence.filter((id) => rendered.has(id)).length,
+    sessionsTotal: evidence.length,
+    turnsInContext,
+    turnsTotal,
+  };
 }
 
 const MAX_ENGINE_RENDER_CHARACTERS = 4_000;
@@ -885,6 +965,7 @@ export function buildLongMemEvalAnswerContext(
       .sort((left, right) => left.rank - right.rank)
       .map(({ opId }) => opId),
     redactedRetrievedSessions: rankedSources.length - usable.length,
+    sections: selected.map(({ opId, section }) => ({ opId, section })),
   };
 }
 
@@ -1030,6 +1111,12 @@ export async function evaluateLongMemEvalAnswerInstance(
      * and the observation schema — is unchanged.
      */
     memorySystem?: { client: MemorySystemClient; lane: MemorySystemLane };
+    /**
+     * Stop once the reader's context is built: retrieval (the temporal-range model included)
+     * and the context builder run, the reader and the judge are never called, and the
+     * observation carries status 'retrieval-only' with correct null.
+     */
+    retrievalOnly?: boolean;
   } = {},
 ): Promise<LongMemEvalAnswerObservation> {
   // formation can be routed by question type: a type outside the set runs raw formation,
@@ -1088,6 +1175,7 @@ export async function evaluateLongMemEvalAnswerInstance(
   let semanticPreparationUsage: EmbeddingUsage | null = null;
   let retrieval: LongMemEvalQuestionResult | null = null;
   let context: LongMemEvalQuestionResult | null = null;
+  let evidenceCoverage: LongMemEvalEvidenceCoverage | null = null;
   let hypothesis: string | null = null;
   let judgeResponse: string | null = null;
   let readerUsage: LlmUsage | null = null;
@@ -1831,6 +1919,49 @@ export async function evaluateLongMemEvalAnswerInstance(
       retrievalMs,
       topScore,
     );
+    evidenceCoverage = longMemEvalEvidenceCoverage(
+      instance,
+      answerContext.sections,
+    );
+    if (options.retrievalOnly === true) {
+      return {
+        questionId: instance.question_id,
+        questionType: instance.question_type,
+        abstention: instance.question_id.endsWith('_abs'),
+        status: 'retrieval-only',
+        correct: null,
+        retrievedSessionIds,
+        contextSessionIds,
+        contextRoles,
+        redactedRetrievedSessions,
+        retrievalRoute,
+        embeddingModel,
+        embeddingCalls,
+        embeddingUsage,
+        semanticPreparationCalls,
+        semanticPreparationUsage,
+        retrieval,
+        context,
+        evidenceCoverage,
+        hypothesis,
+        judgeResponse,
+        readerUsage,
+        judgeUsage,
+        ...(extraction === undefined ? {} : { extraction }),
+        ...(temporalRange === undefined
+          ? {}
+          : { temporalRange, temporalRangeUsage }),
+        ...(engineRecall === undefined ? {} : { engineRecall }),
+        ...(memorySystem === undefined ? {} : { memorySystem }),
+        formationMs,
+        semanticPreparationMs,
+        retrievalMs,
+        readerMs,
+        judgeMs,
+        totalMs: performance.now() - started,
+        userTurnMs: retrievalMs,
+      };
+    }
     const readerStarted = performance.now();
     const activeReader =
       aggregationType && options.aggregationReader !== undefined
@@ -1899,6 +2030,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       semanticPreparationUsage,
       retrieval,
       context,
+      evidenceCoverage,
       hypothesis,
       judgeResponse,
       readerUsage,
@@ -1936,6 +2068,7 @@ export async function evaluateLongMemEvalAnswerInstance(
       semanticPreparationUsage,
       retrieval,
       context,
+      evidenceCoverage,
       hypothesis,
       judgeResponse,
       readerUsage,
@@ -1976,6 +2109,15 @@ export function summarizeLongMemEvalAnswers(
   );
   const incompleteEvidence = judged.filter(
     ({ context: value }) => value?.strictEvidenceCoverage !== true,
+  );
+  // stored runs from before evidenceCoverage existed have no field at all
+  const covered = observations.flatMap((observation) =>
+    observation.abstention ||
+    observation.questionId.endsWith('_abs') ||
+    observation.evidenceCoverage === undefined ||
+    observation.evidenceCoverage === null
+      ? []
+      : [observation.evidenceCoverage],
   );
   let readerUsage = emptyLlmUsageTotals();
   let judgeUsage = emptyLlmUsageTotals();
@@ -2058,7 +2200,8 @@ export function summarizeLongMemEvalAnswers(
   return {
     questions: observations.length,
     judgedQuestions: judged.length,
-    errors: observations.length - judged.length,
+    // a retrieval-only observation stopped on purpose; only failures are errors
+    errors: observations.filter(({ status }) => status === 'error').length,
     correct,
     accuracy: observations.length === 0 ? 0 : correct / observations.length,
     judgedAccuracy: judged.length === 0 ? 0 : correct / judged.length,
@@ -2083,6 +2226,18 @@ export function summarizeLongMemEvalAnswers(
         value?.recallAtK === null || value?.recallAtK === undefined
           ? []
           : [value.recallAtK],
+      ),
+    ),
+    evidenceCoverageQuestions: covered.length,
+    evidenceSessionsCompleteRate: mean(
+      covered.map((c) => (c.sessionsInContext === c.sessionsTotal ? 1 : 0)),
+    ),
+    evidenceTurnsCompleteRate: mean(
+      covered.map((c) => (c.turnsInContext === c.turnsTotal ? 1 : 0)),
+    ),
+    meanEvidenceTurnCoverage: mean(
+      covered.map((c) =>
+        c.turnsTotal === 0 ? 1 : c.turnsInContext / c.turnsTotal,
       ),
     ),
     redactedRetrievedSessions: observations.reduce(
