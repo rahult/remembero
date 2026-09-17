@@ -612,3 +612,16 @@ GLM 5.3 Flash reading the same 266 under four of these setups, one day, one judg
 The gain is the size the arithmetic predicts (about 13 more questions with their evidence, half of
 them converted) and sits inside the noise band on the 266; it lands entirely on multi-session.
 One question per turn-unit run errors because the privacy guard refuses the retrieved text.
+
+Reader v7 on the same pair (one H100 pod, the thinking contract, `--reading notes`):
+
+| Setup | Correct | Multi-session | Temporal | Answer turns complete |
+|---|---|---|---|---|
+| session unit, 15 / 10 / 24 KB | 201 | 95 | 106 | 81.9% |
+| turn unit, 12 / 10 / 24 KB | 207 | 103 | 104 | 87.4% |
+
+Flips: multi-session +17 / -9, temporal +11 / -13. The student gains more than its teacher did
+(+6 against +4), because it converts newly arrived evidence at a higher rate than it answers
+without it, and again the gain is multi-session. Two readers now agree on direction and type;
+both gains sit inside the 266's noise, so the verdict belongs to the paired 500.
+
