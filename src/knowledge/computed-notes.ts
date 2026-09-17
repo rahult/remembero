@@ -30,13 +30,22 @@ export interface DatedEvent {
   expression: string;
   sentence: string;
   sessionDay: string;
-  kind: 'absolute' | 'relative' | 'weekday';
+  /** 'month': a month with no day ("in January"); 'undated': a past event with no date, dated by its session. */
+  kind: 'absolute' | 'relative' | 'weekday' | 'month' | 'undated';
   approximate?: boolean;
   assumedYear?: boolean;
   /** Where the expression starts in the sentence. */
   index?: number;
   /** The year was assumed and then moved back one: the sentence is past tense and the session year put it later than the session. */
   yearRolledBack?: boolean;
+  /** "for three months now": the start of something still going on. */
+  start?: boolean;
+  /** "in January": iso is the first day of the month. */
+  monthOnly?: boolean;
+  /** "a week before I got my new phone": the dated event this one is counted from. */
+  anchor?: { iso: string; expression: string; sentence: string };
+  /** Days either side the date may be off by, for rough expressions. */
+  slack?: number;
 }
 
 export interface Quantity {
@@ -76,7 +85,7 @@ const IRREGULAR: Record<string, string> = {
 };
 /** Past forms that end in -ed but usually describe a plan or a feeling, not a finished event. */
 const NOT_PAST_ED = new Set('booked scheduled planned reserved interested excited supposed expected registered signed invited needed wanted hoped used tired prepared concerned worried pleased thrilled'.split(' '));
-const FUTURE_CUE = /\b(?:will|won't|going to|gonna|plan(?:ning)? to|planned|upcoming|next|scheduled|booked|reserved|tickets?|coming up|looking forward|hope to|hoping to|want to|would like|appointment|deadline|due)\b/i;
+const FUTURE_CUE = /\b(?:will|won't|going to|gonna|plan(?:ning)? to|planned|upcoming|next|scheduled|booked|reserved|tickets?|coming up|looking forward|hope to|hoping to|want to|would like|appointment|deadline|due|(?:i'm|i’m|i am|we're|we’re|we are)\s+(?:flying|going|heading|traveling|travelling|visiting|moving|leaving|driving))\b/i;
 
 /** A word as the notes compare it: lower case, an irregular past mapped to its base, a light stem. */
 export function canonicalWord(word: string): string {
@@ -240,11 +249,55 @@ function number(word: string): number | undefined {
   return SMALL_NUMBERS[w];
 }
 
-export function resolveTemporalExpressions(text: string, sessionTs: string): DatedEvent[] {
+const COUNT_RE = '\\d+|a|an|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|couple of|a couple of|few|a few|several|half a';
+
+function parseCount(text: string): number | undefined {
+  return number(text.replace(/^a /, '').replace(/ of$/, '').replace(/ a$/, '')) ?? SMALL_NUMBERS[text.split(' ').pop()!];
+}
+
+function unitDays(n: number, unit: string): number {
+  const u = unit.toLowerCase();
+  return Math.round(u === 'day' ? n : u === 'week' ? n * 7 : u === 'month' ? n * 30.44 : n * 365.25);
+}
+
+/** `ms` moved by n units (negative n goes back); whole months and years move on the calendar. */
+function shiftMs(ms: number, n: number, unit: string): number {
+  const u = unit.toLowerCase();
+  if ((u === 'month' || u === 'year') && Number.isInteger(n)) {
+    const d = new Date(ms);
+    const months = d.getUTCMonth() + (u === 'month' ? n : 12 * n);
+    const y = d.getUTCFullYear() + Math.floor(months / 12);
+    const mo = ((months % 12) + 12) % 12;
+    const last = new Date(Date.UTC(y, mo + 1, 0)).getUTCDate();
+    return Date.UTC(y, mo, Math.min(d.getUTCDate(), last));
+  }
+  return ms + Math.sign(n) * unitDays(Math.abs(n), u) * DAY_MS;
+}
+
+const VAGUE_COUNT = /\b(?:few|several|couple)\b/i;
+
+/**
+ * Every temporal expression in the user's turns, resolved against the session day. With
+ * `extended`, also "for three months now" (a start date) and "in January" (a month); those
+ * are for the notes block, not for callers that read a question's own time reference.
+ */
+export function resolveTemporalExpressions(text: string, sessionTs: string, options: { extended?: boolean } = {}): DatedEvent[] {
   const sessionDay = dayOf(sessionTs);
   const base = msOf(sessionDay);
   const year = Number(sessionDay.slice(0, 4));
   const events: DatedEvent[] = [];
+  const pending: Array<{
+    sentence: string;
+    index: number;
+    expression: string;
+    count: number;
+    unit: string;
+    sign: number;
+    approximate: boolean;
+    slack: number;
+    reference: [number, number] | undefined;
+    terms: string[];
+  }> = [];
   const push = (e: DatedEvent) => {
     if (!events.some((x) => x.iso === e.iso && x.sentence === e.sentence)) events.push(e);
   };
@@ -309,13 +362,17 @@ export function resolveTemporalExpressions(text: string, sessionTs: string): Dat
     for (const [re, delta] of fixed) {
       while ((m = re.exec(s)) !== null) push({ iso: toIso(base + delta * DAY_MS), expression: m[0], sentence, sessionDay, kind: 'relative', index: m.index });
     }
-    const ago = /\b(\d+|a|an|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|couple of|a couple of|few|a few|several|half a)\s+(day|week|month|year)s?\s+(ago|earlier|before)\b/gi;
+    // "two days before" counts from the session only when nothing follows it; "a week before I
+    // got my new phone" counts from that event (the chains below)
+    const ago = new RegExp(`\\b(${COUNT_RE})\\s+(day|week|month|year)s?\\s+(ago|earlier|before(?=\\s*(?:$|[,.;:!?)]|[-–—]|(?:and|but|so|that|then|when)\\b)))`, 'gi');
     while ((m = ago.exec(s)) !== null) {
-      const n = number(m[1].replace(/^a /, '').replace(/ of$/, '').replace(/ a$/, '')) ?? SMALL_NUMBERS[m[1].split(' ').pop()!];
+      const n = parseCount(m[1]!);
       if (n === undefined) continue;
-      const unit = m[2].toLowerCase();
-      const days = unit === 'day' ? n : unit === 'week' ? n * 7 : unit === 'month' ? n * 30.44 : n * 365.25;
-      push({ iso: toIso(base - Math.round(days) * DAY_MS), expression: m[0], sentence, sessionDay, kind: 'relative', approximate: unit !== 'day' && unit !== 'week', index: m.index });
+      const unit = m[2]!.toLowerCase();
+      const days = unitDays(n, unit);
+      const vague = VAGUE_COUNT.test(m[1]!);
+      const approximate = vague || (unit !== 'day' && unit !== 'week');
+      push({ iso: toIso(shiftMs(base, -n, unit)), expression: m[0], sentence, sessionDay, kind: 'relative', approximate, index: m.index, ...(approximate ? { slack: Math.round(days * (vague ? 0.33 : 0.15)) } : {}) });
     }
     const ahead = /\b(?:in\s+(\d+|a|an|one|two|three|four|five|six|seven|eight|nine|ten)\s+(day|week|month|year)s?|(\d+|a|one|two|three|four|five|six)\s+(day|week|month|year)s?\s+from now)\b/gi;
     while ((m = ahead.exec(s)) !== null) {
@@ -323,12 +380,12 @@ export function resolveTemporalExpressions(text: string, sessionTs: string): Dat
       const unit = (m[2] ?? m[4] ?? '').toLowerCase();
       if (n === undefined || !unit) continue;
       const days = unit === 'day' ? n : unit === 'week' ? n * 7 : unit === 'month' ? n * 30.44 : n * 365.25;
-      push({ iso: toIso(base + Math.round(days) * DAY_MS), expression: m[0], sentence, sessionDay, kind: 'relative', approximate: unit !== 'day' && unit !== 'week', index: m.index });
+      push({ iso: toIso(base + Math.round(days) * DAY_MS), expression: m[0], sentence, sessionDay, kind: 'relative', approximate: unit !== 'day' && unit !== 'week', index: m.index, ...(unit !== 'day' && unit !== 'week' ? { slack: Math.round(days * 0.15) } : {}) });
     }
     const lastUnit = /\blast (week|month|year)\b/gi;
     while ((m = lastUnit.exec(s)) !== null) {
       const days = m[1].toLowerCase() === 'week' ? 7 : m[1].toLowerCase() === 'month' ? 30 : 365;
-      push({ iso: toIso(base - days * DAY_MS), expression: m[0], sentence, sessionDay, kind: 'relative', approximate: true, index: m.index });
+      push({ iso: toIso(base - days * DAY_MS), expression: m[0], sentence, sessionDay, kind: 'relative', approximate: true, index: m.index, slack: days === 7 ? 3 : days === 30 ? 15 : 60 });
     }
     // seasons: "last summer" → the middle of that season in the previous year, approximate
     const season = /\b(last|this|next)\s+(summer|winter|spring|fall|autumn)\b/gi;
@@ -340,11 +397,13 @@ export function resolveTemporalExpressions(text: string, sessionTs: string): Dat
       if (m[1].toLowerCase() === 'last' && utc(year, mo, d) < base) y = year;  // this year's season already passed
       if (m[1].toLowerCase() === 'last' && utc(year, mo, d) >= base) y = year - 1;
       if (m[1].toLowerCase() === 'next') y = utc(year, mo, d) > base ? year : year + 1;
-      push({ iso: toIso(utc(y, mo, d)), expression: m[0], sentence, sessionDay, kind: 'relative', approximate: true, index: m.index });
+      push({ iso: toIso(utc(y, mo, d)), expression: m[0], sentence, sessionDay, kind: 'relative', approximate: true, index: m.index, slack: 45 });
     }
     // anchored offsets: "a week before Black Friday", "two days after Christmas", "3 days before March 7"
     const anchored = new RegExp(`\\b(\\d+|a|an|one|two|three|four|five|six|seven|ten)\\s+(day|week|month)s?\\s+(before|after|prior to|following)\\s+(black friday|thanksgiving|christmas(?: day)?|christmas eve|new year'?s? day|new year'?s? eve|halloween|independence day|the fourth of july|july 4th|valentine'?s? day|labor day|memorial day|(?:${MONTH_RE})\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?(?:,?\\s+\\d{4})?)`, 'gi');
+    const anchoredAt = new Set<number>();
     while ((m = anchored.exec(s)) !== null) {
+      anchoredAt.add(m.index);
       const n = number(m[1]);
       if (n === undefined) continue;
       const unit = m[2].toLowerCase();
@@ -357,7 +416,61 @@ export function resolveTemporalExpressions(text: string, sessionTs: string): Dat
         return mo ? utc(mm[3] ? Number(mm[3]) : year, mo, Number(mm[2])) : undefined;
       })();
       if (anchor === undefined) continue;
-      push({ iso: toIso(anchor + sign * days * DAY_MS), expression: m[0], sentence, sessionDay, kind: 'relative', approximate: unit === 'month', index: m.index });
+      push({ iso: toIso(anchor + sign * days * DAY_MS), expression: m[0], sentence, sessionDay, kind: 'relative', approximate: unit === 'month', index: m.index, ...(unit === 'month' ? { slack: Math.round(days * 0.15) } : {}) });
+    }
+    // "a week before I got my new phone", "had to book three months in advance": counted from
+    // another dated event, found once every sentence is read
+    const chain = new RegExp(`\\b(${COUNT_RE})\\s+(day|week|month|year)s?\\s+(?:(in advance)(?:\\s+of\\s+([^,.;!?]+))?|(before|after|prior to|following)\\s+(?!(?:that|then|and|but|so|when)\\b)([^,.;!?]+))`, 'gi');
+    while ((m = chain.exec(s)) !== null) {
+      if (anchoredAt.has(m.index)) continue;
+      const n = parseCount(m[1]!);
+      if (n === undefined) continue;
+      const unit = m[2]!.toLowerCase();
+      const reference = m[4] ?? m[6];
+      const referenceStart = reference === undefined ? -1 : m.index + m[0].length - reference.length;
+      const vague = VAGUE_COUNT.test(m[1]!);
+      const days = unitDays(n, unit);
+      pending.push({
+        sentence,
+        index: m.index,
+        expression: m[0],
+        count: n,
+        unit,
+        sign: m[5] !== undefined && /after|following/i.test(m[5]) ? 1 : -1,
+        approximate: vague || unit === 'month' || unit === 'year',
+        slack: vague ? Math.round(days * 0.33) : unit === 'month' || unit === 'year' ? Math.round(days * 0.15) : 0,
+        reference: reference === undefined ? undefined : [referenceStart, referenceStart + reference.length],
+        // the referenced event's words: the phrase after "before", or for a bare "in advance"
+        // the rest of the sentence ("for my best friend's wedding")
+        terms: questionTerms(reference ?? `${s.slice(0, m.index)} ${s.slice(m.index + m[0].length)}`),
+      });
+    }
+    if (options.extended) {
+      // "I've been getting into bird watching for about three months now": started about then
+      const since = new RegExp(`\\bfor\\s+(?:about\\s+|around\\s+|almost\\s+|nearly\\s+|over\\s+|roughly\\s+)?(the\\s+(?:past|last)\\s+)?(?:about\\s+|around\\s+)?(${COUNT_RE})\\s+(day|week|month|year)s?(\\s+now)?\\b`, 'gi');
+      const ongoing = /\b(?:been\s+\w+ing|(?:'ve|’ve|have|has)\s+(?:been|lived|worked|known|had|owned|played|practiced|practised|studied|used|collected))\b/i;
+      while ((m = since.exec(s)) !== null) {
+        if (!(m[1] || m[4] || ongoing.test(s)) || FUTURE_CUE.test(s)) continue;
+        const n = parseCount(m[2]!);
+        if (n === undefined) continue;
+        const days = unitDays(n, m[3]!);
+        const slack = Math.max(1, Math.round(days * (VAGUE_COUNT.test(m[2]!) ? 0.33 : 0.15)));
+        push({ iso: toIso(shiftMs(base, -n, m[3]!)), expression: m[0], sentence, sessionDay, kind: 'relative', approximate: true, start: true, index: m.index, slack });
+      }
+      // "in January": the month, in the year the tense points to
+      const monthOnly = new RegExp(`\\b(in|last|this|since|during|early|late|mid)[- ](?:the month of\\s+)?(${MONTH_RE})\\b(?!\\.?\\s*\\d{1,2}(?:st|nd|rd|th)?\\b)(?:,?\\s+(\\d{4}))?`, 'gi');
+      while ((m = monthOnly.exec(s)) !== null) {
+        if (m[2] === 'may' || m[2] === 'mar') continue;  // the verb, not the month
+        const mo = MONTHS[m[2]!.toLowerCase()];
+        if (!mo) continue;
+        const sessionMonth = Number(sessionDay.slice(5, 7));
+        let y = year;
+        if (m[3]) y = Number(m[3]);
+        else if (m[1]!.toLowerCase() === 'this') y = year;
+        else if (FUTURE_CUE.test(s)) y = mo >= sessionMonth ? year : year + 1;
+        else y = mo <= sessionMonth ? year : year - 1;
+        push({ iso: `${y}-${String(mo).padStart(2, '0')}-01`, expression: m[0], sentence, sessionDay, kind: 'month', approximate: true, monthOnly: true, index: m.index, ...(m[3] ? {} : { assumedYear: true }) });
+      }
     }
     // weekdays: "last Saturday", "on Monday", "this Tuesday" → the most recent occurrence before the session day
     const weekday = /\b(last|this|on|next)\s+(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/gi;
@@ -371,6 +484,37 @@ export function resolveTemporalExpressions(text: string, sessionTs: string): Dat
       else iso = toIso(base - delta * DAY_MS);
       push({ iso, expression: m[0], sentence, sessionDay, kind: 'weekday', index: m.index });
     }
+  }
+  const plain = events.filter((e) => !e.start);
+  for (const c of pending) {
+    // a date inside the referenced phrase is the anchor itself
+    let anchor = c.reference === undefined ? undefined : plain.find((e) => e.sentence === c.sentence && e.index !== undefined && e.index >= c.reference![0] && e.index < c.reference![1]);
+    if (anchor === undefined) {
+      // otherwise the one dated event elsewhere that shares the most words with the reference;
+      // a tie between different dates means the reference is ambiguous, so nothing is dated
+      const need = c.reference === undefined ? 2 : 1;
+      const scored = plain
+        .filter((e) => e.sentence !== c.sentence)
+        .map((e) => ({ e, score: c.terms.filter((t) => wordSet(e.sentence).has(t)).length }))
+        .filter((x) => x.score >= need);
+      const top = Math.max(0, ...scored.map((x) => x.score));
+      const best = scored.filter((x) => x.score === top);
+      if (best.length === 0 || new Set(best.map((x) => x.e.iso)).size > 1) continue;
+      anchor = best[0]!.e;
+    }
+    const approximate = c.approximate || anchor.approximate === true;
+    const slack = c.slack + (anchor.slack ?? 0);
+    push({
+      iso: toIso(shiftMs(msOf(anchor.iso), c.sign * c.count, c.unit)),
+      expression: c.expression,
+      sentence: c.sentence,
+      sessionDay,
+      kind: 'relative',
+      index: c.index,
+      anchor: { iso: anchor.iso, expression: anchor.expression, sentence: anchor.sentence },
+      ...(approximate ? { approximate } : {}),
+      ...(slack > 0 ? { slack } : {}),
+    });
   }
   return events;
 }
@@ -470,6 +614,18 @@ function aliasReferences(sentence: string, aliases: Map<string, string>): string
   return out;
 }
 
+/** The verbs a question asks about, in canonical form: "did I cancel", "when I moved". */
+function questionVerbs(question: string): Set<string> {
+  const out = new Set<string>(pastVerbs(question));
+  const re = /\b(?:did|do|does)\s+i\s+(?:first\s+|finally\s+|last\s+|ever\s+)?([a-z]+)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(question)) !== null) out.add(canonicalWord(m[1]!));
+  for (const generic of ['do', 'be', 'have', 'pass']) out.delete(generic);
+  return out;
+}
+
+const AGE_RE = /\b(?:i'm|i’m|i am|as)\s+(?:a\s+|an\s+)?(\d{1,3})[- ]years?[- ]old\b/i;
+
 function distance(iso: string, questionDay: string): string {
   const days = Math.round((msOf(questionDay) - msOf(iso)) / DAY_MS);
   const abs = Math.abs(days);
@@ -535,13 +691,32 @@ export function buildComputedNotes(
     return terms.filter((t) => words.has(t)).length;
   };
 
+  const asksTime = /\b(when|how long|how old|how many (?:days|weeks|months|years)|ago|first|earlier|later|before|after|since|between|date|passed|order)\b/.test(q);
+  const verbs = questionVerbs(question);
   const events: DatedEvent[] = [];
   const allEvents: DatedEvent[] = [];
+  const undatedEvents: DatedEvent[] = [];
   const quantities: Quantity[] = [];
   for (const source of [...sources].sort((l, r) => l.ts.localeCompare(r.ts))) {
-    for (const e of resolveTemporalExpressions(source.text, source.ts)) {
+    const resolved = resolveTemporalExpressions(source.text, source.ts, { extended: true });
+    for (const e of resolved) {
       allEvents.push(e);
       if (keywordHits(e.sentence) > 0) events.push(e);
+    }
+    // "I'm glad I cancelled my FarmFresh subscription": a past event the question asks about,
+    // told with no date, happened on or before the day it was said
+    if (asksTime && verbs.size > 0) {
+      const withDate = new Set(resolved.map((e) => e.sentence));
+      const sessionDay = dayOf(source.ts);
+      for (const sentence of new Set(userSentences(source.text))) {
+        if (withDate.has(sentence) || sentence.endsWith('?') || FUTURE_CUE.test(sentence)) continue;
+        if (![...pastVerbs(sentence)].some((v) => verbs.has(v))) continue;
+        const words = wordsOf(sentence);
+        if (terms.filter((t) => !verbs.has(t) && words.has(t)).length === 0) continue;
+        const e: DatedEvent = { iso: sessionDay, expression: '', sentence, sessionDay, kind: 'undated', approximate: true };
+        undatedEvents.push(e);
+        events.push(e);
+      }
     }
     for (const x of extractQuantities(source.text)) {
       // a quantity belongs to the question when its unit is named in the question, or its
@@ -569,14 +744,39 @@ export function buildComputedNotes(
     const closest = byDistance.slice(0, 2).map((e) => `${e.iso} ("${snippet(e.sentence, 60)}", ${Math.round(Math.abs(msOf(e.iso) - msOf(ref.iso)) / DAY_MS)} days away)`);
     lines.push(`The question's "${ref.expression}" counted from the question date ${questionDay} is ${ref.iso}${ref.approximate ? ' (approximate)' : ''}; the closest dated event${closest.length > 1 ? 's' : ''}: ${closest.join('; ')}.`);
   }
+  // "How old was I when I moved here?": a stated age, and the question's event dated before it
+  if (/\bhow old\b|\bage\b/.test(q)) {
+    const stated = [...sources]
+      .sort((l, r) => r.ts.localeCompare(l.ts))
+      .flatMap((source) => userSentences(source.text).map((sentence) => ({ sentence, day: dayOf(source.ts), m: AGE_RE.exec(sentence) })))
+      .find((x) => x.m !== null);
+    if (stated !== undefined) {
+      const age = Number(stated.m![1]);
+      const candidates = events.filter((e) => e.kind !== 'undated' && !AGE_RE.test(e.sentence) && e.iso < stated.day);
+      const rank = (e: DatedEvent) => keywordHits(e.sentence) * 2 + (e.start ? 1 : 0);
+      const top = Math.max(0, ...candidates.map(rank));
+      const best = candidates.filter((e) => rank(e) === top);
+      if (top > 0 && new Set(best.map((e) => e.iso)).size === 1) {
+        const e = best[0]!;
+        const years = Math.round((msOf(stated.day) - msOf(e.iso)) / (365.25 * DAY_MS));
+        lines.push(`Age: "${snippet(stated.sentence, 60)}" makes you ${age} on ${stated.day}; "${snippet(e.sentence, 70)}" dates ${e.approximate ? '≈' : ''}${e.iso}${e.start ? ' (when that began)' : ''}, about ${years} years earlier, so the age then was about ${age - years} (${age} − ${years}; one less if the birthday falls in between).`);
+      }
+    }
+  }
   if (dated.length > 0) {
     lines.push('Dated events (each temporal expression resolved against the date of the session it was said in):');
     for (const e of dated) {
       const flags = [
-        e.approximate ? 'approximate' : '',
+        e.approximate && e.kind !== 'undated' ? 'approximate' : '',
+        e.monthOnly ? 'month only, no day stated' : '',
+        e.start ? 'when something still going on began' : '',
+        e.anchor ? `counted from ${e.anchor.iso} ("${snippet(e.anchor.sentence, 50)}", "${e.anchor.expression}")` : '',
         e.yearRolledBack ? 'no year stated; the year before the session, since the sentence tells it as past' : e.assumedYear ? 'year assumed from the session date' : '',
       ].filter(Boolean).join('; ');
-      lines.push(`- ${e.iso}: "${snippet(e.sentence)}" [said ${e.sessionDay}, "${e.expression}"${flags ? `; ${flags}` : ''}] — ${distance(e.iso, questionDay)}`);
+      const said = e.kind === 'undated' ? `said ${e.sessionDay}; no date stated, so dated by the session it was said in (it happened on or before that day)` : `said ${e.sessionDay}, "${e.expression}"`;
+      const when = e.monthOnly ? `${e.iso.slice(0, 7)} (month only)` : e.iso;
+      const far = e.monthOnly ? `the month began ${distance(e.iso, questionDay)}` : distance(e.iso, questionDay);
+      lines.push(`- ${when}: "${snippet(e.sentence)}" [${said}${flags ? `; ${flags}` : ''}] — ${far}`);
     }
     const distinct = [...new Map(dated.map((e) => [e.iso, e])).values()].sort((l, r) => l.iso.localeCompare(r.iso));
     if (asksOrder) {
@@ -622,7 +822,7 @@ export function buildComputedNotes(
       pairs.sort((l, r) => covered(r[0], r[1]) - covered(l[0], l[1]) || distinctCover(r[0], r[1]) - distinctCover(l[0], l[1]));
       const shown = pairs.slice(0, 4);
       lines.push(`Gaps between dated events (the pair whose sentences best match the question is listed first${pairs.length > shown.length ? `; ${pairs.length - shown.length} other pairs omitted` : ''}):`);
-      for (const [a, b] of shown) lines.push(`- ${a.iso} ("${snippet(a.sentence, 40)}") to ${b.iso} ("${snippet(b.sentence, 40)}"): ${gap(a.iso, b.iso)}${a.approximate || b.approximate ? ' [approximate: one end is a rough expression like "a month ago"]' : ''}`);
+      for (const [a, b] of shown) lines.push(`- ${a.iso} ("${snippet(a.sentence, 40)}") to ${b.iso} ("${snippet(b.sentence, 40)}"): ${gap(a.iso, b.iso)}${a.approximate || b.approximate ? ' [approximate: one end is a rough date, like "a month ago" or a date only implied by the session]' : ''}`);
     }
   }
   const counted = quantities.slice(0, maxQuantities);

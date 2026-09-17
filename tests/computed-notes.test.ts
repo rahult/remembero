@@ -263,3 +263,70 @@ describe('rule 3: which sentences count as relevant', () => {
     expect(notes).toMatch(/"ergo chair" is named in the history, but no sentence naming it carries a date/);
   });
 });
+
+describe('rule 2: dates for events stated without one', () => {
+  it('dates a past event with no date expression by its session, and says so', () => {
+    const notes = buildComputedNotes('When did I cancel my gym membership?', '2023/03/18 (Sat) 10:00', [
+      { ts: '2023-02-01T10:00:00Z', text: "USER: By the way, I'm glad I cancelled my gym membership at FitWorks, it was too pricey." },
+    ]);
+    expect(notes).toMatch(/- 2023-02-01: "[^"]*cancelled my gym membership[^"]*" \[said 2023-02-01; no date stated/);
+    const plan = buildComputedNotes('When did I cancel my gym membership?', '2023/03/18 (Sat) 10:00', [
+      { ts: '2023-02-01T10:00:00Z', text: "USER: I'm planning to cancel my gym membership soon." },
+    ]);
+    expect(plan).toBe('');
+  });
+
+  it('turns "for N units now" into an approximate start date, only in the extended reading', () => {
+    const text = "USER: By the way, I've been getting into pottery for about four months now. I went to Spain for two weeks.";
+    const events = resolveTemporalExpressions(text, '2023-05-01T10:00:00Z', { extended: true });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ iso: '2023-01-01', start: true, approximate: true, expression: 'for about four months now' });
+    expect(resolveTemporalExpressions(text, '2023-05-01T10:00:00Z')).toEqual([]);
+    const past = resolveTemporalExpressions("USER: I've been living in Canada for the past three years.", '2023-05-27T10:00:00Z', { extended: true });
+    expect(past.map((e) => e.iso)).toEqual(['2020-05-27']);
+  });
+
+  it('gives the age at an event from a stated age and a start date', () => {
+    const notes = buildComputedNotes('How old was I when I moved to Canada?', '2023/05/27 (Sat) 10:00', [
+      {
+        ts: '2023-05-27T10:00:00Z',
+        text: "USER: I've been living in Canada for the past three years on a work permit.\n\nUSER: I'm a 40-year-old nurse, and I want to apply for residency.",
+      },
+    ]);
+    expect(notes).toMatch(/^Age: [^\n]*40 on 2023-05-27[^\n]*about 37\b/m);
+  });
+
+  it('reads a month without a day as a month, in the year the tense points to', () => {
+    const at = '2023-03-17T10:00:00Z';
+    const one = (text: string) => resolveTemporalExpressions(`USER: ${text}`, at, { extended: true });
+    expect(one('My cousin Dana adopted a puppy in January.')).toMatchObject([{ iso: '2023-01-01', monthOnly: true, kind: 'month' }]);
+    expect(one('We visited Rome in November.').map((e) => e.iso)).toEqual(['2022-11-01']);
+    expect(one("I'm flying to Lisbon in June.").map((e) => e.iso)).toEqual(['2023-06-01']);
+    expect(one('I may go to the lake in the spring.')).toEqual([]);
+    expect(one('I went there on January 10th.').map((e) => e.iso)).toEqual(['2023-01-10']);
+    const notes = buildComputedNotes('When did Dana adopt the puppy?', '2023/03/17 (Fri) 10:00', [{ ts: at, text: 'USER: My cousin Dana adopted a puppy in January.' }]);
+    expect(notes).toMatch(/- 2023-01 \(month only\): /);
+  });
+
+  it('counts "N units before <event>" from that event, never from the session', () => {
+    const at = '2023-03-15T10:00:00Z';
+    const chained = resolveTemporalExpressions('USER: I got my new phone on March 3rd. I bought a phone case a week before I got my new phone.', at);
+    const caseEvent = chained.find((e) => e.expression.startsWith('a week before'));
+    expect(caseEvent?.iso).toBe('2023-02-24');
+    expect(caseEvent?.anchor?.iso).toBe('2023-03-03');
+    // nothing to count from: no date at all, rather than "a week ago"
+    expect(resolveTemporalExpressions('USER: I bought a charger a week before I started my trip.', at)).toEqual([]);
+    // still "ago" when nothing follows
+    expect(resolveTemporalExpressions('USER: I fixed it two days before, luckily.', at).map((e) => e.iso)).toEqual(['2023-03-13']);
+  });
+
+  it('counts "N units in advance" from the event the sentence books for', () => {
+    const events = resolveTemporalExpressions(
+      "USER: I stayed at a cabin for my sister's graduation and had to book two months in advance.\n\nUSER: I went to my sister's graduation exactly one month ago.",
+      '2023-06-01T10:00:00Z',
+    );
+    const booking = events.find((e) => e.expression === 'two months in advance');
+    expect(booking).toMatchObject({ iso: '2023-03-01', approximate: true });
+    expect(booking?.anchor?.iso).toBe('2023-05-01');
+  });
+});
