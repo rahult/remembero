@@ -498,3 +498,31 @@ stopped it was killed by the Mac's memory pressure. Pods now stop themselves fro
 training pods self-stop on `TRAIN_DONE` and `TRAIN_FAILED`, and serving pods have
 `--idle-minutes` (45) and `--max-hours` (4) watchdogs. No local process is load-bearing for
 billing any more.
+
+## Teacher search: Kimi K3 and GPT Sol against GLM 5.3 Flash (2026-09-17)
+
+Reader v7 scores 203 on the 266 against its teacher's 217, so more distillation from the same
+teacher has little left to give. Two stronger-looking models were measured as readers under the
+exact contract the student learns from (`--date-distances --computed-notes --context-bytes
+24576`, depth 4/15/10, DeepSeek judge), through OpenRouter.
+
+| Reader | 100-question subset | 266 multi-session + temporal | Price per million tokens in / out |
+|---|---|---|---|
+| GLM 5.3 Flash (current teacher) | 87 | 217 | Ollama Cloud subscription |
+| Kimi K3 (`moonshotai/kimi-k3`, temperature 1) | 89 | 215 (1 error) | $3 / $15 |
+| GPT-5.6 Sol (`openai/gpt-5.6-sol`) | 82 | not run | $2 / $10 |
+
+K3 ties GLM: on the 266 it gains 8 answers and loses 10 against GLM, and the per-type totals
+are identical on multi-session (100) and two lower on temporal. Sol falls five below GLM on the
+subset, mostly on multi-session (18 of 27 against 20), so it was not taken to the 266. The whole
+search cost $5.80 of OpenRouter credit; K3 measured at about $0.008 a question, far below the
+estimate from list prices, because the reader prompts are short and its answers terse. Moonshot's
+own API allows this account one concurrent request, which is not enough for an evaluation, let
+alone a distillation round.
+
+**The teacher is not the bottleneck.** Three frontier-class readers land within noise of one
+another on these questions, and the free one is among the best. What they share is the
+remaining misses: counting items spread across sessions. The next gain has to come from the
+structure handed to the reader (counted items built by code from the fact store, the
+engine-recall path) or from verifying the teacher's answers before they become training data,
+not from a pricier teacher. GLM 5.3 Flash stays the teacher.
