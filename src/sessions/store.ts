@@ -3,6 +3,8 @@ import {
   appendFileSync,
   closeSync,
   existsSync,
+  fstatSync,
+  lstatSync,
   mkdirSync,
   openSync,
   readSync,
@@ -28,6 +30,14 @@ const NAMESPACE_PATTERN = /^[a-z0-9_-]+$/;
 /** A session key is the first 32 hex characters of a digest, so no id can escape the directory. */
 const SESSION_KEY_PATTERN = /^[0-9a-f]{32}$/;
 const INDEX_FILE = 'index.json';
+
+// The same lock discipline as the fact store's `withLock` (src/store/store.ts): a
+// `wx` create for the lock, the owner's pid inside it, and an age-plus-liveness
+// test before a crashed writer's lock is taken over.
+const LOCK_WAIT_MS = 2_000;
+const LOCK_STALE_MS = 30_000;
+const LOCK_RETRY_MS = 10;
+const sleepCell = new Int32Array(new SharedArrayBuffer(4));
 
 export type SessionSource = 'claude-code' | 'remember' | 'import';
 
@@ -62,6 +72,11 @@ export interface SessionAppendResult {
   masked: number;
   dropped: string[];
 }
+
+type SessionFileState =
+  | { kind: 'absent' }
+  | { kind: 'unreadable'; reason: string }
+  | { kind: 'session'; header: SessionHeader; turns: SessionTurn[] };
 
 export interface SessionStoreOptions {
   root?: string;
@@ -111,6 +126,26 @@ function assertHeader(header: SessionHeader): void {
   }
 }
 
+/**
+ * A turn's `ts` reaches the index as `lastTs` and the reader's date-distance
+ * arithmetic from there, so it is checked the way a header's `startedAt` is.
+ */
+function assertTurn(turn: {
+  role: 'user' | 'assistant';
+  ts: string;
+  text: string;
+}): void {
+  if (turn.role !== 'user' && turn.role !== 'assistant') {
+    throw new Error(`session turn role must be user or assistant: ${turn.role}`);
+  }
+  if (typeof turn.text !== 'string') {
+    throw new Error('session turn text must be a string');
+  }
+  if (typeof turn.ts !== 'string' || Number.isNaN(Date.parse(turn.ts))) {
+    throw new Error(`session turn ts is not a timestamp: ${turn.ts}`);
+  }
+}
+
 /** Only the header's known fields reach the file, in a stable order. */
 function headerLine(header: SessionHeader): string {
   const stored: SessionHeader = {
@@ -134,7 +169,14 @@ function turnHash(role: string, text: string): string {
  */
 function maskTurnText(text: string): { text: string; masked: boolean } {
   const spans = maskSensitiveSpans(text);
-  if (containsSensitiveText(spans.text)) {
+  // The pre-mask text decides too: if the detector saw a secret that the masker
+  // did not touch, keep nothing rather than store it in the clear. Nothing should
+  // reach this today — the two share one pattern set — so it is a guard against
+  // the masker and the detector drifting apart.
+  if (
+    containsSensitiveText(spans.text) ||
+    (spans.masked === 0 && containsSensitiveText(text))
+  ) {
     return { text: REDACTED_SOURCE, masked: true };
   }
   return { text: spans.text, masked: spans.masked > 0 };
@@ -154,6 +196,28 @@ function endsWithNewline(path: string): boolean {
     return tail[0] === 0x0a;
   } finally {
     closeSync(handle);
+  }
+}
+
+/** A lock whose owner is still running is never taken over, however old it looks. */
+function lockOwnerAlive(lockPath: string): boolean {
+  try {
+    const owner = JSON.parse(readFileSync(lockPath, 'utf8')) as {
+      pid?: unknown;
+    };
+    if (!Number.isSafeInteger(owner.pid) || (owner.pid as number) <= 0) {
+      return false;
+    }
+    try {
+      process.kill(owner.pid as number, 0);
+      return true;
+    } catch (error) {
+      // EPERM means the process exists but belongs to someone else.
+      return (error as NodeJS.ErrnoException).code === 'EPERM';
+    }
+  } catch {
+    // A crashed writer can leave an empty or partial lock; age alone gates cleanup.
+    return false;
   }
 }
 
@@ -197,6 +261,7 @@ export class SessionStore {
   private readonly root: string;
   private readonly capBytes: number;
   private readonly log: (message: string) => void;
+  private readonly heldLocks = new Set<string>();
 
   constructor(options: SessionStoreOptions = {}) {
     this.root = options.root ?? sessionsRoot();
@@ -226,23 +291,37 @@ export class SessionStore {
   ): SessionAppendResult {
     assertNamespace(namespace);
     assertHeader(header);
-    const key = this.sessionKey(header.source, header.sourceSessionId);
+    // The whole batch is checked before anything is written, so a bad turn in the
+    // middle of a batch cannot leave half of it stored.
+    for (const turn of turns) assertTurn(turn);
     if (turns.length === 0) {
       return { appended: 0, skipped: 0, masked: 0, dropped: [] };
     }
+    return this.withNamespaceLock(namespace, () =>
+      this.appendTurnsUnlocked(namespace, header, turns),
+    );
+  }
+
+  private appendTurnsUnlocked(
+    namespace: string,
+    header: SessionHeader,
+    turns: Array<{ role: 'user' | 'assistant'; ts: string; text: string }>,
+  ): SessionAppendResult {
+    const key = this.sessionKey(header.source, header.sourceSessionId);
     const dir = join(this.root, namespace);
     const path = join(dir, `${key}.jsonl`);
-    const existing = this.readSessionFile(path);
+    const state = this.inspectSessionFile(path);
+    if (state.kind === 'unreadable') this.quarantine(path, state.reason);
+    const existing = state.kind === 'session' ? state : undefined;
     const seen = new Set(existing?.turns.map((turn) => turn.hash) ?? []);
-    let index = existing?.turns.length ?? 0;
+    // Continue past the highest index the file still holds: a dropped line must
+    // not hand its index to a new turn.
+    let index = (existing?.turns.at(-1)?.index ?? -1) + 1;
     let appended = 0;
     let skipped = 0;
     let masked = 0;
     const lines: string[] = existing === undefined ? [headerLine(header)] : [];
     for (const turn of turns) {
-      if (turn.role !== 'user' && turn.role !== 'assistant') {
-        throw new Error(`session turn role must be user or assistant: ${turn.role}`);
-      }
       const stored = maskTurnText(turn.text);
       if (stored.masked) masked += 1;
       const hash = turnHash(turn.role, stored.text);
@@ -294,26 +373,30 @@ export class SessionStore {
   deleteSession(namespace: string, key: string): boolean {
     assertNamespace(namespace);
     assertSessionKey(key);
-    const dir = join(this.root, namespace);
-    const path = join(dir, `${key}.jsonl`);
-    if (!existsSync(path)) return false;
-    unlinkSync(path);
-    this.writeIndex(
-      dir,
-      this.readIndex(dir)
-        .filter((entry) => entry.key !== key)
-        .sort(byStartedAt),
-    );
-    return true;
+    return this.withNamespaceLock(namespace, () => {
+      const dir = join(this.root, namespace);
+      const path = join(dir, `${key}.jsonl`);
+      if (!existsSync(path)) return false;
+      unlinkSync(path);
+      this.writeIndex(
+        dir,
+        this.readIndex(dir)
+          .filter((entry) => entry.key !== key)
+          .sort(byStartedAt),
+      );
+      return true;
+    });
   }
 
   deleteNamespace(namespace: string): number {
     assertNamespace(namespace);
-    const dir = join(this.root, namespace);
-    if (!existsSync(dir)) return 0;
-    const removed = this.sessionFiles(dir).length;
-    rmSync(dir, { recursive: true, force: true });
-    return removed;
+    return this.withNamespaceLock(namespace, () => {
+      const dir = join(this.root, namespace);
+      if (!existsSync(dir)) return 0;
+      const removed = this.sessionFiles(dir).length;
+      rmSync(dir, { recursive: true, force: true });
+      return removed;
+    });
   }
 
   private sessionFiles(dir: string): string[] {
@@ -323,17 +406,28 @@ export class SessionStore {
     );
   }
 
-  private readSessionFile(
-    path: string,
-  ): { header: SessionHeader; turns: SessionTurn[] } | undefined {
-    if (!existsSync(path)) return undefined;
+  /**
+   * A torn or missing header must not brick the session, nor the namespace's index
+   * rebuild, so the state is reported rather than thrown: the reader skips an
+   * unreadable file and `appendTurns` quarantines it and starts a fresh one.
+   */
+  private inspectSessionFile(path: string): SessionFileState {
+    if (!existsSync(path)) return { kind: 'absent' };
     const lines = readFileSync(path, 'utf8')
       .split('\n')
       .filter((line) => line.trim() !== '');
-    if (lines.length === 0) return undefined;
-    const header: unknown = JSON.parse(lines[0]);
+    if (lines.length === 0) return { kind: 'absent' };
+    let header: unknown;
+    try {
+      header = JSON.parse(lines[0]);
+    } catch {
+      return { kind: 'unreadable', reason: 'its header line is unreadable' };
+    }
     if (!isHeaderRecord(header)) {
-      throw new Error(`session file has no header line: ${path}`);
+      return {
+        kind: 'unreadable',
+        reason: 'its first line is not a readable session header',
+      };
     }
     const turns: SessionTurn[] = [];
     for (const line of lines.slice(1)) {
@@ -345,9 +439,38 @@ export class SessionStore {
         this.log(`rembero sessions: ignoring an unreadable turn in ${path}`);
         continue;
       }
-      if (isTurnRecord(parsed)) turns.push(parsed);
+      if (isTurnRecord(parsed)) {
+        turns.push(parsed);
+      } else {
+        this.log(
+          `rembero sessions: ignoring a line that is not a turn in ${path}`,
+        );
+      }
     }
-    return { header, turns };
+    return { kind: 'session', header, turns };
+  }
+
+  private readSessionFile(
+    path: string,
+  ): { header: SessionHeader; turns: SessionTurn[] } | undefined {
+    const state = this.inspectSessionFile(path);
+    if (state.kind === 'session') {
+      return { header: state.header, turns: state.turns };
+    }
+    if (state.kind === 'unreadable') {
+      this.log(`rembero sessions: skipping ${path} because ${state.reason}`);
+    }
+    return undefined;
+  }
+
+  /** Move an unreadable file aside so a fresh session can take its place. */
+  private quarantine(path: string, reason: string): void {
+    const target = `${path}.corrupt`;
+    renameSync(path, target);
+    this.log(
+      `rembero sessions: quarantined ${path} as ${target} because ${reason}; ` +
+        'a fresh session file starts in its place',
+    );
   }
 
   /** Recompute this session's entry, then drop whole sessions until the namespace fits. */
@@ -436,6 +559,85 @@ export class SessionStore {
     } catch (error) {
       this.unlinkIfPresent(tmp);
       throw error;
+    }
+  }
+
+  /**
+   * One writer per namespace. The index is read, modified and rewritten, and the
+   * turn hashes are read before the append, so two writers in one namespace — a
+   * second stop hook, or capture while `sessions import` runs — would otherwise
+   * lose an index entry or duplicate a turn, last writer winning.
+   *
+   * This mirrors `MemoryStore.withLock` (src/store/store.ts:935) rather than
+   * calling it: that method is private to a class built around the fact store's
+   * root, and `src/store/store.ts` is not mine to change in this pass. Lifting the
+   * two into one `src/store/file-lock.ts` is the obvious follow-up.
+   */
+  private withNamespaceLock<T>(namespace: string, operation: () => T): T {
+    const name = `session-${namespace}`;
+    if (this.heldLocks.has(name)) return operation();
+    mkdirSync(this.root, { recursive: true, mode: 0o700 });
+    const lockPath = join(this.root, `.${name}.lock`);
+    const deadline = Date.now() + LOCK_WAIT_MS;
+    let descriptor: number | undefined;
+    let ownedDevice: number | undefined;
+    let ownedInode: number | undefined;
+    while (descriptor === undefined) {
+      try {
+        const acquired = openSync(lockPath, 'wx', 0o600);
+        try {
+          writeFileSync(
+            acquired,
+            `${JSON.stringify({ pid: process.pid, createdAt: new Date().toISOString() })}\n`,
+            'utf8',
+          );
+          const owned = fstatSync(acquired);
+          ownedDevice = owned.dev;
+          ownedInode = owned.ino;
+          descriptor = acquired;
+        } catch (error) {
+          closeSync(acquired);
+          this.unlinkIfPresent(lockPath);
+          throw error;
+        }
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+        try {
+          const lock = lstatSync(lockPath);
+          if (lock.isSymbolicLink()) {
+            throw new Error(`refusing symbolic-link lock file ${lockPath}`);
+          }
+          if (
+            Date.now() - lock.mtimeMs > LOCK_STALE_MS &&
+            !lockOwnerAlive(lockPath)
+          ) {
+            unlinkSync(lockPath);
+            continue;
+          }
+        } catch (statError) {
+          if ((statError as NodeJS.ErrnoException).code === 'ENOENT') continue;
+          throw statError;
+        }
+        if (Date.now() >= deadline) {
+          throw new Error(`timed out waiting for session lock '${name}'`);
+        }
+        Atomics.wait(sleepCell, 0, 0, LOCK_RETRY_MS);
+      }
+    }
+    try {
+      this.heldLocks.add(name);
+      return operation();
+    } finally {
+      this.heldLocks.delete(name);
+      closeSync(descriptor);
+      try {
+        const current = lstatSync(lockPath);
+        if (current.dev === ownedDevice && current.ino === ownedInode) {
+          unlinkSync(lockPath);
+        }
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+      }
     }
   }
 

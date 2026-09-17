@@ -9,11 +9,6 @@ export const REDACTED_SPAN = '[redacted]';
 // masking needs the arguments too, or the value survives in the clear.
 const SENSITIVE_CALL_PATTERN =
   /\b(?:api[_ -]?key|password|passwd|secret|access[_ -]?token|refresh[_ -]?token|account[_ -]?number|credit[_ -]?card)\s*\(/i;
-const SENSITIVE_CALL_SPAN_PATTERN = new RegExp(
-  `${SENSITIVE_CALL_PATTERN.source}[^)]*\\)`,
-  SENSITIVE_CALL_PATTERN.flags,
-);
-
 const SENSITIVE_TEXT_PATTERNS = [
   /\b(?:api[_ -]?key|password|passwd|secret|access[_ -]?token|refresh[_ -]?token|account[_ -]?number|credit[_ -]?card)\b["']?\s*(?:is|=|:)\s*["']?\S+/i,
   SENSITIVE_CALL_PATTERN,
@@ -117,6 +112,47 @@ function globalCopy(pattern: RegExp): RegExp {
 }
 
 /**
+ * Where a credential call's arguments end: the matching close paren, counting
+ * nesting, and the end of the line when the parens never balance. A regex cannot
+ * do this — `[^)]*\)` stops at the first close paren of a nested call and matches
+ * nothing at all when there is no close paren, which left the secret in the clear.
+ */
+function callSpanEnd(value: string, afterOpenParen: number): number {
+  let depth = 1;
+  for (let index = afterOpenParen; index < value.length; index += 1) {
+    const character = value[index];
+    if (character === '\n') return index;
+    if (character === '(') depth += 1;
+    else if (character === ')') {
+      depth -= 1;
+      if (depth === 0) return index + 1;
+    }
+  }
+  return value.length;
+}
+
+/** Mask `password(...)` and friends, arguments and all. */
+function maskCallSpans(value: string): { text: string; masked: number } {
+  const finder = globalCopy(SENSITIVE_CALL_PATTERN);
+  let text = '';
+  let cursor = 0;
+  let masked = 0;
+  let match = finder.exec(value);
+  while (match !== null) {
+    // A nested credential call inside a span already masked adds nothing.
+    if (match.index >= cursor) {
+      const end = callSpanEnd(value, match.index + match[0].length);
+      text += value.slice(cursor, match.index) + REDACTED_SPAN;
+      masked += 1;
+      cursor = end;
+      finder.lastIndex = end;
+    }
+    match = finder.exec(value);
+  }
+  return { text: text + value.slice(cursor), masked };
+}
+
+/**
  * Replace each sensitive span with `[redacted]` and keep the rest of the text.
  * `redactSensitiveText` throws the whole passage away, which is right for a fact's
  * source line; a stored conversation turn is mostly ordinary text, so the session
@@ -128,12 +164,10 @@ export function maskSensitiveSpans(value: string): {
   text: string;
   masked: number;
 } {
-  let text = value;
-  let masked = 0;
-  for (const pattern of [
-    SENSITIVE_CALL_SPAN_PATTERN,
-    ...SENSITIVE_TEXT_PATTERNS,
-  ]) {
+  const calls = maskCallSpans(value);
+  let text = calls.text;
+  let masked = calls.masked;
+  for (const pattern of SENSITIVE_TEXT_PATTERNS) {
     text = text.replace(globalCopy(pattern), () => {
       masked += 1;
       return REDACTED_SPAN;

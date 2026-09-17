@@ -88,6 +88,26 @@ describe('sensitive text detection', () => {
     expect(containsSensitiveText(result.text)).toBe(false);
   });
 
+  it('masks a call that never closes, and one that nests', () => {
+    const unclosed = maskSensitiveSpans('password(hunter2');
+    expect(unclosed.text).not.toContain('hunter2');
+    expect(unclosed.masked).toBe(1);
+    expect(containsSensitiveText(unclosed.text)).toBe(false);
+
+    const nested = maskSensitiveSpans("password(secret(x), 'val')");
+    expect(nested.text).not.toContain('val');
+    expect(nested.masked).toBe(1);
+    expect(containsSensitiveText(nested.text)).toBe(false);
+  });
+
+  it('masks an unclosed call only to the end of its line', () => {
+    const result = maskSensitiveSpans(
+      'password(hunter2\nI rode 40 km on the new bike'
+    );
+    expect(result.text).toBe('[redacted]\nI rode 40 km on the new bike');
+    expect(result.masked).toBe(1);
+  });
+
   it('masks an assigned credential and leaves nothing sensitive behind', () => {
     const result = maskSensitiveSpans('My password is correct-horse.');
     expect(result.masked).toBe(1);

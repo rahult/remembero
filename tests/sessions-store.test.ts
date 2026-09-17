@@ -1,4 +1,12 @@
-import { appendFileSync, mkdtempSync, readFileSync } from 'node:fs';
+import {
+  appendFileSync,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  utimesSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -140,6 +148,180 @@ describe('session store', () => {
       'Rode 40 km today',
     ]);
     expect(logged.join('\n')).toContain('unreadable turn');
+  });
+
+  it('quarantines a torn header and keeps the rest of the namespace working', () => {
+    const root = mkdtempSync(join(tmpdir(), 'rembero-sessions-header-'));
+    const logged: string[] = [];
+    const owner = new SessionStore({
+      root,
+      capBytes: 1024 * 1024,
+      log: (message) => logged.push(message),
+    });
+    owner.appendTurns('default', header, [
+      { role: 'user', ts: '2026-09-18T00:00:00.000Z', text: 'I bought a road bike' },
+    ]);
+    owner.appendTurns('default', { ...header, sourceSessionId: 'other' }, [
+      { role: 'user', ts: '2026-09-18T00:00:01.000Z', text: 'A different session' },
+    ]);
+    const key = owner.sessionKey('claude-code', 'abc');
+    const other = owner.sessionKey('claude-code', 'other');
+    const path = join(root, 'default', `${key}.jsonl`);
+    const lines = readFileSync(path, 'utf8').trimEnd().split('\n');
+    // A crash while the header was being written.
+    writeFileSync(
+      path,
+      [`{"version":1,"source":"claude-c`, ...lines.slice(1)].join('\n') + '\n'
+    );
+    // ...and no index.json to fall back on.
+    rmSync(join(root, 'default', 'index.json'));
+
+    expect(owner.readSession('default', key)).toBeUndefined();
+    expect(owner.list('default').map((e) => e.key)).toEqual([other]);
+    expect(
+      owner.appendTurns('default', { ...header, sourceSessionId: 'other' }, [
+        { role: 'user', ts: '2026-09-18T00:00:02.000Z', text: 'Still writing' },
+      ]).appended
+    ).toBe(1);
+
+    const result = owner.appendTurns('default', header, [
+      { role: 'user', ts: '2026-09-18T00:00:03.000Z', text: 'After the tear' },
+    ]);
+    expect(result.appended).toBe(1);
+    expect(existsSync(`${path}.corrupt`)).toBe(true);
+    expect(owner.readSession('default', key)!.turns.map((t) => t.text)).toEqual([
+      'After the tear',
+    ]);
+    expect(logged.join('\n')).toContain('unreadable');
+  });
+
+  it('never reuses a turn index after a line is dropped', () => {
+    const root = mkdtempSync(join(tmpdir(), 'rembero-sessions-index-'));
+    const owner = new SessionStore({
+      root,
+      capBytes: 1024 * 1024,
+      log: () => {},
+    });
+    owner.appendTurns('default', header, [
+      { role: 'user', ts: '2026-09-18T00:00:00.000Z', text: 'I bought a road bike' },
+      { role: 'assistant', ts: '2026-09-18T00:00:01.000Z', text: 'Nice, which model?' },
+    ]);
+    const key = owner.sessionKey('claude-code', 'abc');
+    const path = join(root, 'default', `${key}.jsonl`);
+    const lines = readFileSync(path, 'utf8').trimEnd().split('\n');
+    // The turn at index 0 is now unreadable; the turn at index 1 survives.
+    writeFileSync(
+      path,
+      [lines[0], '{"index":0,"role":"user"', lines[2]].join('\n') + '\n'
+    );
+    const result = owner.appendTurns('default', header, [
+      { role: 'user', ts: '2026-09-18T00:00:02.000Z', text: 'Rode 40 km today' },
+      { role: 'user', ts: '2026-09-18T00:00:03.000Z', text: 'And 20 more' },
+    ]);
+    expect(result.appended).toBe(2);
+    const indexes = owner.readSession('default', key)!.turns.map((t) => t.index);
+    expect(indexes).toEqual([1, 2, 3]);
+    expect(new Set(indexes).size).toBe(indexes.length);
+  });
+
+  it('holds a per-namespace lock across the append and the index refresh', () => {
+    const root = mkdtempSync(join(tmpdir(), 'rembero-sessions-lock-'));
+    let onLog: (message: string) => void = () => {};
+    const first = new SessionStore({
+      root,
+      capBytes: 400,
+      log: (message) => onLog(message),
+    });
+    const second = new SessionStore({ root, capBytes: 400, log: () => {} });
+    first.appendTurns(
+      'default',
+      { ...header, sourceSessionId: 'old', startedAt: '2026-09-01T00:00:00.000Z' },
+      [{ role: 'user', ts: '2026-09-01T00:00:00.000Z', text: 'x'.repeat(300) }]
+    );
+    let nested: unknown;
+    onLog = () => {
+      if (nested !== undefined) return;
+      try {
+        second.appendTurns('default', { ...header, sourceSessionId: 'rival' }, [
+          { role: 'user', ts: '2026-09-18T00:00:00.000Z', text: 'racing' },
+        ]);
+        nested = 'appended without waiting for the lock';
+      } catch (error) {
+        nested = error;
+      }
+    };
+    // The drop inside the locked region is where the second writer tries to cut in.
+    first.appendTurns(
+      'default',
+      { ...header, sourceSessionId: 'new', startedAt: '2026-09-18T00:00:00.000Z' },
+      [{ role: 'user', ts: '2026-09-18T00:00:00.000Z', text: 'y'.repeat(300) }]
+    );
+    expect(nested).toBeInstanceOf(Error);
+    expect((nested as Error).message).toMatch(/lock/i);
+    onLog = () => {};
+    // The lock is released, so the rival can write once the first writer is done.
+    expect(
+      second.appendTurns('default', { ...header, sourceSessionId: 'rival' }, [
+        { role: 'user', ts: '2026-09-18T00:00:00.000Z', text: 'racing' },
+      ]).appended
+    ).toBe(1);
+  });
+
+  it('takes over a stale lock whose owner is gone, and leaves none behind', () => {
+    const root = mkdtempSync(join(tmpdir(), 'rembero-sessions-stale-'));
+    const owner = new SessionStore({ root, capBytes: 1024 * 1024 });
+    const lockPath = join(root, '.session-default.lock');
+    writeFileSync(
+      lockPath,
+      `${JSON.stringify({ pid: 2147483646, createdAt: '2026-09-01T00:00:00.000Z' })}\n`
+    );
+    const longAgo = Date.now() / 1000 - 120;
+    utimesSync(lockPath, longAgo, longAgo);
+    expect(
+      owner.appendTurns('default', header, [
+        { role: 'user', ts: '2026-09-18T00:00:00.000Z', text: 'I bought a road bike' },
+      ]).appended
+    ).toBe(1);
+    expect(existsSync(lockPath)).toBe(false);
+  });
+
+  it('logs a line that parses but is not a turn', () => {
+    const root = mkdtempSync(join(tmpdir(), 'rembero-sessions-junk-'));
+    const logged: string[] = [];
+    const owner = new SessionStore({
+      root,
+      capBytes: 1024 * 1024,
+      log: (message) => logged.push(message),
+    });
+    owner.appendTurns('default', header, [
+      { role: 'user', ts: '2026-09-18T00:00:00.000Z', text: 'I bought a road bike' },
+    ]);
+    const key = owner.sessionKey('claude-code', 'abc');
+    appendFileSync(
+      join(root, 'default', `${key}.jsonl`),
+      '{"note":"a line that is not a turn"}\n'
+    );
+    expect(owner.readSession('default', key)!.turns).toHaveLength(1);
+    expect(logged.join('\n')).toContain('not a turn');
+  });
+
+  it('rejects a turn timestamp that is not a timestamp', () => {
+    const root = mkdtempSync(join(tmpdir(), 'rembero-sessions-ts-'));
+    const owner = new SessionStore({ root, capBytes: 1024 * 1024 });
+    expect(() =>
+      owner.appendTurns('default', header, [
+        { role: 'user', ts: 'whenever', text: 'I bought a road bike' },
+      ])
+    ).toThrow(/ts/i);
+    // Nothing is written when a batch is rejected.
+    expect(owner.list('default')).toEqual([]);
+    expect(() =>
+      owner.appendTurns('default', header, [
+        { role: 'user', ts: '2026-09-18T00:00:00.000Z', text: 'fine' },
+        { role: 'user', ts: '', text: 'not fine' },
+      ])
+    ).toThrow(/ts/i);
+    expect(owner.list('default')).toEqual([]);
   });
 
   it('rejects a namespace that is not [a-z0-9_-]+', () => {
