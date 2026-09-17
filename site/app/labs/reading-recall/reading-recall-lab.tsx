@@ -212,11 +212,11 @@ export function ReadingRecallLab() {
 
         <footer className={styles.labFooter}>
           <p>
-            The measured version of this pipeline — with the trained reader, the full parser, and the
+            The measured version of this pipeline — with a real small reader model, the full parser, and the
             typed re-ranker — is documented run by run in{" "}
-            <a href={readerDoc}>the reader structure research log</a>: 318 → 359 on the 500 from the
-            notes alone, and 425/500 for the full stack against the teacher&apos;s 440. None of it is
-            served from this site.
+            <a href={readerDoc}>the research log</a>: adding the code-written notes alone took the small
+            reader from 318 to 359 of 500, and the full system reaches 425 — fifteen short of the frontier
+            model that trained it. None of it is served from this site.
           </p>
           <p className={styles.resetNote}>Nothing is stored and nothing leaves this tab — refresh to reset.</p>
         </footer>

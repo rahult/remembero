@@ -21,22 +21,21 @@ test("server-renders the Remembero marketing homepage with lab and playground na
   const html = await response.text();
   assert.match(html, /<title>Remembero — Memory you can reason with<\/title>/i);
   assert.match(html, /Memory you(?:<br\/>|\s)+can <em>reason<\/em> with\./);
-  assert.match(html, /Not another vector store\./);
-  assert.match(html, /The database is the demo\./);
-  assert.match(html, /Structure first\./);
+  assert.match(html, /AI that forgets/);
+  assert.match(html, /Write it down\./);
   assert.match(html, /Four workbenches\./);
+  assert.match(html, /We measured <em>everything\.<\/em>/);
+  assert.match(html, /318 → 425/);
+  assert.match(html, /ran with zero models/);
   assert.match(html, /Models translate\./);
-  assert.match(html, /Measured, never served\./);
-  assert.match(html, /This site ships no model weights and calls no model API\./);
-  assert.match(html, /Worked examples, with the/);
-  assert.match(html, /425<i>\/500<\/i>/);
-  assert.match(html, /318 <i>→ 359<\/i>/);
-  assert.match(html, /href="#research"/);
-  assert.match(html, /href="#models"/);
-  assert.match(html, /href="#examples"/);
-  assert.match(html, /remembro-eval\/README\.md/);
-  assert.match(html, /docs\/research\/READER-STRUCTURE\.md/);
+  assert.match(html, /See it work — 60 seconds/);
   assert.match(html, /Build agents that can/);
+  assert.match(html, /href="#problem"/);
+  assert.match(html, /href="#idea"/);
+  assert.match(html, /href="#try"/);
+  assert.match(html, /href="#evidence"/);
+  assert.match(html, /href="#demo"/);
+  assert.match(html, /href="\/research"/);
   assert.match(html, /href="\/playground"/);
   assert.match(html, /href="\/labs\/chat-memory"/);
   assert.match(html, /href="\/labs\/grounded-agent"/);
@@ -44,6 +43,32 @@ test("server-renders the Remembero marketing homepage with lab and playground na
   assert.match(html, /href="\/guides\/agent-harness"/);
   assert.match(html, /http:\/\/localhost(?::3000)?\/og\.png/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/i);
+  assert.doesNotMatch(html, /Reader v7|reader v4|Gemma 4 E4B, distilled/);
+});
+
+test("server-renders the de-jargonized research page with the measured evidence", async () => {
+  const response = await render("/research");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /<title>Remembero Research — The evidence, measured<\/title>/i);
+  assert.match(html, /Every claim on this site/);
+  assert.match(html, /LongMemEval-S/);
+  assert.match(html, /318 <i>→ 359<\/i>/);
+  assert.match(html, /425<i>\/500<\/i>/);
+  assert.match(html, /teacher 440/);
+  assert.match(html, /Not served here/);
+  assert.match(html, /ships no model weights/);
+  assert.match(html, /The translator/);
+  assert.match(html, /The answerer/);
+  assert.match(html, /one automated grader \(GPT-4o\)/);
+  assert.match(html, /one grader \(DeepSeek\)/);
+  assert.match(html, /remembro-eval\/README\.md/);
+  assert.match(html, /docs\/research\/READER-STRUCTURE\.md/);
+  assert.match(html, /docs\/research\/EXTRACTION-BENCH\.md/);
+  assert.match(html, /href="\/labs\/reading-recall"/);
+  assert.match(html, /href="\/playground"/);
+  assert.doesNotMatch(html, /Reader v7|reader v4/);
+  assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 
 test("server-renders the deterministic reading recall lab", async () => {
@@ -60,8 +85,9 @@ test("server-renders the deterministic reading recall lab", async () => {
   assert.match(html, /When exactly did I move to the Marina\?/);
   assert.match(html, /COMPUTED NOTES — written by code, not a model/);
   assert.match(html, /full text/);
-  assert.match(html, /Reader v7, notes \+ thinking step — replay/);
+  assert.match(html, /Small reader, notes \+ working — replay/);
   assert.match(html, /docs\/research\/READER-STRUCTURE\.md/);
+  assert.doesNotMatch(html, /Reader v7|reader v4/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 
@@ -148,7 +174,7 @@ test("server-renders the agent harness integration guide", async () => {
 });
 
 test("labs run real browser-safe tool and policy loops without remote model APIs or persistence surfaces", async () => {
-  const [chatClient, chatEngine, chatTools, agentClient, agentEngine, browserModel, recallClient, recallFixture] = await Promise.all([
+  const [chatClient, chatEngine, chatTools, agentClient, agentEngine, browserModel, recallClient, recallFixture, demoLib, demoClient] = await Promise.all([
     readFile(new URL("../app/labs/chat-memory/chat-memory-lab.tsx", import.meta.url), "utf8"),
     readFile(new URL("../lib/chat-memory-lab.ts", import.meta.url), "utf8"),
     readFile(new URL("../lib/chat-memory-tools.ts", import.meta.url), "utf8"),
@@ -157,6 +183,8 @@ test("labs run real browser-safe tool and policy loops without remote model APIs
     readFile(new URL("../lib/browser-language-model.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/labs/reading-recall/reading-recall-lab.tsx", import.meta.url), "utf8"),
     readFile(new URL("../lib/reading-recall-fixture.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/first-proof-demo.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/first-proof-demo.tsx", import.meta.url), "utf8"),
   ]);
 
   assert.match(chatEngine, /from "\.\/engine"/);
@@ -224,8 +252,14 @@ test("labs run real browser-safe tool and policy loops without remote model APIs
   assert.match(recallFixture, /No model weights are served, fetched, or/);
   assert.match(recallFixture, /previousSaturday/);
   assert.match(recallFixture, /84% to 95%/);
+  assert.match(demoLib, /evaluateQuerySpecWithProof/);
+  assert.match(demoLib, /parseProgram/);
+  assert.match(demoLib, /No model is/);
+  assert.match(demoLib, /nothing is sent anywhere/);
+  assert.match(demoClient, /runFirstProofDemo/);
+  assert.match(demoClient, /Live · 0 models/);
 
-  const hostedLabSource = `${chatClient}\n${chatEngine}\n${chatTools}\n${agentClient}\n${agentEngine}\n${browserModel}\n${recallClient}\n${recallFixture}`;
+  const hostedLabSource = `${chatClient}\n${chatEngine}\n${chatTools}\n${agentClient}\n${agentEngine}\n${browserModel}\n${recallClient}\n${recallFixture}\n${demoLib}\n${demoClient}`;
   assert.doesNotMatch(hostedLabSource, /fetch\s*\(|XMLHttpRequest|WebSocket|EventSource/);
   assert.doesNotMatch(hostedLabSource, /localStorage|sessionStorage|document\.cookie|indexedDB/);
   assert.doesNotMatch(hostedLabSource, /OPENAI_API_KEY|LLM_API_KEY/);
@@ -301,28 +335,32 @@ test("GitHub Pages export is self-contained when present", async () => {
   const exportedChatLab = new URL("../dist/pages/labs/chat-memory/index.html", import.meta.url);
   const exportedAgentLab = new URL("../dist/pages/labs/grounded-agent/index.html", import.meta.url);
   const exportedRecallLab = new URL("../dist/pages/labs/reading-recall/index.html", import.meta.url);
+  const exportedResearch = new URL("../dist/pages/research/index.html", import.meta.url);
   const exportedAgentGuide = new URL("../dist/pages/guides/agent-harness/index.html", import.meta.url);
   await access(exported);
   await access(exportedPlayground);
   await access(exportedChatLab);
   await access(exportedAgentLab);
   await access(exportedRecallLab);
+  await access(exportedResearch);
   await access(exportedAgentGuide);
-  const [html, playgroundHtml, chatLabHtml, agentLabHtml, recallLabHtml, agentGuideHtml] = await Promise.all([
+  const [html, playgroundHtml, chatLabHtml, agentLabHtml, recallLabHtml, researchHtml, agentGuideHtml] = await Promise.all([
     readFile(exported, "utf8"),
     readFile(exportedPlayground, "utf8"),
     readFile(exportedChatLab, "utf8"),
     readFile(exportedAgentLab, "utf8"),
     readFile(exportedRecallLab, "utf8"),
+    readFile(exportedResearch, "utf8"),
     readFile(exportedAgentGuide, "utf8"),
   ]);
   assert.match(html, /Memory you(?:<br\/>|\s)+can <em>reason<\/em> with\./);
   assert.match(html, /href="\/playground"/);
+  assert.match(html, /href="\/research"/);
   assert.match(playgroundHtml, /SQLite \+ Datalog IDE/);
-  assert.match(playgroundHtml, /The database is the demo\./);
   assert.match(chatLabHtml, /Same database\. Same model\. Different powers\./);
   assert.match(agentLabHtml, /Let the model propose\. Let the gate show its work\./);
   assert.match(recallLabHtml, /no model executes on this page/);
+  assert.match(researchHtml, /Every claim on this site/);
   assert.match(agentGuideHtml, /Wire one narrow tool loop\./);
   for (const labHtml of [chatLabHtml, agentLabHtml, recallLabHtml]) {
     assert.doesNotMatch(
@@ -331,7 +369,7 @@ test("GitHub Pages export is self-contained when present", async () => {
       "the multi-megabyte WebLLM chunk must stay behind the explicit load action",
     );
   }
-  for (const rendered of [html, playgroundHtml, chatLabHtml, agentLabHtml, recallLabHtml, agentGuideHtml]) {
+  for (const rendered of [html, playgroundHtml, chatLabHtml, agentLabHtml, recallLabHtml, researchHtml, agentGuideHtml]) {
     assert.match(rendered, /href="\/_next\/static\/css\//);
     assert.match(rendered, /src="\/_next\/static\/chunks\//);
     assert.match(rendered, /https:\/\/remembero\.rahultrikha\.com\/og\.png/);

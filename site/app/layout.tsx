@@ -21,15 +21,15 @@ const fraunces = Fraunces({
 
 const title = "Remembero — Memory you can reason with";
 const description =
-  "Proof-carrying memory for agents: readable facts, deterministic rules, computed notes, and a reading-recall research trail with every number paired-run measured. Browser-local playground and labs — no model weights served.";
+  "Durable memory for AI agents: plain facts and rules, deterministic answers with the proof attached, and a sixty-second live demo — no account, no install, no served model weights. Labs, an in-browser SQLite playground, and measured evidence.";
 
 const designContract = `<!--
-THESIS: The main site sells proof-carrying memory and shows the research arc that built it; three labs and the playground demonstrate the mechanism with zero served weights.
+THESIS: A first-time visitor with zero context walks problem → idea → try → evidence; the sixty-second live demo proves the mechanism before any vocabulary is needed, labs deepen it, /research carries the measured story, and no trained weights are ever served.
 OWN-WORLD: Ledger system — warm paper evidence canvas with a faint graph grid, deep ink chrome, ultramarine execution, amber provenance, green verdicts; Geist controls, mono data, Fraunces display and answers.
-STORY: A visitor understands the product, reads the paired-run research ledger, then works the labs and playground — all deterministic in-browser, with model output only as labeled replays or optional third-party WebLLM.
+STORY: Hero promise with one proof card, then the forgets/misremembers problem, the store-rule-ask idea beside a real in-page engine demo, four workbenches on ink with the IDE showcase, a three-metric evidence teaser, and the models-translate-rules-decide boundary; /research holds the full de-jargonized measurement story.
 FIRST VIEWPORT: Editorial hero on graph paper with one proof-carrying answer card, a stamped provenance seal, and the no-weights-served boundary line.
-FORM: Editorial product site, a research delta ledger, three labs (chat recall, grounded agent, reading recall) and the SQLite + Datalog IDE at /playground/.
-BOUNDARY: The latest trained reader/writer models are never hosted, served, or required here; claims about them link to the measured runs in docs/research/.
+FORM: Progressive editorial product site with a live demo widget, a try section of four workbenches, a separate evidence page at /research, three labs and the SQLite + Datalog IDE at /playground/.
+BOUNDARY: The trained reader/writer models are never hosted, served, or required here; claims about them link to measured runs in docs/research/ and use no internal version jargon on visitor surfaces.
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
 -->`;
 

@@ -76,13 +76,13 @@ export const QUESTIONS: QuestionFixture[] = [
     question: "How long after moving to the Marina did I run my first 10K?",
     gold: "43 days",
     withoutNotes: {
-      label: "Reader v7, no notes — replay",
+      label: "Small reader, no notes — replay",
       answer: "You moved to the Marina in March and ran the 10K in April, so about two weeks later.",
       verdict: "miss",
       verdictNote: "Both sessions were in context. The reader never resolved “two weeks ago” against the day it was said, so it anchored the move to March and guessed the gap.",
     },
     withNotes: {
-      label: "Reader v7, notes + thinking step — replay",
+      label: "Small reader, notes + working — replay",
       answer: "43 days — I moved on February 17 and ran the 10K on April 1.",
       verdict: "hit",
       verdictNote: "The dated events and the gap were already computed in the notes; the thinking step copies them and subtracts nothing itself.",
@@ -95,13 +95,13 @@ export const QUESTIONS: QuestionFixture[] = [
     question: "How much would I lose if I sell the road bike at my asking price?",
     gold: "$400",
     withoutNotes: {
-      label: "Reader v7, no notes — replay",
+      label: "Small reader, no notes — replay",
       answer: "You'd lose about $300 on the sale.",
       verdict: "miss",
       verdictNote: "The two figures sat in one sentence and the subtraction still slipped — the same off-by-arithmetic failure the research log counts by type.",
     },
     withNotes: {
-      label: "Reader v7, notes + thinking step — replay",
+      label: "Small reader, notes + working — replay",
       answer: "$400 — bought at $1,100, asking $700.",
       verdict: "hit",
       verdictNote: "The notes list both figures with their sentence and, seeing exactly two, state the difference. The reader's working copies the arithmetic line.",
@@ -114,13 +114,13 @@ export const QUESTIONS: QuestionFixture[] = [
     question: "When exactly did I move to the Marina?",
     gold: "February 17, 2026",
     withoutNotes: {
-      label: "Reader v7, no notes — replay",
+      label: "Small reader, no notes — replay",
       answer: "In March, based on the session where you mentioned the move.",
       verdict: "miss",
       verdictNote: "The reader quoted the session's own date instead of resolving the relative expression inside it — an unanchored date, stated with confidence.",
     },
     withNotes: {
-      label: "Reader v7, notes + thinking step — replay",
+      label: "Small reader, notes + working — replay",
       answer: "February 17, 2026.",
       verdict: "hit",
       verdictNote: "One dated-events line carries the whole answer: the expression, the day it was said, the resolved date, and the distance to the question.",

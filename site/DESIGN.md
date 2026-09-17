@@ -1,10 +1,13 @@
 # Ledger — the Remembero site design system
 
 Status: 2026-09-18. Ledger replaces the previous true-white/cobalt system. It exists
-to showcase proof-carrying memory and the research that built it, under one hard
-boundary: **no trained model weights are ever hosted, served, or required by this
-site.** The system's job is to make determinism, provenance, and honest measurement
-visible on every surface.
+to walk a **first-time visitor with zero context** through what Remembero is —
+problem → idea → try → evidence — under one hard boundary: **no trained model
+weights are ever hosted, served, or required by this site.** The system's job is
+to make determinism, provenance, and honest measurement visible on every surface,
+and to keep internal vocabulary (reader generations, benchmark jargon) off
+visitor-facing pages; the measured detail lives at `/research`, written in plain
+language.
 
 ## Surfaces
 
@@ -51,22 +54,28 @@ If a string is a measurement, it is mono — no exceptions.
 
 - **Stamp** (`.stamp`) — a slightly rotated, double-bordered mono label that marks
   execution provenance: `Proof-carrying`, `Replay`, `Not served here`,
-  `Deterministic · live`. Green = verified here and now; amber = recorded
-  elsewhere, honestly labeled; ink = policy boundary. Stamps are the system's
+  `Deterministic · live`, `Live · 0 models`. Green = verified here and now; amber =
+  recorded elsewhere, honestly labeled; ink = policy boundary. Stamps are the system's
   honesty device: anything a model produced wears one.
 - **Proof card** (`.hero-proof`) — question → query → answer → because-chain →
   source row, with an amber top rule and the stamp overhanging the border.
+- **First-proof demo** (`first-proof-demo.tsx` + module CSS) — the sixty-second loop
+  as a stepped widget: say it → store it → rule it → ask it, each stage revealing on
+  click, the final stage a real engine call with the proof chain and a measured
+  duration. The newcomer's first taste of the product, with zero models.
 - **Note block** (`.note-block`) — the computed-notes artifact: mono, amber left
-  rule, header stating `0 model calls`, sentences quoted per line. Used on the
-  homepage and generated live in the reading-recall lab.
-- **Delta ledger** (`.delta-ledger`) — research results as ruled rows: mechanism,
-  plain-language detail, mono delta, green chip. Every table names its judge and
-  pairing; rows in one table share one judge.
-- **Miss list** (`.miss-list`) — failures stated with red ✗ markers before the
-  fix is argued. Negative results stay visible.
-- **Lab card** (`.lab-card`) — paper-raised workbench cards; amber keyline for
-  deterministic labs, ultramarine (`data-kind="model"`) where an optional model
-  can be loaded.
+  rule, header stating `0 model calls`, sentences quoted per line. Used on
+  `/research` and generated live in the reading-recall lab.
+- **Delta ledger** (`.delta-ledger`) — research results as ruled rows: mechanism in
+  plain language, mono delta, green chip. Every table names its grader and pairing;
+  rows in one table share one grader.
+- **Miss list** (`.miss-list`, `.miss-list-ink`) — failures stated with red ✗
+  markers before the fix is argued. Negative results stay visible.
+- **Metric row** (`.metric-row`) — three big mono numbers with plain captions, the
+  homepage's evidence teaser.
+- **Lab card** (`.lab-card`) — workbench cards; paper-raised with amber keyline on
+  paper, ink-raised on dark sections; ultramarine (`data-kind="model"`) where an
+  optional model can be loaded.
 
 ## Motion
 
@@ -77,18 +86,23 @@ transitions site-wide.
 ## The no-served-models rule
 
 1. No route ships, fetches, or executes Remembero's fine-tuned weights. Claims
-   about trained models link to measured runs in `docs/research/` and are framed
-   as research results ("Measured, never served"), never as site functionality.
+   about trained models live on `/research`, framed as research results
+   ("measured, never served"), and link to the runs in `docs/research/`.
 2. Where model output appears it is either (a) a clearly stamped replay of a
    recorded run, or (b) the optional third-party Hermes 7B the visitor's own
    browser loads via WebLLM behind an explicit action.
 3. Every lab states its execution boundary on screen ("no model executes on this
-   page", "Model calls use a labeled simulator").
-4. The tests enforce this: lab sources are swept for `fetch`/storage/API-key use,
-   and the export assertions require the boundary copy on every lab page.
+   page", "Live · 0 models", "Model calls use a labeled simulator").
+4. Visitor-facing copy carries no internal version jargon — no reader or writer
+   generations, no unexplained benchmark names. `/research` explains each term
+   in plain language before using it.
+5. The tests enforce this: lab and demo sources are swept for `fetch`/storage/
+   API-key use, the export assertions require the boundary copy on every lab
+   page, and the homepage and lab renders are checked for version jargon.
 
 ## Voice
 
 Direct, technically literate, comfortable publishing negative results. Numbers
-always carry their judge and protocol. "Unknown" and "replayed" are stated, never
-smoothed over.
+always carry their grader and protocol, stated in plain words ("one automated
+grader, named"; "run-to-run noise of about ±7"). "Unknown" and "replayed" are
+stated, never smoothed over.
