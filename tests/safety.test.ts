@@ -41,6 +41,53 @@ describe('sensitive text detection', () => {
     }
   });
 
+  it('sees a credential word joined to an identifier by _, - or .', () => {
+    // `\b` does not fire between `_` and a letter, so these forms used to escape
+    // both detectors and land in the session store verbatim.
+    for (const text of [
+      "reset_password('hunter2')",
+      'my_password = hunter2',
+      'user.api_key = ordinary-looking-value',
+      'db-password: ordinary-looking-value',
+      "refresh_token_value('hunter2')",
+    ]) {
+      expect(containsSensitiveText(text)).toBe(true);
+      const masked = maskSensitiveSpans(text);
+      expect(masked.masked).toBeGreaterThan(0);
+      expect(masked.text).not.toContain('hunter2');
+      expect(masked.text).not.toContain('ordinary-looking-value');
+      expect(containsSensitiveText(masked.text)).toBe(false);
+    }
+  });
+
+  it('does not treat an ordinary word that merely contains one as a credential', () => {
+    for (const text of [
+      'We shipped passwordless login this week.',
+      'The tokenizer is configured for byte pairs.',
+      'Ask my secretary for the meeting notes.',
+      // The separator is what makes an identifier, so a word running straight
+      // into the credential word is still just a word.
+      'passwordless(user)',
+      'secretary: jane',
+      'The refresh_tokenizer splits on byte pairs.',
+    ]) {
+      expect(containsSensitiveText(text)).toBe(false);
+      expect(maskSensitiveSpans(text)).toEqual({
+        text,
+        masked: 0,
+        truncated: false,
+      });
+    }
+  });
+
+  it('reports a cut span for an underscore form that cannot close', () => {
+    const result = maskSensitiveSpans('reset_password(hunter2');
+    expect(result.masked).toBe(1);
+    expect(result.text).not.toContain('hunter2');
+    expect(result.truncated).toBe(true);
+    expect(containsSensitiveText(result.text)).toBe(false);
+  });
+
   it('does not block long digit runs that fail the card checksum', () => {
     for (const text of [
       'The deploy finished at 1756518000000.',

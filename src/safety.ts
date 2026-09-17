@@ -5,14 +5,46 @@ export const REDACTED_SOURCE = '[sensitive source omitted]';
 /** What replaces one matched secret when only the span is hidden. */
 export const REDACTED_SPAN = '[redacted]';
 
+const CREDENTIAL_WORD =
+  '(?:api[_ -]?key|password|passwd|secret|access[_ -]?token|refresh[_ -]?token|account[_ -]?number|credit[_ -]?card)';
+const ASSIGNED_CREDENTIAL_WORD =
+  '(?:api[_ -]?key|password|passwd|secret|access[_ -]?token|refresh[_ -]?token)';
+
+/**
+ * A credential word is usually a whole word, but just as often it is one segment
+ * of a larger identifier: `reset_password(...)`, `my_password = x`,
+ * `user.api_key = x`, `db-password: x`. `\b` does not fire between `_` and a
+ * letter, so every one of those escaped both detectors and the text was stored
+ * verbatim.
+ *
+ * So the boundary is not `\b` but "not another letter or digit": `_`, `-`, `.`,
+ * whitespace, quotes and the ends of the string all count as the edge of a
+ * segment, while `passwordless`, `tokenizer` and `secretary` still read as
+ * ordinary words. The trailing segments an identifier may carry
+ * (`refresh_token_value(`) are matched explicitly, and only when a separator
+ * introduces them — otherwise `passwordless(user)` would look like a call
+ * passing a credential.
+ */
+const SEGMENT_LEFT = '(?<![A-Za-z0-9])';
+const SEGMENT_RIGHT = '(?![A-Za-z0-9])';
+const SEGMENT_TAIL = '(?:[_.-][A-Za-z0-9_.-]*)?';
+
 // Detecting a credential passed as an argument needs only the opening paren;
 // masking needs the arguments too, or the value survives in the clear.
-const SENSITIVE_CALL_PATTERN =
-  /\b(?:api[_ -]?key|password|passwd|secret|access[_ -]?token|refresh[_ -]?token|account[_ -]?number|credit[_ -]?card)\s*\(/i;
+const SENSITIVE_CALL_PATTERN = new RegExp(
+  `${SEGMENT_LEFT}${CREDENTIAL_WORD}${SEGMENT_TAIL}\\s*\\(`,
+  'i'
+);
 const SENSITIVE_TEXT_PATTERNS = [
-  /\b(?:api[_ -]?key|password|passwd|secret|access[_ -]?token|refresh[_ -]?token|account[_ -]?number|credit[_ -]?card)\b["']?\s*(?:is|=|:)\s*["']?\S+/i,
+  new RegExp(
+    `${SEGMENT_LEFT}${CREDENTIAL_WORD}${SEGMENT_TAIL}["']?\\s*(?:is|=|:)\\s*["']?\\S+`,
+    'i'
+  ),
   SENSITIVE_CALL_PATTERN,
-  /\b(?:my|your|the)\s+(?:api[_ -]?key|password|passwd|secret|access[_ -]?token|refresh[_ -]?token)\s+(?=\S*[0-9._~+/=-])\S{6,}/i,
+  new RegExp(
+    `\\b(?:my|your|the)\\s+${ASSIGNED_CREDENTIAL_WORD}${SEGMENT_RIGHT}\\s+(?=\\S*[0-9._~+/=-])\\S{6,}`,
+    'i'
+  ),
   /\b(?:bearer\s+)[a-z0-9._~+/=-]{8,}/i,
   /\b(?:sk|gh[pousr])[-_][a-z0-9_-]{8,}/i,
 ];
