@@ -29,9 +29,10 @@ import {
   recallAnswerModeFromEnv,
   recallSchemaPredicateLimitFromEnv,
   selfAtomFromEnv,
+  sessionsEnabledFromEnv,
   validTimeModeFromEnv,
 } from './env.js';
-import { sessionStoreFromEnv, type SessionStore } from './sessions/store.js';
+import { SessionStore, sessionStoreFromEnv } from './sessions/store.js';
 import { importClaudeTranscript } from './sessions/import.js';
 import { clientFromEnv, lazyClientFromEnv } from './llm/client.js';
 import {
@@ -1120,28 +1121,52 @@ async function runVersionCommand(argv: string[]): Promise<void> {
   }
 }
 
+const SESSIONS_SUBCOMMANDS = ['import', 'list', 'forget'] as const;
+
+/**
+ * The store one `sessions` subcommand works on.
+ *
+ * `sessionStoreFromEnv` reports both `REMBERO_SESSIONS=off` and a setting this
+ * build cannot read as no store at all, which is right for capture — but reading
+ * and deleting what is already on disk has to keep working in exactly the state a
+ * privacy-minded user chooses. So `off` still lists and forgets, from the default
+ * store, and only `import` insists on `on`: writing a past conversation to disk is
+ * what the setting consents to. A malformed setting still refuses everything,
+ * naming itself, because then nothing here knows what the user asked for.
+ */
+function sessionsCommandStore(
+  subcommand: string,
+  configured: SessionStore | undefined,
+): SessionStore {
+  if (configured !== undefined) return configured;
+  // Throws on a `REMBERO_SESSIONS` that is neither 'on' nor 'off'. A store still
+  // missing while the setting says 'on' means `REMBERO_SESSION_CAP_BYTES` is the
+  // unreadable one, and the constructor below throws naming that instead.
+  if (!sessionsEnabledFromEnv() && subcommand === 'import') {
+    throw new Error(
+      'sessions import needs REMBERO_SESSIONS=on; nothing was written',
+    );
+  }
+  return new SessionStore();
+}
+
 /**
  * `sessions import|list|forget`, the conversation-store side of the CLI.
- *
- * Conversation text is kept only with `REMBERO_SESSIONS=on`, so the store the
- * caller passes is absent when the setting is off or unreadable — the same store
- * every other command is built with, so a mistyped setting costs the user their
- * sessions and nothing else. Every subcommand then refuses by naming the setting,
- * rather than writing anyway or reporting an empty namespace.
  */
 function runSessionsCommand(
-  sessions: SessionStore | undefined,
+  configured: SessionStore | undefined,
   args: ParsedArgs,
 ): void {
   const [subcommand, ...rest] = args.positional;
   if (subcommand === undefined) {
     throw new Error('sessions needs a subcommand: import, list, or forget');
   }
-  if (sessions === undefined) {
+  if (!SESSIONS_SUBCOMMANDS.includes(subcommand as 'import')) {
     throw new Error(
-      `sessions ${subcommand} needs REMBERO_SESSIONS=on; no conversation sessions are kept`,
+      `unknown sessions subcommand '${subcommand}': expected import, list, or forget`,
     );
   }
+  const sessions = sessionsCommandStore(subcommand, configured);
   const namespace = args.namespace ?? 'default';
   switch (subcommand) {
     case 'import': {
@@ -1201,9 +1226,9 @@ function runSessionsCommand(
       return;
     }
     default:
-      throw new Error(
-        `unknown sessions subcommand '${subcommand}': expected import, list, or forget`,
-      );
+      // Unreachable while SESSIONS_SUBCOMMANDS and this switch agree; it is here
+      // so that adding a name to one and not the other fails loudly.
+      throw new Error(`sessions subcommand '${subcommand}' is not implemented`);
   }
 }
 

@@ -190,7 +190,11 @@ function headerLine(header: SessionHeader): string {
   return JSON.stringify(stored);
 }
 
-/** A turn's identity: the same role and stored text is the same turn. */
+/**
+ * A turn's identity for the one job it has: recognising a turn this session has
+ * already stored, when a later overlapping read window hands it over again. The
+ * same role and stored text is the same turn.
+ */
 function turnHash(role: string, text: string): string {
   return createHash('sha256').update(`${role}\n${text}`, 'utf8').digest('hex');
 }
@@ -352,6 +356,12 @@ export class SessionStore {
     const state = this.inspectSessionFile(path);
     if (state.kind === 'unreadable') this.quarantine(path, state.reason);
     const existing = state.kind === 'session' ? state : undefined;
+    // Only what this session already holds on disk. A batch's own repeats are
+    // kept: "ok" typed twice in one conversation is two events, and dropping the
+    // second would both lose text and shift every later turn's index, which the
+    // reader's ordering depends on. An identical turn re-read across overlapping
+    // capture windows is still skipped, which is the point of hashing at all:
+    // consecutive stop hooks see the same tail and must store each turn once.
     const seen = new Set(existing?.turns.map((turn) => turn.hash) ?? []);
     // Continue past the highest index the file still holds: a dropped line must
     // not hand its index to a new turn.
@@ -368,7 +378,6 @@ export class SessionStore {
         skipped += 1;
         continue;
       }
-      seen.add(hash);
       const record: SessionTurn = {
         index,
         role: turn.role,

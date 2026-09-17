@@ -49,6 +49,41 @@ describe('session store', () => {
     expect(store.readSession('default', key)!.turns.map((t) => t.index)).toEqual([0, 1, 2]);
   });
 
+  it('keeps a batch its own repeats, and skips only what is stored', () => {
+    const repeated = { ...header, sourceSessionId: 'repeat' };
+    const batch = [
+      { role: 'user', ts: '2026-09-18T01:00:00.000Z', text: 'ok' },
+      { role: 'assistant', ts: '2026-09-18T01:00:01.000Z', text: 'sure' },
+      { role: 'user', ts: '2026-09-18T01:00:02.000Z', text: 'ok' },
+      { role: 'assistant', ts: '2026-09-18T01:00:03.000Z', text: 'done' },
+    ] as const;
+
+    // Two identical messages in one conversation are two events; dropping the
+    // second would lose text and shift every later turn's index.
+    expect(store.appendTurns('default', repeated, [...batch])).toMatchObject({
+      appended: 4,
+      skipped: 0,
+    });
+    const key = store.sessionKey('claude-code', 'repeat');
+    expect(
+      store.readSession('default', key)!.turns.map((turn) => [turn.index, turn.text]),
+    ).toEqual([
+      [0, 'ok'],
+      [1, 'sure'],
+      [2, 'ok'],
+      [3, 'done'],
+    ]);
+
+    // The overlapping window a later stop hook re-reads still stores each once.
+    expect(
+      store.appendTurns('default', repeated, [
+        ...batch,
+        { role: 'user', ts: '2026-09-18T01:00:04.000Z', text: 'and one more' },
+      ]),
+    ).toMatchObject({ appended: 1, skipped: 4 });
+    expect(store.readSession('default', key)!.turns).toHaveLength(5);
+  });
+
   it('writes a header line then one JSON line per turn', () => {
     const key = store.sessionKey('claude-code', 'abc');
     const lines = readFileSync(join(tmp, 'default', `${key}.jsonl`), 'utf8')

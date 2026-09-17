@@ -1,6 +1,10 @@
-import { lstatSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { lstatSync, readFileSync, type Stats } from 'node:fs';
 import { basename, resolve } from 'node:path';
-import { parseTranscriptMessages } from '../autocapture/transcript.js';
+import {
+  parseTranscriptMessages,
+  type TranscriptMessage,
+} from '../autocapture/transcript.js';
 import type { SessionStore } from './store.js';
 
 /**
@@ -10,8 +14,96 @@ import type { SessionStore } from './store.js';
  */
 export const MAX_IMPORT_TRANSCRIPT_BYTES = 64 * 1024 * 1024;
 
+/** The same shape `parseClaudeStopHookInput` accepts for a Claude session id. */
+const SESSION_ID_PATTERN = /^[a-zA-Z0-9._-]{1,256}$/;
+
+/**
+ * The `sessionId` Claude Code writes on every line of a transcript, from the
+ * first line that carries a usable one.
+ *
+ * This is read here rather than taken from `parseTranscriptMessages`, which
+ * returns turns and no file-level metadata. The scan walks lines by index instead
+ * of splitting, because the file can be tens of megabytes and the answer is almost
+ * always on line one.
+ */
+function transcriptSessionId(text: string): string | undefined {
+  let start = 0;
+  while (start < text.length) {
+    let end = text.indexOf('\n', start);
+    if (end === -1) end = text.length;
+    const line = text.slice(start, end);
+    start = end + 1;
+    if (line.trim() === '') continue;
+    let entry: unknown;
+    try {
+      entry = JSON.parse(line);
+    } catch {
+      continue;
+    }
+    if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
+      continue;
+    }
+    const id = (entry as { sessionId?: unknown }).sessionId;
+    if (typeof id === 'string' && SESSION_ID_PATTERN.test(id)) return id;
+  }
+  return undefined;
+}
+
+/**
+ * What identifies this transcript's conversation.
+ *
+ * The transcript's own `sessionId` when it has one: two files copied out of one
+ * conversation are then one session however they were named, and two unrelated
+ * conversations that happen to share a file name — `/a/chat.jsonl` and
+ * `/b/chat.jsonl` — stay apart, where a name alone would have merged them under
+ * whichever header was written first.
+ *
+ * Failing that, the file name plus a digest of its opening turn. That digest is
+ * over the start of the conversation, not the whole file, for the two properties
+ * import needs at once: it does not move when the same file is imported again, and
+ * it does not move when the file has since grown, so a transcript re-imported
+ * after more conversation appends its new turns to the session it already has.
+ */
+function importSessionId(
+  text: string,
+  file: string,
+  first: TranscriptMessage | undefined,
+): string {
+  const carried = transcriptSessionId(text);
+  if (carried !== undefined) return carried;
+  const name = basename(file).replace(/\.[^.]+$/, '');
+  if (first === undefined) return name;
+  const opening = createHash('sha256')
+    .update(`${first.role}\n${first.text}`, 'utf8')
+    .digest('hex')
+    .slice(0, 12);
+  return `${name}-${opening}`;
+}
+
+/** A path that is missing, a link, or not a file at all, said plainly. */
+function transcriptStat(file: string): Stats {
+  let stat: Stats;
+  try {
+    stat = lstatSync(file);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      throw new Error(`no transcript file at ${file}`);
+    }
+    throw error;
+  }
+  // A link is named as a link rather than lumped in with the rest: it is the one
+  // refusal a user is likely to have meant something reasonable by.
+  if (stat.isSymbolicLink()) {
+    throw new Error(`refusing a symbolic link as a transcript file: ${file}`);
+  }
+  if (!stat.isFile()) {
+    throw new Error(`refusing a non-regular transcript file: ${file}`);
+  }
+  return stat;
+}
+
 export interface SessionImportResult {
-  /** The stored session's key, `sha256('import\0<file basename>')` truncated. */
+  /** The stored session's key, `sha256('import\0<session id>')` truncated. */
   key: string;
   appended: number;
   skipped: number;
@@ -23,12 +115,9 @@ export interface SessionImportResult {
  * Unlike capture, which re-reads an overlapping tail after every stop hook, an
  * import is explicit and one-off: it reads the whole file, so a conversation
  * whose early turns are long past the tail window still lands. Re-importing the
- * same file appends nothing, because the store identifies a turn by the hash of
- * its role and stored text.
- *
- * The session is keyed on the file's basename without its extension, so the same
- * transcript imported twice is one session whatever directory it was copied to,
- * while two differently named files stay apart.
+ * same file appends nothing, because the store skips a turn whose hash this
+ * session already holds; see `importSessionId` for what makes two files the same
+ * conversation.
  */
 export function importClaudeTranscript(
   store: SessionStore,
@@ -44,21 +133,19 @@ export function importClaudeTranscript(
     );
   }
   const file = resolve(path);
-  const stat = lstatSync(file);
-  if (stat.isSymbolicLink() || !stat.isFile()) {
-    throw new Error(`refusing non-regular transcript file ${file}`);
-  }
+  const stat = transcriptStat(file);
   if (stat.size > MAX_IMPORT_TRANSCRIPT_BYTES) {
     throw new Error(
       `transcript ${file} exceeds ${MAX_IMPORT_TRANSCRIPT_BYTES} bytes`,
     );
   }
-  const sourceSessionId = basename(file).replace(/\.[^.]+$/, '');
+  const text = readFileSync(file, 'utf8');
+  const turns = parseTranscriptMessages(text);
+  const sourceSessionId = importSessionId(text, file, turns[0]);
   if (sourceSessionId === '') {
-    throw new Error(`transcript ${file} has no usable file name`);
+    throw new Error(`transcript ${file} has no usable session id or file name`);
   }
   const key = store.sessionKey('import', sourceSessionId);
-  const turns = parseTranscriptMessages(readFileSync(file, 'utf8'));
   // Every stored `ts` must satisfy `Date.parse`, because the index's `lastTs` and
   // the reader's date arithmetic come from it. A transcript entry carries its own
   // timestamp when it has a usable one; otherwise the whole file is dated by its

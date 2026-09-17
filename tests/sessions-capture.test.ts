@@ -212,6 +212,35 @@ describe('capture writes conversation turns to the session store', () => {
     ]);
   });
 
+  it('keeps a short answer the user repeats inside one window', async () => {
+    // "ok" twice in one conversation is two events. Deduplicating within the batch
+    // would drop the second and shift every later turn's index, which is exactly
+    // the ordering the reader depends on; only turns already stored are skipped.
+    writeTranscript([
+      transcriptLine('user', 'ok', '2026-08-17T01:50:00.000Z'),
+      transcriptLine('assistant', 'Shall I carry on?', '2026-08-17T01:51:00.000Z'),
+      transcriptLine('user', 'ok', '2026-08-17T01:52:00.000Z'),
+      transcriptLine('assistant', 'Done.', '2026-08-17T01:53:00.000Z'),
+    ]);
+    // Nothing memorable is said, so extraction may ask more than once; the session
+    // write is what this test is about.
+    const llm = new ScriptedLlm(['', '', '']);
+
+    const result = await autoCaptureClaudeStop(
+      { store, llm, sessions },
+      stopInput({ last_assistant_message: 'Done.' }),
+      captureOptions(),
+    );
+
+    expect(result.sessionTurns).toEqual({ appended: 4, skipped: 0 });
+    expect(storedTurns()!.turns.map((turn) => [turn.index, turn.text])).toEqual([
+      [0, 'ok'],
+      [1, 'Shall I carry on?'],
+      [2, 'ok'],
+      [3, 'Done.'],
+    ]);
+  });
+
   it('never appends a turn older than the ones already stored', async () => {
     // A window with no user text is re-read four times further back, so a capture
     // can see turns older than the stored ones. Appending those would give a newer
