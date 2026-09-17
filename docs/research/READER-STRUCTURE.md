@@ -647,7 +647,9 @@ temporal (`--turn-unit-question-types`).
 
 +13 (36 gained, 23 lost), past the ~8 the verdict needs, with temporal held. The two session-unit
 runs of the day scored 395 and 397, so the noise estimate holds. **Reader v7 with mixed retrieval,
-410/500, is the best system measured**, 30 short of the GLM teacher's 440. The retrieval setting is
+410/500, is the best system measured** — with one caveat: this run chose the unit from the dataset's
+`question_type` label, which a deployed system never sees. It is an upper bound until the same
+choice is made from the question text and re-measured, 30 short of the GLM teacher's 440. The retrieval setting is
 not part of the reader contract (the prompt shape is unchanged), so no retraining is needed; the
 product's own search has to adopt the same per-type unit before a user sees the gain.
 
