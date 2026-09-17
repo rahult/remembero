@@ -526,3 +526,41 @@ remaining misses: counting items spread across sessions. The next gain has to co
 structure handed to the reader (counted items built by code from the fact store, the
 engine-recall path) or from verifying the teacher's answers before they become training data,
 not from a pricier teacher. GLM 5.3 Flash stays the teacher.
+
+## Is the teacher the bottleneck? Kimi K3 and GPT Sol against GLM (2026-09-17)
+
+Two stronger, dearer models were measured as readers under the contract GLM was distilled with
+(`--date-distances --computed-notes --context-bytes 24576`, depth 4/15/10, DeepSeek judge),
+through OpenRouter. Kimi K3 and GPT-5.6 Sol only accept temperature 1, so their arms carry more
+sampling noise than the temperature-0 rows; `--reader-temperature` and `--reader-timeout-ms` were
+added to the harness for them.
+
+| Reader | 100-question subset | 266 multi-session + temporal |
+|---|---|---|
+| GLM 5.3 Flash (current teacher) | 87 | 217 |
+| Kimi K3 (`moonshotai/kimi-k3`) | 89 | 215 (1 error) |
+| GPT-5.6 Sol (`openai/gpt-5.6-sol`) | 82 | not run |
+| Reader v7 (ours) | — | 203 |
+
+Kimi K3 ties GLM (multi-session 100 against 100, temporal 115 against 117, flips +8/-10) and Sol
+trails it. Both screens were cheap: K3 cost about $0.008 a question (1.16M prompt and 0.12M
+completion tokens for the 266), so price is not what rules a new teacher out; accuracy is. A
+Moonshot key on its default tier allows one concurrent request, which is too few to evaluate or
+distil through; OpenRouter carried the runs.
+
+**Split by whether the question's evidence reached the reader's context, the ceiling is plain:**
+
+| Reader | All evidence in context | Some evidence missing |
+|---|---|---|
+| GLM 5.3 Flash | 191/213 (90%) | 26/53 (49%) |
+| Kimi K3 | 190/210 (90%) | 25/55 (45%) |
+| Reader v7 | 181/213 (85%) | 22/53 (42%) |
+
+Every reader, the 4-billion-parameter student included, answers about nine in ten questions
+whose evidence it can see and about half of those whose evidence was cut. One question in five
+on the 266 loses evidence before the reader starts, and no teacher recovers it. v7 is within five
+points of both teachers once the evidence is present. **The teacher is not the bottleneck;
+getting all the evidence into the reader's 24 KB is.** That is where the next round goes:
+retrieval that ranks the evidence sessions higher, or a budget that keeps more of each, measured
+on these 53 questions first. (Context tiers, which cut sessions to abstracts, were the wrong
+shape of this: they kept the sessions and dropped the detail.)
