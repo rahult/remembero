@@ -29,7 +29,7 @@ without disturbing the fact store.
   startedAt, cwd?}`); every later line is a turn (`{index, role: 'user'|'assistant', ts, text,
   hash}`). `index.json` per namespace holds, per session, its first and last timestamp, turn count
   and byte size.
-- **File naming** is `sha256(source + sourceSessionId)` truncated to 32 hex characters, so no
+- **File naming** is `sha256(source + '\0' + sourceSessionId)` truncated to 32 hex characters, so no
   session id can escape the directory.
 - **Off by default.** Nothing is written unless `REMBERO_SESSIONS=on`.
 - **Redaction** uses a new `maskSensitiveSpans(text)` beside today's `redactSensitiveText`
