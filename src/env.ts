@@ -14,7 +14,17 @@ import {
   parseKnowledgeCheckSuite,
 } from './knowledge/checks.js';
 import type { EntityIdentityMode } from './knowledge/identity.js';
-import type { McpToolProfile, RecallAnswerMode } from './llm/pipeline.js';
+import type {
+  McpToolProfile,
+  RecallAnswerMode,
+  RecallReader,
+} from './llm/pipeline.js';
+import {
+  DEFAULT_LLM_TEMPERATURE,
+  DEFAULT_LLM_TIMEOUT_MS,
+  checkedTemperature,
+  checkedTimeoutMs,
+} from './llm/client.js';
 
 /**
  * Load .env from the current directory and from the package root (so the CLI
@@ -106,12 +116,68 @@ export function recallAnswerModeFromEnv(
   if (
     configured === 'natural' ||
     configured === 'deterministic' ||
-    configured === 'evidence'
+    configured === 'evidence' ||
+    configured === 'sessions'
   )
     return configured;
   throw new Error(
-    "REMBERO_RECALL_ANSWER_MODE must be 'natural', 'deterministic', or 'evidence'",
+    "REMBERO_RECALL_ANSWER_MODE must be 'natural', 'deterministic', 'evidence', or 'sessions'",
   );
+}
+
+/** A reader left at its defaults reads one prompt of notes and an answer line. */
+export const DEFAULT_READER_MAX_TOKENS = 4_096;
+
+/**
+ * The reader the `sessions` answer mode sends its prompt to: `REMBERO_READER_BASE_URL`
+ * plus `_MODEL`, `_API_KEY`, `_MAX_TOKENS`, `_TEMPERATURE`, `_TIMEOUT_MS`. Nothing at all
+ * when no base URL is set, which is how recall falls back to the product's configured LLM.
+ *
+ * A base URL without a model is a configuration mistake rather than a reason to answer
+ * from a model the user did not choose, so it throws. The API key defaults to `local`
+ * because a llama.cpp or Ollama endpoint accepts any bearer token, and a local reader is
+ * the point of the setting.
+ */
+export function readerFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): RecallReader | undefined {
+  const baseUrl = env.REMBERO_READER_BASE_URL?.trim();
+  if (baseUrl === undefined || baseUrl === '') return undefined;
+  const model = env.REMBERO_READER_MODEL?.trim();
+  if (model === undefined || model === '') {
+    throw new Error(
+      'REMBERO_READER_MODEL is required when REMBERO_READER_BASE_URL is set',
+    );
+  }
+  const configuredMaxTokens = env.REMBERO_READER_MAX_TOKENS;
+  let maxTokens = DEFAULT_READER_MAX_TOKENS;
+  if (configuredMaxTokens !== undefined) {
+    if (!/^\d+$/.test(configuredMaxTokens)) {
+      throw new Error('REMBERO_READER_MAX_TOKENS must be an integer');
+    }
+    maxTokens = Number(configuredMaxTokens);
+    if (!Number.isSafeInteger(maxTokens) || maxTokens < 1 || maxTokens > 16_384) {
+      throw new Error(
+        'REMBERO_READER_MAX_TOKENS must be an integer from 1 to 16384',
+      );
+    }
+  }
+  const temperature = env.REMBERO_READER_TEMPERATURE;
+  const timeoutMs = env.REMBERO_READER_TIMEOUT_MS;
+  return {
+    baseUrl: baseUrl.replace(/\/$/, ''),
+    model,
+    apiKey: env.REMBERO_READER_API_KEY ?? 'local',
+    maxTokens,
+    temperature:
+      temperature === undefined
+        ? DEFAULT_LLM_TEMPERATURE
+        : checkedTemperature(temperature, 'REMBERO_READER_TEMPERATURE'),
+    timeoutMs:
+      timeoutMs === undefined
+        ? DEFAULT_LLM_TIMEOUT_MS
+        : checkedTimeoutMs(timeoutMs, 'REMBERO_READER_TIMEOUT_MS'),
+  };
 }
 
 export function integrityEnforcementFromEnv(

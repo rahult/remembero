@@ -38,7 +38,22 @@ import type {
   RecordedSnapshotMetadata,
   ValidTimeMode,
 } from '../store/store.js';
-import type { ChatMessage, LlmClient } from './client.js';
+import { OpenRouterClient, type ChatMessage, type LlmClient } from './client.js';
+import { readerFromEnv } from '../env.js';
+import { finalAnswerLine } from '../knowledge/answer-line.js';
+import {
+  questionKindFromText,
+  type QuestionKind,
+} from '../knowledge/question-kind.js';
+import {
+  DEFAULT_READING_CONTEXT_BYTES,
+  DEFAULT_READING_DEPTH,
+  buildReadingPrompt,
+  readsInNotes,
+  retrieveSessions,
+  type RetrievableSession,
+  type SessionRetrievalOptions,
+} from '../knowledge/session-retrieval.js';
 import type { EmbeddingClient } from './embeddings.js';
 import type { EmbeddingCache } from '../knowledge/semantic-search.js';
 import type { SemanticLedger } from '../ledger/semantic-ledger.js';
@@ -219,6 +234,26 @@ export interface RecallResult {
   answerMode?: RecallAnswerMode;
   /** Local discovery evidence for a non-answer; never changes recall authority. */
   relatedKnowledge?: KnowledgeSearchResult;
+  /** The `sessions` mode's evidence: the conversations the reader was shown, best rank first. */
+  sessionsRead?: RecallSessionRead[];
+  /** The model that read them, as the reader reported it. */
+  readerModel?: string;
+  /** `recall_explain` only: the reader's whole reply, its notes included. */
+  readerReply?: string;
+  /** `recall_explain` only: the five flags that routed this question. */
+  questionKind?: QuestionKind;
+  /** A stored conversation that could not be read; recall degraded to `no_evidence`. */
+  sessionsError?: string;
+}
+
+/** One conversation the reader read, and the turns of it that matched the question. */
+export interface RecallSessionRead {
+  /** The session's file key in its namespace, as `forget_sessions` takes it. */
+  key: string;
+  /** The day the session started: the date the reader was shown. */
+  date: string;
+  /** Its matching turns, in the order they were said, each cut to a bounded length. */
+  excerpts: string[];
 }
 
 export interface RetrievalResult {
@@ -270,9 +305,40 @@ export interface RecallPruningReport extends RecallSchemaDiagnostics {
 }
 
 export type RecallStatus =
-  'answered' | 'no_match' | 'unanswerable' | 'schema_budget_exhausted';
+  | 'answered'
+  | 'no_match'
+  | 'unanswerable'
+  | 'schema_budget_exhausted'
+  /** `sessions` mode: no stored conversation to read, so no reader was asked. */
+  | 'no_evidence'
+  /** `sessions` mode: the reader read the history and said it does not know. */
+  | 'unknown';
 
-export type RecallAnswerMode = 'natural' | 'deterministic' | 'evidence';
+export type RecallAnswerMode =
+  | 'natural'
+  | 'deterministic'
+  | 'evidence'
+  /** Read the namespace's stored conversations instead of querying the facts. */
+  | 'sessions';
+
+/**
+ * The reader the `sessions` mode sends its prompt to: what `REMBERO_READER_*` configures
+ * (`readerFromEnv` in env.ts), and what one `recall` call may pass instead.
+ */
+export interface RecallReader {
+  baseUrl: string;
+  model: string;
+  apiKey: string;
+  maxTokens: number;
+  temperature: number;
+  timeoutMs: number;
+  /**
+   * A client already built for this endpoint. Recall builds one from the fields above when
+   * this is absent; a caller that holds a client — a test's stub, a harness's pooled client
+   * — hands it over, and then nothing here opens a connection of its own.
+   */
+  client?: LlmClient;
+}
 
 export interface RecallRelatedKnowledgeOptions {
   limit?: number;
@@ -295,8 +361,10 @@ export interface RecallOptions {
   graphSelector?: ExplanationGraphSelector;
   /** Read from the deterministic global journal position instead of current files. */
   recordedSequence?: number;
-  /** Natural LLM phrasing, exact local bindings, or compact local evidence. */
+  /** Natural LLM phrasing, exact local bindings, compact local evidence, or session reading. */
   answerMode?: RecallAnswerMode;
+  /** The reader for the `sessions` mode; omitted means `REMBERO_READER_*`, then `deps.llm`. */
+  reader?: RecallReader;
   /** Add deterministic lexical/provenance discovery when recall cannot answer. */
   relatedKnowledge?: boolean | RecallRelatedKnowledgeOptions;
 }
@@ -536,9 +604,14 @@ export function evidenceRecallAnswer(
 
 function resolvedRecallAnswerMode(value: unknown): RecallAnswerMode {
   if (value === undefined || value === 'natural') return 'natural';
-  if (value === 'deterministic' || value === 'evidence') return value;
+  if (
+    value === 'deterministic' ||
+    value === 'evidence' ||
+    value === 'sessions'
+  )
+    return value;
   throw new Error(
-    "recall answer mode must be 'natural', 'deterministic', or 'evidence'",
+    "recall answer mode must be 'natural', 'deterministic', 'evidence', or 'sessions'",
   );
 }
 
@@ -1888,6 +1961,349 @@ export async function retrieveQuestion(
   };
 }
 
+/** Loopback hosts: a reader on one of them is reading text that never leaves the machine. */
+const LOCAL_READER_HOSTS: ReadonlySet<string> = new Set([
+  'localhost',
+  '127.0.0.1',
+  '::1',
+  '[::1]',
+]);
+
+function readerIsLocal(baseUrl: string): boolean {
+  try {
+    const host = new URL(baseUrl).hostname.toLowerCase();
+    return LOCAL_READER_HOSTS.has(host) || host.endsWith('.localhost');
+  } catch {
+    // a base URL this build cannot parse is treated as remote: the safe direction
+    return false;
+  }
+}
+
+interface ResolvedReader {
+  client: LlmClient;
+  /** Reading on this machine, so the history never crosses a network. */
+  local: boolean;
+  model?: string;
+  maxTokens?: number;
+}
+
+/**
+ * `options.reader ?? readerFromEnv() ?? deps.llm`. The product's own LLM is read as remote:
+ * recall cannot tell from here whether `LLM_BASE_URL` points at a local server, and
+ * mistaking a cloud model for a local one is the mistake that leaks a conversation.
+ */
+function resolvedReader(
+  deps: PipelineDeps,
+  options: RecallOptions,
+): ResolvedReader {
+  const configured = options.reader ?? readerFromEnv();
+  if (configured === undefined) return { client: deps.llm, local: false };
+  const client =
+    configured.client ??
+    new OpenRouterClient({
+      apiKey: configured.apiKey,
+      baseUrl: configured.baseUrl,
+      model: configured.model,
+      temperature: configured.temperature,
+      timeoutMs: configured.timeoutMs,
+    });
+  return {
+    client,
+    local: readerIsLocal(configured.baseUrl),
+    model: configured.model,
+    maxTokens: configured.maxTokens,
+  };
+}
+
+/** A client that reports the model and usage of a completion, as OpenRouterClient does. */
+interface UsageReportingClient extends LlmClient {
+  completeWithUsage(
+    messages: ChatMessage[],
+    options?: { maxTokens?: number },
+  ): Promise<{ content: string; model?: string }>;
+}
+
+function reportsUsage(client: LlmClient): client is UsageReportingClient {
+  return (
+    typeof (client as Partial<UsageReportingClient>).completeWithUsage ===
+    'function'
+  );
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Send the reading prompt. A reader that cannot be reached is an error naming the setting
+ * to check, never a quiet hand-off to another model: the answer would then come from a
+ * model the user did not choose to show their conversations to.
+ */
+async function readSessions(
+  reader: ResolvedReader,
+  messages: ChatMessage[],
+): Promise<{ reply: string; model?: string }> {
+  try {
+    if (reportsUsage(reader.client)) {
+      const completion = await reader.client.completeWithUsage(
+        messages,
+        reader.maxTokens === undefined ? {} : { maxTokens: reader.maxTokens },
+      );
+      return {
+        reply: completion.content,
+        ...(typeof completion.model === 'string'
+          ? { model: completion.model }
+          : reader.model === undefined
+            ? {}
+            : { model: reader.model }),
+      };
+    }
+    const reply = await reader.client.complete(messages);
+    return {
+      reply,
+      ...(reader.model === undefined ? {} : { model: reader.model }),
+    };
+  } catch (error) {
+    throw new Error(
+      `the session reader failed: ${errorMessage(error)}. Check REMBERO_READER_BASE_URL and REMBERO_READER_MODEL; recall will not answer from a different model instead`,
+    );
+  }
+}
+
+/**
+ * The reader's prompt, with the privacy refusal turned into advice. `buildReadingPrompt`
+ * already runs `assertSafeForExternalLlm` over every prompt it renders; a remote reader is
+ * gated again here so the refusal names the setting that would let a local reader — which
+ * sends the text nowhere — read this history after all.
+ */
+function sessionReadingPrompt(
+  question: string,
+  askedAt: Date,
+  chosen: readonly RetrievableSession[],
+  options: SessionRetrievalOptions,
+  reader: ResolvedReader,
+): { system: string; user: string } {
+  try {
+    const prompt = buildReadingPrompt(question, askedAt, chosen, options);
+    if (!reader.local) {
+      assertSafeForExternalLlm(prompt.user, 'session reading prompt');
+    }
+    return prompt;
+  } catch (error) {
+    const detail = errorMessage(error);
+    if (reader.local || !/sensitive/.test(detail)) throw error;
+    throw new Error(
+      `refusing to send this history to a reader outside localhost (${detail}); point REMBERO_READER_BASE_URL at a reader on 127.0.0.1 to answer from it`,
+    );
+  }
+}
+
+/** One stored conversation, ready to rank, with the namespace and key it came from. */
+interface LoadedSession extends RetrievableSession {
+  namespace: string;
+  key: string;
+}
+
+/**
+ * Every stored conversation of the selected namespaces. A session file the store cannot
+ * read is skipped (the store logs it); an empty one is left out so it cannot take a
+ * reading slot from a session with something in it.
+ */
+function loadSessions(
+  store: SessionStore,
+  namespaces: readonly string[],
+): LoadedSession[] {
+  const loaded: LoadedSession[] = [];
+  for (const namespace of namespaces) {
+    for (const entry of store.list(namespace)) {
+      const session = store.readSession(namespace, entry.key);
+      if (session === undefined) continue;
+      const turns = session.turns
+        .filter((turn) => turn.text.trim() !== '')
+        .map(({ role, text }) => ({ role, text }));
+      if (turns.length === 0) continue;
+      loaded.push({
+        // neither a namespace nor a 32-hex key can contain '/', so this pairs them back up
+        id: `${namespace}/${entry.key}`,
+        date: entry.startedAt,
+        namespace,
+        key: entry.key,
+        turns,
+      });
+    }
+  }
+  return loaded;
+}
+
+/** How much of a read session is shown back as evidence. */
+const SESSION_EXCERPTS_PER_SESSION = 3;
+const SESSION_EXCERPT_CHARACTERS = 400;
+
+/**
+ * The turns of one read session that match the question: the ones sharing the most of its
+ * words, at most three, shown in the order they were said. A session with no word in
+ * common (retrieved for its neighbours' sake, or by a re-rank) shows its first turn, so the
+ * evidence never comes back empty for a session the reader actually saw.
+ */
+function matchingExcerpts(
+  question: string,
+  session: RetrievableSession,
+  assistantTurns: boolean,
+): string[] {
+  const wanted = new Set(recallWords(question));
+  const preferred = assistantTurns
+    ? session.turns
+    : session.turns.filter(({ role }) => role === 'user');
+  const turns = preferred.length === 0 ? session.turns : preferred;
+  const scored = turns.map((turn, position) => ({
+    text: turn.text,
+    position,
+    score: [...new Set(recallWords(turn.text))].reduce(
+      (total, word) => total + (wanted.has(word) ? 1 : 0),
+      0,
+    ),
+  }));
+  const matched = scored
+    .filter(({ score }) => score > 0)
+    .sort((left, right) => right.score - left.score || left.position - right.position)
+    .slice(0, SESSION_EXCERPTS_PER_SESSION);
+  const chosen =
+    matched.length > 0
+      ? matched.sort((left, right) => left.position - right.position)
+      : scored.slice(0, 1);
+  return chosen.map(({ text }) =>
+    text.length <= SESSION_EXCERPT_CHARACTERS
+      ? text
+      : `${text.slice(0, SESSION_EXCERPT_CHARACTERS)}…`,
+  );
+}
+
+/**
+ * A reader saying it has no answer. The reading prompts all end with "if the history does
+ * not support an answer, say that you do not know", and taking that at face value is the
+ * whole point: `unknown` is a real answer, and turning one into a guess is the failure this
+ * mode exists to avoid.
+ */
+const READER_DOES_NOT_KNOW: ReadonlyArray<RegExp> = [
+  /\bi (?:do not|don't|cannot|can't|could not|couldn't) (?:know|tell|say|determine|find)\b/i,
+  /\b(?:not sure|no (?:relevant )?(?:information|evidence|record|records|mention|details))\b/i,
+  /\b(?:the )?(?:history|notes|sessions?|conversations?) (?:do(?:es)? not|don't|doesn't) (?:say|state|mention|contain|support)\b/i,
+  /\bunable to (?:tell|say|answer|determine)\b/i,
+  /\bnothing (?:relevant|in the history)\b/i,
+];
+
+/**
+ * Answer by reading the stored conversations: classify the question, rank the namespace's
+ * sessions, build the one reading prompt the benchmark measures, and read the reader's
+ * final answer line off its reply.
+ *
+ * No Datalog is written and no fact is queried, so the configured LLM is never called here:
+ * the reader is the only model in this path, and when there is nothing to read it is not
+ * called either.
+ */
+async function answerFromSessions(
+  deps: PipelineDeps,
+  question: string,
+  namespaces: string[] | '*',
+  options: RecallOptions,
+): Promise<RecallResult> {
+  const askedAt = options.at ?? new Date();
+  const kind = questionKindFromText(question);
+  const explained = options.explain === true;
+  const working: Pick<RecallResult, 'questionKind'> = explained
+    ? { questionKind: kind }
+    : {};
+  const noEvidence = (answer: string, sessionsError?: string): RecallResult => ({
+    status: 'no_evidence',
+    answer,
+    query: null,
+    bindings: [],
+    answerMode: 'sessions',
+    sessionsRead: [],
+    ...working,
+    ...(sessionsError === undefined ? {} : { sessionsError }),
+  });
+  if (deps.sessions === undefined) {
+    return noEvidence(
+      'No conversations are stored to read: REMBERO_SESSIONS is off, so no conversation text is kept.',
+    );
+  }
+  assertLlmNamespacesAllowed(deps, namespaces);
+  const selected =
+    namespaces === '*' ? deps.store.listNamespaces() : namespaces;
+  let loaded: LoadedSession[];
+  try {
+    loaded = loadSessions(deps.sessions, selected);
+  } catch (error) {
+    // Capture degrades the same way: a store that cannot be read costs the session, not
+    // the answer. There is simply nothing to read, and the reason is recorded.
+    return noEvidence(
+      'I could not read the stored conversations, so I have nothing to answer from.',
+      errorMessage(error),
+    );
+  }
+  if (loaded.length === 0) {
+    return noEvidence('No stored conversation could answer that.');
+  }
+  const retrieval: SessionRetrievalOptions = {
+    kind,
+    topK: DEFAULT_READING_DEPTH,
+    contextBytes: DEFAULT_READING_CONTEXT_BYTES,
+    dateDistances: true,
+    computedNotes: computedNotesEnabled(options),
+  };
+  const { chosen } = await retrieveSessions(
+    question,
+    askedAt,
+    loaded,
+    retrieval,
+  );
+  const byId = new Map(loaded.map((session) => [session.id, session]));
+  const read = chosen.flatMap((id) => {
+    const session = byId.get(id);
+    return session === undefined ? [] : [session];
+  });
+  if (read.length === 0) {
+    return noEvidence('No stored conversation mentions that.');
+  }
+  const reader = resolvedReader(deps, options);
+  const prompt = sessionReadingPrompt(
+    question,
+    askedAt,
+    read,
+    retrieval,
+    reader,
+  );
+  const { reply, model } = await readSessions(reader, [
+    { role: 'system', content: prompt.system },
+    { role: 'user', content: prompt.user },
+  ]);
+  // the notes reading shows its working and ends on an "Answer:" line; a plain recall
+  // returns that line alone, and only recall_explain carries the whole reply
+  const answer = readsInNotes(kind) ? finalAnswerLine(reply) : reply.trim();
+  assertBoundedOutput(answer, 'sessions recall answer');
+  const unknown =
+    answer === '' || READER_DOES_NOT_KNOW.some((pattern) => pattern.test(answer));
+  return {
+    status: unknown ? 'unknown' : 'answered',
+    answer:
+      answer === ''
+        ? 'The reader read the history and gave no answer.'
+        : answer,
+    query: null,
+    bindings: [],
+    answerMode: 'sessions',
+    sessionsRead: read.map((session) => ({
+      key: session.key,
+      date: session.date.slice(0, 10),
+      excerpts: matchingExcerpts(question, session, kind.assistantRecall),
+    })),
+    ...(model === undefined ? {} : { readerModel: model }),
+    ...working,
+    ...(explained ? { readerReply: reply } : {}),
+  };
+}
+
 export async function recallQuestion(
   deps: PipelineDeps,
   question: string,
@@ -1897,6 +2313,9 @@ export async function recallQuestion(
   const answerMode = resolvedRecallAnswerMode(
     options.answerMode ?? deps.recallAnswerMode,
   );
+  if (answerMode === 'sessions') {
+    return answerFromSessions(deps, question, namespaces, options);
+  }
   const answerModeResult = answerMode === 'natural' ? {} : { answerMode };
   const askedAt = options.at ?? new Date();
   const notesOn = computedNotesEnabled(options);

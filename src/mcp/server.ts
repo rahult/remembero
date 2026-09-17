@@ -357,10 +357,10 @@ const trustViewField = z
   .optional()
   .describe('Accepted knowledge only (default), or opt in to tentative claims');
 const recallAnswerModeField = z
-  .enum(['natural', 'deterministic', 'evidence'])
+  .enum(['natural', 'deterministic', 'evidence', 'sessions'])
   .optional()
   .describe(
-    'LLM phrasing, exact local bindings, or compact local proof/source evidence',
+    'LLM phrasing, exact local bindings, compact local proof/source evidence, or sessions: read the stored conversations instead of querying facts (needs REMBERO_SESSIONS=on)',
   );
 const graphSelectorField = z
   .discriminatedUnion('kind', [
