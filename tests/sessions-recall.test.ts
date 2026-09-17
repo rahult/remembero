@@ -118,6 +118,27 @@ describe('the sessions answer mode', () => {
     expect(client.prompts[0]?.at(-1)?.content).toContain('two bikes');
   });
 
+  it('shows the reader working and the question kind only to recall_explain', async () => {
+    storeSession('bikes', '2024-02-27T09:00:00.000Z', [
+      { role: 'user', text: 'I now own two bikes after selling the old road bike.' },
+    ]);
+    const reply = 'Notes:\n- 2024-02-27: two bikes\nAnswer: Two bikes.';
+    const result = await recallQuestion(
+      { store, llm: new NeverCalledLlm(), sessions },
+      'How many bikes do I own now?',
+      ['default'],
+      {
+        answerMode: 'sessions',
+        at: ASKED_AT,
+        explain: true,
+        reader: reader(new StubReaderClient(reply)),
+      },
+    );
+    expect(result.answer).toBe('Two bikes.');
+    expect(result.readerReply).toBe(reply);
+    expect(result.questionKind).toMatchObject({ aggregation: true, update: true });
+  });
+
   it('returns no_evidence without calling the reader when the namespace is empty', async () => {
     const client = new StubReaderClient('Answer: Two bikes.');
     const result = await recallQuestion(
