@@ -229,3 +229,37 @@ describe('rule 5: bugs from the v7 temporal misses', () => {
     expect(tickets[0]?.yearRolledBack).toBeUndefined();
   });
 });
+
+describe('rule 3: which sentences count as relevant', () => {
+  it('keeps short capitalised names and reads met as meet', () => {
+    const notes = buildComputedNotes('When did I meet Jo?', '2023/05/28 (Sun) 10:00', [
+      { ts: '2023-05-28T10:00:00Z', text: 'USER: A few months ago, I met a lot of people at a fair, including a potter named Jo.' },
+    ]);
+    expect(notes).toMatch(/2023-02-2\d: "[^"]*named Jo/);
+    const sf = buildComputedNotes('When was I in SF?', '2023/05/28 (Sun) 10:00', [{ ts: '2023-05-28T10:00:00Z', text: 'USER: I was in SF exactly two weeks ago.' }]);
+    expect(sf).toContain('2023-05-14');
+  });
+
+  it('matches whole words, so a question word inside a longer word does not pull a sentence in', () => {
+    expect(buildComputedNotes('What did I do with my old cart?', '2023/05/28 (Sun) 10:00', [{ ts: '2023-05-28T10:00:00Z', text: 'USER: I watched a cartoon yesterday.' }])).toBe('');
+  });
+
+  it('keeps a dated sentence that refers back to a named thing with "the <noun>" in the same turn', () => {
+    const turn = 'USER: I need a sleeve for my new tablet, Lenovo Yoga, and a strap for my camera. By the way, I ordered the tablet on April 2nd.';
+    const notes = buildComputedNotes('When did I get the Lenovo Yoga?', '2023/05/28 (Sun) 10:00', [{ ts: '2023-05-10T10:00:00Z', text: turn }]);
+    expect(notes).toMatch(/2023-04-02: "[^"]*ordered the tablet/);
+    // another turn does not carry the link
+    const apart = buildComputedNotes('When did I get the Lenovo Yoga?', '2023/05/28 (Sun) 10:00', [
+      { ts: '2023-05-10T10:00:00Z', text: 'USER: I need a sleeve for my new tablet, Lenovo Yoga.\n\nASSISTANT: Sure.\n\nUSER: By the way, I ordered the tablet on April 2nd.' },
+    ]);
+    expect(apart).not.toContain('2023-04-02');
+  });
+
+  it('only says the history never mentions a side when no user turn names it', () => {
+    const notes = buildComputedNotes('Which did I buy first, the desk lamp or the Ergo chair?', '2023/05/30 (Tue) 19:37', [
+      { ts: '2023-05-21T10:00:00Z', text: 'USER: I bought the desk lamp three weeks ago.\n\nUSER: I love my Ergo chair so much.' },
+    ]);
+    expect(notes).not.toMatch(/none match "ergo chair"/);
+    expect(notes).toMatch(/"ergo chair" is named in the history, but no sentence naming it carries a date/);
+  });
+});

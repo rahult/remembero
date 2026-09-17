@@ -176,7 +176,12 @@ function toldAsPast(sentence: string, index: number): boolean {
 
 /** User turns only: the assistant's hypotheticals must not become the user's dates. */
 export function userSentences(text: string): string[] {
-  const out: string[] = [];
+  return userTurns(text).flat();
+}
+
+/** The user's turns, each split into sentences. */
+export function userTurns(text: string): string[][] {
+  const out: string[][] = [];
   // split by turn marker so an assistant turn's later paragraphs keep their role
   const marker = /^(USER|ASSISTANT):\s*/gm;
   const turns: Array<{ role: string; body: string }> = [];
@@ -190,10 +195,12 @@ export function userSentences(text: string): string[] {
   else turns.push({ role: 'USER', body: text });
   for (const { role, body } of turns) {
     if (role !== 'USER') continue;
+    const sentences: string[] = [];
     for (const sentence of body.split(/(?<=[.!?])\s+|\n+/)) {
       const s = sentence.trim();
-      if (s.length > 2) out.push(s);
+      if (s.length > 2) sentences.push(s);
     }
+    if (sentences.length > 0) out.push(sentences);
   }
   return out;
 }
@@ -405,9 +412,62 @@ export function questionKeywords(question: string): string[] {
   return [...new Set(words.map((w) => (w.endsWith('s') && !w.endsWith('ss') ? w.slice(0, -1) : w)))];
 }
 
-function relevant(sentence: string, keywords: string[]): boolean {
-  const s = sentence.toLowerCase();
-  return keywords.some((k) => s.includes(k));
+/** Words that say nothing about which event a question means, on top of STOPWORDS. */
+const EXTRA_STOP = new Set(
+  'new old one two three four five six seven eight nine ten got get let put say see use way why yet own per far few too out off now not may can will just also really please tell remind recall remember mention mentioned told kind sort thing things lot bit like first second third last next previous earlier later don didn doesn isn wasn aren weren haven hasn couldn wouldn shouldn won'.split(' '),
+);
+
+/**
+ * The question's content words for whole-word matching, in canonical form: every word of three
+ * letters or more that is not a stopword, and every capitalised name at any length ("Tom", "SF").
+ */
+export function questionTerms(text: string): string[] {
+  const out = new Set<string>();
+  for (const raw of tokenize(text)) {
+    const lower = raw.toLowerCase();
+    if (STOPWORDS.has(lower) || EXTRA_STOP.has(lower) || SMALL_NUMBERS[lower] !== undefined) continue;
+    if (lower.length >= 3 || (/^[A-Z]/.test(raw) && raw.length >= 2)) out.add(canonicalWord(lower));
+  }
+  return [...out];
+}
+
+/** Capitalised names in the question, as written. */
+function questionNames(text: string): string[] {
+  return [...new Set(tokenize(text).filter((raw) => /^[A-Z]/.test(raw) && raw.length >= 2 && !STOPWORDS.has(raw.toLowerCase()) && !EXTRA_STOP.has(raw.toLowerCase())))];
+}
+
+function escapeRe(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * "my new laptop, Dell XPS 13": within one turn, the common noun set beside a name the
+ * question uses. A later "the laptop" in the same turn then refers to that name. A noun set
+ * beside two different names is dropped.
+ */
+function turnAliases(turn: string, names: string[]): Map<string, string> {
+  const found = new Map<string, Set<string>>();
+  for (const name of names) {
+    const re = new RegExp(`\\b(?:[Mm]y|[Oo]ur|[Tt]he|[Aa]n?|[Hh]is|[Hh]er|[Tt]heir)\\s+(?:[A-Za-z-]+\\s+)?([a-z][a-z-]+),?\\s+(?:the\\s+)?${escapeRe(name)}\\b`, 'g');
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(turn)) !== null) {
+      const noun = m[1]!.toLowerCase();
+      if (STOPWORDS.has(noun) || EXTRA_STOP.has(noun) || noun.length < 3) continue;
+      found.set(noun, new Set([...(found.get(noun) ?? []), canonicalWord(name)]));
+    }
+  }
+  const out = new Map<string, string>();
+  for (const [noun, terms] of found) if (terms.size === 1) out.set(noun, [...terms][0]!);
+  return out;
+}
+
+/** Names a sentence refers to through "the <noun>" / "my <noun>" set beside them in its turn. */
+function aliasReferences(sentence: string, aliases: Map<string, string>): string[] {
+  const out: string[] = [];
+  for (const [noun, term] of aliases) {
+    if (new RegExp(`\\b(?:the|my|our|this|that)\\s+(?:new\\s+|old\\s+)?${escapeRe(noun)}(?:'s)?\\b`, 'i').test(sentence)) out.push(term);
+  }
+  return out;
 }
 
 function distance(iso: string, questionDay: string): string {
@@ -441,7 +501,23 @@ export function buildComputedNotes(
   limits: { maxEvents?: number; maxQuantities?: number; maxChars?: number } = {},
 ): string {
   const questionDay = dayOf(questionDate);
-  const keywords = questionKeywords(question);
+  const terms = questionTerms(question);
+  const names = questionNames(question);
+  // every user sentence's words, plus the names it refers to through a noun set beside them in its turn
+  const sentenceWords = new Map<string, Set<string>>();
+  const allUserWords = new Set<string>();
+  for (const source of sources) {
+    for (const turn of userTurns(source.text)) {
+      const aliases = names.length > 0 ? turnAliases(turn.join(' '), names) : new Map<string, string>();
+      for (const sentence of turn) {
+        const words = new Set([...wordSet(sentence), ...aliasReferences(sentence, aliases)]);
+        const known = sentenceWords.get(sentence);
+        sentenceWords.set(sentence, known === undefined ? words : new Set([...known, ...words]));
+        for (const w of words) allUserWords.add(w);
+      }
+    }
+  }
+  const wordsOf = (sentence: string) => sentenceWords.get(sentence) ?? wordSet(sentence);
   const maxEvents = limits.maxEvents ?? 12;
   const maxQuantities = limits.maxQuantities ?? 16;
   const maxChars = limits.maxChars ?? 2600;
@@ -454,7 +530,10 @@ export function buildComputedNotes(
   );
   if (/\b(money|cost|spend|spent|paid|pay|price|raise[d]?|earn)\b/.test(q)) unitsInQuestion.add('dollar');
   if (/\bpercent|%|percentage\b/.test(q)) unitsInQuestion.add('percent');
-  const keywordHits = (sentence: string) => keywords.filter((k) => sentence.toLowerCase().includes(k)).length;
+  const keywordHits = (sentence: string) => {
+    const words = wordsOf(sentence);
+    return terms.filter((t) => words.has(t)).length;
+  };
 
   const events: DatedEvent[] = [];
   const allEvents: DatedEvent[] = [];
@@ -462,7 +541,7 @@ export function buildComputedNotes(
   for (const source of [...sources].sort((l, r) => l.ts.localeCompare(r.ts))) {
     for (const e of resolveTemporalExpressions(source.text, source.ts)) {
       allEvents.push(e);
-      if (relevant(e.sentence, keywords)) events.push(e);
+      if (keywordHits(e.sentence) > 0) events.push(e);
     }
     for (const x of extractQuantities(source.text)) {
       // a quantity belongs to the question when its unit is named in the question, or its
@@ -506,13 +585,23 @@ export function buildComputedNotes(
         .split(/\s+or\s+|,\s*(?:and\s+)?|\s+and then\s+/i)
         .filter((part) => !/\b(which|what|how|when|did|do|does|who|where)\b/i.test(part))
         // number words and ordinals match everywhere ("three weeks ago"); they do not identify an alternative
-        .map((part) => questionKeywords(part).filter((k) => SMALL_NUMBERS[k] === undefined && !/^(first|last|second|third|next|previous|earlier|later)$/.test(k)))
-        .filter((ks) => ks.length > 0);
+        .map((part) => ({
+          ks: questionKeywords(part).filter((k) => SMALL_NUMBERS[k] === undefined && !/^(first|last|second|third|next|previous|earlier|later)$/.test(k)),
+          terms: questionTerms(part),
+        }))
+        .filter((a) => a.ks.length > 0 && a.terms.length > 0);
       if (alternatives.length >= 2) {
-        const coverage = alternatives.map((ks) => ({ ks, dated: distinct.some((e) => ks.some((k) => e.sentence.toLowerCase().includes(k))) }));
+        const coverage = alternatives.map((a) => ({ ...a, dated: dated.some((e) => a.terms.some((t) => wordsOf(e.sentence).has(t))) }));
         const undated = coverage.filter((c) => !c.dated);
         if (undated.length > 0 && coverage.some((c) => c.dated)) {
-          lines.push(`Coverage: the dated events above match ${coverage.filter((c) => c.dated).map((c) => `"${c.ks.slice(0, 4).join(' ')}"`).join(', ')} but none match ${undated.map((c) => `"${c.ks.slice(0, 4).join(' ')}"`).join(', ')}; if the history never dates one side of the question, the honest answer is that it does not say.`);
+          const label = (c: { ks: string[] }) => `"${c.ks.slice(0, 4).join(' ')}"`;
+          // a side the user never names is unknown; a side the user names without a date is only undated
+          const unnamed = undated.filter((c) => !c.terms.some((t) => allUserWords.has(t)));
+          const named = undated.filter((c) => c.terms.some((t) => allUserWords.has(t)));
+          if (unnamed.length > 0) {
+            lines.push(`Coverage: the dated events above match ${coverage.filter((c) => c.dated).map(label).join(', ')} but none match ${unnamed.map(label).join(', ')}; if the history never dates one side of the question, the honest answer is that it does not say.`);
+          }
+          for (const c of named) lines.push(`Coverage: ${label(c)} is named in the history, but no sentence naming it carries a date.`);
         }
       }
     }
@@ -528,7 +617,7 @@ export function buildComputedNotes(
       }
       // the pair whose two sentences together cover the most question words comes first: a
       // small reader copies the first gap it sees
-      const covered = (a: DatedEvent, b: DatedEvent) => new Set(keywords.filter((k) => a.sentence.toLowerCase().includes(k) || b.sentence.toLowerCase().includes(k))).size;
+      const covered = (a: DatedEvent, b: DatedEvent) => new Set(terms.filter((t) => wordsOf(a.sentence).has(t) || wordsOf(b.sentence).has(t))).size;
       const distinctCover = (a: DatedEvent, b: DatedEvent) => Math.min(keywordHits(a.sentence), keywordHits(b.sentence));
       pairs.sort((l, r) => covered(r[0], r[1]) - covered(l[0], l[1]) || distinctCover(r[0], r[1]) - distinctCover(l[0], l[1]));
       const shown = pairs.slice(0, 4);
