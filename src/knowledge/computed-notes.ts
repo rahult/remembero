@@ -110,7 +110,7 @@ function tokenize(text: string): string[] {
     .replace(/[’‘`]/g, "'")
     .replace(/'s\b/gi, '')
     .split(/[^A-Za-z0-9'-]+/)
-    .map((w) => w.replace(/'.*$/, '').replace(/^-+|-+$/g, ''))
+    .map((w) => w.replace(/^['-]+|['-]+$/g, '').replace(/'.*$/, ''))
     .filter(Boolean);
 }
 
@@ -658,24 +658,70 @@ function snippet(sentence: string, max = 90): string {
   return s.length <= max ? s : `${s.slice(0, max - 1)}…`;
 }
 
-/** The part of a long sentence that holds the event's date: its clause, cut around the expression. */
-function focusSnippet(e: DatedEvent, max = 90): string {
+/** A start offset moved forward to the next word; an end offset moved back to the previous one. */
+function wordStart(text: string, at: number): number {
+  if (at <= 0) return 0;
+  if (text[at - 1] === ' ') return at;
+  const space = text.indexOf(' ', at);
+  return space === -1 ? at : space + 1;
+}
+
+function wordEnd(text: string, at: number, atLeast: number): number {
+  if (at >= text.length) return text.length;
+  const space = text.lastIndexOf(' ', at);
+  return space > atLeast ? space : at;
+}
+
+function renderRange(text: string, from: number, to: number): string {
+  const body = text.slice(from, to).replace(/\s+/g, ' ').trim();
+  return `${from > 0 ? '…' : ''}${body}${to < text.length ? '…' : ''}`;
+}
+
+/** The clause holding the date, cut to `max` characters around the expression. */
+function clauseRange(e: DatedEvent, max: number): [number, number] {
   const sentence = e.sentence;
-  if (e.index === undefined || sentence.length <= max) return snippet(sentence, max);
+  if (e.index === undefined) return [0, wordEnd(sentence, Math.min(sentence.length, max - 1), 0)];
   const [from, to] = clauseAt(sentence, e.index);
   const expressionEnd = e.index + e.expression.length;
   let start = Math.max(from, Math.min(e.index, expressionEnd + 12 - max));
-  if (start > from) {
-    const space = sentence.indexOf(' ', start - 1);
-    if (space !== -1 && space < e.index) start = space + 1;
+  if (start > from) start = Math.min(wordStart(sentence, start), e.index);
+  const end = Math.min(to, start + max);
+  return [start, end < to ? wordEnd(sentence, end, expressionEnd) : end];
+}
+
+/**
+ * The part of a long sentence that holds the event's date: its clause, cut around the
+ * expression. When that part shows none of `mustShow` (canonical words) and the sentence has
+ * one, the window widens to it, or the words around it are quoted in front.
+ */
+function focusSnippet(e: DatedEvent, max = 90, mustShow: string[] = []): string {
+  const sentence = e.sentence;
+  if (sentence.length <= max) return snippet(sentence, max);
+  let [from, to] = clauseRange(e, max);
+  if (mustShow.length > 0 && !mustShow.some((t) => wordSet(sentence.slice(from, to)).has(t))) {
+    const word = /[A-Za-z0-9'-]+/g;
+    let m: RegExpExecArray | null;
+    while ((m = word.exec(sentence)) !== null) {
+      if (mustShow.includes(canonicalWord(m[0].replace(/^['-]+|['-]+$/g, '').replace(/'.*$/, '')))) break;
+    }
+    if (m !== null) {
+      const at = m.index;
+      if (e.index === undefined) {
+        from = wordStart(sentence, Math.max(0, at - 30));
+        const end = Math.min(sentence.length, from + max);
+        to = end < sentence.length ? wordEnd(sentence, end, at + m[0].length) : end;
+      } else if (at < from && to - at <= max + 30) {
+        from = wordStart(sentence, Math.max(0, at - 12));
+      } else {
+        const pieceFrom = wordStart(sentence, Math.max(0, at - 20));
+        const pieceTo = wordEnd(sentence, Math.min(sentence.length, at + m[0].length + 20), at + m[0].length);
+        const piece = renderRange(sentence, pieceFrom, pieceTo);
+        const window = renderRange(sentence, from, to);
+        return at < from ? `${piece} ${window}` : `${window} ${piece}`;
+      }
+    }
   }
-  let end = Math.min(to, start + max);
-  if (end < to) {
-    const space = sentence.lastIndexOf(' ', end);
-    if (space > expressionEnd) end = space;
-  }
-  const body = sentence.slice(start, end).replace(/\s+/g, ' ').trim();
-  return `${start > 0 ? '…' : ''}${body}${end < sentence.length ? '…' : ''}`;
+  return renderRange(sentence, from, to);
 }
 
 /** An event's date as the notes print it: rough dates marked, a month shown as a month. */
@@ -782,7 +828,7 @@ function orderVerdict(
     const chosen = p.ranked[0]!.e;
     const others = [...new Map(p.ranked.slice(1).filter((x) => x.e.iso !== chosen.iso).map((x) => [x.e.iso, x.e])).values()].slice(0, 2);
     const also = others.length === 0 ? '' : ` [other dates the history gives it: ${others.map((o) => `${whenOf(o)} ("${focusSnippet(o, 50)}")`).join('; ')}]`;
-    return `"${p.alt.text}" ${whenOf(chosen)} ("${focusSnippet(chosen, 70)}", said ${chosen.sessionDay})${also}`;
+    return `"${p.alt.text}" ${whenOf(chosen)} ("${focusSnippet(chosen, 70, p.alt.terms)}", said ${chosen.sessionDay})${also}`;
   };
   const [aFrom, aTo] = windowOf(first.e);
   const [bFrom, bTo] = windowOf(second.e);
@@ -790,6 +836,81 @@ function orderVerdict(
   if (bTo < aFrom) return `Which came first: ${describe(b)} is earlier than ${describe(a)} → ${b.alt.text} came first.`;
   if (aFrom === aTo && bFrom === bTo && aFrom === bFrom) return `Which came first: ${describe(a)} and ${describe(b)} are dated the same day.`;
   return `Which came first: ${describe(a)} and ${describe(b)} are too close to order from these dates (the ranges their rough expressions allow overlap).`;
+}
+
+type GapUnit = 'day' | 'week' | 'month' | 'year';
+
+interface GapQuestion {
+  first: string;
+  /** undefined: counted to the question date ("how many days ago") */
+  second: string | undefined;
+  unit: GapUnit | undefined;
+  /** "how long had I been X when Y": X is something that began */
+  firstIsStart?: boolean;
+}
+
+/** A question asking for the time between two events (or from one event to now), split into its sides. */
+function gapQuestion(question: string): GapQuestion | undefined {
+  const q = question.replace(/[?]+\s*$/, '').trim();
+  const unitOf = (u: string | undefined) => (u === undefined ? undefined : (u.toLowerCase().replace(/s$/, '') as GapUnit));
+  const U = '(days?|weeks?|months?|years?)';
+  let m: RegExpExecArray | null;
+  if ((m = new RegExp(`\\bhow many ${U}\\b.*?\\bbetween\\s+(.+)$`, 'i').exec(q))) {
+    const rest = m[2]!;
+    const split = /\s+and\s+(?=(?:the|my|when|i|we)\b)/i.exec(rest) ?? /\s+and\s+/i.exec(rest);
+    if (split === null) return undefined;
+    return { first: rest.slice(0, split.index), second: rest.slice(split.index + split[0].length), unit: unitOf(m[1]) };
+  }
+  if ((m = new RegExp(`\\bhow many ${U}\\s+(?:have\\s+|had\\s+|has\\s+)?(?:passed|elapsed|gone by|been)\\s+since\\s+(.+?)\\s+(?:when|until|by the time|before)\\s+(.+)$`, 'i').exec(q))) {
+    return { first: m[2]!, second: m[3]!, unit: unitOf(m[1]) };
+  }
+  if ((m = new RegExp(`\\bhow many ${U}\\s+ago\\s+(?:did|was|were|had|have)\\s+(?:i|we)\\s+(.+)$`, 'i').exec(q))) {
+    return { first: m[2]!, second: undefined, unit: unitOf(m[1]) };
+  }
+  if ((m = new RegExp(`\\bhow many ${U}\\s+(?:have\\s+|had\\s+|has\\s+)?(?:passed|elapsed|gone by|been)\\s+since\\s+(.+)$`, 'i').exec(q))) {
+    return { first: m[2]!, second: undefined, unit: unitOf(m[1]) };
+  }
+  if ((m = new RegExp(`\\bhow many ${U}\\s+after\\s+(.+?)\\s+did\\s+(?:i|we)\\s+(.+)$`, 'i').exec(q))) {
+    return { first: m[2]!, second: m[3]!, unit: unitOf(m[1]) };
+  }
+  if ((m = new RegExp(`\\bhow many ${U}\\s+before\\s+(.+?)\\s+did\\s+(?:i|we)\\s+(.+)$`, 'i').exec(q))) {
+    return { first: m[3]!, second: m[2]!, unit: unitOf(m[1]) };
+  }
+  if ((m = new RegExp(`\\bhow many ${U}\\s+(?:did it take|had passed|passed|was it)(?:\\s+for\\s+(?:me|us))?(?:\\s+(?:me|us))?(?:\\s+to)?\\s+(.+?)\\s+after\\s+(.+)$`, 'i').exec(q))) {
+    return { first: m[3]!, second: m[2]!, unit: unitOf(m[1]) };
+  }
+  if ((m = /\bhow long\s+(?:had|have)\s+(?:i|we)\s+been\s+(.+?)\s+(?:when|before|by the time)\s+(?:i\s+|we\s+)?(.+)$/i.exec(q))) {
+    return { first: m[1]!, second: m[2]!, unit: undefined, firstIsStart: true };
+  }
+  return undefined;
+}
+
+/** A side of a gap question as the notes print it: "the day I cancelled X" → "cancelled X". */
+function sideText(side: string): string {
+  return side
+    .trim()
+    .replace(/^(?:the\s+(?:day|time|date|moment)\s+)?(?:when\s+|that\s+)?(?:i|we)\s+(?:did\s+)?/i, '')
+    .replace(/[.,;:!]+$/, '');
+}
+
+/** The verb a side of a gap question starts with, in canonical form. */
+function sideVerb(side: string): string | undefined {
+  const first = /^([a-z]+)/i.exec(sideText(side))?.[1];
+  if (first === undefined) return undefined;
+  const verb = canonicalWord(first);
+  return ['do', 'be', 'have', 'the', 'my', 'a', 'an'].includes(verb) ? undefined : verb;
+}
+
+function inUnit(days: number, unit: GapUnit | undefined): string {
+  // "how long": no unit asked, so a long gap is given in months and weeks both
+  if (unit === undefined && days >= 45) {
+    return `about ${Math.round(days / 30.44)} months (${(days / 30.44).toFixed(1)} months, ${(days / 7).toFixed(1)} weeks, ${days} days)`;
+  }
+  const u = unit ?? (days >= 14 ? 'week' : 'day');
+  if (u === 'week') return `${Number.isInteger(days / 7) ? days / 7 : (days / 7).toFixed(1)} weeks (${days} days)`;
+  if (u === 'month') return `about ${Math.round(days / 30.44)} months (${(days / 30.44).toFixed(1)} months, ${days} days)`;
+  if (u === 'year') return `about ${Math.round(days / 365.25)} years (${(days / 365.25).toFixed(1)} years, ${days} days)`;
+  return `${days} days (${days + 1} counting both the first and the last day)`;
 }
 
 /**
@@ -1006,10 +1127,72 @@ export function buildComputedNotes(
       }
     }
   }
+  // the gap the question itself asks for, first: a small reader copies the first figure it sees,
+  // and the character limit below must not cut it
+  const asked = gapQuestion(question);
+  let pinned = 0;
+  if (asked !== undefined) {
+    const pool = [...allEvents, ...undatedEvents];
+    const firstTerms = questionTerms(asked.first);
+    const secondTerms = asked.second === undefined ? [] : questionTerms(asked.second);
+    const pick = (side: string, terms: string[], other: string[], exclude: DatedEvent | undefined, preferStart: boolean) => {
+      const specific = terms.filter((t) => !other.includes(t));
+      const use = specific.length > 0 ? specific : terms;
+      if (use.length === 0) return undefined;
+      const need = Math.min(2, use.length);
+      const verb = sideVerb(side);
+      const scored = pool
+        .filter((e) => e !== exclude && !(exclude !== undefined && e.sentence === exclude.sentence && e.iso === exclude.iso))
+        .map((e) => {
+          const words = wordsOf(e.sentence);
+          return { e, key: [use.filter((t) => words.has(t)).length, verb !== undefined && words.has(verb) ? 1 : 0, preferStart && e.start ? 1 : 0, e.kind === 'undated' ? 0 : 1] };
+        })
+        .filter((x) => x.key[0]! >= need)
+        .sort((l, r) => r.key[0]! - l.key[0]! || r.key[1]! - l.key[1]! || r.key[2]! - l.key[2]! || r.key[3]! - l.key[3]!);
+      const top = scored[0];
+      if (top === undefined) return undefined;
+      const tied = scored.filter((x) => x.key.every((k, i) => k === top.key[i]));
+      // two dates that fit a side equally well: the side is ambiguous, so no gap is stated
+      return new Set(tied.map((x) => x.e.iso)).size > 1 ? undefined : top.e;
+    };
+    const firstSpecific = firstTerms.filter((t) => !secondTerms.includes(t));
+    let firstEvent: DatedEvent | undefined;
+    let secondEvent: DatedEvent | undefined;
+    if (asked.second !== undefined && firstSpecific.length === 0) {
+      secondEvent = pick(asked.second, secondTerms, firstTerms, undefined, false);
+      firstEvent = pick(asked.first, firstTerms, secondTerms, secondEvent, asked.firstIsStart === true);
+    } else {
+      firstEvent = pick(asked.first, firstTerms, secondTerms, undefined, asked.firstIsStart === true);
+      if (asked.second !== undefined) secondEvent = pick(asked.second, secondTerms, firstTerms, firstEvent, false);
+    }
+    if (firstEvent !== undefined && (asked.second === undefined || secondEvent !== undefined)) {
+      const label = (side: string, e: DatedEvent) => {
+        const own = questionTerms(side);
+        const other = side === asked.first ? secondTerms : firstTerms;
+        const show = own.filter((t) => !other.includes(t) && t !== sideVerb(side));
+        return `"${sideText(side)}" ${whenOf(e)} ("${focusSnippet(e, 60, show.length > 0 ? show : own)}", said ${e.sessionDay}${e.start ? '; when it began' : ''})`;
+      };
+      const ends = asked.second === undefined || secondEvent === undefined
+        ? [{ text: label(asked.first, firstEvent), ms: msOf(firstEvent.iso) }, { text: `the question date ${questionDay}`, ms: msOf(questionDay) }]
+        : [{ text: label(asked.first, firstEvent), ms: msOf(firstEvent.iso) }, { text: label(asked.second, secondEvent), ms: msOf(secondEvent.iso) }].sort((l, r) => l.ms - r.ms);
+      const days = Math.round(Math.abs(ends[1]!.ms - ends[0]!.ms) / DAY_MS);
+      const involved = [firstEvent, secondEvent].filter((e): e is DatedEvent => e !== undefined);
+      const caveats = [
+        involved.some((e) => e.kind === 'undated') ? 'an end told without a date uses the day it was said, so the real gap may be longer' : '',
+        involved.some((e) => e.monthOnly) ? 'a month-only end is counted from the first of that month' : '',
+        involved.some((e) => e.approximate && e.kind !== 'undated' && !e.monthOnly) ? 'an end is a rough expression' : '',
+      ].filter(Boolean);
+      lines.unshift(`Gap the question asks for: ${ends[0]!.text} to ${ends[1]!.text} = ${inUnit(days, asked.unit)}${caveats.length > 0 ? ` [approximate: ${caveats.join('; ')}]` : ''}.`);
+      pinned = 1;
+    }
+  }
   if (lines.length === 0) return '';
   const header = '### Computed from the history (deterministic: dates resolved against each session\'s date, arithmetic exact; use these figures rather than recomputing, and check each against the sentence it quotes)\n';
   let block = header + lines.join('\n') + '\n';
-  if (block.length > maxChars) block = `${block.slice(0, maxChars - 2)}…\n`;
+  // the lines the question asks for directly are never cut
+  const floor = header.length + (pinned > 0 || lines[0]!.startsWith('Which came first:') ? lines[0]!.length + 2 : 0);
+  const limit = Math.max(maxChars, floor);
+  if (block.length > limit) block = `${block.slice(0, limit - 2)}…\n`;
   return block;
 }
 

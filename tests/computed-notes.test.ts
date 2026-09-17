@@ -403,3 +403,69 @@ describe('rule 1: an ordering verdict for which-came-first questions', () => {
     expect(notes).toMatch(/- 2023-06-10: "…?I started assembling a lighthouse puzzle today/);
   });
 });
+
+describe("rule 4: the question's own gap comes first", () => {
+  const first = (notes: string) => notes.split('\n')[1] ?? '';
+
+  it('states the gap between the two events the question names, first, where the character limit cannot cut it', () => {
+    const notes = buildComputedNotes(
+      'How many days did it take me to finish the quilt after buying the fabric?',
+      '2022/04/25 (Mon) 10:00',
+      [
+        {
+          ts: '2022-04-25T10:00:00Z',
+          text: "USER: By the way, I started writing poems again about two months ago, after a long break.\n\nUSER: I went to a talk on quilting history last week, and the speaker was great.\n\nUSER: Since I bought the fabric on 4/2, I've been sewing every night.\n\nUSER: I finished the quilt on 4/20, and it looks lovely.",
+        },
+      ],
+      { maxChars: 420 },
+    );
+    expect(first(notes)).toMatch(/^Gap the question asks for: "buying the fabric" 2022-04-02 [^\n]*to "finish the quilt" 2022-04-20 [^\n]*= 18 days \(19 counting both/);
+  });
+
+  it('gives the gap in the unit the question asks for', () => {
+    const notes = buildComputedNotes('How many weeks passed between the day I adopted my cat and the day I took her to the vet?', '2023/04/01 (Sat) 10:00', [
+      { ts: '2023-03-01T10:00:00Z', text: 'USER: I adopted my cat today, she is tiny.' },
+      { ts: '2023-03-19T10:00:00Z', text: 'USER: I took my cat to the vet today for her shots.' },
+    ]);
+    expect(first(notes)).toMatch(/= 2\.6 weeks \(18 days\)/);
+    const ago = buildComputedNotes('How many months ago did I book the cabin?', '2023/06/01 (Thu) 20:00', [
+      { ts: '2023-06-01T18:00:00Z', text: "USER: I stayed at a cabin for my sister's graduation and had to book two months in advance." },
+      { ts: '2023-06-01T09:00:00Z', text: "USER: I went to my sister's graduation exactly one month ago." },
+    ]);
+    expect(first(ago)).toMatch(/^Gap the question asks for: "book the cabin" ≈2023-03-01 [^\n]*to the question date 2023-06-01 = about 3 months \(3\.0 months, 92 days\)/);
+  });
+
+  it('uses an event told without a date, and prefers the sentence with the side\'s own words', () => {
+    const notes = buildComputedNotes('How many days passed between the day I cancelled my gym membership and the day I joined the climbing club?', '2023/03/18 (Sat) 10:00', [
+      { ts: '2023-02-01T10:00:00Z', text: "USER: I'm glad I cancelled my gym membership at FitWorks.\n\nUSER: I want to try the new climbing gym I discovered last month." },
+      { ts: '2023-03-01T10:00:00Z', text: 'USER: I joined the climbing club today.' },
+    ]);
+    expect(first(notes)).toMatch(/^Gap the question asks for: "cancelled my gym membership" on or before 2023-02-01 \(no date stated\) [^\n]*to "joined the climbing club" 2023-03-01 [^\n]*= 28 days/);
+  });
+
+  it('reads "how long had I been X when Y" from the start of X', () => {
+    const notes = buildComputedNotes('How long had I been doing pottery when I went to the pottery fair?', '2023/05/01 (Mon) 10:00', [
+      { ts: '2023-05-01T10:00:00Z', text: "USER: I've been doing pottery for about four months now.\n\nUSER: I went to a pottery fair two weeks ago." },
+    ]);
+    expect(first(notes)).toMatch(/^Gap the question asks for: "doing pottery" ≈2023-01-01 [^\n]*to "went to the pottery fair" 2023-04-17 [^\n]*= about 3 months \(3\.5 months, 15\.1 weeks, 106 days\)/);
+  });
+
+  it('quotes the words that tie a long sentence to its side, and gives a long "how long" in months too', () => {
+    const notes = buildComputedNotes('How long had I been knitting when I joined the yarn club?', '2023/05/21 (Sun) 10:00', [
+      {
+        ts: '2023-05-21T10:00:00Z',
+        text: "USER: By the way, I've been getting into knitting for about three months now, and it's been really relaxing so far.\n\nUSER: By the way, I finally joined the local yarn club at the community center downtown, and paid the fee a month ago.",
+      },
+    ]);
+    expect(first(notes)).toMatch(/"joined the yarn club" ≈2023-04-21 \("[^"]*yarn club[^"]*a month ago/);
+    expect(first(notes)).toMatch(/= about 2 months \(1\.9 months, 8\.4 weeks, 59 days\)/);
+  });
+
+  it('says nothing when a side matches two sentences with different dates equally well', () => {
+    const notes = buildComputedNotes('How many days passed between my dentist visit and my eye exam?', '2023/03/18 (Sat) 10:00', [
+      { ts: '2023-03-01T10:00:00Z', text: 'USER: I had a dentist visit today.\n\nUSER: My eye exam was yesterday.' },
+      { ts: '2023-03-10T10:00:00Z', text: 'USER: Another dentist visit today, sadly.' },
+    ]);
+    expect(notes).not.toMatch(/Gap the question asks for/);
+  });
+});
