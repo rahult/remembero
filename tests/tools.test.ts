@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { SessionStore } from '../src/sessions/store.js';
 import { MemoryStore, OperationConflictError } from '../src/store/store.js';
 import { IntegrityViolationError } from '../src/knowledge/enforcement.js';
 import type { ChatMessage, LlmClient } from '../src/llm/client.js';
@@ -14,6 +15,7 @@ import {
   checkpointJournalTool,
   conflictViewsTool,
   explainQueryTool,
+  forgetSessionsTool,
   forgetTool,
   listMemoriesTool,
   listCheckpointsTool,
@@ -1479,5 +1481,83 @@ describe('MCP tool handlers', () => {
       predicates: [{ predicate: 'f/1', facts: ['f(a).'] }],
       constraints: [':- f(X), blocked(X).'],
     });
+  });
+});
+
+describe('forget_sessions', () => {
+  const session = {
+    version: 1,
+    source: 'import',
+    sourceSessionId: 'past-chat',
+    startedAt: '2026-09-18T00:00:00.000Z',
+  } as const;
+
+  const seededSessions = (): { sessions: SessionStore; key: string } => {
+    const sessions = new SessionStore({
+      root: mkdtempSync(join(tmpdir(), 'rembero-tools-sessions-')),
+      capBytes: 1024 * 1024,
+    });
+    sessions.appendTurns('scratch', session, [
+      { role: 'user', ts: '2026-09-18T00:00:00.000Z', text: 'I moved to Melbourne.' },
+    ]);
+    sessions.appendTurns(
+      'scratch',
+      { ...session, sourceSessionId: 'other-chat' },
+      [{ role: 'user', ts: '2026-09-18T00:01:00.000Z', text: 'I ride a road bike.' }],
+    );
+    return { sessions, key: sessions.sessionKey('import', 'past-chat') };
+  };
+
+  it('deletes one session by key', () => {
+    const { sessions, key } = seededSessions();
+
+    expect(forgetSessionsTool({ sessions }, { namespace: 'scratch', key })).toEqual({
+      deleted: 1,
+    });
+    expect(sessions.readSession('scratch', key)).toBeUndefined();
+    expect(sessions.list('scratch')).toHaveLength(1);
+  });
+
+  it('reports nothing deleted for a key it does not hold', () => {
+    const { sessions } = seededSessions();
+
+    expect(
+      forgetSessionsTool(
+        { sessions },
+        { namespace: 'scratch', key: 'f'.repeat(32) },
+      ),
+    ).toEqual({ deleted: 0 });
+    expect(sessions.list('scratch')).toHaveLength(2);
+  });
+
+  it('deletes every session in the namespace with all', () => {
+    const { sessions } = seededSessions();
+
+    expect(
+      forgetSessionsTool({ sessions }, { namespace: 'scratch', all: true }),
+    ).toEqual({ deleted: 2 });
+    expect(sessions.list('scratch')).toEqual([]);
+  });
+
+  it('refuses a call that names neither a key nor all', () => {
+    const { sessions } = seededSessions();
+
+    expect(() => forgetSessionsTool({ sessions }, { namespace: 'scratch' })).toThrow(
+      /key/,
+    );
+    expect(sessions.list('scratch')).toHaveLength(2);
+  });
+
+  it('refuses a call that names both a key and all', () => {
+    const { sessions, key } = seededSessions();
+
+    expect(() =>
+      forgetSessionsTool({ sessions }, { namespace: 'scratch', key, all: true }),
+    ).toThrow(/both/);
+    expect(sessions.list('scratch')).toHaveLength(2);
+  });
+
+  it('names the setting when no session store is configured', () => {
+    expect(() => forgetSessionsTool({}, { all: true })).toThrow(/REMBERO_SESSIONS/);
   });
 });

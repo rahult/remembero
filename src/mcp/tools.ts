@@ -30,6 +30,7 @@ import type {
   SupersedeResult,
 } from '../store/store.js';
 import type { Clause } from '../engine/index.js';
+import type { SessionStore } from '../sessions/store.js';
 import {
   explainKnowledge,
   type ExplainKnowledgeResult,
@@ -1420,6 +1421,49 @@ export function forgetTool(
       ...(checks === undefined ? {} : { checks }),
     },
   );
+}
+
+/**
+ * Deleting stored conversations needs only the session store, never the fact
+ * store: `forget` keeps its fact-only meaning and this keeps its session-only one.
+ */
+export interface SessionToolDeps {
+  sessions?: SessionStore;
+  /** Namespace used when a call names none (default: 'default'). */
+  defaultNamespace?: string;
+}
+
+/**
+ * Delete one stored conversation session, or every session in a namespace.
+ *
+ * `all` is explicit rather than implied by a missing key: a call that names
+ * neither is a mistake, and answering it by deleting the whole namespace would be
+ * the worst possible reading of it.
+ */
+export function forgetSessionsTool(
+  deps: SessionToolDeps,
+  args: { namespace?: string; key?: string; all?: boolean },
+): { deleted: number } {
+  const sessions = deps.sessions;
+  if (sessions === undefined) {
+    throw new Error(
+      'no conversation sessions are kept; set REMBERO_SESSIONS=on to keep and forget them',
+    );
+  }
+  const namespace = args.namespace ?? deps.defaultNamespace ?? 'default';
+  const all = args.all === true;
+  if (all && args.key !== undefined) {
+    throw new Error(
+      'forget_sessions takes a session key or all: true, not both',
+    );
+  }
+  if (!all && args.key === undefined) {
+    throw new Error(
+      'forget_sessions needs a session key, or all: true to forget every session in the namespace',
+    );
+  }
+  if (all) return { deleted: sessions.deleteNamespace(namespace) };
+  return { deleted: sessions.deleteSession(namespace, args.key!) ? 1 : 0 };
 }
 
 export function historyTool(

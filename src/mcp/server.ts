@@ -32,6 +32,7 @@ import {
   assertTentativeTool,
   checkpointJournalTool,
   explainQueryTool,
+  forgetSessionsTool,
   forgetTool,
   historyTool,
   listMemoriesTool,
@@ -2355,6 +2356,44 @@ export function createServer(deps: PipelineDeps): McpServer {
                 graphSelector,
               ),
             },
+          ),
+        );
+      } catch (e) {
+        return asError(e);
+      }
+    },
+  );
+
+  server.registerTool(
+    'forget_sessions',
+    {
+      title: 'Forget sessions',
+      description:
+        "Delete stored conversation sessions: one by its 32-hex key, or every session in the namespace with all: true. Facts are untouched; use 'forget' for those.",
+      inputSchema: {
+        namespace: namespaceField,
+        key: z
+          .string()
+          .regex(/^[0-9a-f]{32}$/)
+          .optional()
+          .describe('Session key as listed by "remembero sessions list"'),
+        all: z
+          .boolean()
+          .optional()
+          .describe('Forget every session in the namespace'),
+      },
+    },
+    async ({ namespace, key, all }) => {
+      try {
+        return asContent(
+          forgetSessionsTool(
+            {
+              ...(resolvedDeps.sessions === undefined
+                ? {}
+                : { sessions: resolvedDeps.sessions }),
+              defaultNamespace: resolvedDeps.defaultNamespace,
+            },
+            { namespace, key, all },
           ),
         );
       } catch (e) {

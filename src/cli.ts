@@ -31,7 +31,8 @@ import {
   selfAtomFromEnv,
   validTimeModeFromEnv,
 } from './env.js';
-import { sessionStoreFromEnv } from './sessions/store.js';
+import { sessionStoreFromEnv, type SessionStore } from './sessions/store.js';
+import { importClaudeTranscript } from './sessions/import.js';
 import { clientFromEnv, lazyClientFromEnv } from './llm/client.js';
 import {
   rememberText,
@@ -113,6 +114,7 @@ import {
   assertTentativeTool,
   checkpointJournalTool,
   explainQueryTool,
+  forgetSessionsTool,
   forgetTool,
   historyTool,
   listMemoriesTool,
@@ -220,6 +222,9 @@ Usage:
   remembero init-hooks                     Install the opt-in Claude capture + brief hooks
   remembero init-hooks --remove            Remove only Remembero's managed hooks
   remembero session-brief                  Print the bounded session-start memory brief
+  remembero sessions import <files...>     Store whole Claude transcript files as sessions
+  remembero sessions list                  List stored conversation sessions
+  remembero sessions forget <key|--all>    Delete one stored session, or the namespace's
   remembero export                         Print all memories as portable Datalog
   remembero import <ns> <file>             Load clauses from a .dl file into a namespace
   remembero sqlite-build                   Compile the loadable SQLite extension
@@ -286,6 +291,7 @@ Options:
       --tail-bytes <n>     Transcript tail bytes sent for extraction (default: 24576)
       --days <n>           Auto-capture review window (default: 7)
       --forget <n,...>     Prune numbered facts shown by review
+      --all                Forget every session in the namespace (sessions forget)
       --settings <path>    Claude settings JSON (default: ~/.claude/settings.json)
       --json               Emit machine-readable batch/review/history output
 `;
@@ -298,6 +304,7 @@ interface ParsedArgs {
   batch: boolean;
   json: boolean;
   remove: boolean;
+  all: boolean;
   dryRun: boolean;
   dailyCap?: string;
   tailBytes?: string;
@@ -363,6 +370,7 @@ function parseArgs(argv: string[]): ParsedArgs {
     batch: false,
     json: false,
     remove: false,
+    all: false,
     dryRun: false,
     patterns: [],
     assumptions: [],
@@ -402,6 +410,8 @@ function parseArgs(argv: string[]): ParsedArgs {
       parsed.json = true;
     } else if (arg === '--remove') {
       parsed.remove = true;
+    } else if (arg === '--all') {
+      parsed.all = true;
     } else if (arg === '--dry-run') {
       parsed.dryRun = true;
     } else if (arg === '--daily-cap') {
@@ -1110,6 +1120,93 @@ async function runVersionCommand(argv: string[]): Promise<void> {
   }
 }
 
+/**
+ * `sessions import|list|forget`, the conversation-store side of the CLI.
+ *
+ * Conversation text is kept only with `REMBERO_SESSIONS=on`, so the store the
+ * caller passes is absent when the setting is off or unreadable — the same store
+ * every other command is built with, so a mistyped setting costs the user their
+ * sessions and nothing else. Every subcommand then refuses by naming the setting,
+ * rather than writing anyway or reporting an empty namespace.
+ */
+function runSessionsCommand(
+  sessions: SessionStore | undefined,
+  args: ParsedArgs,
+): void {
+  const [subcommand, ...rest] = args.positional;
+  if (subcommand === undefined) {
+    throw new Error('sessions needs a subcommand: import, list, or forget');
+  }
+  if (sessions === undefined) {
+    throw new Error(
+      `sessions ${subcommand} needs REMBERO_SESSIONS=on; no conversation sessions are kept`,
+    );
+  }
+  const namespace = args.namespace ?? 'default';
+  switch (subcommand) {
+    case 'import': {
+      if (rest.length === 0) {
+        throw new Error('sessions import requires at least one transcript file');
+      }
+      for (const file of rest) {
+        const result = importClaudeTranscript(sessions, namespace, file);
+        console.log(
+          `imported ${file} into ${namespace} as ${result.key}: ` +
+            `${result.appended} appended, ${result.skipped} skipped`,
+        );
+      }
+      return;
+    }
+    case 'list': {
+      if (rest.length !== 0) {
+        throw new Error('sessions list accepts no positional arguments');
+      }
+      const entries = sessions.list(namespace);
+      if (entries.length === 0) {
+        console.log(`no sessions in namespace ${namespace}`);
+        return;
+      }
+      for (const entry of entries) {
+        console.log(
+          `${entry.key}  ${entry.source}  ${entry.startedAt} to ${entry.lastTs}  ` +
+            `${entry.turns} turn(s)  ${entry.bytes} byte(s)`,
+        );
+      }
+      return;
+    }
+    case 'forget': {
+      if (args.all) {
+        if (rest.length !== 0) {
+          throw new Error('sessions forget --all accepts no session key');
+        }
+        const { deleted } = forgetSessionsTool(
+          { sessions },
+          { namespace, all: true },
+        );
+        console.log(`forgot ${deleted} session(s) in namespace ${namespace}`);
+        return;
+      }
+      if (rest.length !== 1) {
+        throw new Error(
+          'sessions forget requires one session key, or --all for every session in the namespace',
+        );
+      }
+      const key = rest[0];
+      const { deleted } = forgetSessionsTool({ sessions }, { namespace, key });
+      console.log(
+        deleted === 1
+          ? `forgot session ${key} in namespace ${namespace}`
+          : `no session ${key} in namespace ${namespace}`,
+      );
+      return;
+    }
+    default:
+      throw new Error(
+        `unknown sessions subcommand '${subcommand}': expected import, list, or forget`,
+      );
+  }
+}
+
 async function main(): Promise<void> {
   const [command, ...rest] = process.argv.slice(2);
   if (command === undefined || command === '--help' || command === '-h') {
@@ -1481,6 +1578,10 @@ async function main(): Promise<void> {
         // A hook failure must never break session start; report and stay quiet.
         console.error(error instanceof Error ? error.message : String(error));
       }
+      return;
+    }
+    case 'sessions': {
+      runSessionsCommand(sessions, args);
       return;
     }
     case 'remember': {
