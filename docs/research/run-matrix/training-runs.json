@@ -467,19 +467,19 @@
       "notes": "train_loss 0.5175; 174 s/step; LongMemEval paired on one pod against v4 (raw, 4/15/10, DeepSeek judge): 391/500 vs 381 and 203/266 vs 182. Per type on the 500: multi-session 85->93, temporal 99->104, knowledge-update 60->58, single-session-assistant 52->50. Best reader measured; serve it with --reading notes --reader-max-tokens 1024."
     },
     {
-      "run": "reader-v8 E4B (halted)",
-      "date": "2026-09-16",
+      "run": "reader-v8 E4B (miss-driven, negative)",
+      "date": "2026-09-17",
       "base": "Gemma 4 E4B",
       "platform": "RunPod pod, secure H100 NVL US-GA-2 ($3.19/h)",
-      "data": "5,748 rows under dd+notes+think@24576: v7 data with a quarter replaced by v7 misses mined on 2,210 unseen distilled questions (1,071 multi-session, 296 temporal, 61 knowledge-update, 10 abstention)",
+      "data": "5,748 rows under dd+notes+think@24576: v7 data with a quarter replaced by 1,438 rows built from the 466 questions v7 missed among 2,210 it had never seen (1,071 multi-session), each miss about three times",
       "tasks": "reader",
-      "minutes": 48,
-      "costUsd": 2.6,
-      "costNote": "stopped at step 16 of 90 when the RunPod balance could no longer cover the run",
-      "heldoutLoss": null,
+      "minutes": 267,
+      "costUsd": 34.1,
+      "costNote": "$14.2 of training plus about $20 of idle pod time after TRAIN_DONE: the pod parks by design and the local watcher that should have stopped it was killed by memory pressure. Pods now stop themselves (pod.py self_stop, --max-hours, --idle-minutes).",
+      "heldoutLoss": 0.5071,
       "queryAlias": null,
       "extractionAlias": null,
-      "notes": "Data and manifest are built and uploaded to the volume as data/reader-v8-gemma4-e4b; no checkpoint was saved (first save is step 25), so a resume restarts training. Recipe: pod.py create-train --run reader-v8-gemma4-e4b --gpu \"NVIDIA H100 NVL\" --datacenter US-GA-2 --cloud SECURE --max-length 8192, about $15."
+      "notes": "train_loss 0.5012. Paired against v7 on one pod (raw, 4/15/10, DeepSeek judge, both thinking): 384/500 vs 391 and 194/266 vs 204. Multi-session, the type the data targeted, fell 93->87 on the 500 and 98->89 on the 266. Negative result: mined misses are kept on the teacher being right, and GLM is itself about 75% on multi-session, so a quarter of the added rows teach the teacher errors, amplified by duplicating each miss three times."
     }
   ]
 }
