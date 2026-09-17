@@ -112,17 +112,24 @@ function globalCopy(pattern: RegExp): RegExp {
 }
 
 /**
- * How far past the opening paren a credential call's arguments may run when the
- * parens never balance. A turn is often a whole formatted code block, so the span
- * has to cross newlines — stopping at the first one left `password(\n 'hunter2'\n)`
- * readable — but it must not swallow the turn either, or masking is no better than
- * throwing the passage away. 512 characters covers any realistically formatted
- * call (roughly ten lines, or one long token) and bounds the collateral loss at
- * half a kilobyte. Anything still credential-shaped in the tail is caught by
- * `containsSensitiveText`, which is what makes the store fall back to
- * `REDACTED_SOURCE` for the whole turn.
+ * How far past the opening paren a credential call's arguments may run. A turn is
+ * often a whole formatted code block, so the span has to cross newlines — stopping
+ * at the first one left `password(\n 'hunter2'\n)` readable — but it must not
+ * swallow a whole turn either, or masking is no better than throwing the passage
+ * away. 512 characters covers a realistically formatted call, roughly ten lines or
+ * one long token.
+ *
+ * The cap cannot be a silent truncation. It consumes the credential word itself,
+ * so whatever survives past it is context-free and matches no pattern:
+ * `containsSensitiveText` on the result is false even though the value is right
+ * there. A span that stops for any reason other than its own closing paren is
+ * therefore reported as `truncated`, and the session store keeps nothing of such a
+ * turn.
  */
 const MAX_CALL_SPAN_CHARS = 512;
+
+/** Why a call span ended. Anything but `closed` means the masking is inconclusive. */
+type CallSpanStop = 'closed' | 'blank-line' | 'cap' | 'end-of-text';
 
 /** True when the line beginning at `start` holds nothing but whitespace. */
 function isBlankLineAt(value: string, start: number): boolean {
@@ -143,41 +150,51 @@ function isBlankLineAt(value: string, start: number): boolean {
  * `[^)]*\)` stops at the first close paren of a nested call and matches nothing at
  * all when there is no close paren, which left the secret in the clear.
  */
-function callSpanEnd(value: string, afterOpenParen: number): number {
-  const limit = Math.min(value.length, afterOpenParen + MAX_CALL_SPAN_CHARS);
+function callSpan(
+  value: string,
+  afterOpenParen: number,
+): { end: number; stop: CallSpanStop } {
+  const capped = afterOpenParen + MAX_CALL_SPAN_CHARS;
+  const limit = Math.min(value.length, capped);
   let depth = 1;
   for (let index = afterOpenParen; index < limit; index += 1) {
     const character = value[index];
     if (character === '(') depth += 1;
     else if (character === ')') {
       depth -= 1;
-      if (depth === 0) return index + 1;
+      if (depth === 0) return { end: index + 1, stop: 'closed' };
     } else if (character === '\n' && isBlankLineAt(value, index + 1)) {
-      return index;
+      return { end: index, stop: 'blank-line' };
     }
   }
-  return limit;
+  return { end: limit, stop: limit === capped ? 'cap' : 'end-of-text' };
 }
 
 /** Mask `password(...)` and friends, arguments and all. */
-function maskCallSpans(value: string): { text: string; masked: number } {
+function maskCallSpans(value: string): {
+  text: string;
+  masked: number;
+  truncated: boolean;
+} {
   const finder = globalCopy(SENSITIVE_CALL_PATTERN);
   let text = '';
   let cursor = 0;
   let masked = 0;
+  let truncated = false;
   let match = finder.exec(value);
   while (match !== null) {
     // A nested credential call inside a span already masked adds nothing.
     if (match.index >= cursor) {
-      const end = callSpanEnd(value, match.index + match[0].length);
+      const span = callSpan(value, match.index + match[0].length);
       text += value.slice(cursor, match.index) + REDACTED_SPAN;
       masked += 1;
-      cursor = end;
-      finder.lastIndex = end;
+      if (span.stop !== 'closed') truncated = true;
+      cursor = span.end;
+      finder.lastIndex = span.end;
     }
     match = finder.exec(value);
   }
-  return { text: text + value.slice(cursor), masked };
+  return { text: text + value.slice(cursor), masked, truncated };
 }
 
 /**
@@ -187,10 +204,16 @@ function maskCallSpans(value: string): { text: string; masked: number } {
  * store masks the secret and keeps what is readable. The widest span goes first,
  * so the call form takes its arguments with it and the assignment form
  * ("api key = sk-...") consumes the bare token inside it: one masked span each.
+ *
+ * `truncated` says a span had to stop before its own closing paren, so part of a
+ * secret may still be in `text` even though nothing in it looks sensitive any more.
+ * A caller that cannot judge the text itself — the session store — must throw the
+ * whole passage away when this is set; `masked` alone does not tell it that.
  */
 export function maskSensitiveSpans(value: string): {
   text: string;
   masked: number;
+  truncated: boolean;
 } {
   const calls = maskCallSpans(value);
   let text = calls.text;
@@ -209,7 +232,7 @@ export function maskSensitiveSpans(value: string): {
     masked += 1;
     return REDACTED_SPAN;
   });
-  return { text, masked };
+  return { text, masked, truncated: calls.truncated };
 }
 
 export function redactSensitiveText(value: string): { text: string; redacted: boolean } {

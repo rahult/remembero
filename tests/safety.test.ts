@@ -65,6 +65,7 @@ describe('sensitive text detection', () => {
     expect(maskSensitiveSpans('I rode 40 km on the new bike')).toEqual({
       text: 'I rode 40 km on the new bike',
       masked: 0,
+      truncated: false,
     });
   });
 
@@ -74,6 +75,7 @@ describe('sensitive text detection', () => {
     ).toEqual({
       text: 'The card number is [redacted].',
       masked: 1,
+      truncated: false,
     });
     const stamp = maskSensitiveSpans('The deploy finished at 1756518000000.');
     expect(stamp.masked).toBe(0);
@@ -115,12 +117,53 @@ describe('sensitive text detection', () => {
     expect(result.text).toBe('[redacted]\n\nI rode 40 km on the new bike');
     expect(result.masked).toBe(1);
     expect(result.text).not.toContain('hunter2');
+    // The span stopped early, so a caller that cannot inspect the text — the
+    // session store — is told the masking was not conclusive.
+    expect(result.truncated).toBe(true);
   });
 
-  it('caps how far an unclosed call can swallow', () => {
+  it('caps how far an unclosed call can swallow, and reports the cut', () => {
     const result = maskSensitiveSpans(`password(${'a'.repeat(600)}`);
     expect(result.masked).toBe(1);
     expect(result.text).toBe(`[redacted]${'a'.repeat(600 - 512)}`);
+    // The residue is context-free, so no pattern matches it: the only honest
+    // signal that something was left behind is this flag.
+    expect(result.truncated).toBe(true);
+  });
+
+  it('reports a long balanced call cut off at the cap', () => {
+    const args = Array.from(
+      { length: 26 },
+      (_unused, index) => `  arg${index} = ${'v'.repeat(30)},`
+    ).join('\n');
+    const block = `password(\n${args}\n  value = 'hunter2'\n)`;
+    expect(block.length).toBeGreaterThan(900);
+    const result = maskSensitiveSpans(block);
+    expect(result.masked).toBe(1);
+    expect(result.truncated).toBe(true);
+    // The word that made it a credential is inside the masked span, so the tail
+    // that survives matches nothing at all.
+    expect(containsSensitiveText(result.text)).toBe(false);
+    expect(result.text).toContain('hunter2');
+  });
+
+  it('reports a blank line between the paren and the arguments', () => {
+    const result = maskSensitiveSpans("password(\n\n  'hunter2'\n)");
+    expect(result.masked).toBe(1);
+    expect(result.truncated).toBe(true);
+  });
+
+  it('reports nothing truncated when a call closes on its own', () => {
+    for (const text of [
+      "password(user, 'ordinary-looking-value').",
+      "password(secret(x), 'val')",
+      "password(\n  'hunter2'\n)",
+    ]) {
+      expect(maskSensitiveSpans(text).truncated).toBe(false);
+    }
+    expect(maskSensitiveSpans('I rode 40 km on the new bike').truncated).toBe(
+      false
+    );
   });
 
   it('masks an assigned credential and leaves nothing sensitive behind', () => {

@@ -178,11 +178,18 @@ function turnHash(role: string, text: string): string {
  */
 function maskTurnText(text: string): { text: string; masked: boolean } {
   const spans = maskSensitiveSpans(text);
-  // The pre-mask text decides too: if the detector saw a secret that the masker
-  // did not touch, keep nothing rather than store it in the clear. Nothing should
-  // reach this today — the two share one pattern set — so it is a guard against
-  // the masker and the detector drifting apart.
+  // Three ways a turn loses all of its text rather than just the secret span:
+  //
+  // - the masker had to cut a span short (a call longer than its span cap, or a
+  //   blank line inside one), so part of the secret may still be in the text while
+  //   nothing in it matches a pattern any more — the credential word that gave it
+  //   away is inside the span that was masked;
+  // - the masked text still trips the detector;
+  // - the detector saw a secret in the original that the masker did not touch.
+  //   Nothing should reach that last one today, since the two share one pattern
+  //   set, so it guards against the two drifting apart.
   if (
+    spans.truncated ||
     containsSensitiveText(spans.text) ||
     (spans.masked === 0 && containsSensitiveText(text))
   ) {

@@ -11,6 +11,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { SessionStore, sessionsRoot } from '../src/sessions/store.js';
+import { REDACTED_SOURCE } from '../src/safety.js';
 import {
   DEFAULT_SESSION_CAP_BYTES,
   sessionCapBytesFromEnv,
@@ -76,6 +77,39 @@ describe('session store', () => {
     expect(result.masked).toBe(1);
     const key = store.sessionKey('claude-code', 'sec');
     expect(store.readSession('default', key)!.turns[0].text).toContain('[redacted]');
+  });
+
+  it('keeps nothing of a turn whose secret span could not be closed', () => {
+    const root = mkdtempSync(join(tmpdir(), 'rembero-sessions-mask-'));
+    const owner = new SessionStore({ root, capBytes: 1024 * 1024 });
+    const longArgs = Array.from(
+      { length: 26 },
+      (_unused, index) => `  arg${index} = ${'v'.repeat(30)},`
+    ).join('\n');
+    const turns = [
+      // A balanced call, but longer than the masker's span cap.
+      `password(\n${longArgs}\n  value = 'hunter2'\n)`,
+      // Fifteen filler lines, then the credential, still past the cap.
+      `password(\n${'  filler = 0123456789012345678901234567890123456789,\n'.repeat(15)}  token = 'zX9qP2vR7tLmK4wD'\n)`,
+      // A blank line between the paren and the arguments.
+      "password(\n\n  'hunter2'\n)",
+    ];
+    turns.forEach((text, index) => {
+      const id = `cut-${index}`;
+      const result = owner.appendTurns(
+        'default',
+        { ...header, sourceSessionId: id },
+        [{ role: 'user', ts: '2026-09-18T00:00:00.000Z', text }]
+      );
+      expect(result.masked).toBe(1);
+      const stored = owner.readSession(
+        'default',
+        owner.sessionKey('claude-code', id)
+      )!.turns[0].text;
+      expect(stored).toBe(REDACTED_SOURCE);
+      expect(stored).not.toContain('hunter2');
+      expect(stored).not.toContain('zX9qP2vR7tLmK4wD');
+    });
   });
 
   it('drops the oldest session when the cap is exceeded', () => {
