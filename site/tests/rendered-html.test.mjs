@@ -40,6 +40,8 @@ test("server-renders the Remembero marketing homepage with lab and playground na
   assert.match(html, /href="\/labs\/chat-memory"/);
   assert.match(html, /href="\/labs\/grounded-agent"/);
   assert.match(html, /href="\/labs\/reading-recall"/);
+  assert.match(html, /href="\/labs\/writer-reader"/);
+  assert.match(html, /Raw text in\./);
   assert.match(html, /href="\/guides\/agent-harness"/);
   assert.match(html, /http:\/\/localhost(?::3000)?\/og\.png/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/i);
@@ -68,6 +70,25 @@ test("server-renders the de-jargonized research page with the measured evidence"
   assert.match(html, /href="\/labs\/reading-recall"/);
   assert.match(html, /href="\/playground"/);
   assert.doesNotMatch(html, /Reader v7|reader v4/);
+  assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
+});
+
+test("server-renders the writer-reader lab over messy history", async () => {
+  const response = await render("/labs/writer-reader");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /<title>Writer–Reader Lab — Raw text in, proven answers out<\/title>/i);
+  assert.match(html, /Raw text in\. Proven answers out\./);
+  assert.match(html, /no model executes on this page/);
+  assert.match(html, /Writer &amp; reader replayed/);
+  assert.match(html, /No weights served/);
+  assert.match(html, /Who is my dentist now — and who did I see immediately before them\?/);
+  assert.match(html, /What are we paying for the dashboard tool now, and what did we pay before the switch back\?/);
+  assert.match(html, /Who leads the Norsk Dental account today — and is the account still active\?/);
+  assert.match(html, /How many people are on Priya/);
+  assert.match(html, /STRUCTURED-EVIDENCE NOTES — computed by code/);
+  assert.match(html, /hard shape: (?:<!-- -->)?a three-deep update chain/);
+  assert.match(html, /hard shape: (?:<!-- -->)?a question never answered anywhere/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 
@@ -174,7 +195,7 @@ test("server-renders the agent harness integration guide", async () => {
 });
 
 test("labs run real browser-safe tool and policy loops without remote model APIs or persistence surfaces", async () => {
-  const [chatClient, chatEngine, chatTools, agentClient, agentEngine, browserModel, recallClient, recallFixture, demoLib, demoClient] = await Promise.all([
+  const [chatClient, chatEngine, chatTools, agentClient, agentEngine, browserModel, recallClient, recallFixture, demoLib, demoClient, writerReaderClient, writerReaderFixture] = await Promise.all([
     readFile(new URL("../app/labs/chat-memory/chat-memory-lab.tsx", import.meta.url), "utf8"),
     readFile(new URL("../lib/chat-memory-lab.ts", import.meta.url), "utf8"),
     readFile(new URL("../lib/chat-memory-tools.ts", import.meta.url), "utf8"),
@@ -185,6 +206,8 @@ test("labs run real browser-safe tool and policy loops without remote model APIs
     readFile(new URL("../lib/reading-recall-fixture.ts", import.meta.url), "utf8"),
     readFile(new URL("../lib/first-proof-demo.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/first-proof-demo.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/labs/writer-reader/writer-reader-lab.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../lib/writer-reader-fixture.ts", import.meta.url), "utf8"),
   ]);
 
   assert.match(chatEngine, /from "\.\/engine"/);
@@ -258,8 +281,15 @@ test("labs run real browser-safe tool and policy loops without remote model APIs
   assert.match(demoLib, /nothing is sent anywhere/);
   assert.match(demoClient, /runFirstProofDemo/);
   assert.match(demoClient, /Live · 0 models/);
+  assert.match(writerReaderFixture, /buildTimelines/);
+  assert.match(writerReaderFixture, /WRITER_CLAIMS/);
+  assert.match(writerReaderFixture, /retrieveForQuestion/);
+  assert.match(writerReaderFixture, /No model weights are served, fetched, or/);
+  assert.match(writerReaderFixture, /update chains, flip-backs, effective-dated roles/);
+  assert.match(writerReaderClient, /buildTimelines/);
+  assert.match(writerReaderClient, /buildReaderNotes/);
 
-  const hostedLabSource = `${chatClient}\n${chatEngine}\n${chatTools}\n${agentClient}\n${agentEngine}\n${browserModel}\n${recallClient}\n${recallFixture}\n${demoLib}\n${demoClient}`;
+  const hostedLabSource = `${chatClient}\n${chatEngine}\n${chatTools}\n${agentClient}\n${agentEngine}\n${browserModel}\n${recallClient}\n${recallFixture}\n${demoLib}\n${demoClient}\n${writerReaderClient}\n${writerReaderFixture}`;
   assert.doesNotMatch(hostedLabSource, /fetch\s*\(|XMLHttpRequest|WebSocket|EventSource/);
   assert.doesNotMatch(hostedLabSource, /localStorage|sessionStorage|document\.cookie|indexedDB/);
   assert.doesNotMatch(hostedLabSource, /OPENAI_API_KEY|LLM_API_KEY/);
@@ -335,6 +365,7 @@ test("GitHub Pages export is self-contained when present", async () => {
   const exportedChatLab = new URL("../dist/pages/labs/chat-memory/index.html", import.meta.url);
   const exportedAgentLab = new URL("../dist/pages/labs/grounded-agent/index.html", import.meta.url);
   const exportedRecallLab = new URL("../dist/pages/labs/reading-recall/index.html", import.meta.url);
+  const exportedWriterReaderLab = new URL("../dist/pages/labs/writer-reader/index.html", import.meta.url);
   const exportedResearch = new URL("../dist/pages/research/index.html", import.meta.url);
   const exportedAgentGuide = new URL("../dist/pages/guides/agent-harness/index.html", import.meta.url);
   await access(exported);
@@ -342,34 +373,38 @@ test("GitHub Pages export is self-contained when present", async () => {
   await access(exportedChatLab);
   await access(exportedAgentLab);
   await access(exportedRecallLab);
+  await access(exportedWriterReaderLab);
   await access(exportedResearch);
   await access(exportedAgentGuide);
-  const [html, playgroundHtml, chatLabHtml, agentLabHtml, recallLabHtml, researchHtml, agentGuideHtml] = await Promise.all([
+  const [html, playgroundHtml, chatLabHtml, agentLabHtml, recallLabHtml, writerReaderLabHtml, researchHtml, agentGuideHtml] = await Promise.all([
     readFile(exported, "utf8"),
     readFile(exportedPlayground, "utf8"),
     readFile(exportedChatLab, "utf8"),
     readFile(exportedAgentLab, "utf8"),
     readFile(exportedRecallLab, "utf8"),
+    readFile(exportedWriterReaderLab, "utf8"),
     readFile(exportedResearch, "utf8"),
     readFile(exportedAgentGuide, "utf8"),
   ]);
   assert.match(html, /Memory you(?:<br\/>|\s)+can <em>reason<\/em> with\./);
   assert.match(html, /href="\/playground"/);
   assert.match(html, /href="\/research"/);
+  assert.match(html, /href="\/labs\/writer-reader"/);
   assert.match(playgroundHtml, /SQLite \+ Datalog IDE/);
   assert.match(chatLabHtml, /Same database\. Same model\. Different powers\./);
   assert.match(agentLabHtml, /Let the model propose\. Let the gate show its work\./);
   assert.match(recallLabHtml, /no model executes on this page/);
+  assert.match(writerReaderLabHtml, /no model executes on this page/);
   assert.match(researchHtml, /Every claim on this site/);
   assert.match(agentGuideHtml, /Wire one narrow tool loop\./);
-  for (const labHtml of [chatLabHtml, agentLabHtml, recallLabHtml]) {
+  for (const labHtml of [chatLabHtml, agentLabHtml, recallLabHtml, writerReaderLabHtml]) {
     assert.doesNotMatch(
       labHtml,
       /lib-[A-Za-z0-9_-]+\.js/,
       "the multi-megabyte WebLLM chunk must stay behind the explicit load action",
     );
   }
-  for (const rendered of [html, playgroundHtml, chatLabHtml, agentLabHtml, recallLabHtml, researchHtml, agentGuideHtml]) {
+  for (const rendered of [html, playgroundHtml, chatLabHtml, agentLabHtml, recallLabHtml, writerReaderLabHtml, researchHtml, agentGuideHtml]) {
     assert.match(rendered, /href="\/_next\/static\/css\//);
     assert.match(rendered, /src="\/_next\/static\/chunks\//);
     assert.match(rendered, /https:\/\/remembero\.rahultrikha\.com\/og\.png/);

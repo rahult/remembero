@@ -1,6 +1,6 @@
 # Remembero product site, labs, and playground
 
-The hosted product site at `/`, the evidence page at `/research`, three labs under
+The hosted product site at `/`, the evidence page at `/research`, four labs under
 `/labs/`, and the browser-contained proof playground at `/playground` for
 [Remembero](https://github.com/rahult/remembero). Designed under the **Ledger**
 system — tokens, components, and the no-served-models rule are documented in
@@ -15,10 +15,9 @@ progressive walk — **problem → idea → try → evidence**:
   things, stores them as facts, compiles one rule, and asks one question — every
   step executed by Remembero's deterministic engine in the browser via
   `lib/first-proof-demo.ts`, with zero models. The try section then offers four
-  workbenches (the demo, both model-optional labs, the reading lab) plus the IDE
-  showcase, a three-metric evidence teaser, and the models-translate-rules-decide
-  boundary. Visitor-facing copy carries no internal version jargon (no reader
-  generations, no benchmark-speak without explanation).
+  labs plus the IDE showcase, a three-metric evidence teaser, and the
+  models-translate-rules-decide boundary. Visitor-facing copy carries no internal
+  version jargon (no reader generations, no benchmark-speak without explanation).
 - `/research` carries the full measured story in plain language: what the small
   reader got wrong (with the failure list), the code-written notes fix with the
   first controlled before/after pair (318 → 359 of 500, grader named), the
@@ -30,6 +29,16 @@ progressive walk — **problem → idea → try → evidence**:
 fine-tuned readers and writers stay research artifacts in the repository; the
 site links to their measured runs instead of shipping them.
 
+- `/labs/writer-reader` shows the whole loop on genuinely messy history: six
+  months of one person's chat containing a three-deep supersession chain
+  (dentist), a flip-back at a changed price (dashboard tool), an effective-dated
+  handover, a contract that ends without renewal, relative dates, and one
+  question whose answer was never said. Act 1 replays the writer's claims, then
+  **code in the visitor's browser** resolves, dates, and supersedes them into
+  validity timelines (current / superseded / ended). Act 2 asks four questions
+  over that moving truth — retrieval scoring and structured-evidence notes are
+  live code; both reader arms (raw chats vs structured evidence) are stamped
+  replays, including an honest "not in memory" against a confabulated number.
 - `/labs/reading-recall` is the deterministic showcase of the reading pipeline:
   lexical retrieval and a re-rank stand-in, context tiering (abstracts for all,
   full text for the top two), and a computed-notes block **generated live by code
@@ -52,11 +61,12 @@ site links to their measured runs instead of shipping them.
   recipe with a bounded Query tool, validation, proof-aware synthesis, review-gated writes,
   and the executable agent database scorecard.
 
-The reading-recall lab, the first-proof demo, and the agent lab use the browser-safe
-Remembero TypeScript engine. The chat lab and playground run SQLite 3.53.4 as WebAssembly
-with Remembero's C extension linked into the same binary. All experiences use fictional
-fixtures, perform no remote model calls or mutations, store no browser data, and reset on
-refresh. Developers can load the optional Hermes 2 Pro Mistral 7B WebLLM model on
+The reading-recall lab, the writer-reader lab, the first-proof demo, and the
+agent lab use the browser-safe Remembero TypeScript engine or their own
+deterministic fixture code. The chat lab and playground run SQLite 3.53.4 as
+WebAssembly with Remembero's C extension linked into the same binary. All
+experiences use fictional fixtures, perform no remote model calls or mutations,
+store no browser data, and reset on refresh. Developers can load the optional Hermes 2 Pro Mistral 7B WebLLM model on
 demand (a third-party model cached by the visitor's browser); compatible native
 Prompt API models are also supported. When neither is ready, model text is
 deliberately scripted so the tool and policy boundary remains the only changing

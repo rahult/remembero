@@ -63,6 +63,11 @@ If a string is a measurement, it is mono — no exceptions.
   as a stepped widget: say it → store it → rule it → ask it, each stage revealing on
   click, the final stage a real engine call with the proof chain and a measured
   duration. The newcomer's first taste of the product, with zero models.
+- **Writer–reader lab** (`/labs/writer-reader`) — the whole loop on messy history:
+  replayed writer claims, then live deterministic resolution into validity
+  timelines (current / superseded / ended rows with interval rules), then four
+  hard questions whose paired arms show raw-chat failure against structured
+  success — including an honest "not in memory" verdict chip.
 - **Note block** (`.note-block`) — the computed-notes artifact: mono, amber left
   rule, header stating `0 model calls`, sentences quoted per line. Used on
   `/research` and generated live in the reading-recall lab.
@@ -76,7 +81,6 @@ If a string is a measurement, it is mono — no exceptions.
 - **Lab card** (`.lab-card`) — workbench cards; paper-raised with amber keyline on
   paper, ink-raised on dark sections; ultramarine (`data-kind="model"`) where an
   optional model can be loaded.
-
 ## Motion
 
 Transitions are 160–220ms `--ease-out` on color, border, and small translations

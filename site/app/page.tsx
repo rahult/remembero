@@ -6,6 +6,7 @@ const playground = "/playground";
 const chatMemoryLab = "/labs/chat-memory";
 const groundedAgentLab = "/labs/grounded-agent";
 const readingRecallLab = "/labs/reading-recall";
+const writerReaderLab = "/labs/writer-reader";
 const researchPage = "/research";
 const agentHarnessGuide = "/guides/agent-harness";
 
@@ -136,11 +137,11 @@ export default function Home() {
             <p>Work deeper at each step. Everything runs in this tab over fictional data — and wherever a model appears, it is either an open model your own browser loads on demand, or a clearly labeled replay of a recorded run.</p>
           </div>
           <div className="lab-grid">
-            <a className="lab-card" href="#demo">
-              <span className="lab-kind">60 seconds · above</span>
-              <h3>The core loop,<br /><em>already running.</em></h3>
-              <p>Say it, store it, rule it, ask it — the sixty-second demo at the top of this page. Real engine, real proof, zero models.</p>
-              <div className="lab-foot"><span>deterministic · in-page</span><b>Scroll up →</b></div>
+            <a className="lab-card" href={writerReaderLab}>
+              <span className="lab-kind">Writer + reader · replays</span>
+              <h3>Raw text in.<br /><em>Proven answers out.</em></h3>
+              <p>Six months of messy chat — corrections, a switch-back at a new price, a handover, a contract that ends, and one question never answered anywhere. Watch the writer turn it into claims, watch code build validity timelines, then ask what breaks naive memory.</p>
+              <div className="lab-foot"><span>live structure · replayed writer & reader</span><b>Open lab →</b></div>
             </a>
             <a className="lab-card" data-kind="model" href={chatMemoryLab}>
               <span className="lab-kind">Optional model</span>
@@ -214,7 +215,7 @@ export default function Home() {
 
       <footer className="site-footer">
         <strong>remembero</strong>
-        <nav aria-label="Footer navigation"><a href="#problem">Problem</a><a href="#idea">Idea</a><a href="#try">Try it</a><a href="#evidence">Evidence</a><a href={researchPage}>Research</a><a href={readingRecallLab}>Reading lab</a><a href={chatMemoryLab}>Chat lab</a><a href={groundedAgentLab}>Agent lab</a><a href={playground}>Playground</a><a href={github}>GitHub</a><a href={`${github}#readme`}>Docs</a><a href="https://www.npmjs.com/package/remembero">npm</a><span>MIT licensed</span></nav>
+        <nav aria-label="Footer navigation"><a href="#problem">Problem</a><a href="#idea">Idea</a><a href="#try">Try it</a><a href="#evidence">Evidence</a><a href={researchPage}>Research</a><a href={writerReaderLab}>Writer–reader lab</a><a href={readingRecallLab}>Reading lab</a><a href={chatMemoryLab}>Chat lab</a><a href={groundedAgentLab}>Agent lab</a><a href={playground}>Playground</a><a href={github}>GitHub</a><a href={`${github}#readme`}>Docs</a><a href="https://www.npmjs.com/package/remembero">npm</a><span>MIT licensed</span></nav>
       </footer>
     </main>
   );

@@ -44,12 +44,13 @@ async function render(pathname) {
   return (await response.text()).replace(/(<body\b[^>]*>)/i, `$1${directionComment}`);
 }
 
-const [homeHtml, playgroundHtml, chatMemoryHtml, groundedAgentHtml, readingRecallHtml, researchHtml, agentHarnessHtml] = await Promise.all([
+const [homeHtml, playgroundHtml, chatMemoryHtml, groundedAgentHtml, readingRecallHtml, writerReaderHtml, researchHtml, agentHarnessHtml] = await Promise.all([
   render("/"),
   render("/playground"),
   render("/labs/chat-memory"),
   render("/labs/grounded-agent"),
   render("/labs/reading-recall"),
+  render("/labs/writer-reader"),
   render("/research"),
   render("/guides/agent-harness"),
 ]);
@@ -59,6 +60,7 @@ if (
   !homeHtml.includes('href="/labs/chat-memory"') ||
   !homeHtml.includes('href="/labs/grounded-agent"') ||
   !homeHtml.includes('href="/labs/reading-recall"') ||
+  !homeHtml.includes('href="/labs/writer-reader"') ||
   !homeHtml.includes('href="/research"') ||
   !homeHtml.includes('href="/guides/agent-harness"')
 ) {
@@ -92,6 +94,14 @@ if (
 ) {
   throw new Error("static reading recall lab is missing its deterministic pipeline");
 }
+if (
+  !writerReaderHtml.includes("no model executes on this page") ||
+  !writerReaderHtml.includes("STRUCTURED-EVIDENCE NOTES — computed by code") ||
+  !writerReaderHtml.includes("Who is my dentist now") ||
+  !writerReaderHtml.includes("How many people are on Priya")
+) {
+  throw new Error("static writer reader lab is missing its messy-history pipeline");
+}
 if (!agentHarnessHtml.includes("Add proof-carrying memory") || !agentHarnessHtml.includes("Wire one narrow tool loop")) {
   throw new Error("static agent harness guide is missing its integration contract");
 }
@@ -109,6 +119,8 @@ await mkdir(resolve(pagesRoot, "labs", "grounded-agent"), { recursive: true });
 await writeFile(resolve(pagesRoot, "labs", "grounded-agent", "index.html"), groundedAgentHtml);
 await mkdir(resolve(pagesRoot, "labs", "reading-recall"), { recursive: true });
 await writeFile(resolve(pagesRoot, "labs", "reading-recall", "index.html"), readingRecallHtml);
+await mkdir(resolve(pagesRoot, "labs", "writer-reader"), { recursive: true });
+await writeFile(resolve(pagesRoot, "labs", "writer-reader", "index.html"), writerReaderHtml);
 await mkdir(resolve(pagesRoot, "research"), { recursive: true });
 await writeFile(resolve(pagesRoot, "research", "index.html"), researchHtml);
 await mkdir(resolve(pagesRoot, "guides", "agent-harness"), { recursive: true });
