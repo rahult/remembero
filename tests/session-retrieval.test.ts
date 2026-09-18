@@ -1,9 +1,13 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   buildLongMemEvalAnswerContext,
   evaluateLongMemEvalAnswerInstance,
+  finalAnswerLine as harnessFinalAnswerLine,
   type LongMemEvalCompletionClient,
 } from '../src/evals/longmemeval-answer.js';
+import { finalAnswerLine as productFinalAnswerLine } from '../src/knowledge/answer-line.js';
 import type { ChatMessage, LlmCompletion } from '../src/llm/client.js';
 import type { LongMemEvalInstance } from '../src/evals/longmemeval.js';
 import { questionKindFromText } from '../src/knowledge/question-kind.js';
@@ -463,5 +467,51 @@ describe('retrieveSessions', () => {
       inputTokens: 11 * seen.length,
       blocked: 0,
     });
+  });
+});
+
+/**
+ * `finalAnswerLine` exists twice: the product's copy in `src/knowledge/answer-line.ts`
+ * and the harness's in `src/evals/longmemeval-answer.ts`. They cannot be one function
+ * yet — `src/evals` imports `src/llm`, so `src/llm` importing `src/evals` would be a
+ * cycle — and until now the two were eye-checked only. This is the contract that makes
+ * a benchmark score describe product behaviour: the same reply must become the same
+ * answer on both sides, so the two must be the same function, character for character.
+ */
+function finalAnswerLineSource(path: string): string {
+  const text = readFileSync(resolve(path), 'utf8');
+  const start = text.indexOf('export function finalAnswerLine(');
+  expect(start, `${path} declares finalAnswerLine`).toBeGreaterThan(-1);
+  // the declaration through the closing brace in column 1
+  const end = text.indexOf('\n}\n', start);
+  expect(end, `${path} closes finalAnswerLine`).toBeGreaterThan(start);
+  return text.slice(start, end + 2);
+}
+
+describe('finalAnswerLine is one function kept in two files', () => {
+  it('is byte-identical in the product and in the harness', () => {
+    const product = finalAnswerLineSource('src/knowledge/answer-line.ts');
+    const harness = finalAnswerLineSource('src/evals/longmemeval-answer.ts');
+    expect(product).toBe(harness);
+    // and it is a real implementation, not an empty shell the comparison would pass on
+    expect(product).toContain("lastIndexOf('Answer:')");
+  });
+
+  it('turns the same replies into the same answer on both sides', () => {
+    for (const reply of [
+      'Answer: Two bikes.',
+      'Notes:\n- 2024-02-27: two bikes\nAnswer: Two bikes.',
+      'Answer: 42; notes: I subtracted the sold one',
+      'Answer:',
+      '   Answer:    ',
+      'The user said "Answer: 42 bikes" earlier, so Answer: 42 bikes.',
+      'I do not know.',
+      '',
+      '## Answer: Two bikes.',
+    ]) {
+      expect(productFinalAnswerLine(reply), JSON.stringify(reply)).toBe(
+        harnessFinalAnswerLine(reply),
+      );
+    }
   });
 });
