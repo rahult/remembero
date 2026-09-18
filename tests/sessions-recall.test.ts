@@ -198,6 +198,72 @@ describe('the sessions answer mode', () => {
     expect(llm.prompts).toEqual([]);
   });
 
+  it("reads a sessions-only namespace under namespaces '*'", async () => {
+    // '*' used to expand through the fact store alone, so a namespace holding
+    // conversations and not one fact was invisible to a sessions recall.
+    sessions.appendTurns(
+      'chats',
+      {
+        version: 1,
+        source: 'import',
+        sourceSessionId: 'bikes',
+        startedAt: '2024-02-27T09:00:00.000Z',
+      },
+      [
+        {
+          role: 'user',
+          ts: '2024-02-27T09:00:01.000Z',
+          text: 'I now own two bikes after selling the old road bike.',
+        },
+      ],
+    );
+    expect(store.listNamespaces()).not.toContain('chats');
+    const client = new StubReaderClient('Answer: Two bikes.');
+    const result = await recallQuestion(
+      { store, llm: new NeverCalledLlm(), sessions },
+      'How many bikes do I own now?',
+      '*',
+      { answerMode: 'sessions', at: ASKED_AT, reader: reader(client) },
+    );
+    expect(result.status).toBe('answered');
+    expect((result.sessionsRead ?? [])[0]?.namespace).toBe('chats');
+  });
+
+  it("checks a sessions-only namespace against the allowlist under '*'", async () => {
+    // The union must not become a way round REMBERO_LLM_ALLOWED_NAMESPACES.
+    sessions.appendTurns(
+      'chats',
+      {
+        version: 1,
+        source: 'import',
+        sourceSessionId: 'bikes',
+        startedAt: '2024-02-27T09:00:00.000Z',
+      },
+      [
+        {
+          role: 'user',
+          ts: '2024-02-27T09:00:01.000Z',
+          text: 'I now own two bikes after selling the old road bike.',
+        },
+      ],
+    );
+    const client = new StubReaderClient('Answer: Two bikes.');
+    await expect(
+      recallQuestion(
+        {
+          store,
+          llm: new NeverCalledLlm(),
+          sessions,
+          llmAllowedNamespaces: new Set(['default']),
+        },
+        'How many bikes do I own now?',
+        '*',
+        { answerMode: 'sessions', at: ASKED_AT, reader: reader(client) },
+      ),
+    ).rejects.toThrow(/'chats' is local-only/);
+    expect(client.prompts).toEqual([]);
+  });
+
   it('shows the reader working and the question kind only to recall_explain', async () => {
     storeSession('bikes', '2024-02-27T09:00:00.000Z', [
       { role: 'user', text: 'I now own two bikes after selling the old road bike.' },

@@ -2416,15 +2416,24 @@ async function answerFromSessions(
       'No conversations are stored to read: REMBERO_SESSIONS is off, so no conversation text is kept.',
     );
   }
-  assertLlmNamespacesAllowed(deps, namespaces);
+  // `'*'` means every namespace an answer could come from, and a namespace can hold
+  // conversations without holding a single fact — an imported transcript's namespace —
+  // so the fact store's list is not the list. The allowlist is then checked against
+  // exactly what will be read, or the union would be a way round it.
+  const selected =
+    namespaces === '*'
+      ? [
+          ...new Set([
+            ...deps.store.listNamespaces(),
+            ...deps.sessions.listNamespaces(),
+          ]),
+        ]
+      : namespaces;
+  assertLlmNamespacesAllowed(deps, selected);
   let loaded: LoadedSession[];
   let retrieval: SessionRetrievalOptions;
   let read: LoadedSession[];
   try {
-    // listing the namespaces is part of finding the sessions, so a store that cannot be
-    // listed degrades with them rather than throwing past this
-    const selected =
-      namespaces === '*' ? deps.store.listNamespaces() : namespaces;
     loaded = cappedReadingCandidates(loadSessions(deps.sessions, selected));
     retrieval = {
       kind,

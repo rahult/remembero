@@ -458,6 +458,26 @@ export class SessionStore {
     return this.readSessionFile(join(this.root, namespace, `${key}.jsonl`));
   }
 
+  /**
+   * Every namespace that holds a session directory, sorted.
+   *
+   * A `'*'` recall expands through the fact store, which knows nothing about a namespace
+   * that holds conversations and not one fact — an imported transcript's namespace, most
+   * obviously. So the session store has to be asked too, and the two lists unioned.
+   */
+  listNamespaces(): string[] {
+    let names: string[];
+    try {
+      names = readdirSync(this.root, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name);
+    } catch {
+      // no sessions root yet: nothing is stored, which is not a failure
+      return [];
+    }
+    return names.filter((name) => NAMESPACE_PATTERN.test(name)).sort();
+  }
+
   list(namespace: string): SessionIndexEntry[] {
     assertNamespace(namespace);
     const dir = join(this.root, namespace);

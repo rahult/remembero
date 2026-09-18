@@ -254,6 +254,20 @@ describe('session store', () => {
     expect(existsSync(`${oldPath}.corrupt`)).toBe(false);
   });
 
+  it('lists the namespaces that hold sessions, and none when the root is absent', () => {
+    const root = join(mkdtempSync(join(tmpdir(), 'rembero-sessions-ns-list-')), 'sessions');
+    const owner = new SessionStore({ root, capBytes: 1024 * 1024, log: () => {} });
+    // `'*'` recall expands through the fact store, which knows nothing about a
+    // namespace that holds conversations and not one fact, so the store has to say.
+    expect(owner.listNamespaces()).toEqual([]);
+    for (const namespace of ['work', 'chats']) {
+      owner.appendTurns('default' === namespace ? 'default' : namespace, header, [
+        { role: 'user', ts: '2026-09-18T00:00:00.000Z', text: `a ${namespace} turn` },
+      ]);
+    }
+    expect(owner.listNamespaces()).toEqual(['chats', 'work']);
+  });
+
   it('deletes a whole namespace and reports how many sessions went', () => {
     const root = mkdtempSync(join(tmpdir(), 'rembero-sessions-ns-'));
     const owner = new SessionStore({ root, capBytes: 1024 * 1024 });
