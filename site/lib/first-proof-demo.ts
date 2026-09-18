@@ -30,6 +30,7 @@ const ENGINE_OPTIONS = {
 export interface DemoUtterance {
   said: string;
   when: string;
+  plain: string;
   fact: string;
 }
 
@@ -37,17 +38,21 @@ export const DEMO_UTTERANCES: readonly DemoUtterance[] = [
   {
     said: "Maya is collaborating on Atlas with me.",
     when: "Atlas planning · 17 Aug",
+    plain: "Maya contributes to the Atlas project",
     fact: "project_contributor(atlas, maya)",
   },
   {
     said: "I own Atlas.",
     when: "Atlas planning · 17 Aug",
+    plain: "You own Atlas",
     fact: "project_owner(atlas, rahul)",
   },
 ];
 
 export const DEMO_RULE = `collaborator(Person, Project) :-
   project_contributor(Project, Person).`;
+
+export const DEMO_RULE_PLAIN = "if someone contributes to a project, they collaborate on it";
 
 export const DEMO_QUESTION = "Who is collaborating on Atlas?";
 export const DEMO_QUERY = "collaborator(Person, atlas)";

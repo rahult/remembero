@@ -91,9 +91,21 @@ export default function ResearchPage() {
             </div>
             <div className="extract-arrow" aria-hidden="true">the writer extracts</div>
             <ul className="extract-facts">
-              <li><code>client_of(norsk_dental, us) · from 2026-01-11</code><em>“signed … as a client yesterday”</em></li>
-              <li><code>account_lead(norsk_dental, you) · superseded 2026-05-01</code><em>“I&apos;m the account lead.”</em></li>
-              <li><code>contract_value(norsk_dental, $84,000 / 12 mo)</code><em>“worth $84,000”</em></li>
+              <li>
+                <strong>Norsk Dental became a client</strong>
+                <small className="extract-machine">client_of(norsk_dental, us) · from 2026-01-11</small>
+                <em>“signed … as a client yesterday”</em>
+              </li>
+              <li>
+                <strong>You led the account — superseded 1 May</strong>
+                <small className="extract-machine">account_lead(norsk_dental, you) · 2026-01-12 → 2026-05-01</small>
+                <em>“I&apos;m the account lead.”</em>
+              </li>
+              <li>
+                <strong>The contract is worth $84,000 over twelve months</strong>
+                <small className="extract-machine">contract_value(norsk_dental, $84,000 / 12 mo)</small>
+                <em>“worth $84,000”</em>
+              </li>
             </ul>
           </div>
         </div>

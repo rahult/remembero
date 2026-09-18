@@ -22,7 +22,13 @@ test("server-renders the Remembero marketing homepage with lab and playground na
   assert.match(html, /<title>Remembero — Memory you can reason with<\/title>/i);
   assert.match(html, /Memory you(?:<br\/>|\s)+can <em>reason<\/em> with\./);
   assert.match(html, /Remembero extracted/);
+  assert.match(html, /Maya contributes to the Atlas project/);
+  assert.match(html, /machine form:/);
+  assert.match(html, /the machine sees/);
   assert.match(html, /Text in · knowledge out · proof attached/);
+  assert.match(html, /One paragraph,(?:<br\/>|\s)+taken <em>apart\.<\/em>/);
+  assert.match(html, /The facts it states/);
+  assert.match(html, /Nadia takes over the rollout/);
   assert.match(html, /AI that forgets/);
   assert.match(html, /Write it down\./);
   assert.match(html, /Four workbenches\./);
@@ -57,6 +63,7 @@ test("server-renders the de-jargonized research page with the measured evidence"
   assert.match(html, /<title>Remembero Research — The evidence, measured<\/title>/i);
   assert.match(html, /Every claim on this site/);
   assert.match(html, /the writer extracts/);
+  assert.match(html, /Norsk Dental became a client/);
   assert.match(html, /client_of\(norsk_dental, us\) · from 2026-01-11/);
   assert.match(html, /LongMemEval-S/);
   assert.match(html, /318 <i>→ 359<\/i>/);
@@ -292,8 +299,16 @@ test("labs run real browser-safe tool and policy loops without remote model APIs
   assert.match(writerReaderFixture, /update chains, flip-backs, effective-dated roles/);
   assert.match(writerReaderClient, /buildTimelines/);
   assert.match(writerReaderClient, /buildReaderNotes/);
+  const ladderLib = await readFile(new URL("../lib/paragraph-ladder.ts", import.meta.url), "utf8");
+  const ladderClient = await readFile(new URL("../app/paragraph-ladder.tsx", import.meta.url), "utf8");
+  assert.match(ladderLib, /resolveDates/);
+  assert.match(ladderLib, /computeLogic/);
+  assert.match(ladderLib, /buildChange/);
+  assert.match(ladderLib, /No model weights are served/);
+  assert.match(ladderClient, /ParagraphLadder/);
+  assert.match(ladderClient, /machine form:/);
 
-  const hostedLabSource = `${chatClient}\n${chatEngine}\n${chatTools}\n${agentClient}\n${agentEngine}\n${browserModel}\n${recallClient}\n${recallFixture}\n${demoLib}\n${demoClient}\n${writerReaderClient}\n${writerReaderFixture}`;
+  const hostedLabSource = `${chatClient}\n${chatEngine}\n${chatTools}\n${agentClient}\n${agentEngine}\n${browserModel}\n${recallClient}\n${recallFixture}\n${demoLib}\n${demoClient}\n${writerReaderClient}\n${writerReaderFixture}\n${ladderLib}\n${ladderClient}`;
   assert.doesNotMatch(hostedLabSource, /fetch\s*\(|XMLHttpRequest|WebSocket|EventSource/);
   assert.doesNotMatch(hostedLabSource, /localStorage|sessionStorage|document\.cookie|indexedDB/);
   assert.doesNotMatch(hostedLabSource, /OPENAI_API_KEY|LLM_API_KEY/);

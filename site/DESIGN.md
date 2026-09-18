@@ -57,13 +57,23 @@ If a string is a measurement, it is mono — no exceptions.
   `Deterministic · live`, `Live · 0 models`. Green = verified here and now; amber =
   recorded elsewhere, honestly labeled; ink = policy boundary. Stamps are the system's
   honesty device: anything a model produced wears one.
+- **Knowledge card** — every extracted fact renders English-first: a plain-language
+  headline ("Maya contributes to the Atlas project"), the source sentence in italic,
+  and the formal atom demoted to a small muted `machine form:` line. Predicate
+  syntax never leads; it appears only as a footnote that teaches the mapping.
 - **Proof card** (`.hero-proof`) — the site's opening artifact and recurring motif:
-  *You said* (the raw sentence, serif italic) → *Remembero extracted* (amber fact chips,
-  each quoting its source sentence) → *You asked* (question + query) → the serif answer
-  with its because-chain → a source row stamped "Text in · knowledge out · proof
-  attached." Rows reveal in a staggered flow on load (collapsed under reduced motion).
-  The same text→knowledge shape repeats as the `.extract-strip` on `/research` and as
-  the extraction stages in the demo widget and both pipeline labs.
+  *You said* (the raw sentence, serif italic) → *Remembero extracted* (knowledge
+  cards) → *You asked* (question, with the query as "the machine sees") → the serif
+  answer with its because-chain → a source row stamped "Text in · knowledge out ·
+  proof attached." Rows reveal in a staggered flow on load (collapsed under reduced
+  motion).
+- **Paragraph ladder** (`paragraph-ladder.tsx` + module CSS) — the motif at rising
+  complexity: one realistic team-update paragraph taken apart in four layers —
+  facts (replayed writer reading), dates (resolved live by code), logic (arithmetic
+  and a conditional rule, live), and change (validity timelines, live). Each layer
+  stamps its execution boundary and keeps English first with machine forms demoted.
+  The same text→knowledge shape repeats as the `.extract-strip` on `/research` and
+  as the extraction stages in the demo widget and both pipeline labs.
 - **First-proof demo** (`first-proof-demo.tsx` + module CSS) — the sixty-second loop
   as a stepped widget: say it → store it → rule it → ask it, each stage revealing on
   click, the final stage a real engine call with the proof chain and a measured

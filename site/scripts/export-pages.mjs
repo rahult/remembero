@@ -69,6 +69,8 @@ if (
 if (
   !homeHtml.includes("AI that forgets") ||
   !homeHtml.includes("Write it down.") ||
+  !homeHtml.includes("One paragraph,") ||
+  !homeHtml.includes("machine form:") ||
   !homeHtml.includes("Four workbenches.") ||
   !homeHtml.includes("We measured") ||
   !homeHtml.includes("ran with zero models") ||

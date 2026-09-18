@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { FirstProofDemo } from "./first-proof-demo";
+import { ParagraphLadder } from "./paragraph-ladder";
 
 const github = "https://github.com/rahult/remembero";
 const playground = "/playground";
@@ -22,11 +23,13 @@ function HeroProof() {
         <span>Remembero extracted</span>
         <ul>
           <li>
-            <code>project_contributor(atlas, maya)</code>
+            <strong>Maya contributes to the Atlas project</strong>
+            <small className="hero-machine">machine form: <code>project_contributor(atlas, maya)</code></small>
             <em>“Maya is collaborating on Atlas with me.”</em>
           </li>
           <li>
-            <code>project_owner(atlas, rahul)</code>
+            <strong>You own Atlas</strong>
+            <small className="hero-machine">machine form: <code>project_owner(atlas, rahul)</code></small>
             <em>“I own Atlas.”</em>
           </li>
         </ul>
@@ -34,14 +37,15 @@ function HeroProof() {
       <div className="hero-proof-row hero-asked" style={{ ["--step" as string]: 2 }}>
         <span>You asked</span>
         <p>Who is collaborating on Atlas?</p>
+        <span className="hero-query-label">the machine sees</span>
         <code>collaborator(Person, atlas)</code>
       </div>
       <div className="hero-proof-row hero-answer" style={{ ["--step" as string]: 3 }}>
         <span>Answer</span>
         <p>Maya is collaborating on Atlas.</p>
         <ol className="hero-because">
-          <li><b>1</b><code>collaborator(maya, atlas)</code></li>
-          <li><b>2</b><code>project_contributor(atlas, maya)</code></li>
+          <li><b>1</b><div><span>Maya collaborates on Atlas</span><small>collaborator(maya, atlas)</small></div></li>
+          <li><b>2</b><div><span>Maya contributes to Atlas — said 17 Aug</span><small>project_contributor(atlas, maya)</small></div></li>
         </ol>
       </div>
       <div className="hero-proof-source" style={{ ["--step" as string]: 4 }}>
@@ -71,17 +75,17 @@ const ideaSteps = [
   {
     title: "Store what was said",
     body: "Facts are short, plain sentences with their source attached — readable by you, and exact enough for a machine.",
-    hint: "project_contributor(atlas, maya)",
+    hint: "“Maya contributes to Atlas” — said 17 Aug",
   },
   {
     title: "Add rules once",
     body: "Rules are plain if-then knowledge: anyone contributing to a project is a collaborator on it. Written once, applied forever, same result every time.",
-    hint: "collaborator(P, Proj) :- project_contributor(Proj, P)",
+    hint: "if someone contributes to a project, they collaborate on it",
   },
   {
     title: "Ask, then check the working",
     body: "Questions become queries over facts and rules. Every answer carries the chain of evidence behind it — or an honest “not in memory.”",
-    hint: "answer → rule → sourced facts",
+    hint: "answer + the facts and rule behind it",
   },
 ];
 
@@ -152,9 +156,18 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="research section section-tint" id="deeper" aria-labelledby="deeper-title">
+        <div className="section-shell">
+          <p className="section-tag">03 · The same idea, deeper</p>
+          <h2 id="deeper-title">One paragraph,<br />taken <em>apart.</em></h2>
+          <p className="section-lede">Real updates don't arrive as tidy facts — they arrive as a paragraph that states things, hides dates in phrases like “the end of this month,” implies arithmetic, and announces changes. Take this one apart a layer at a time.</p>
+          <ParagraphLadder />
+        </div>
+      </section>
+
       <section className="labs-showcase section-dark" id="try" aria-labelledby="try-title">
         <div className="section-shell">
-          <p className="section-tag">03 · Try it</p>
+          <p className="section-tag">04 · Try it</p>
           <div className="try-head">
             <h2 id="try-title">Four workbenches.<br />Zero <em>downloads.</em></h2>
             <p>Work deeper at each step. Everything runs in this tab over fictional data — and wherever a model appears, it is either an open model your own browser loads on demand, or a clearly labeled replay of a recorded run.</p>
@@ -201,7 +214,7 @@ export default function Home() {
 
       <section className="evidence section" id="evidence" aria-labelledby="evidence-title">
         <div className="section-shell">
-          <p className="section-tag">04 · The evidence</p>
+          <p className="section-tag">05 · The evidence</p>
           <h2 id="evidence-title">We measured <em>everything.</em></h2>
           <p className="section-lede">Remembero's claim — that structure beats scale for agent memory — is tested, not asserted. On a public benchmark of 500 questions about long chat histories, a small open model kept getting more right as deterministic code took over the parts models are bad at. It now sits fifteen questions behind the frontier model that trained it.</p>
           <div className="metric-row">
@@ -216,13 +229,13 @@ export default function Home() {
       <section className="boundary section-dark">
         <div className="section-shell boundary-grid">
           <article className="model-boundary">
-            <p className="section-tag">05 · Where models fit</p>
+            <p className="section-tag">06 · Where models fit</p>
             <h2>Models translate.<br />Rules <em>decide.</em></h2>
             <p>Everything you tried above ran with zero models. When you want to speak plain English to your memory, a model does the translating — an open model loaded by your own browser in the labs, or any API model in the real product. The model never decides what is true. The rules do, and they show their work.</p>
             <ol className="boundary-flow"><li>Question <span>plain English</span></li><li>Translate <span>optional model</span></li><li>Query <span>checked, accepted</span></li><li>Evaluate <span>rules + facts</span></li><li>Notes <span>dates, sums — by code</span></li><li>Answer + proof</li></ol>
           </article>
           <article className="integrations">
-            <p className="section-tag">06 · Start building</p>
+            <p className="section-tag">07 · Start building</p>
             <h2>One memory layer.<br />Three ways <em>in.</em></h2>
             <div className="integration-list"><div><strong>MCP</strong><span>An eight-tool core profile for agents; <code>remembero init</code> installs the Claude Code hooks and a session brief.</span></div><div><strong>TypeScript</strong><span>Use the typed library API inside your applications.</span></div><div><strong>CLI</strong><code>npx -y remembero</code></div></div>
           </article>

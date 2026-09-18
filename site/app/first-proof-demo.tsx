@@ -5,6 +5,7 @@ import {
   DEMO_QUESTION,
   DEMO_QUERY,
   DEMO_RULE,
+  DEMO_RULE_PLAIN,
   DEMO_UTTERANCES,
   runFirstProofDemo,
   type DemoResult,
@@ -77,7 +78,8 @@ export function FirstProofDemo() {
             <ul className={styles.factList}>
               {DEMO_UTTERANCES.map((utterance) => (
                 <li key={utterance.fact}>
-                  <code>{utterance.fact}</code>
+                  <strong>{utterance.plain}</strong>
+                  <small className={styles.factMachine}>machine form: <code>{utterance.fact}</code></small>
                   <span>“{utterance.said}”</span>
                 </li>
               ))}
@@ -88,9 +90,12 @@ export function FirstProofDemo() {
         <section className={styles.stageRule} aria-label="The rule" data-revealed={step >= 2}>
           <h3>3 · You add one rule</h3>
           {step < 2 ? (
-            <p className={styles.placeholder}>Reads as: someone is a collaborator on a project if they contribute to it.</p>
+            <p className={styles.placeholder}>Reads as: {DEMO_RULE_PLAIN}.</p>
           ) : (
-            <pre className={styles.rule}>{DEMO_RULE}</pre>
+            <div className={styles.ruleCard}>
+              <p className={styles.rulePlain}>{DEMO_RULE_PLAIN}</p>
+              <pre className={styles.rule}>{DEMO_RULE}</pre>
+            </div>
           )}
         </section>
 

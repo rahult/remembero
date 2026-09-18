@@ -14,10 +14,14 @@ progressive walk — **problem → idea → try → evidence**:
   **sixty-second live demo** (`app/first-proof-demo.tsx`): the visitor says two
   things, stores them as facts, compiles one rule, and asks one question — every
   step executed by Remembero's deterministic engine in the browser via
-  `lib/first-proof-demo.ts`, with zero models. The try section then offers four
-  labs plus the IDE showcase, a three-metric evidence teaser, and the
-  models-translate-rules-decide boundary. Visitor-facing copy carries no internal
-  version jargon (no reader generations, no benchmark-speak without explanation).
+  `lib/first-proof-demo.ts`, with zero models. A **paragraph ladder** section then
+  takes one realistic team-update paragraph apart in four layers of rising
+  complexity — facts (replayed writer reading), dates resolved by live code,
+  implied arithmetic and a conditional rule, and validity timelines — and the try
+  section offers four labs plus the IDE showcase, a three-metric evidence teaser,
+  and the models-translate-rules-decide boundary. Extracted knowledge renders
+  English-first everywhere, with predicate syntax demoted to a small "machine
+  form" line; visitor-facing copy carries no internal version jargon.
 - `/research` carries the full measured story in plain language: what the small
   reader got wrong (with the failure list), the code-written notes fix with the
   first controlled before/after pair (318 → 359 of 500, grader named), the
