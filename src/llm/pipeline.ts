@@ -96,7 +96,7 @@ import {
   assertBoundedOutput,
   assertSafeForExternalLlm,
 } from '../safety.js';
-import type { SessionStore } from '../sessions/store.js';
+import type { SessionSource, SessionStore } from '../sessions/store.js';
 import {
   applyPredicateAliases,
   applyPredicateAliasesToGoals,
@@ -253,13 +253,18 @@ export interface RecallResult {
   sessionsError?: string;
 }
 
-/** One conversation the reader read, and the turns of it that matched the question. */
+/** One window of a conversation the reader read, and the turns of it that matched. */
 export interface RecallSessionRead {
   /** The namespace it is stored in; `forget_sessions` needs this with the key. */
   namespace: string;
   /** The session's file key in that namespace, as `forget_sessions` takes it. */
   key: string;
-  /** The day the session started: the date the reader was shown. */
+  /** Which window of that session was read, and `<key>#<window>` naming it. */
+  window: number;
+  windowKey: string;
+  /** How many windows the session holds, so one window's place in it is visible. */
+  windows: number;
+  /** The day this window started: the date the reader was shown. */
   date: string;
   /** Its matching turns, in the order they were said, each cut to a bounded length. */
   excerpts: string[];
@@ -2140,16 +2145,35 @@ function sessionReadingPrompt(
   }
 }
 
-/** One stored conversation, ready to rank, with the namespace and key it came from. */
+/** One window of a stored conversation, ready to rank, with where it came from. */
 interface LoadedSession extends RetrievableSession {
   namespace: string;
+  /** The session's file key: what `forget_sessions` takes for the whole conversation. */
   key: string;
+  /** Its window's ordinal, and `<key>#<ordinal>`. */
+  window: number;
+  windowKey: string;
+  /** Where the conversation came from: it decides whose turns are evidence. */
+  source: SessionSource;
+  /** How many windows the session has. */
+  windows: number;
 }
 
 /**
- * Every stored conversation of the selected namespaces. A session file the store cannot
- * read is skipped (the store logs it); an empty one is left out so it cannot take a
- * reading slot from a session with something in it.
+ * Every window of every stored conversation in the selected namespaces, one candidate
+ * each.
+ *
+ * The unit is the window, not the file. One real Claude Code conversation measured 468
+ * turns and 346 KB over five days: as a single candidate there was nothing for ranking
+ * to choose between, and the 24,576-byte reading budget kept its first 7% — the
+ * continuation summary — while the 35 turns that answered the question were never
+ * shown. As windows the same conversation offers a dozen candidates, so the existing
+ * turn-level ranking, the re-rank hook and the depth cut all work unchanged, and each
+ * window carries its own date.
+ *
+ * A session file the store cannot read is skipped (the store logs it); a window with
+ * nothing but blank turns is left out so it cannot take a reading slot from one with
+ * something in it.
  */
 function loadSessions(
   store: SessionStore,
@@ -2157,21 +2181,27 @@ function loadSessions(
 ): LoadedSession[] {
   const loaded: LoadedSession[] = [];
   for (const namespace of namespaces) {
-    for (const entry of store.list(namespace)) {
-      const session = store.readSession(namespace, entry.key);
-      if (session === undefined) continue;
-      const turns = session.turns
-        .filter((turn) => turn.text.trim() !== '')
-        .map(({ role, text }) => ({ role, text }));
-      if (turns.length === 0) continue;
-      loaded.push({
-        // neither a namespace nor a 32-hex key can contain '/', so this pairs them back up
-        id: `${namespace}/${entry.key}`,
-        date: entry.startedAt,
-        namespace,
-        key: entry.key,
-        turns,
-      });
+    // whole sessions here, then every window from one read of each file
+    for (const entry of store.listSessions(namespace)) {
+      for (const window of store.readSessionWindows(namespace, entry.key)) {
+        const turns = window.turns
+          .filter((turn) => turn.text.trim() !== '')
+          .map(({ role, text }) => ({ role, text }));
+        if (turns.length === 0) continue;
+        loaded.push({
+          // neither a namespace nor a window key can contain '/', so this pairs them back up
+          id: `${namespace}/${window.windowKey}`,
+          // the window's own first turn, so the reader is told when this part was said
+          date: window.startedAt,
+          namespace,
+          key: entry.key,
+          source: entry.source,
+          window: window.window,
+          windowKey: window.windowKey,
+          windows: window.windows,
+          turns,
+        });
+      }
     }
   }
   return loaded;
@@ -2230,6 +2260,36 @@ export function cappedReadingCandidates<T extends RetrievableSession>(
     const capped = kept.get(session.id);
     return capped === undefined ? [] : [capped];
   });
+}
+
+/**
+ * Whose turns are evidence in what the reader is shown, for the conversations the
+ * product actually stores.
+ *
+ * `readingContextRoles` shows the user's turns alone unless the question asks what the
+ * assistant said, and for a LongMemEval haystack that is right: the user states every
+ * fact, and the assistant's turns are 87% of the characters and say nothing. An agent
+ * transcript is the other way round. Measured on a real Claude Code session: of the 35
+ * turns that named the GPU the question asked about, one was the user's; the answer —
+ * and the conclusion of a sweep the user asked about — were the assistant reporting
+ * work. Rendering the user's turns alone filled 13 KB of a 24,576-byte budget and left
+ * both answers out of the prompt entirely.
+ *
+ * So a window captured from Claude Code or imported from a transcript renders both
+ * roles, and a `remember` conversation — the chat shape the benchmark models, where the
+ * user is the one stating facts — renders exactly what it rendered before. Nothing here
+ * touches ranking or the harness: `retrieveSessions` is given the question's own kind,
+ * and this is only what the reading prompt is asked for.
+ */
+function readingKind(
+  kind: QuestionKind,
+  read: readonly LoadedSession[],
+): QuestionKind {
+  if (kind.assistantRecall) return kind;
+  const transcript = read.some(
+    (session) => session.source === 'claude-code' || session.source === 'import',
+  );
+  return transcript ? { ...kind, assistantRecall: true } : kind;
 }
 
 /** How much of a read session is shown back as evidence. */
@@ -2473,11 +2533,12 @@ async function answerFromSessions(
   const reader = resolvedReader(deps, options);
   // before the prompt is built, so a refusal has sent nothing and rendered nothing
   assertReaderAllowed(reader);
+  const reading = { ...retrieval, kind: readingKind(kind, read) };
   const prompt = sessionReadingPrompt(
     question,
     askedAt,
     read,
-    retrieval,
+    reading,
     reader,
   );
   const { reply, model } = await readSessions(reader, [
@@ -2511,8 +2572,12 @@ async function answerFromSessions(
     sessionsRead: read.map((session) => ({
       namespace: session.namespace,
       key: session.key,
+      window: session.window,
+      windowKey: session.windowKey,
+      windows: session.windows,
       date: session.date.slice(0, 10),
-      excerpts: matchingExcerpts(question, session, kind.assistantRecall),
+      // the same roles the reader was shown, so the evidence is what it read
+      excerpts: matchingExcerpts(question, session, reading.kind.assistantRecall),
     })),
     ...(model === undefined ? {} : { readerModel: model }),
     ...working,

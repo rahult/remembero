@@ -75,14 +75,15 @@ function storeSession(
   sourceSessionId: string,
   startedAt: string,
   turns: Array<{ role: 'user' | 'assistant'; text: string }>,
+  spacingMs = 1_000,
+  source: SessionSource = 'import',
 ): string {
-  const source: SessionSource = 'import';
   sessions.appendTurns(
     'default',
     { version: 1, source, sourceSessionId, startedAt },
     turns.map((turn, index) => ({
       ...turn,
-      ts: new Date(Date.parse(startedAt) + index * 1_000).toISOString(),
+      ts: new Date(Date.parse(startedAt) + index * spacingMs).toISOString(),
     })),
   );
   return sessions.sessionKey(source, sourceSessionId);
@@ -130,6 +131,139 @@ describe('the sessions answer mode', () => {
     expect(read[0]?.excerpts.join(' ')).toContain('two bikes');
     expect(client.prompts).toHaveLength(1);
     expect(client.prompts[0]?.at(-1)?.content).toContain('two bikes');
+  });
+
+  it('reads the part of a five-day conversation that answers, not its first 7%', async () => {
+    // The measured failure this windowing exists for. One real Claude Code session:
+    // 468 turns, 346 KB, five days, and the only session in the namespace. Retrieval
+    // ranked whole sessions, so there was nothing to choose between; the 24,576-byte
+    // reading budget then kept the head of the file — its continuation summary — and
+    // the turns that answered the question, 400 turns in, were never shown.
+    const turns: Array<{ role: 'user' | 'assistant'; text: string }> = [];
+    for (let index = 0; index < 468; index += 1) {
+      const role = index % 5 === 0 ? ('user' as const) : ('assistant' as const);
+      if (index === 400) {
+        turns.push({
+          role: 'user',
+          text: 'Reader v7 trained on a secure H100 NVL pod, so the GPU question is settled.',
+        });
+        continue;
+      }
+      turns.push({
+        role,
+        // every window mentions the reader, so ranking has to choose between windows
+        // rather than being handed the one that matches at all; and each is long enough
+        // that the head alone fills the reading budget several times over
+        text: `turn ${index}: reader plans, reviews and pod bookkeeping. ${'filler about the reader plan. '.repeat(20)}`,
+      });
+    }
+    // thirteen minutes between turns: 468 of them span the same five days
+    const key = storeSession(
+      'claude-code-chat',
+      '2026-09-13T08:00:00.000Z',
+      turns,
+      13 * 60 * 1_000,
+    );
+    const client = new StubReaderClient('An H100 NVL pod.');
+
+    const result = await recallQuestion(
+      { store, llm: new NeverCalledLlm(), sessions },
+      'Which GPU did we train the reader on?',
+      ['default'],
+      {
+        answerMode: 'sessions',
+        at: new Date('2026-09-19T09:00:00.000Z'),
+        reader: reader(client),
+      },
+    );
+
+    // the turn 400 windows away from the head reached the reader
+    expect(client.prompts[0]?.at(-1)?.content).toContain('H100 NVL');
+    expect(result.status).toBe('answered');
+    expect(result.answer).toBe('An H100 NVL pod.');
+    const read = result.sessionsRead ?? [];
+    // several windows of the one stored conversation, each named, the session key kept
+    expect(read.length).toBeGreaterThan(1);
+    expect(new Set(read.map((session) => session.windowKey)).size).toBe(read.length);
+    expect(read.every((session) => session.key === key)).toBe(true);
+    expect(read.every((session) => session.windowKey === `${key}#${session.window}`)).toBe(
+      true,
+    );
+    expect(read.some((session) => session.window > 0)).toBe(true);
+    // the window holding turn 400 is one of them, and its date is its own, not the
+    // conversation's first day
+    const answering = read.find((session) =>
+      session.excerpts.join(' ').includes('H100 NVL'),
+    );
+    expect(answering).toBeDefined();
+    expect(answering!.date).not.toBe('2026-09-13');
+  });
+
+  it("shows the assistant's turns of a transcript, where the assistant is the record", async () => {
+    // Measured on the real thing: of the 35 turns naming the GPU the question asked
+    // about, one was the user's. An agent transcript is the assistant reporting work,
+    // so rendering the user's turns alone left the answer out of the prompt entirely.
+    storeSession(
+      'agent-chat',
+      '2026-09-16T09:00:00.000Z',
+      [
+        { role: 'user', text: 'How did the training run go?' },
+        {
+          role: 'assistant',
+          text: 'Reader v7 finished on a secure H100 NVL pod, 90 steps, about four hours.',
+        },
+      ],
+      1_000,
+      'claude-code',
+    );
+    const client = new StubReaderClient('A secure H100 NVL pod.');
+
+    const result = await recallQuestion(
+      { store, llm: new NeverCalledLlm(), sessions },
+      'Which GPU did we train the reader on?',
+      ['default'],
+      {
+        answerMode: 'sessions',
+        at: new Date('2026-09-19T09:00:00.000Z'),
+        reader: reader(client),
+      },
+    );
+
+    expect(client.prompts[0]?.at(-1)?.content).toContain('H100 NVL');
+    expect(result.status).toBe('answered');
+    // the evidence shown back is what the reader read
+    expect((result.sessionsRead ?? [])[0]?.excerpts.join(' ')).toContain('H100 NVL');
+  });
+
+  it("shows only the user's turns of a chat the product remembered", async () => {
+    // The shape the benchmark measures: the user states the facts, and the assistant's
+    // turns are 87% of the characters and say nothing. That reading is unchanged.
+    storeSession(
+      'remembered-chat',
+      '2026-09-16T09:00:00.000Z',
+      [
+        { role: 'user', text: 'I now own two bikes after selling the old road bike.' },
+        { role: 'assistant', text: 'Noted: a tidy stable of velocipedes.' },
+      ],
+      1_000,
+      'remember',
+    );
+    const client = new StubReaderClient('Two bikes.');
+
+    await recallQuestion(
+      { store, llm: new NeverCalledLlm(), sessions },
+      'How many bikes do I own now?',
+      ['default'],
+      {
+        answerMode: 'sessions',
+        at: new Date('2026-09-19T09:00:00.000Z'),
+        reader: reader(client),
+      },
+    );
+
+    const prompt = client.prompts[0]?.at(-1)?.content ?? '';
+    expect(prompt).toContain('two bikes');
+    expect(prompt).not.toContain('velocipedes');
   });
 
   it('refuses a reader outside localhost until REMBERO_READER_ALLOW_REMOTE is set', async () => {
