@@ -44,13 +44,16 @@ const SENSITIVE_CALL_PATTERN = new RegExp(
  * Each is matched by its own shape rather than by the words around it:
  *
  * - **PEM private keys.** The armour is the signal. The span runs from the BEGIN
- *   header to its own END line, and to the end of the text when there is no END
- *   line at all — half a key is still a key, and leaving the tail behind would
- *   leave it in the clear. `PRIVATE` is required, so a public key or a
- *   certificate is ordinary text.
+ *   header to its own END line; an unterminated header is bounded instead (see
+ *   `pemSpan`), because prose that merely names the armour must not lose its tail.
+ *   `PRIVATE` is required, so a public key or a certificate is ordinary text.
  * - **AWS access key ids.** `AKIA` (long-term) or `ASIA` (session) and exactly
- *   sixteen more uppercase alphanumerics, bounded left by a non-alphanumeric so
- *   the prefix word "AKIA" on its own is prose.
+ *   sixteen more alphanumerics, bounded left by a non-alphanumeric so the prefix
+ *   word "AKIA" on its own is prose. Case-insensitive: fixtures and docs carry the
+ *   lowercased `akiaiosfodnn7example`, and a lowercase id is still an id. The cost
+ *   is that a lowercase word starting "asia"/"akia" with exactly sixteen
+ *   alphanumerics after it reads as a key id; a run that long with no separator is
+ *   rare enough to accept.
  * - **JWTs.** `eyJ` — base64url for `{"` — then two dot-separated base64url
  *   segments. Both segments are required: a bare `eyJ`-like word is a base64
  *   header someone is talking about, not a token, and `eyJ` alone is the prefix
@@ -65,18 +68,61 @@ const SENSITIVE_CALL_PATTERN = new RegExp(
  * matching: a secret with no recognisable shape and no credential word beside it
  * is stored as written. See `docs/superpowers/specs/2026-09-18-session-store-and-reading-recall-design.md`.
  */
-const PEM_PRIVATE_KEY_PATTERN =
-  /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)/;
-const AWS_ACCESS_KEY_ID_PATTERN = /(?<![A-Za-z0-9])(?:AKIA|ASIA)[A-Z0-9]{16}(?![A-Z0-9])/;
+const PEM_PRIVATE_KEY_HEADER_PATTERN = /-----BEGIN [A-Z ]*PRIVATE KEY-----/;
+const PEM_PRIVATE_KEY_FOOTER_PATTERN = /-----END [A-Z ]*PRIVATE KEY-----/;
+const AWS_ACCESS_KEY_ID_PATTERN = /(?<![A-Za-z0-9])(?:AKIA|ASIA)[A-Z0-9]{16}(?![A-Z0-9])/i;
 const JWT_PATTERN = /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}(?:\.[A-Za-z0-9_-]*)?/;
 const URL_CREDENTIAL_PATTERN = /[a-z][a-z0-9+.-]*:\/\/[^\s:/?#@]+:[^\s/?#@]+@\S+/i;
+
+/**
+ * The same credential in a URL when the password itself holds a `/` or another
+ * sub-delimiter — `amqp://guest:gu/est@rabbit…` defeated the pattern above, whose
+ * password class stops at the first `/`, so the whole connection string was stored
+ * verbatim. Here the password is anything but whitespace and `@`, which would also
+ * read `https://docs.example.com:8443/guide/v2@latest` as `user:password@host`, so
+ * a password that begins with a port number followed by a path separator is
+ * rejected: that shape is a host, a port and a path, not a credential. The cost is
+ * a genuine password that is itself a bare port-like number followed by `/`, which
+ * is a narrower miss than the false positive it prevents.
+ */
+const URL_CREDENTIAL_SUBDELIM_PATTERN =
+  /[a-z][a-z0-9+.-]*:\/\/[^\s:/?#@]+:(?!\d{1,5}(?:[/?#]|\s|$))[^\s@]+@[^\s/?#@]+\S*/i;
+
+/**
+ * Vendor tokens: each one is a fixed prefix plus a body of a known length, which is
+ * the whole reason they can be recognised without a credential word beside them.
+ *
+ * - **Slack** `xoxb-`/`xoxp-`/`xoxa-`/`xoxr-` and the dash-separated groups after
+ *   it. The dash is required, so `xoxo` in prose is prose.
+ * - **Google API keys** `AIza` and exactly 35 more URL-safe characters, so the
+ *   prefix `AIza` on its own stays readable.
+ * - **GitHub fine-grained tokens** `github_pat_` and the body after it. The
+ *   trailing `_` of the prefix is required, so `github_pattern` is an identifier.
+ *   The classic `ghp_`/`gho_`/`ghu_`/`ghs_`/`ghr_` + 36 form needs nothing new: the
+ *   existing `gh[pousr][-_][a-z0-9_-]{8,}` pattern below already covers it.
+ * - **Stripe-style live keys** `sk_live_`/`rk_live_`/`pk_live_` and 20 or more
+ *   alphanumerics. `sk_test_` keys are masked too, by the pre-existing `sk[-_]`
+ *   pattern: a test key is not a live secret, but masking one costs nothing, and
+ *   narrowing that pattern to spare it would be a hole in a detector that works.
+ *
+ * Deliberately absent: a pattern for bare base64 blobs. Base64 is the encoding of
+ * every attachment, digest, image and diff paste in a transcript, so a shape-only
+ * rule for it masks ordinary content by the paragraph. A base64 secret is caught
+ * here only when a prefix or a credential word gives it away.
+ */
+const SLACK_TOKEN_PATTERN = /(?<![A-Za-z0-9])xox[abpr]-[A-Za-z0-9-]{10,}/;
+const GOOGLE_API_KEY_PATTERN = /(?<![A-Za-z0-9_-])AIza[A-Za-z0-9_-]{35}(?![A-Za-z0-9_-])/;
+const GITHUB_FINE_GRAINED_TOKEN_PATTERN = /(?<![A-Za-z0-9])github_pat_[A-Za-z0-9_]{20,}/;
+const STRIPE_LIVE_KEY_PATTERN = /(?<![A-Za-z0-9])[srp]k_live_[A-Za-z0-9]{20,}/i;
 
 const SENSITIVE_TEXT_PATTERNS = [
   // The widest spans first, so a secret that sits inside another is masked once:
   // a PEM body can hold an `eyJ`-like run, and a connection string's password can
-  // look like a bare token.
-  PEM_PRIVATE_KEY_PATTERN,
+  // look like a bare token. The PEM span is masked before this list runs, by
+  // `maskPemSpans`, because its span has to be bounded rather than greedy.
+  PEM_PRIVATE_KEY_HEADER_PATTERN,
   URL_CREDENTIAL_PATTERN,
+  URL_CREDENTIAL_SUBDELIM_PATTERN,
   new RegExp(
     `${SEGMENT_LEFT}${CREDENTIAL_WORD}${SEGMENT_TAIL}["']?\\s*(?:is|=|:)\\s*["']?\\S+`,
     'i'
@@ -88,6 +134,10 @@ const SENSITIVE_TEXT_PATTERNS = [
   ),
   JWT_PATTERN,
   AWS_ACCESS_KEY_ID_PATTERN,
+  SLACK_TOKEN_PATTERN,
+  GOOGLE_API_KEY_PATTERN,
+  GITHUB_FINE_GRAINED_TOKEN_PATTERN,
+  STRIPE_LIVE_KEY_PATTERN,
   /\b(?:bearer\s+)[a-z0-9._~+/=-]{8,}/i,
   /\b(?:sk|gh[pousr])[-_][a-z0-9_-]{8,}/i,
 ];
@@ -245,6 +295,71 @@ function callSpan(
   return { end: limit, stop: limit === capped ? 'cap' : 'end-of-text' };
 }
 
+/**
+ * How far past an unterminated `-----BEGIN … PRIVATE KEY-----` header the span may
+ * run. Masking to the end of the text — what this used to do — silently ate the
+ * tail of any turn that merely named the armour: `"PEM files start with -----BEGIN
+ * RSA PRIVATE KEY----- and end with the matching END line. I keep mine in
+ * 1Password…"` was stored as `"PEM files start with [redacted]"` with
+ * `truncated: false`, so nothing downstream could tell that a sentence had gone
+ * missing. So the unterminated case is bounded the way a credential call's
+ * arguments are: a blank line ends it, and failing that a character cap. The cap is
+ * 4096 characters, which covers the base64 body of a 4096-bit RSA key and every
+ * OpenSSH key shorter than that, so a real pasted key is still masked whole.
+ *
+ * As with a call span, a stop for any reason other than the key's own END line is
+ * reported as `truncated`: part of a key may still sit in the text while nothing in
+ * it matches a pattern any more, and only the flag tells the session store to keep
+ * nothing of the turn.
+ */
+const MAX_PEM_SPAN_CHARS = 4096;
+
+/**
+ * Where a PEM key ends: its own END armour, at any distance — a key is one span and
+ * half a key is still a key. Failing that a blank line, failing that the cap.
+ */
+function pemSpan(value: string, afterHeader: number): { end: number; stop: CallSpanStop } {
+  const footer = globalCopy(PEM_PRIVATE_KEY_FOOTER_PATTERN);
+  footer.lastIndex = afterHeader;
+  const end = footer.exec(value);
+  if (end !== null) return { end: end.index + end[0].length, stop: 'closed' };
+  const capped = afterHeader + MAX_PEM_SPAN_CHARS;
+  const limit = Math.min(value.length, capped);
+  for (let index = afterHeader; index < limit; index += 1) {
+    if (value[index] === '\n' && isBlankLineAt(value, index + 1)) {
+      return { end: index, stop: 'blank-line' };
+    }
+  }
+  return { end: limit, stop: limit === capped ? 'cap' : 'end-of-text' };
+}
+
+/** Mask each PEM private key, armour and body, and say when the span was cut short. */
+function maskPemSpans(value: string): {
+  text: string;
+  masked: number;
+  truncated: boolean;
+} {
+  const finder = globalCopy(PEM_PRIVATE_KEY_HEADER_PATTERN);
+  let text = '';
+  let cursor = 0;
+  let masked = 0;
+  let truncated = false;
+  let match = finder.exec(value);
+  while (match !== null) {
+    // A second header inside a span already masked is part of that span.
+    if (match.index >= cursor) {
+      const span = pemSpan(value, match.index + match[0].length);
+      text += value.slice(cursor, match.index) + REDACTED_SPAN;
+      masked += 1;
+      if (span.stop !== 'closed') truncated = true;
+      cursor = span.end;
+      finder.lastIndex = span.end;
+    }
+    match = finder.exec(value);
+  }
+  return { text: text + value.slice(cursor), masked, truncated };
+}
+
 /** Mask `password(...)` and friends, arguments and all. */
 function maskCallSpans(value: string): {
   text: string;
@@ -280,8 +395,9 @@ function maskCallSpans(value: string): {
  * so the call form takes its arguments with it and the assignment form
  * ("api key = sk-...") consumes the bare token inside it: one masked span each.
  *
- * `truncated` says a span had to stop before its own closing paren, so part of a
- * secret may still be in `text` even though nothing in it looks sensitive any more.
+ * `truncated` says a span had to stop before its own end — a call's closing paren, a
+ * PEM key's END line — so part of a secret may still be in `text`, and part of the
+ * surrounding prose may be gone, even though nothing left looks sensitive.
  * A caller that cannot judge the text itself — the session store — must throw the
  * whole passage away when this is set; `masked` alone does not tell it that.
  */
@@ -290,9 +406,12 @@ export function maskSensitiveSpans(value: string): {
   masked: number;
   truncated: boolean;
 } {
-  const calls = maskCallSpans(value);
+  // PEM first: its span is the widest, and it is the one span whose end has to be
+  // found by hand rather than by a greedy pattern.
+  const pem = maskPemSpans(value);
+  const calls = maskCallSpans(pem.text);
   let text = calls.text;
-  let masked = calls.masked;
+  let masked = pem.masked + calls.masked;
   for (const pattern of SENSITIVE_TEXT_PATTERNS) {
     text = text.replace(globalCopy(pattern), () => {
       masked += 1;
@@ -307,7 +426,7 @@ export function maskSensitiveSpans(value: string): {
     masked += 1;
     return REDACTED_SPAN;
   });
-  return { text, masked, truncated: calls.truncated };
+  return { text, masked, truncated: pem.truncated || calls.truncated };
 }
 
 export function redactSensitiveText(value: string): { text: string; redacted: boolean } {
