@@ -18,7 +18,11 @@ import {
 } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { sessionCapBytesFromEnv, sessionsEnabledFromEnv } from '../env.js';
+import {
+  DEFAULT_SESSION_CAP_BYTES,
+  sessionCapBytesFromEnv,
+  sessionsEnabledFromEnv,
+} from '../env.js';
 import {
   containsSensitiveText,
   maskSensitiveSpans,
@@ -161,12 +165,18 @@ export function sessionStoreEvenIfOff(
   configured?: SessionStore,
 ): SessionStore {
   if (configured !== undefined) return configured;
-  // Throws on a `REMBERO_SESSIONS` that is neither 'on' nor 'off'. A store the
-  // caller could not build while the setting says 'on' means
-  // `REMBERO_SESSION_CAP_BYTES` is the unreadable one, and the constructor throws
-  // naming that instead.
+  // Throws on a `REMBERO_SESSIONS` that is neither 'on' nor 'off': then nothing knows
+  // what the user asked for, and refusing is right.
   sessionsEnabledFromEnv();
-  return new SessionStore();
+  // The cap is not. It says how much new conversation text a namespace may keep, which
+  // has nothing to do with reading the index or deleting a file, and this store's
+  // callers — `sessions list`, `sessions forget`, `forget_sessions` — do only those.
+  // Reading it here meant one typo in REMBERO_SESSION_CAP_BYTES trapped every stored
+  // conversation: the user could neither see what was kept nor delete it, in the very
+  // state a privacy-minded user is most likely to be in. So the delete path takes the
+  // default cap and never consults the setting. The write path still does, and still
+  // refuses under its own name.
+  return new SessionStore({ capBytes: DEFAULT_SESSION_CAP_BYTES });
 }
 
 function assertNamespace(namespace: string): void {

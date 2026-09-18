@@ -33,9 +33,9 @@ import {
   validTimeModeFromEnv,
 } from './env.js';
 import {
+  SessionStore,
   sessionStoreEvenIfOff,
   sessionStoreFromEnv,
-  type SessionStore,
 } from './sessions/store.js';
 import { importClaudeTranscript } from './sessions/import.js';
 import { clientFromEnv, lazyClientFromEnv } from './llm/client.js';
@@ -1148,26 +1148,26 @@ const SESSIONS_SUBCOMMANDS = ['import', 'list', 'forget'] as const;
  *
  * `list` and `forget` reach what is already on disk however the setting stands, so
  * they take `sessionStoreEvenIfOff` — the same resolution the `forget_sessions`
- * tool uses. Only `import` insists on `on`: writing a past conversation to disk is
- * what the setting consents to.
+ * tool uses, and the one that ignores the byte cap because a cap has nothing to do
+ * with deleting a file. Only `import` insists on `on`: writing a past conversation
+ * to disk is what the setting consents to, and it is also the one subcommand that
+ * appends and evicts, so it needs the cap itself to be readable.
  */
 function sessionsCommandStore(
   subcommand: string,
   configured: SessionStore | undefined,
 ): SessionStore {
-  if (
-    configured === undefined &&
-    subcommand === 'import' &&
-    // Throws on a `REMBERO_SESSIONS` that is neither 'on' nor 'off'; a store
-    // missing while it says 'on' means the cap is the unreadable setting, and
-    // `sessionStoreEvenIfOff` throws naming that instead.
-    !sessionsEnabledFromEnv()
-  ) {
+  if (subcommand !== 'import') return sessionStoreEvenIfOff(configured);
+  if (configured !== undefined) return configured;
+  // Throws on a `REMBERO_SESSIONS` that is neither 'on' nor 'off'.
+  if (!sessionsEnabledFromEnv()) {
     throw new Error(
       'sessions import needs REMBERO_SESSIONS=on; nothing was written',
     );
   }
-  return sessionStoreEvenIfOff(configured);
+  // Sessions are on and the caller still had no store, so the cap is the unreadable
+  // setting: the constructor throws naming it, and nothing is written.
+  return new SessionStore();
 }
 
 /**

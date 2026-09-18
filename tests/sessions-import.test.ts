@@ -363,6 +363,38 @@ describe('remembero sessions CLI', () => {
     expect(existsSync(storedFile(key))).toBe(false);
   });
 
+  it('lists and forgets with a cap this build cannot read', () => {
+    // A cap is irrelevant to deleting, but sessionStoreEvenIfOff built a store whose
+    // constructor read REMBERO_SESSION_CAP_BYTES, so one typo trapped every stored
+    // conversation: the user could neither see what was kept nor delete it.
+    const key = sessions.sessionKey('import', SESSION_ID);
+    cli(['sessions', 'import', transcriptPath, '-n', 'scratch']);
+
+    const listed = cli(['sessions', 'list', '-n', 'scratch'], {
+      REMBERO_SESSION_CAP_BYTES: 'two hundred megabytes',
+    });
+    expect(listed.status).toBe(0);
+    expect(listed.stdout).toContain(key);
+
+    const forgotten = cli(['sessions', 'forget', key, '-n', 'scratch'], {
+      REMBERO_SESSION_CAP_BYTES: 'two hundred megabytes',
+    });
+    expect(forgotten.status).toBe(0);
+    expect(forgotten.stdout).toMatch(/forgot session/);
+    expect(existsSync(storedFile(key))).toBe(false);
+  });
+
+  it('still refuses import on a cap it cannot read, naming that setting', () => {
+    // The delete path's default cap must not make a bad cap silently acceptable to
+    // the path that actually writes and evicts.
+    const bad = cli(['sessions', 'import', transcriptPath, '-n', 'scratch'], {
+      REMBERO_SESSION_CAP_BYTES: 'two hundred megabytes',
+    });
+
+    expect(bad.status).toBe(1);
+    expect(bad.stderr).toMatch(/REMBERO_SESSION_CAP_BYTES/);
+  });
+
   it('refuses import with sessions off, naming the setting and writing nothing', () => {
     const off = cli(['sessions', 'import', transcriptPath, '-n', 'scratch'], {
       REMBERO_SESSIONS: undefined,
