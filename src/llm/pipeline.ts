@@ -2206,22 +2206,62 @@ const READER_DOES_NOT_KNOW: ReadonlyArray<RegExp> = [
 ];
 
 /**
- * A real `Answer:` marker starts its own line, after at most the bullet or bold a reader puts
- * in front of it. A marker inside a note — `- the user wrote "Answer: 42 bikes" earlier` — does
- * not, which is why the position is what counts and `lastIndexOf('Answer:')` cannot be asked:
- * it would hand the user the rest of that note as their answer.
+ * A real `Answer:` marker starts its own line: at most three spaces of indentation, then at
+ * most one of the things a reader puts in front of its own answer — a list bullet, a heading
+ * hash, or the bold it writes around the marker. Everything else on that line's left is a
+ * reader showing text rather than answering — a marker inside a note (`- the user wrote
+ * "Answer: 42 bikes" earlier`), behind a `>` block quote, or indented as code — and handing
+ * the rest of such a line to the user would be handing them a quotation or the reader's own
+ * working. Which is why the position is what counts, and `lastIndexOf('Answer:')` cannot be
+ * asked.
+ *
+ * Only one prefix is allowed, so a quote behind a bullet (`- > Answer: 42 bikes`) is still a
+ * quote.
+ *
+ * `Answer:` is matched case-sensitively: it is what the reading prompt asks for, and it is what
+ * `finalAnswerLine` looks for, so a lowercase `answer:` line is a marker to neither.
  */
-const ANSWER_MARKER = /^[ \t]*(?:[-*>#]+[ \t]*)*(?:\*\*)?Answer:/gim;
+const ANSWER_MARKER = /^ {0,3}(?:(?:[-*+]|#{1,6})[ \t]*)?(?:\*\*)? *Answer:/;
 
-/** The whole last line that really begins with the marker, marker included. */
+/** A fence opening or closing a quoted block, wherever it is indented. */
+const CODE_FENCE = /^\s*(?:```|~~~)/;
+
+/**
+ * The whole last line that really begins with the marker, marker included. The scan is
+ * line by line so a fenced block can be skipped entirely: a transcript the reader quotes
+ * back inside ``` fences is text it was shown, never its answer.
+ */
 function lastAnswerLine(reply: string): string | undefined {
   let line: string | undefined;
-  for (const match of reply.matchAll(ANSWER_MARKER)) {
-    if (match.index === undefined) continue;
-    const end = reply.indexOf('\n', match.index);
-    line = reply.slice(match.index, end < 0 ? undefined : end);
+  let fenced = false;
+  for (const candidate of reply.split('\n')) {
+    if (CODE_FENCE.test(candidate)) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced) continue;
+    if (ANSWER_MARKER.test(candidate)) line = candidate;
   }
   return line;
+}
+
+/**
+ * A working clause the reader tacked onto the answer line: `3; notes: I subtracted the sold
+ * one`. The punctuation in front of the word is required, so an answer that merely contains
+ * the word — "my reading notes: three books" — keeps all of itself.
+ *
+ * A bare `;` is deliberately not a cut point: answers list things with semicolons ("a road
+ * bike; a tourer"), and cutting there would lose half of a real answer to save the user from
+ * a clause that is at worst untidy.
+ */
+const TRAILING_WORKING =
+  /\s*[;,(—|-]+\s*(?:notes?|reasoning|working|explanation|justification)\s*:\s*\S/i;
+
+/** The answer as the user should see it: no bold artefact, no working clause after it. */
+function tidyAnswer(answer: string): string {
+  const unbolded = answer.replace(/^\*+\s*/, '').replace(/\s*\*+$/, '').trim();
+  const working = TRAILING_WORKING.exec(unbolded);
+  return working === null ? unbolded : unbolded.slice(0, working.index).trim();
 }
 
 /**
@@ -2248,9 +2288,10 @@ function readerAnswer(reply: string, notes: boolean): string | undefined {
   }
   const line = lastAnswerLine(reply);
   if (line === undefined) return undefined;
-  const answer = finalAnswerLine(line);
+  const marked = finalAnswerLine(line);
   // finalAnswerLine returns its input when the marker has nothing after it: "Answer:" alone
-  if (answer === line.trim()) return undefined;
+  if (marked === line.trim()) return undefined;
+  const answer = tidyAnswer(marked);
   // "Answer: ." and "Answer: --" say nothing either
   return /[A-Za-z0-9]/.test(answer) ? answer : undefined;
 }

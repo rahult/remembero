@@ -223,6 +223,55 @@ describe('the sessions answer mode', () => {
           'Answer: One bike.\nNotes:\n- 2024-02-27: sold the road bike\nAnswer: Two bikes.',
         answer: 'Two bikes.',
       },
+      // a block quote is the reader showing an earlier turn, not answering
+      {
+        reply:
+          'Notes:\n- an earlier assistant turn said:\n> Answer: 42 bikes\n- that was stale',
+        answer: null,
+      },
+      // a quoted transcript inside a fence, indented, is not an answer either
+      {
+        reply:
+          'Notes:\n- the transcript contained:\n```\n  Answer: 42 bikes\n```\n- stale',
+        answer: null,
+      },
+      // a quoted line that carries the reader's reasoning is the worst case of all
+      {
+        reply:
+          'Notes:\n- I reasoned:\n> Answer: 42 bikes because he said three minus one',
+        answer: null,
+      },
+      // a real answer line after a quoted one still answers
+      {
+        reply:
+          'Notes:\n- an earlier turn said:\n> Answer: 42 bikes\n- that was stale\nAnswer: Two bikes.',
+        answer: 'Two bikes.',
+      },
+      // bold around the marker, and working tacked onto the answer line
+      {
+        reply: '**Answer:** 3; notes: I subtracted the sold one',
+        answer: '3',
+      },
+      // the marker is case-sensitive, as the prompt asks for it and finalAnswerLine reads it
+      { reply: 'Notes:\n- 2024-02-27: two bikes\nanswer: two', answer: null },
+      // a semicolon is not a cut point: an answer may list things
+      {
+        reply: 'Answer: a road bike; a tourer',
+        answer: 'a road bike; a tourer',
+      },
+      // the prefixes a reader puts in front of its own answer still answer
+      { reply: 'Notes:\n- 2024-02-27: sold one\n- Answer: Two bikes.', answer: 'Two bikes.' },
+      { reply: 'Notes:\n- 2024-02-27: sold one\n## Answer: Two bikes.', answer: 'Two bikes.' },
+      // a quote behind a bullet is still a quote
+      {
+        reply: 'Notes:\n- the transcript said:\n- > Answer: 42 bikes',
+        answer: null,
+      },
+      // a real answer line after a fenced transcript answers
+      {
+        reply: 'Notes:\n```\nAnswer: 42 bikes\n```\nAnswer: Two bikes.',
+        answer: 'Two bikes.',
+      },
     ];
     for (const { reply, answer } of shapes) {
       const result = await recallQuestion(
