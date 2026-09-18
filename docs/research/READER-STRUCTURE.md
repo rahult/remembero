@@ -780,3 +780,29 @@ the subject without being an instance is offered and sometimes accepted. The fla
 default. A future attempt should fix candidate selection first (the items the reader must count,
 not the sentences that share a word with the question).
 
+## Label-free on the 500, with the shared retrieval module (2026-09-19)
+
+The harness's answering decisions now come from the question's wording (`--classify text`), retrieval
+ranks sessions by their best-matching turns and re-ranks the shortlist with TypeSafe, and all of it
+runs through `src/knowledge/session-retrieval.ts`, the module the product calls too. No dataset label
+reaches an answering decision; the judge keeps its type-specific prompt, which is scoring.
+
+| Reader, all 500 | Correct | Multi-session | Knowledge-update | SS-assistant | SS-preference | SS-user | Temporal |
+|---|---|---|---|---|---|---|---|
+| GLM 5.3 Flash (teacher) | **451** | 108 | 73 | 54 | 29 | 68 | 119 |
+| Reader v7 | **428** | 100 | 68 | 51 | 27 | 66 | 116 |
+
+Both with 3 errors, answer turns in context 94.4%, TypeSafe cost under a cent per run. The teacher's
+long-standing ceiling was 440 under the old label-driven, session-unit setup, so the retrieval work
+lifted the teacher by 11 as well as the student. Reader v7's arc this week: 381 (v4) → 391 (thinking
+step) → 405 (dated-notes rules) → 425 (TypeSafe re-ranking, labels) → **428 label-free**, 23 short of
+its teacher.
+
+Two honest caveats. The rules behind the notes, the question-kind detector and the re-rank prompt were
+all written from misses on these same 500 questions, with no held-out set. And the product's
+`sessions` answer mode deliberately returns `unknown` where the harness scores the whole reply as a
+hypothesis: a reply with no real `Answer:` line, or one whose answer line carries no letter or digit,
+is treated as no answer rather than presented to a user with the reader's working in it. Benchmark
+scores therefore overstate the product slightly for that class of reply, which is the right direction
+for a product to err.
+
