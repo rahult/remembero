@@ -31,6 +31,41 @@ describe('CLI ingress limits', () => {
     expect(existsSync(home)).toBe(false);
   });
 
+  it('runs a sessions recall with a local reader and no cloud API key', () => {
+    // src/cli.ts built clientFromEnv() eagerly for recall and recall-explain, so
+    // `--answer-mode sessions` exited with "LLM_API_KEY is not set" even when
+    // REMBERO_READER_* pointed at 127.0.0.1 and no cloud model was ever going to be
+    // called. The serve path already used the lazy client.
+    const home = mkdtempSync(join(tmpdir(), 'remembero-cli-sessions-recall-'));
+    for (const command of ['recall', 'recall-explain']) {
+      const result = spawnSync(
+        process.execPath,
+        [
+          resolve('dist/cli.js'),
+          command,
+          'How many bikes do I own now?',
+          '--answer-mode',
+          'sessions',
+        ],
+        {
+          encoding: 'utf8',
+          env: {
+            ...process.env,
+            // an empty value is still a value, so .env does not fill it back in
+            LLM_API_KEY: '',
+            REMBERO_HOME: home,
+            REMBERO_READER_BASE_URL: 'http://127.0.0.1:8084/v1',
+            REMBERO_READER_MODEL: 'reader-v7',
+          },
+        },
+      );
+      expect(result.stderr, command).not.toMatch(/LLM_API_KEY/);
+      expect(result.status, command).toBe(0);
+      // sessions are off, so it reports that rather than reaching for any model
+      expect(result.stdout, command).toMatch(/REMBERO_SESSIONS is off/);
+    }
+  });
+
   it('fails closed before returning an oversized JSON result', () => {
     expect(() =>
       stringifyBoundedResult({ value: 'oversized' }, 'test result', 8),

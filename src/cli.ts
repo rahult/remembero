@@ -1783,7 +1783,9 @@ async function main(): Promise<void> {
           // --answer-mode sessions reads these; absent (REMBERO_SESSIONS off) it answers
           // no_evidence and says so
           sessions,
-          llm: clientFromEnv(),
+          // Lazy, as the serve path is: the sessions answer mode never calls the
+          // product's LLM, so a local reader must not need a cloud API key to run.
+          llm: lazyClientFromEnv(),
           selfAtom: selfAtomFromEnv(),
           extractionVocabulary: extractionVocabularyFromEnv(),
           llmAllowedNamespaces,
@@ -1822,7 +1824,8 @@ async function main(): Promise<void> {
         {
           store,
           sessions,
-          llm: clientFromEnv(),
+          // lazy for the same reason as `recall`
+          llm: lazyClientFromEnv(),
           selfAtom: selfAtomFromEnv(),
           extractionVocabulary: extractionVocabularyFromEnv(),
           llmAllowedNamespaces,
