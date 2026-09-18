@@ -299,6 +299,20 @@ Options:
       --all                Forget every session in the namespace (sessions forget)
       --settings <path>    Claude settings JSON (default: ~/.claude/settings.json)
       --json               Emit machine-readable batch/review/history output
+
+Conversation sessions (off unless REMBERO_SESSIONS=on):
+  REMBERO_SESSIONS=on          Keep conversation text; nothing is stored while off
+  REMBERO_SESSION_CAP_BYTES    Per-namespace byte cap (default: 200 MB)
+  REMBERO_READER_BASE_URL      The reader --answer-mode sessions asks, with _MODEL,
+                               _API_KEY, _MAX_TOKENS, _TEMPERATURE, _TIMEOUT_MS
+  REMBERO_READER_ALLOW_REMOTE=1  Allow a reader that is not on localhost. Stored
+                               conversations are masked on the way in, but that
+                               masking is best-effort pattern matching, not a
+                               guarantee: a secret shaped like none of the patterns
+                               is stored as written, and the same patterns are all
+                               that check a prompt before it is sent. Unset, a
+                               non-local reader — including the product's own
+                               configured LLM — is refused and nothing is sent.
 `;
 
 interface ParsedArgs {

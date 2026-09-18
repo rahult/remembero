@@ -79,9 +79,21 @@ without disturbing the fact store.
   Notes working and the classifier's flags; plain `recall` never shows the working.
 - **No evidence** short-circuits before the reader. A reader that says it does not know yields
   `unknown`, never a guess.
-- **Privacy.** Stored text is masked at write time. A reader that is not on localhost also passes
-  `assertSafeForExternalLlm`, which refuses text that still looks sensitive; on the benchmark this
-  refused 2 of 500 prompts, and the product surfaces that as an error naming the setting to change.
+- **Privacy.** Stored text is masked at write time. **Masking is best-effort pattern matching, not
+  a guarantee.** The detectors recognise credential words (including `reset_password`-style
+  identifier segments), `bearer`/`sk-`/`gh*` tokens, Luhn-valid card runs, PEM private-key blocks,
+  AWS access key ids, JWTs and credentials embedded in a URL. A secret shaped like none of those —
+  a bare high-entropy string, an internal hostname, a person's address — is stored as written.
+  `assertSafeForExternalLlm` is not an independent second opinion either: it shares that one pattern
+  set, so it can only refuse what the masker would already have caught. On the benchmark it refused
+  2 of 500 prompts.
+
+  A reader is therefore gated on where it runs, not on what the text looks like. A reader that is
+  not on localhost — including the `deps.llm` fallback, because recall cannot tell whether
+  `LLM_BASE_URL` points at a local server — is refused unless the user sets
+  `REMBERO_READER_ALLOW_REMOTE=1`. Without it, nothing is rendered and nothing is sent, and the
+  error names the setting. With it, the non-local reader is still gated on
+  `assertSafeForExternalLlm`, and that refusal names `REMBERO_READER_BASE_URL`.
 - **Failure** of the reader is an error naming the setting to check. No silent fallback to another
   model.
 

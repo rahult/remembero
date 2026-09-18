@@ -35,7 +35,48 @@ const SENSITIVE_CALL_PATTERN = new RegExp(
   `${SEGMENT_LEFT}${CREDENTIAL_WORD}${SEGMENT_TAIL}\\s*\\(`,
   'i'
 );
+/**
+ * Four secret shapes that no credential word ever accompanies, so the word-based
+ * detectors above never saw them: a Claude Code transcript that pasted an `.env`
+ * dump or a deploy key stored them verbatim and then cleared
+ * `assertSafeForExternalLlm` on the way to a cloud reader.
+ *
+ * Each is matched by its own shape rather than by the words around it:
+ *
+ * - **PEM private keys.** The armour is the signal. The span runs from the BEGIN
+ *   header to its own END line, and to the end of the text when there is no END
+ *   line at all — half a key is still a key, and leaving the tail behind would
+ *   leave it in the clear. `PRIVATE` is required, so a public key or a
+ *   certificate is ordinary text.
+ * - **AWS access key ids.** `AKIA` (long-term) or `ASIA` (session) and exactly
+ *   sixteen more uppercase alphanumerics, bounded left by a non-alphanumeric so
+ *   the prefix word "AKIA" on its own is prose.
+ * - **JWTs.** `eyJ` — base64url for `{"` — then two dot-separated base64url
+ *   segments. Both segments are required: a bare `eyJ`-like word is a base64
+ *   header someone is talking about, not a token, and `eyJ` alone is the prefix
+ *   people name when they explain how to spot one.
+ * - **Credentials embedded in a URL.** `scheme://user:password@host`. The
+ *   userinfo colon is what makes it a credential, so `postgres://host:5432/db`
+ *   and `https://docs.example.com/guide:latest` are untouched. The whole URL is
+ *   the span: a connection string is one token to a reader, and cutting it at the
+ *   password would leave a half URL that reads as a redaction failure.
+ *
+ * These are shapes, not a guarantee. Masking here is best-effort pattern
+ * matching: a secret with no recognisable shape and no credential word beside it
+ * is stored as written. See `docs/superpowers/specs/2026-09-18-session-store-and-reading-recall-design.md`.
+ */
+const PEM_PRIVATE_KEY_PATTERN =
+  /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)/;
+const AWS_ACCESS_KEY_ID_PATTERN = /(?<![A-Za-z0-9])(?:AKIA|ASIA)[A-Z0-9]{16}(?![A-Z0-9])/;
+const JWT_PATTERN = /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}(?:\.[A-Za-z0-9_-]*)?/;
+const URL_CREDENTIAL_PATTERN = /[a-z][a-z0-9+.-]*:\/\/[^\s:/?#@]+:[^\s/?#@]+@\S+/i;
+
 const SENSITIVE_TEXT_PATTERNS = [
+  // The widest spans first, so a secret that sits inside another is masked once:
+  // a PEM body can hold an `eyJ`-like run, and a connection string's password can
+  // look like a bare token.
+  PEM_PRIVATE_KEY_PATTERN,
+  URL_CREDENTIAL_PATTERN,
   new RegExp(
     `${SEGMENT_LEFT}${CREDENTIAL_WORD}${SEGMENT_TAIL}["']?\\s*(?:is|=|:)\\s*["']?\\S+`,
     'i'
@@ -45,6 +86,8 @@ const SENSITIVE_TEXT_PATTERNS = [
     `\\b(?:my|your|the)\\s+${ASSIGNED_CREDENTIAL_WORD}${SEGMENT_RIGHT}\\s+(?=\\S*[0-9._~+/=-])\\S{6,}`,
     'i'
   ),
+  JWT_PATTERN,
+  AWS_ACCESS_KEY_ID_PATTERN,
   /\b(?:bearer\s+)[a-z0-9._~+/=-]{8,}/i,
   /\b(?:sk|gh[pousr])[-_][a-z0-9_-]{8,}/i,
 ];

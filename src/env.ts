@@ -180,6 +180,28 @@ export function readerFromEnv(
   };
 }
 
+/**
+ * REMBERO_READER_ALLOW_REMOTE: `1` lets the `sessions` answer mode send stored
+ * conversations to a reader that is not on localhost. Anything else, including
+ * unset, keeps them on the machine.
+ *
+ * The store masks secrets on the way in, but that masking is best-effort pattern
+ * matching and not a guarantee: it recognises credential words, PEM private keys,
+ * AWS key ids, JWTs, bearer and `sk-` tokens, credentials inside a URL and
+ * Luhn-valid card runs, and a secret with none of those shapes is stored as
+ * written. A reader on 127.0.0.1 reads that text without it leaving the machine,
+ * so a non-local reader — including the product's own configured LLM, which recall
+ * cannot tell is local — is refused until the user says otherwise here.
+ *
+ * A typo is read as "not set": the safe direction is to send nothing, and recall
+ * says which setting to correct.
+ */
+export function readerAllowsRemoteFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  return env.REMBERO_READER_ALLOW_REMOTE?.trim() === '1';
+}
+
 export function integrityEnforcementFromEnv(
   env: NodeJS.ProcessEnv = process.env,
 ): IntegrityEnforcementOptions | undefined {

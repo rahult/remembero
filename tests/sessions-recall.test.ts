@@ -120,6 +120,72 @@ describe('the sessions answer mode', () => {
     expect(client.prompts[0]?.at(-1)?.content).toContain('two bikes');
   });
 
+  it('refuses a reader outside localhost until REMBERO_READER_ALLOW_REMOTE is set', async () => {
+    // Nothing here is sensitive by any pattern, so the prompt gate has no reason to
+    // fire: the reader's own address is the reason, because masking is best-effort
+    // and a cloud reader would see whatever the patterns missed.
+    storeSession('bikes', '2024-02-27T09:00:00.000Z', [
+      { role: 'user', text: 'I now own two bikes after selling the old road bike.' },
+    ]);
+    const client = new StubReaderClient('Answer: Two bikes.');
+    await expect(
+      recallQuestion(
+        { store, llm: new NeverCalledLlm(), sessions },
+        'How many bikes do I own now?',
+        ['default'],
+        {
+          answerMode: 'sessions',
+          at: ASKED_AT,
+          reader: reader(client, 'https://api.example.com/v1'),
+        },
+      ),
+    ).rejects.toThrow(/REMBERO_READER_ALLOW_REMOTE/);
+    expect(client.prompts).toEqual([]);
+  });
+
+  it('reads with a reader outside localhost once REMBERO_READER_ALLOW_REMOTE=1', async () => {
+    storeSession('bikes', '2024-02-27T09:00:00.000Z', [
+      { role: 'user', text: 'I now own two bikes after selling the old road bike.' },
+    ]);
+    const client = new StubReaderClient('Answer: Two bikes.');
+    process.env.REMBERO_READER_ALLOW_REMOTE = '1';
+    try {
+      const result = await recallQuestion(
+        { store, llm: new NeverCalledLlm(), sessions },
+        'How many bikes do I own now?',
+        ['default'],
+        {
+          answerMode: 'sessions',
+          at: ASKED_AT,
+          reader: reader(client, 'https://api.example.com/v1'),
+        },
+      );
+      expect(result.status).toBe('answered');
+      expect(result.answer).toBe('Two bikes.');
+    } finally {
+      delete process.env.REMBERO_READER_ALLOW_REMOTE;
+    }
+  });
+
+  it('refuses the configured-LLM fallback too, because it is not known to be local', async () => {
+    // No REMBERO_READER_* at all, so the reader is `deps.llm` — the cloud model the
+    // product is configured with. That is the default, and it is the path that sent a
+    // transcript's `.env` dump off the machine.
+    storeSession('bikes', '2024-02-27T09:00:00.000Z', [
+      { role: 'user', text: 'I now own two bikes after selling the old road bike.' },
+    ]);
+    const llm = new StubReaderClient('Answer: Two bikes.');
+    await expect(
+      recallQuestion(
+        { store, llm, sessions },
+        'How many bikes do I own now?',
+        ['default'],
+        { answerMode: 'sessions', at: ASKED_AT },
+      ),
+    ).rejects.toThrow(/REMBERO_READER_ALLOW_REMOTE/);
+    expect(llm.prompts).toEqual([]);
+  });
+
   it('shows the reader working and the question kind only to recall_explain', async () => {
     storeSession('bikes', '2024-02-27T09:00:00.000Z', [
       { role: 'user', text: 'I now own two bikes after selling the old road bike.' },

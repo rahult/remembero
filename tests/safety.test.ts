@@ -80,6 +80,101 @@ describe('sensitive text detection', () => {
     }
   });
 
+  it('sees the four high-signal secret shapes a credential word never names', () => {
+    // None of these carries a credential word, a `bearer`/`sk-`/`gh*` prefix or a
+    // Luhn-valid run, so every one of them used to be stored verbatim by the session
+    // store and then cleared `assertSafeForExternalLlm` on the way to a cloud reader.
+    for (const { name, text, secret } of [
+      {
+        name: 'AWS access key id',
+        text: 'The deploy used AKIAIOSFODNN7EXAMPLE in eu-west-1.',
+        secret: 'AKIAIOSFODNN7EXAMPLE',
+      },
+      {
+        name: 'AWS session key id',
+        text: 'The temporary id was ASIAY34FZKBOKMUTVV7A today.',
+        secret: 'ASIAY34FZKBOKMUTVV7A',
+      },
+      {
+        name: 'JWT',
+        text:
+          'The cookie held eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0' +
+          '.dBjftJeZ4CVPmB92K27uhbUJU1p1r_wW1gFWFOEjXk and it worked.',
+        secret: 'eyJzdWIiOiIxMjM0NTY3ODkwIn0',
+      },
+      {
+        name: 'credentials in a URL',
+        text:
+          'My .env has DATABASE_URL=postgres://admin:S3cretPass@db.internal.example.com:5432/app.',
+        secret: 'S3cretPass',
+      },
+      {
+        name: 'PEM private key',
+        text:
+          'I pasted the deploy key:\n-----BEGIN RSA PRIVATE KEY-----\n' +
+          'MIIBOgIBAAJBAKj34GkxFhD90vcNLYLInFEX6Ppy1tPf9Cnzj4p4WGeKLs1Pt8Qu\n' +
+          '-----END RSA PRIVATE KEY-----\nand CI went green.',
+        secret: 'MIIBOgIBAAJBAKj34GkxFhD90vcNLYLInFEX6Ppy1tPf9Cnzj4p4WGeKLs1Pt8Qu',
+      },
+      {
+        name: 'PEM private key with no END line',
+        text:
+          'half a key:\n-----BEGIN OPENSSH PRIVATE KEY-----\n' +
+          'b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAAB',
+        secret: 'b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAAB',
+      },
+    ]) {
+      expect(containsSensitiveText(text), name).toBe(true);
+      expect(redactSensitiveText(text).redacted, name).toBe(true);
+      const masked = maskSensitiveSpans(text);
+      expect(masked.masked, name).toBeGreaterThan(0);
+      expect(masked.text, name).not.toContain(secret);
+      // the gate must have nothing left to find, or the store keeps the turn
+      expect(containsSensitiveText(masked.text), name).toBe(false);
+    }
+  });
+
+  it('keeps the readable prose around each of the four shapes', () => {
+    const aws = maskSensitiveSpans('The deploy used AKIAIOSFODNN7EXAMPLE in eu-west-1.');
+    expect(aws.text).toBe('The deploy used [redacted] in eu-west-1.');
+    expect(aws.truncated).toBe(false);
+    const url = maskSensitiveSpans(
+      'DATABASE_URL=postgres://admin:S3cretPass@db.example.com:5432/app broke the job.',
+    );
+    expect(url.text).toBe('DATABASE_URL=[redacted] broke the job.');
+    expect(url.truncated).toBe(false);
+    const pem = maskSensitiveSpans(
+      'key:\n-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIBWnVbBcQ\n-----END EC PRIVATE KEY-----\nCI green.',
+    );
+    expect(pem.text).toBe('key:\n[redacted]\nCI green.');
+    expect(pem.truncated).toBe(false);
+  });
+
+  it('leaves prose and near-misses of the four shapes untouched', () => {
+    for (const text of [
+      // a bare `eyJ`-like word is not a JWT: a JWT is dot-separated segments
+      'The eyJ prefix is how you spot a JSON web token.',
+      'eyJhbGciOiJIUzI1NiJ9 on its own is just a base64 header.',
+      'AKIA is the prefix every AWS long-term key id starts with.',
+      // not 16 more uppercase alphanumerics, and not a key id
+      'AKIASHORT is not a key id.',
+      // no userinfo, so no credential in the URL
+      'Read https://docs.example.com/guide:latest for the steps.',
+      'postgres://db.internal.example.com:5432/app is the host to use.',
+      'Point the client at redis://cache.example.com:6379/0 instead.',
+      // a PEM public key is not a private one
+      '-----BEGIN PUBLIC KEY-----\nMHcCAQEEIBWnVbBcQ\n-----END PUBLIC KEY-----',
+      'We store the private key in 1Password, never in the repo.',
+    ]) {
+      expect(containsSensitiveText(text), text).toBe(false);
+      expect(maskSensitiveSpans(text), text).toEqual({
+        text,
+        masked: 0,
+        truncated: false,
+      });
+    }
+  });
+
   it('reports a cut span for an underscore form that cannot close', () => {
     const result = maskSensitiveSpans('reset_password(hunter2');
     expect(result.masked).toBe(1);

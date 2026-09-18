@@ -6,6 +6,7 @@ import {
   entityIdentityFromEnv,
   integrityEnforcementFromEnv,
   knowledgeCheckEnforcementFromEnv,
+  readerAllowsRemoteFromEnv,
   recallAnswerModeFromEnv,
   recallSchemaPredicateLimitFromEnv,
   validTimeModeFromEnv,
@@ -190,5 +191,24 @@ describe('knowledgeCheckEnforcementFromEnv', () => {
         REMBERO_CHECK_NAMESPACES: 'default,,shared',
       })
     ).toThrow(/comma-separated namespace list/i);
+  });
+});
+
+describe('readerAllowsRemoteFromEnv', () => {
+  it('keeps stored conversations on the machine unless the user says otherwise', () => {
+    expect(readerAllowsRemoteFromEnv({})).toBe(false);
+    expect(readerAllowsRemoteFromEnv({ REMBERO_READER_ALLOW_REMOTE: '1' })).toBe(true);
+    expect(readerAllowsRemoteFromEnv({ REMBERO_READER_ALLOW_REMOTE: ' 1 ' })).toBe(true);
+  });
+
+  it('reads anything else as off, including a plausible typo', () => {
+    // Failing closed is the safe direction here: recall then names the setting, and
+    // nothing has been sent while the user fixes it.
+    for (const configured of ['', '0', 'on', 'yes', 'true', '11']) {
+      expect(
+        readerAllowsRemoteFromEnv({ REMBERO_READER_ALLOW_REMOTE: configured }),
+        configured,
+      ).toBe(false);
+    }
   });
 });

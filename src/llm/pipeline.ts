@@ -39,7 +39,7 @@ import type {
   ValidTimeMode,
 } from '../store/store.js';
 import { OpenRouterClient, type ChatMessage, type LlmClient } from './client.js';
-import { readerFromEnv } from '../env.js';
+import { readerAllowsRemoteFromEnv, readerFromEnv } from '../env.js';
 import { finalAnswerLine } from '../knowledge/answer-line.js';
 import {
   questionKindFromText,
@@ -2084,6 +2084,32 @@ async function readSessions(
 }
 
 /**
+ * Refuse a reader that is not on localhost unless the user has opted in.
+ *
+ * Write-time masking is the only thing standing between a stored conversation and the
+ * reader, and it is best-effort pattern matching: it catches credential words, PEM
+ * private keys, AWS key ids, JWTs, bearer and `sk-` tokens, credentials inside a URL
+ * and Luhn-valid card runs, and a secret shaped like none of those is stored as
+ * written. `assertSafeForExternalLlm` is no second opinion either — it shares that one
+ * pattern set — so a remote reader cannot be gated on the text alone. It is gated on
+ * the user saying, once and explicitly, that this history may leave the machine.
+ *
+ * The check runs before the prompt is built, so a refusal sends nothing at all. The
+ * `deps.llm` fallback is refused too: recall cannot tell whether `LLM_BASE_URL` points
+ * at a local server, and it is the default, so it is exactly the path that leaked.
+ */
+function assertReaderAllowed(reader: ResolvedReader): void {
+  if (reader.local || readerAllowsRemoteFromEnv()) return;
+  throw new Error(
+    'refusing to send stored conversations to a reader outside localhost ' +
+      `(chosen by ${reader.settings}). Masking stored text is best-effort pattern ` +
+      'matching, not a guarantee, so point REMBERO_READER_BASE_URL at a reader on ' +
+      '127.0.0.1, or set REMBERO_READER_ALLOW_REMOTE=1 to send this history anyway. ' +
+      'Nothing was sent',
+  );
+}
+
+/**
  * The reader's prompt, with the privacy refusal turned into advice. `buildReadingPrompt`
  * already runs `assertSafeForExternalLlm` over every prompt it renders; a remote reader is
  * gated again here so the refusal names the setting that would let a local reader — which
@@ -2373,6 +2399,8 @@ async function answerFromSessions(
     return noEvidence('No stored conversation mentions that.');
   }
   const reader = resolvedReader(deps, options);
+  // before the prompt is built, so a refusal has sent nothing and rendered nothing
+  assertReaderAllowed(reader);
   const prompt = sessionReadingPrompt(
     question,
     askedAt,
