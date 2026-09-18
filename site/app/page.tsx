@@ -12,19 +12,42 @@ const agentHarnessGuide = "/guides/agent-harness";
 
 function HeroProof() {
   return (
-    <div className="hero-proof" aria-label="Example proof-carrying answer">
+    <div className="hero-proof" aria-label="From raw text to extracted knowledge to a proven answer">
       <span className="stamp stamp-proven hero-proof-stamp" aria-hidden="true">Proof-carrying</span>
-      <div className="hero-proof-row"><span>Question</span><p>Who is collaborating on Atlas?</p></div>
-      <div className="hero-proof-row"><span>Query</span><code>collaborator(Person, atlas)</code></div>
-      <div className="hero-proof-row hero-answer"><span>Answer</span><p>Maya is collaborating on Atlas.</p></div>
-      <div className="hero-proof-row hero-because">
-        <span>Because</span>
-        <ol>
-          <li><b>1</b><code>project_owner(atlas, rahul)</code></li>
+      <div className="hero-proof-row hero-said" style={{ ["--step" as string]: 0 }}>
+        <span>You said · Atlas planning, 17 Aug</span>
+        <p>“Maya is collaborating on Atlas with me. I own Atlas.”</p>
+      </div>
+      <div className="hero-proof-row hero-extracted" style={{ ["--step" as string]: 1 }}>
+        <span>Remembero extracted</span>
+        <ul>
+          <li>
+            <code>project_contributor(atlas, maya)</code>
+            <em>“Maya is collaborating on Atlas with me.”</em>
+          </li>
+          <li>
+            <code>project_owner(atlas, rahul)</code>
+            <em>“I own Atlas.”</em>
+          </li>
+        </ul>
+      </div>
+      <div className="hero-proof-row hero-asked" style={{ ["--step" as string]: 2 }}>
+        <span>You asked</span>
+        <p>Who is collaborating on Atlas?</p>
+        <code>collaborator(Person, atlas)</code>
+      </div>
+      <div className="hero-proof-row hero-answer" style={{ ["--step" as string]: 3 }}>
+        <span>Answer</span>
+        <p>Maya is collaborating on Atlas.</p>
+        <ol className="hero-because">
+          <li><b>1</b><code>collaborator(maya, atlas)</code></li>
           <li><b>2</b><code>project_contributor(atlas, maya)</code></li>
         </ol>
       </div>
-      <div className="hero-proof-source"><span>Atlas planning session · 17 Aug</span><a href={playground}>Open in playground</a></div>
+      <div className="hero-proof-source" style={{ ["--step" as string]: 4 }}>
+        <span>Text in · knowledge out · proof attached</span>
+        <a href={playground}>Open in playground</a>
+      </div>
     </div>
   );
 }
@@ -84,7 +107,7 @@ export default function Home() {
         <div className="hero-copy">
           <p className="hero-eyebrow">Durable memory for AI agents</p>
           <h1>Memory you<br />can <em>reason</em> with.</h1>
-          <p>Remembero gives AI agents memory as plain, readable facts and rules — and proves every answer it gives. Nothing fuzzy, nothing hidden: you can check the working yourself, starting sixty seconds from now.</p>
+          <p>Remembero reads what you say and turns it into knowledge — facts with their source sentences, rules that derive what follows — and answers with the proof attached. You just watched it happen: raw sentence in, extracted facts, proven answer out.</p>
           <div className="hero-actions"><a className="button primary" href="#demo">See it work — 60 seconds</a><a className="button secondary" href={github}>View on GitHub</a></div>
           <span className="hero-boundary">This whole site runs in your browser. No accounts, no installs — and none of our model weights anywhere.</span>
         </div>

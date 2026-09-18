@@ -84,6 +84,18 @@ export default function ResearchPage() {
             retrieved chats, exactly one change. Run the same setup twice and scores move by about ±7 —
             any claim smaller than that is noise, and we do not make it.
           </p>
+          <div className="extract-strip" aria-label="Knowledge extracted from raw text">
+            <div className="extract-raw">
+              <span>Raw text · chat, 12 January</span>
+              <p>“We signed Norsk Dental as a client yesterday. I&apos;m the account lead. Their contract runs twelve months and is worth $84,000.”</p>
+            </div>
+            <div className="extract-arrow" aria-hidden="true">the writer extracts</div>
+            <ul className="extract-facts">
+              <li><code>client_of(norsk_dental, us) · from 2026-01-11</code><em>“signed … as a client yesterday”</em></li>
+              <li><code>account_lead(norsk_dental, you) · superseded 2026-05-01</code><em>“I&apos;m the account lead.”</em></li>
+              <li><code>contract_value(norsk_dental, $84,000 / 12 mo)</code><em>“worth $84,000”</em></li>
+            </ul>
+          </div>
         </div>
       </section>
 

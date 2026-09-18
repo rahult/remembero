@@ -21,6 +21,8 @@ test("server-renders the Remembero marketing homepage with lab and playground na
   const html = await response.text();
   assert.match(html, /<title>Remembero — Memory you can reason with<\/title>/i);
   assert.match(html, /Memory you(?:<br\/>|\s)+can <em>reason<\/em> with\./);
+  assert.match(html, /Remembero extracted/);
+  assert.match(html, /Text in · knowledge out · proof attached/);
   assert.match(html, /AI that forgets/);
   assert.match(html, /Write it down\./);
   assert.match(html, /Four workbenches\./);
@@ -54,6 +56,8 @@ test("server-renders the de-jargonized research page with the measured evidence"
   const html = await response.text();
   assert.match(html, /<title>Remembero Research — The evidence, measured<\/title>/i);
   assert.match(html, /Every claim on this site/);
+  assert.match(html, /the writer extracts/);
+  assert.match(html, /client_of\(norsk_dental, us\) · from 2026-01-11/);
   assert.match(html, /LongMemEval-S/);
   assert.match(html, /318 <i>→ 359<\/i>/);
   assert.match(html, /425<i>\/500<\/i>/);

@@ -71,7 +71,8 @@ if (
   !homeHtml.includes("Write it down.") ||
   !homeHtml.includes("Four workbenches.") ||
   !homeHtml.includes("We measured") ||
-  !homeHtml.includes("ran with zero models")
+  !homeHtml.includes("ran with zero models") ||
+  !homeHtml.includes("Remembero extracted")
 ) {
   throw new Error("static homepage is missing the progressive narrative sections");
 }

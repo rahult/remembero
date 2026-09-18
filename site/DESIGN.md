@@ -57,8 +57,13 @@ If a string is a measurement, it is mono — no exceptions.
   `Deterministic · live`, `Live · 0 models`. Green = verified here and now; amber =
   recorded elsewhere, honestly labeled; ink = policy boundary. Stamps are the system's
   honesty device: anything a model produced wears one.
-- **Proof card** (`.hero-proof`) — question → query → answer → because-chain →
-  source row, with an amber top rule and the stamp overhanging the border.
+- **Proof card** (`.hero-proof`) — the site's opening artifact and recurring motif:
+  *You said* (the raw sentence, serif italic) → *Remembero extracted* (amber fact chips,
+  each quoting its source sentence) → *You asked* (question + query) → the serif answer
+  with its because-chain → a source row stamped "Text in · knowledge out · proof
+  attached." Rows reveal in a staggered flow on load (collapsed under reduced motion).
+  The same text→knowledge shape repeats as the `.extract-strip` on `/research` and as
+  the extraction stages in the demo widget and both pipeline labs.
 - **First-proof demo** (`first-proof-demo.tsx` + module CSS) — the sixty-second loop
   as a stepped widget: say it → store it → rule it → ask it, each stage revealing on
   click, the final stage a real engine call with the proof chain and a measured
