@@ -36,26 +36,30 @@ export interface DemoUtterance {
 
 export const DEMO_UTTERANCES: readonly DemoUtterance[] = [
   {
-    said: "Maya is collaborating on Atlas with me.",
-    when: "Atlas planning · 17 Aug",
-    plain: "Maya contributes to the Atlas project",
-    fact: "project_contributor(atlas, maya)",
+    said: "Dana is my manager.",
+    when: "1:1 planning · 3 Jun",
+    plain: "Dana is your manager",
+    fact: "manager(dana, you)",
   },
   {
-    said: "I own Atlas.",
-    when: "Atlas planning · 17 Aug",
-    plain: "You own Atlas",
-    fact: "project_owner(atlas, rahul)",
+    said: "We meet on Tuesdays.",
+    when: "1:1 planning · 3 Jun",
+    plain: "Dana and you meet on Tuesdays",
+    fact: "meeting(dana, tuesday)",
   },
 ];
 
-export const DEMO_RULE = `collaborator(Person, Project) :-
-  project_contributor(Project, Person).`;
+export const DEMO_RULE = `one_on_one(Person, Day) :-
+  manager(Person, you),
+  meeting(Person, Day).`;
 
-export const DEMO_RULE_PLAIN = "if someone contributes to a project, they collaborate on it";
+export const DEMO_RULE_PLAIN = "a meeting with your manager is a one-on-one";
 
-export const DEMO_QUESTION = "Who is collaborating on Atlas?";
-export const DEMO_QUERY = "collaborator(Person, atlas)";
+export const DEMO_QUESTION = "Do I have a 1:1 this week?";
+export const DEMO_QUERY = "one_on_one(Person, Day)";
+
+export const DEMO_MAGIC =
+  "The phrase “1:1” appears nowhere in what you said. The rule derived it — that is knowledge, not retrieval.";
 
 export interface DemoResult {
   answer: string;
@@ -115,16 +119,31 @@ export function runFirstProofDemo(): DemoResult {
   const proof = first.proofs[0];
   if (proof !== undefined) collectProofLines(proof, proofChain);
   const person = first.bindings.Person;
-  const personName =
-    person !== undefined && (person.type === "atom" || person.type === "num")
-      ? String(person.value)
-      : undefined;
+  const day = first.bindings.Day;
+  const personName = termToName(person);
+  const dayName = termToName(day);
   return {
-    answer: personName
-      ? `${personName[0].toUpperCase()}${personName.slice(1)} is collaborating on Atlas.`
-      : "Atlas has a collaborator.",
+    answer:
+      personName && dayName
+        ? `Yes — ${dayName}, with ${personName}.`
+        : "Yes — you have a one-on-one this week.",
     query: DEMO_QUERY,
     proofChain,
     durationMs: performance.now() - started,
   };
+}
+
+function termToName(term: unknown): string | undefined {
+  if (
+    term !== undefined &&
+    term !== null &&
+    typeof term === "object" &&
+    "type" in term &&
+    "value" in term &&
+    typeof (term as { value: unknown }).value === "string"
+  ) {
+    const name = (term as { value: string }).value;
+    return `${name[0].toUpperCase()}${name.slice(1)}`;
+  }
+  return undefined;
 }

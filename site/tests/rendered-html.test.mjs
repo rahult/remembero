@@ -22,7 +22,12 @@ test("server-renders the Remembero marketing homepage with lab and playground na
   assert.match(html, /<title>Remembero — Memory you can reason with<\/title>/i);
   assert.match(html, /Memory you(?:<br\/>|\s)+can <em>reason<\/em> with\./);
   assert.match(html, /Remembero extracted/);
-  assert.match(html, /Maya contributes to the Atlas project/);
+  assert.match(html, /Your Chicago flight is Saturday morning/);
+  assert.match(html, /Friday 6pm/);
+  assert.match(html, /Why this is hard:/);
+  assert.match(html, /similarity-based assistant hands it back/);
+  assert.match(html, /Do I have a 1:1 this week\?/);
+  assert.match(html, /a meeting with your manager is a one-on-one/);
   assert.match(html, /machine form:/);
   assert.match(html, /the machine sees/);
   assert.match(html, /Text in · knowledge out · proof attached/);

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  DEMO_MAGIC,
   DEMO_QUESTION,
   DEMO_QUERY,
   DEMO_RULE,
@@ -115,6 +116,7 @@ export function FirstProofDemo() {
                     <li key={line}><code>{line}</code></li>
                   ))}
                 </ol>
+                <span className={styles.magic}>{DEMO_MAGIC}</span>
               </div>
               <span className={styles.duration}>
                 evaluated in {result.durationMs.toFixed(1)} ms, in this tab

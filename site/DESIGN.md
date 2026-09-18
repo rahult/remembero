@@ -58,15 +58,20 @@ If a string is a measurement, it is mono — no exceptions.
   recorded elsewhere, honestly labeled; ink = policy boundary. Stamps are the system's
   honesty device: anything a model produced wears one.
 - **Knowledge card** — every extracted fact renders English-first: a plain-language
-  headline ("Maya contributes to the Atlas project"), the source sentence in italic,
+  headline ("Your Chicago flight is Saturday morning"), the source sentence in italic,
   and the formal atom demoted to a small muted `machine form:` line. Predicate
   syntax never leads; it appears only as a footnote that teaches the mapping.
-- **Proof card** (`.hero-proof`) — the site's opening artifact and recurring motif:
+- **Proof card** (`.hero-proof`) — the site's opening artifact and recurring motif,
+  built on a changed-flight story because everyone has felt this failure:
   *You said* (the raw sentence, serif italic) → *Remembero extracted* (knowledge
   cards) → *You asked* (question, with the query as "the machine sees") → the serif
-  answer with its because-chain → a source row stamped "Text in · knowledge out ·
-  proof attached." Rows reveal in a staggered flow on load (collapsed under reduced
-  motion).
+  answer with its because-chain, where the stale fact appears **struck through** and
+  marked superseded → a red "Why this is hard" strip naming the failure a
+  similarity-based assistant would make → a source row stamped "Text in · knowledge
+  out · proof attached." Rows reveal in a staggered flow on load (collapsed under
+  reduced motion). The sixty-second demo carries the derivation half of the thesis:
+  its rule derives "1:1" from "meeting with your manager" — a word that never
+  appeared in the source text.
 - **Paragraph ladder** (`paragraph-ladder.tsx` + module CSS) — the motif at rising
   complexity: one realistic team-update paragraph taken apart in four layers —
   facts (replayed writer reading), dates (resolved live by code), logic (arithmetic

@@ -736,6 +736,10 @@ body.is-resizing-columns { cursor: col-resize; user-select: none; }
 .hero-answer .hero-because li div { display: grid; gap: 1px; }
 .hero-answer .hero-because li span { font-size: 0.92rem; font-weight: 600; line-height: 1.3; }
 .hero-answer .hero-because li small { color: var(--muted); font-family: var(--mono); font-size: 0.66rem; }
+.hero-answer .hero-because li[data-status="superseded"] span { color: var(--muted); }
+.hero-answer .hero-because li[data-status="superseded"] s { text-decoration-color: var(--red); text-decoration-thickness: 2px; }
+.hero-naive { padding: 14px 26px; border-bottom: 1px solid #e4c4c4; background: var(--red-soft); color: var(--text); font-size: 0.88rem; line-height: 1.55; }
+.hero-naive b { display: block; margin-bottom: 3px; color: var(--red); font-family: var(--mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; }
 .hero-proof-source { min-height: 68px; padding: 14px 26px; display: flex; align-items: center; justify-content: space-between; gap: 18px; color: var(--muted); background: var(--soft); border-radius: 0 0 12px 12px; border-bottom: 0; font-family: var(--mono); font-size: 0.78rem; }
 .hero-proof-source a { color: var(--blue); font-weight: 650; }
 

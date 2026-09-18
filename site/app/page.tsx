@@ -16,39 +16,42 @@ function HeroProof() {
     <div className="hero-proof" aria-label="From raw text to extracted knowledge to a proven answer">
       <span className="stamp stamp-proven hero-proof-stamp" aria-hidden="true">Proof-carrying</span>
       <div className="hero-proof-row hero-said" style={{ ["--step" as string]: 0 }}>
-        <span>You said · Atlas planning, 17 Aug</span>
-        <p>“Maya is collaborating on Atlas with me. I own Atlas.”</p>
+        <span>You said · travel chat, 12 Sep</span>
+        <p>“I moved my Chicago flight to Saturday morning — the Friday 6pm one was killing me. And I&apos;m at the Marriott downtown now, not the airport Holiday Inn.”</p>
       </div>
       <div className="hero-proof-row hero-extracted" style={{ ["--step" as string]: 1 }}>
         <span>Remembero extracted</span>
         <ul>
           <li>
-            <strong>Maya contributes to the Atlas project</strong>
-            <small className="hero-machine">machine form: <code>project_contributor(atlas, maya)</code></small>
-            <em>“Maya is collaborating on Atlas with me.”</em>
+            <strong>Your Chicago flight is Saturday morning</strong>
+            <small className="hero-machine">changed 12 Sep · was Friday 6pm · machine form: <code>flight(chicago, saturday_morning)</code></small>
+            <em>“moved my Chicago flight to Saturday morning”</em>
           </li>
           <li>
-            <strong>You own Atlas</strong>
-            <small className="hero-machine">machine form: <code>project_owner(atlas, rahul)</code></small>
-            <em>“I own Atlas.”</em>
+            <strong>Your hotel is the Marriott downtown</strong>
+            <small className="hero-machine">airport Holiday Inn cancelled · machine form: <code>hotel(chicago, marriott_downtown)</code></small>
+            <em>“at the Marriott downtown now, not the airport Holiday Inn”</em>
           </li>
         </ul>
       </div>
       <div className="hero-proof-row hero-asked" style={{ ["--step" as string]: 2 }}>
         <span>You asked</span>
-        <p>Who is collaborating on Atlas?</p>
+        <p>When do I fly to Chicago?</p>
         <span className="hero-query-label">the machine sees</span>
-        <code>collaborator(Person, atlas)</code>
+        <code>flight(chicago, When)</code>
       </div>
       <div className="hero-proof-row hero-answer" style={{ ["--step" as string]: 3 }}>
         <span>Answer</span>
-        <p>Maya is collaborating on Atlas.</p>
+        <p>Saturday morning.</p>
         <ol className="hero-because">
-          <li><b>1</b><div><span>Maya collaborates on Atlas</span><small>collaborator(maya, atlas)</small></div></li>
-          <li><b>2</b><div><span>Maya contributes to Atlas — said 17 Aug</span><small>project_contributor(atlas, maya)</small></div></li>
+          <li><b>1</b><div><span>Changed 12 Sep — the flight is now Saturday morning</span><small>flight(chicago, saturday_morning)</small></div></li>
+          <li data-status="superseded"><b>2</b><div><span><s>Friday 6pm — still remembered, marked superseded</s></span><small>flight(chicago, friday_6pm)</small></div></li>
         </ol>
       </div>
-      <div className="hero-proof-source" style={{ ["--step" as string]: 4 }}>
+      <div className="hero-naive" style={{ ["--step" as string]: 4 }}>
+        <b>Why this is hard:</b> the Friday 6pm flight is still in memory — said first, said plainly. A similarity-based assistant hands it back. Remembero marks it superseded, so the stale answer can&apos;t come back.
+      </div>
+      <div className="hero-proof-source" style={{ ["--step" as string]: 5 }}>
         <span>Text in · knowledge out · proof attached</span>
         <a href={playground}>Open in playground</a>
       </div>
@@ -75,12 +78,12 @@ const ideaSteps = [
   {
     title: "Store what was said",
     body: "Facts are short, plain sentences with their source attached — readable by you, and exact enough for a machine.",
-    hint: "“Maya contributes to Atlas” — said 17 Aug",
+    hint: "“Dana and you meet on Tuesdays” — said 3 Jun",
   },
   {
     title: "Add rules once",
-    body: "Rules are plain if-then knowledge: anyone contributing to a project is a collaborator on it. Written once, applied forever, same result every time.",
-    hint: "if someone contributes to a project, they collaborate on it",
+    body: "Rules are plain if-then knowledge: a meeting with your manager is a one-on-one. Written once, applied forever, same result every time.",
+    hint: "if someone is your manager and you meet, that meeting is a 1:1",
   },
   {
     title: "Ask, then check the working",
@@ -111,7 +114,7 @@ export default function Home() {
         <div className="hero-copy">
           <p className="hero-eyebrow">Durable memory for AI agents</p>
           <h1>Memory you<br />can <em>reason</em> with.</h1>
-          <p>Remembero reads what you say and turns it into knowledge — facts with their source sentences, rules that derive what follows — and answers with the proof attached. You just watched it happen: raw sentence in, extracted facts, proven answer out.</p>
+          <p>Remembero reads what you say and turns it into knowledge — facts with their source sentences, dated and kept current when things change, rules that derive what follows — and answers with the proof attached. You just watched it happen: raw sentence in, extracted facts, proven answer out.</p>
           <div className="hero-actions"><a className="button primary" href="#demo">See it work — 60 seconds</a><a className="button secondary" href={github}>View on GitHub</a></div>
           <span className="hero-boundary">This whole site runs in your browser. No accounts, no installs — and none of our model weights anywhere.</span>
         </div>
