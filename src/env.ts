@@ -181,6 +181,48 @@ export function readerFromEnv(
 }
 
 /**
+ * How many bytes of retrieved history the product's `sessions` answer mode spends on
+ * one question.
+ *
+ * The published number describes a benchmark arm that ran `--context-bytes 24576`, and
+ * reader v7 was trained on 24 KB prompts, so the product must read the same budget or
+ * its answers are not the ones that were measured. The shared module's
+ * `DEFAULT_READING_CONTEXT_BYTES` (56 KB) stays as it is: it is the harness's own
+ * fallback for arms that do not pass the flag, and changing it would move every
+ * archived comparison.
+ */
+export const DEFAULT_PRODUCT_READING_CONTEXT_BYTES = 24 * 1024;
+/**
+ * The range `validateReadingOptions` (knowledge/session-retrieval.ts) accepts, repeated
+ * here rather than imported so a setting lookup does not pull the whole retrieval module
+ * into `env.ts`. A test pins the two to agree.
+ */
+export const MIN_READING_CONTEXT_BYTES = 4_096;
+export const MAX_CONFIGURED_READING_CONTEXT_BYTES = 160 * 1024;
+
+/** REMBERO_READING_CONTEXT_BYTES: the reading budget, 24576 by default. */
+export function readingContextBytesFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): number {
+  const configured = env.REMBERO_READING_CONTEXT_BYTES;
+  if (configured === undefined) return DEFAULT_PRODUCT_READING_CONTEXT_BYTES;
+  if (!/^\d+$/.test(configured)) {
+    throw new Error('REMBERO_READING_CONTEXT_BYTES must be an integer');
+  }
+  const parsed = Number(configured);
+  if (
+    !Number.isSafeInteger(parsed) ||
+    parsed < MIN_READING_CONTEXT_BYTES ||
+    parsed > MAX_CONFIGURED_READING_CONTEXT_BYTES
+  ) {
+    throw new Error(
+      `REMBERO_READING_CONTEXT_BYTES must be an integer from ${MIN_READING_CONTEXT_BYTES} to ${MAX_CONFIGURED_READING_CONTEXT_BYTES}`,
+    );
+  }
+  return parsed;
+}
+
+/**
  * REMBERO_READER_ALLOW_REMOTE: `1` lets the `sessions` answer mode send stored
  * conversations to a reader that is not on localhost. Anything else, including
  * unset, keeps them on the machine.

@@ -2,12 +2,24 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { recallQuestion, type RecallReader } from '../src/llm/pipeline.js';
 import {
+  MAX_READING_CANDIDATE_SESSIONS,
+  MAX_READING_CANDIDATE_TURNS,
+  cappedReadingCandidates,
+  recallQuestion,
+  type RecallReader,
+} from '../src/llm/pipeline.js';
+import {
+  DEFAULT_PRODUCT_READING_CONTEXT_BYTES,
   DEFAULT_READER_MAX_TOKENS,
+  MAX_CONFIGURED_READING_CONTEXT_BYTES,
+  MIN_READING_CONTEXT_BYTES,
   readerFromEnv,
+  readingContextBytesFromEnv,
   recallAnswerModeFromEnv,
 } from '../src/env.js';
+import { MAX_KNOWLEDGE_SEARCH_CLAUSES } from '../src/knowledge/search.js';
+import { MAX_READING_CONTEXT_BYTES } from '../src/knowledge/session-retrieval.js';
 import type { ChatMessage, LlmClient } from '../src/llm/client.js';
 import { MemoryStore } from '../src/store/store.js';
 import { SessionStore, type SessionSource } from '../src/sessions/store.js';
@@ -461,5 +473,222 @@ describe('the reader settings', () => {
     expect(
       recallAnswerModeFromEnv({ REMBERO_RECALL_ANSWER_MODE: 'sessions' }),
     ).toBe('sessions');
+  });
+});
+
+/** A candidate as the product hands it to the ranking: an id, a date and its turns. */
+function candidate(id: string, date: string, turns: number) {
+  return {
+    id,
+    date,
+    turns: Array.from({ length: turns }, (_unused, index) => ({
+      role: 'user' as const,
+      text: `${id} turn ${index}`,
+    })),
+  };
+}
+
+describe('the reading candidate cap', () => {
+  it('leaves a store under both caps exactly as it was', () => {
+    const loaded = [
+      candidate('a', '2024-01-01T09:00:00.000Z', 3),
+      candidate('b', '2024-02-01T09:00:00.000Z', 4),
+    ];
+    expect(cappedReadingCandidates(loaded)).toEqual(loaded);
+  });
+
+  it('keeps the most recent sessions, in the order it was given them', () => {
+    const loaded = [
+      candidate('oldest', '2024-01-01T09:00:00.000Z', 1),
+      candidate('newest', '2024-03-01T09:00:00.000Z', 1),
+      candidate('middle', '2024-02-01T09:00:00.000Z', 1),
+    ];
+    // most recent two, but still in the caller's order, so a store under the cap and
+    // one just over it rank the same sessions in the same sequence
+    expect(cappedReadingCandidates(loaded, { sessions: 2 }).map(({ id }) => id)).toEqual([
+      'newest',
+      'middle',
+    ]);
+  });
+
+  it('spends the turn budget newest first, keeping the newest turns of a long session', () => {
+    const loaded = [
+      candidate('old', '2024-01-01T09:00:00.000Z', 5),
+      candidate('new', '2024-03-01T09:00:00.000Z', 3),
+    ];
+    const capped = cappedReadingCandidates(loaded, { turns: 5 });
+    expect(capped.map(({ id }) => id)).toEqual(['old', 'new']);
+    // 'new' takes 3 of the 5, and 'old' contributes its last 2 turns
+    expect(capped[0]?.turns.map(({ text }) => text)).toEqual([
+      'old turn 3',
+      'old turn 4',
+    ]);
+    expect(capped[1]?.turns).toHaveLength(3);
+  });
+
+  it('drops a session entirely once the turn budget is spent', () => {
+    const loaded = [
+      candidate('old', '2024-01-01T09:00:00.000Z', 4),
+      candidate('new', '2024-03-01T09:00:00.000Z', 4),
+    ];
+    expect(
+      cappedReadingCandidates(loaded, { turns: 4 }).map(({ id }) => id),
+    ).toEqual(['new']);
+  });
+
+  it('answers over 100,020 turns, where the clause limit used to reach the user', () => {
+    // The measured break: 100,020 non-empty turns made searchKnowledge throw
+    // "knowledge search exceeds 100000 clauses" in 692 ms, which unsearchableQuestion
+    // does not match, so every sessions recall failed until the sessions were deleted.
+    // its own store, because the shared one caps at 1 MB and would evict as we write
+    const bulk = new SessionStore({
+      root: mkdtempSync(join(tmpdir(), 'rembero-sessions-recall-bulk-')),
+      capBytes: 400 * 1024 * 1024,
+      log: () => {},
+    });
+    for (let index = 0; index < 30; index += 1) {
+      const startedAt = new Date(Date.UTC(2024, 0, 1 + index, 9)).toISOString();
+      bulk.appendTurns(
+        'default',
+        {
+          version: 1,
+          source: 'import',
+          sourceSessionId: `bulk-${index}`,
+          startedAt,
+        },
+        Array.from({ length: 3_334 }, (_unused, turn) => ({
+          role: (turn % 2 === 0 ? 'user' : 'assistant') as 'user' | 'assistant',
+          ts: new Date(Date.parse(startedAt) + turn * 1_000).toISOString(),
+          text: `session ${index} turn ${turn}: I rode my bike to the market and bought pears`,
+        })),
+      );
+    }
+    const stored = bulk
+      .list('default')
+      .reduce((total, entry) => total + entry.turns, 0);
+    expect(stored).toBe(100_020);
+    return expect(
+      recallQuestion(
+        { store, llm: new NeverCalledLlm(), sessions: bulk },
+        'How many bikes do I own now?',
+        ['default'],
+        {
+          answerMode: 'sessions',
+          at: ASKED_AT,
+          reader: reader(new StubReaderClient('Answer: Two bikes.')),
+        },
+      ),
+    ).resolves.toMatchObject({ status: 'answered', answer: 'Two bikes.' });
+  });
+
+  it('caps below the clause limit that used to break every sessions recall', () => {
+    // retrieveSessions indexes one clause per non-empty turn, and searchKnowledge
+    // refuses more than MAX_KNOWLEDGE_SEARCH_CLAUSES of them with a message
+    // unsearchableQuestion does not match, so the throw reached the user.
+    expect(MAX_READING_CANDIDATE_TURNS).toBeLessThan(MAX_KNOWLEDGE_SEARCH_CLAUSES);
+    // the session unit indexes one clause per session, so that count is bounded too
+    expect(MAX_READING_CANDIDATE_SESSIONS).toBeLessThan(MAX_KNOWLEDGE_SEARCH_CLAUSES);
+  });
+});
+
+/** Three sessions long enough that the reading budget, not the source window, decides. */
+function storeLongSessions(): void {
+  for (const [index, startedAt] of [
+    '2024-02-25T09:00:00.000Z',
+    '2024-02-26T09:00:00.000Z',
+    '2024-02-27T09:00:00.000Z',
+  ].entries()) {
+    storeSession(`long-${index}`, startedAt, [
+      {
+        role: 'user',
+        text: `I own two bikes. ${'pears and bikes and markets. '.repeat(3_000)}`,
+      },
+    ]);
+  }
+}
+
+describe('the product reading budget', () => {
+  it('defaults to the 24576 bytes reader v7 was trained on', () => {
+    expect(DEFAULT_PRODUCT_READING_CONTEXT_BYTES).toBe(24_576);
+    expect(readingContextBytesFromEnv({})).toBe(24_576);
+    expect(
+      readingContextBytesFromEnv({ REMBERO_READING_CONTEXT_BYTES: '8192' }),
+    ).toBe(8_192);
+  });
+
+  it('agrees with the bounds the shared retrieval module enforces', () => {
+    expect(MAX_CONFIGURED_READING_CONTEXT_BYTES).toBe(MAX_READING_CONTEXT_BYTES);
+    expect(MIN_READING_CONTEXT_BYTES).toBe(4_096);
+  });
+
+  it('refuses a budget that is not an integer in range, naming the setting', () => {
+    for (const configured of ['', 'lots', '24k', '-1', '1024', '1048576']) {
+      expect(
+        () => readingContextBytesFromEnv({ REMBERO_READING_CONTEXT_BYTES: configured }),
+        configured,
+      ).toThrow(/REMBERO_READING_CONTEXT_BYTES/);
+    }
+  });
+
+  it('spends the default budget on the history and not the old 56 KB', async () => {
+    // three long sessions, so the even split across them is what the budget decides:
+    // at 56 KB each would render its whole 16 KB source window, at 24576 they share it
+    storeLongSessions();
+    const client = new StubReaderClient('Answer: Two bikes.');
+    const result = await recallQuestion(
+      { store, llm: new NeverCalledLlm(), sessions },
+      'How many bikes do I own now?',
+      ['default'],
+      { answerMode: 'sessions', at: ASKED_AT, reader: reader(client) },
+    );
+    expect(result.status).toBe('answered');
+    const prompt = client.prompts[0]?.at(-1)?.content ?? '';
+    const bytes = Buffer.byteLength(prompt, 'utf8');
+    expect(bytes).toBeGreaterThan(20_000);
+    expect(bytes).toBeLessThan(32_000);
+  });
+
+  it('honours a smaller configured budget', async () => {
+    storeLongSessions();
+    const client = new StubReaderClient('Answer: Two bikes.');
+    process.env.REMBERO_READING_CONTEXT_BYTES = '8192';
+    try {
+      const result = await recallQuestion(
+        { store, llm: new NeverCalledLlm(), sessions },
+        'How many bikes do I own now?',
+        ['default'],
+        { answerMode: 'sessions', at: ASKED_AT, reader: reader(client) },
+      );
+      expect(result.status).toBe('answered');
+      expect(
+        Buffer.byteLength(client.prompts[0]?.at(-1)?.content ?? '', 'utf8'),
+      ).toBeLessThan(12_000);
+    } finally {
+      delete process.env.REMBERO_READING_CONTEXT_BYTES;
+    }
+  });
+
+  it('degrades a retrieval failure to no_evidence with the reason recorded', async () => {
+    // Retrieval used to sit outside the degrade path loadSessions has, so anything it
+    // threw reached the user. A budget this build cannot read is the reachable case.
+    storeSession('bikes', '2024-02-27T09:00:00.000Z', [
+      { role: 'user', text: 'I now own two bikes after selling the old road bike.' },
+    ]);
+    const client = new StubReaderClient('Answer: Two bikes.');
+    process.env.REMBERO_READING_CONTEXT_BYTES = 'twenty-four kilobytes';
+    try {
+      const result = await recallQuestion(
+        { store, llm: new NeverCalledLlm(), sessions },
+        'How many bikes do I own now?',
+        ['default'],
+        { answerMode: 'sessions', at: ASKED_AT, reader: reader(client) },
+      );
+      expect(result.status).toBe('no_evidence');
+      expect(result.sessionsError).toMatch(/REMBERO_READING_CONTEXT_BYTES/);
+      expect(result.sessionsRead ?? []).toEqual([]);
+      expect(client.prompts).toEqual([]);
+    } finally {
+      delete process.env.REMBERO_READING_CONTEXT_BYTES;
+    }
   });
 });

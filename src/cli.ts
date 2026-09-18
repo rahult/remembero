@@ -305,6 +305,7 @@ Conversation sessions (off unless REMBERO_SESSIONS=on):
   REMBERO_SESSION_CAP_BYTES    Per-namespace byte cap (default: 200 MB)
   REMBERO_READER_BASE_URL      The reader --answer-mode sessions asks, with _MODEL,
                                _API_KEY, _MAX_TOKENS, _TEMPERATURE, _TIMEOUT_MS
+  REMBERO_READING_CONTEXT_BYTES  Bytes of history read per question (default: 24576)
   REMBERO_READER_ALLOW_REMOTE=1  Allow a reader that is not on localhost. Stored
                                conversations are masked on the way in, but that
                                masking is best-effort pattern matching, not a

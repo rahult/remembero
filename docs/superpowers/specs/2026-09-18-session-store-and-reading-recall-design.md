@@ -72,6 +72,17 @@ without disturbing the fact store.
   are untouched.
 - Per question: classify, retrieve (allowed namespaces only), re-rank, build the prompt through the
   shared module, call the reader, return the final answer line.
+- **Reading budget.** `REMBERO_READING_CONTEXT_BYTES`, default **24576** — the
+  `--context-bytes 24576` the measured arm ran, and the prompt size reader v7 was trained on. The
+  shared module's `DEFAULT_READING_CONTEXT_BYTES` (56 KB) stays as the harness's fallback for arms
+  that pass no flag; the product does not use it, because the published number would then describe
+  a prompt the product never builds.
+- **Candidate cap.** The product ranks at most the 500 most recent sessions and their 20,000 most
+  recent turns. Retrieval indexes one clause per turn and the lexical search refuses more than
+  100,000, and the store's own 200 MB cap allows roughly ten times that, so without a cap a large
+  store made every sessions recall fail until the sessions were deleted. Loading *and* ranking sit
+  inside one degrade path: any failure becomes `no_evidence` with the reason recorded, never a
+  thrown recall.
 - **Reader** from `REMBERO_READER_BASE_URL`, `_MODEL`, `_API_KEY`, `_MAX_TOKENS`, `_TEMPERATURE`,
   `_TIMEOUT_MS`; unset means the product's configured LLM.
 - **Result** carries the answer, a status (`answered`, `unknown`, `no_evidence`) and the evidence:

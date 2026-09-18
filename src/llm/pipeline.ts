@@ -39,14 +39,17 @@ import type {
   ValidTimeMode,
 } from '../store/store.js';
 import { OpenRouterClient, type ChatMessage, type LlmClient } from './client.js';
-import { readerAllowsRemoteFromEnv, readerFromEnv } from '../env.js';
+import {
+  readerAllowsRemoteFromEnv,
+  readerFromEnv,
+  readingContextBytesFromEnv,
+} from '../env.js';
 import { finalAnswerLine } from '../knowledge/answer-line.js';
 import {
   questionKindFromText,
   type QuestionKind,
 } from '../knowledge/question-kind.js';
 import {
-  DEFAULT_READING_CONTEXT_BYTES,
   DEFAULT_READING_DEPTH,
   buildReadingPrompt,
   readsInNotes,
@@ -2174,6 +2177,61 @@ function loadSessions(
   return loaded;
 }
 
+/**
+ * How many stored conversations, and how many of their turns, one question may rank.
+ *
+ * `retrieveSessions` indexes one clause per non-empty turn, and `searchKnowledge`
+ * refuses more than `MAX_KNOWLEDGE_SEARCH_CLAUSES` (100,000) of them. That throw is not
+ * one `unsearchableQuestion` matches, so it reached the user, and every sessions recall
+ * failed until the sessions were deleted: measured, 100,020 turns threw in 692 ms. The
+ * 200 MB per-namespace cap allows roughly ten times that many turns, so the bound
+ * belongs here at the product's call site — the harness passes its own fixed corpus and
+ * has never needed one.
+ *
+ * 20,000 turns is a fifth of the clause limit and several hundred long conversations,
+ * far more than the depth cut will read; 500 sessions bounds the session-unit index a
+ * temporal question builds. Both leave room for the ranking's own working set.
+ */
+export const MAX_READING_CANDIDATE_SESSIONS = 500;
+export const MAX_READING_CANDIDATE_TURNS = 20_000;
+
+/**
+ * The candidates one question may rank: the most recent sessions, and their most recent
+ * turns, within both caps.
+ *
+ * Most recent first, because the sessions a question about "now" is answered from are the
+ * newest and the depth cut keeps a handful of them anyway. The kept sessions come back in
+ * the order they were given, so a store under the caps is passed through untouched and one
+ * just over it ranks the same sessions in the same sequence.
+ */
+export function cappedReadingCandidates<T extends RetrievableSession>(
+  loaded: readonly T[],
+  limits: { sessions?: number; turns?: number } = {},
+): T[] {
+  const maxSessions = limits.sessions ?? MAX_READING_CANDIDATE_SESSIONS;
+  const maxTurns = limits.turns ?? MAX_READING_CANDIDATE_TURNS;
+  const newestFirst = [...loaded].sort(
+    (left, right) =>
+      right.date.localeCompare(left.date) || left.id.localeCompare(right.id),
+  );
+  const kept = new Map<string, T>();
+  let budget = maxTurns;
+  for (const session of newestFirst.slice(0, maxSessions)) {
+    if (budget <= 0) break;
+    kept.set(
+      session.id,
+      session.turns.length <= budget
+        ? session
+        : { ...session, turns: session.turns.slice(-budget) },
+    );
+    budget -= Math.min(session.turns.length, budget);
+  }
+  return loaded.flatMap((session) => {
+    const capped = kept.get(session.id);
+    return capped === undefined ? [] : [capped];
+  });
+}
+
 /** How much of a read session is shown back as evidence. */
 const SESSION_EXCERPTS_PER_SESSION = 3;
 const SESSION_EXCERPT_CHARACTERS = 400;
@@ -2360,12 +2418,35 @@ async function answerFromSessions(
   }
   assertLlmNamespacesAllowed(deps, namespaces);
   let loaded: LoadedSession[];
+  let retrieval: SessionRetrievalOptions;
+  let read: LoadedSession[];
   try {
     // listing the namespaces is part of finding the sessions, so a store that cannot be
     // listed degrades with them rather than throwing past this
     const selected =
       namespaces === '*' ? deps.store.listNamespaces() : namespaces;
-    loaded = loadSessions(deps.sessions, selected);
+    loaded = cappedReadingCandidates(loadSessions(deps.sessions, selected));
+    retrieval = {
+      kind,
+      topK: DEFAULT_READING_DEPTH,
+      // the budget the measured arm ran, so the published number describes this answer
+      contextBytes: readingContextBytesFromEnv(),
+      dateDistances: true,
+      computedNotes: computedNotesEnabled(options),
+    };
+    // Ranking is inside the degrade path with the loading: a question the index cannot
+    // be searched for is already handled inside `retrieveSessions`, but a store big or
+    // odd enough to break the search itself used to throw straight past here and reach
+    // the user as a failed recall.
+    const { chosen } =
+      loaded.length === 0
+        ? { chosen: [] as string[] }
+        : await retrieveSessions(question, askedAt, loaded, retrieval);
+    const byId = new Map(loaded.map((session) => [session.id, session]));
+    read = chosen.flatMap((id) => {
+      const session = byId.get(id);
+      return session === undefined ? [] : [session];
+    });
   } catch (error) {
     // Capture degrades the same way: a store that cannot be read costs the session, not
     // the answer. There is simply nothing to read, and the reason is recorded.
@@ -2377,24 +2458,6 @@ async function answerFromSessions(
   if (loaded.length === 0) {
     return noEvidence('No stored conversation could answer that.');
   }
-  const retrieval: SessionRetrievalOptions = {
-    kind,
-    topK: DEFAULT_READING_DEPTH,
-    contextBytes: DEFAULT_READING_CONTEXT_BYTES,
-    dateDistances: true,
-    computedNotes: computedNotesEnabled(options),
-  };
-  const { chosen } = await retrieveSessions(
-    question,
-    askedAt,
-    loaded,
-    retrieval,
-  );
-  const byId = new Map(loaded.map((session) => [session.id, session]));
-  const read = chosen.flatMap((id) => {
-    const session = byId.get(id);
-    return session === undefined ? [] : [session];
-  });
   if (read.length === 0) {
     return noEvidence('No stored conversation mentions that.');
   }
