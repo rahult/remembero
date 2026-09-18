@@ -94,8 +94,10 @@ function sessionTurnsToWrite(
   tailBytes: number,
 ): { startedAt?: string; turns: StampedTurn[] } {
   const key = sessions.sessionKey('claude-code', sourceSessionId);
+  // The whole session's high-water mark, not a window's: `list` reports windows, and
+  // the first window of a long conversation would put the floor days in the past.
   const lastTs = sessions
-    .list(namespace)
+    .listSessions(namespace)
     .find((entry) => entry.key === key)?.lastTs;
   const floor = lastTs === undefined ? undefined : Date.parse(lastTs);
   const stamped = turns.map((turn) => ({

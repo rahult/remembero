@@ -1211,10 +1211,15 @@ function runSessionsCommand(
         console.log(`no sessions in namespace ${namespace}`);
         return;
       }
+      // One line per window, with the window's own time range and turn count: a long
+      // conversation is stored as one file but read in windows, and a user choosing
+      // what to forget should see what the reader sees. The session key is the part
+      // before the '#', which is what `sessions forget` takes.
       for (const entry of entries) {
         console.log(
-          `${entry.key}  ${entry.source}  ${entry.startedAt} to ${entry.lastTs}  ` +
-            `${entry.turns} turn(s)  ${entry.bytes} byte(s)`,
+          `${entry.windowKey}  ${entry.source}  ${entry.startedAt} to ${entry.lastTs}  ` +
+            `${entry.turns} turn(s)  ${entry.bytes} byte(s)  ` +
+            `window ${entry.window + 1} of ${entry.windows}`,
         );
       }
       return;

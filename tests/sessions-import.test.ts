@@ -110,7 +110,7 @@ describe('importClaudeTranscript', () => {
     expect(again).toMatchObject({ appended: 0, skipped: 2 });
     const stored = sessions.readSession('scratch', again.key)!;
     expect(stored.turns).toHaveLength(2);
-    expect(sessions.list('scratch')).toHaveLength(1);
+    expect(sessions.listSessions('scratch')).toHaveLength(1);
   });
 
   it('reads the whole file rather than a tail', () => {
@@ -215,7 +215,7 @@ describe('importClaudeTranscript', () => {
 
     expect(second.key).toBe(first.key);
     expect(second).toMatchObject({ appended: 1, skipped: 2 });
-    expect(sessions.list('scratch')).toHaveLength(1);
+    expect(sessions.listSessions('scratch')).toHaveLength(1);
   });
 
   it('appends to the same session when a transcript has grown since the import', () => {
@@ -238,7 +238,7 @@ describe('importClaudeTranscript', () => {
     // conversation did not move.
     expect(second.key).toBe(first.key);
     expect(second).toMatchObject({ appended: 2, skipped: 2 });
-    expect(sessions.list('scratch')).toHaveLength(1);
+    expect(sessions.listSessions('scratch')).toHaveLength(1);
     expect(
       sessions.readSession('scratch', first.key)!.turns.map((turn) => turn.text),
     ).toEqual(['day one', 'noted', 'day two', 'noted again']);
@@ -317,7 +317,13 @@ describe('remembero sessions CLI', () => {
     expect(listed.status).toBe(0);
     expect(listed.stdout).toContain(key);
     expect(listed.stdout).toContain('import');
-    expect(listed.stdout).toMatch(/2 turn/);
+    // The two turns are a day apart, so the listing shows the session's two windows,
+    // each with its own range, and the key `sessions forget` takes is in both lines.
+    expect(listed.stdout).toContain(`${key}#0`);
+    expect(listed.stdout).toContain(`${key}#1`);
+    expect(listed.stdout).toMatch(/window 1 of 2/);
+    expect(listed.stdout).toMatch(/window 2 of 2/);
+    expect(listed.stdout.match(/1 turn\(s\)/g)).toHaveLength(2);
 
     const forgotten = cli(['sessions', 'forget', key, '-n', 'scratch']);
     expect(forgotten.status).toBe(0);

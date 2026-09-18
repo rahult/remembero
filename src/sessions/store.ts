@@ -20,7 +20,13 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import {
   DEFAULT_SESSION_CAP_BYTES,
+  DEFAULT_SESSION_WINDOW_BYTES,
+  DEFAULT_SESSION_WINDOW_GAP_MS,
+  DEFAULT_SESSION_WINDOW_TURNS,
   sessionCapBytesFromEnv,
+  sessionWindowBytesFromEnv,
+  sessionWindowGapMsFromEnv,
+  sessionWindowTurnsFromEnv,
   sessionsEnabledFromEnv,
 } from '../env.js';
 import {
@@ -28,6 +34,12 @@ import {
   maskSensitiveSpans,
   REDACTED_SOURCE,
 } from '../safety.js';
+import {
+  parseSessionWindowId,
+  sessionWindowKey,
+  windowSessionTurns,
+  type SessionWindowLimits,
+} from './windows.js';
 
 /** A namespace becomes a directory name, so nothing but these characters is allowed. */
 const NAMESPACE_PATTERN = /^[a-z0-9_-]+$/;
@@ -81,6 +93,21 @@ export interface SessionHeader {
   cwd?: string;
 }
 
+/**
+ * One window of a session, as the namespace index records it.
+ *
+ * `bytes` is the window's own stored turn lines, where a session entry's `bytes` is the
+ * whole file: the cap counts files, and a window is not a file.
+ */
+export interface SessionWindowSummary {
+  /** 0-based ordinal within the session, in file order. */
+  window: number;
+  startedAt: string;
+  lastTs: string;
+  turns: number;
+  bytes: number;
+}
+
 export interface SessionIndexEntry {
   key: string;
   source: SessionSource;
@@ -88,6 +115,35 @@ export interface SessionIndexEntry {
   lastTs: string;
   turns: number;
   bytes: number;
+  /**
+   * The session's windows, written when the session is appended to. Absent in an
+   * `index.json` written before windowing existed; `list` then derives them from the
+   * file, so an old store reads as windows without being rewritten.
+   */
+  windows?: SessionWindowSummary[];
+}
+
+/** One window of one session: what `list` offers and what retrieval ranks. */
+export interface SessionWindowEntry extends SessionWindowSummary {
+  /** The session's file key. `forget_sessions` takes this and removes every window. */
+  key: string;
+  /** `<key>#<window>`, the id `readSession` takes. */
+  windowKey: string;
+  source: SessionSource;
+  /** How many windows this session has, so a reader of one knows what it is part of. */
+  windows: number;
+}
+
+/** One window's turns, read from the file. */
+export interface SessionWindowRead {
+  key: string;
+  window: number;
+  windowKey: string;
+  windows: number;
+  header: SessionHeader;
+  startedAt: string;
+  lastTs: string;
+  turns: SessionTurn[];
 }
 
 export interface SessionAppendResult {
@@ -105,6 +161,12 @@ type SessionFileState =
 export interface SessionStoreOptions {
   root?: string;
   capBytes?: number;
+  /** At most this many turns in one window (default `REMBERO_SESSION_WINDOW_TURNS`). */
+  windowTurns?: number;
+  /** The silence that starts a new window (default `REMBERO_SESSION_WINDOW_GAP_MS`). */
+  windowGapMs?: number;
+  /** At most this much turn text in one window (default `REMBERO_SESSION_WINDOW_BYTES`). */
+  windowBytes?: number;
   /** Where cap drops are reported; stderr by default. */
   log?: (message: string) => void;
 }
@@ -175,8 +237,15 @@ export function sessionStoreEvenIfOff(
   // conversation: the user could neither see what was kept nor delete it, in the very
   // state a privacy-minded user is most likely to be in. So the delete path takes the
   // default cap and never consults the setting. The write path still does, and still
-  // refuses under its own name.
-  return new SessionStore({ capBytes: DEFAULT_SESSION_CAP_BYTES });
+  // refuses under its own name. The window settings are the same kind of thing: they
+  // say how a conversation is cut up for reading, not whether it can be listed or
+  // deleted, so a typo in one must not trap what is on disk either.
+  return new SessionStore({
+    capBytes: DEFAULT_SESSION_CAP_BYTES,
+    windowTurns: DEFAULT_SESSION_WINDOW_TURNS,
+    windowGapMs: DEFAULT_SESSION_WINDOW_GAP_MS,
+    windowBytes: DEFAULT_SESSION_WINDOW_BYTES,
+  });
 }
 
 function assertNamespace(namespace: string): void {
@@ -321,6 +390,18 @@ function lockOwnerAlive(lockPath: string): boolean {
   }
 }
 
+/**
+ * How many bytes of the file a window's turns occupy: their stored lines, newline each.
+ * The header line belongs to no window, so the windows of a session sum to a little less
+ * than the file.
+ */
+function storedTurnBytes(turns: readonly SessionTurn[]): number {
+  return turns.reduce(
+    (total, turn) => total + Buffer.byteLength(JSON.stringify(turn), 'utf8') + 1,
+    0,
+  );
+}
+
 function byStartedAt(a: SessionIndexEntry, b: SessionIndexEntry): number {
   return (
     a.startedAt.localeCompare(b.startedAt) || a.key.localeCompare(b.key)
@@ -336,6 +417,26 @@ function isTurnRecord(value: unknown): value is SessionTurn {
     typeof turn.ts === 'string' &&
     typeof turn.text === 'string' &&
     typeof turn.hash === 'string'
+  );
+}
+
+/** Window summaries an index entry can be believed about: ordinals 0..n-1, in order. */
+function areWindowSummaries(
+  value: unknown,
+): value is SessionWindowSummary[] {
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every(
+      (window, ordinal) =>
+        typeof window === 'object' &&
+        window !== null &&
+        (window as SessionWindowSummary).window === ordinal &&
+        typeof (window as SessionWindowSummary).startedAt === 'string' &&
+        typeof (window as SessionWindowSummary).lastTs === 'string' &&
+        Number.isInteger((window as SessionWindowSummary).turns) &&
+        Number.isInteger((window as SessionWindowSummary).bytes),
+    )
   );
 }
 
@@ -360,12 +461,18 @@ function isHeaderRecord(value: unknown): value is SessionHeader {
 export class SessionStore {
   private readonly root: string;
   private readonly capBytes: number;
+  private readonly windowLimits: SessionWindowLimits;
   private readonly log: (message: string) => void;
   private readonly heldLocks = new Set<string>();
 
   constructor(options: SessionStoreOptions = {}) {
     this.root = options.root ?? sessionsRoot();
     this.capBytes = options.capBytes ?? sessionCapBytesFromEnv();
+    this.windowLimits = {
+      turns: options.windowTurns ?? sessionWindowTurnsFromEnv(),
+      gapMs: options.windowGapMs ?? sessionWindowGapMsFromEnv(),
+      bytes: options.windowBytes ?? sessionWindowBytesFromEnv(),
+    };
     this.log =
       options.log ??
       ((message: string) => {
@@ -459,13 +566,58 @@ export class SessionStore {
     return { appended, skipped, masked, dropped };
   }
 
+  /**
+   * One stored conversation, or one window of it.
+   *
+   * `<key>` is the whole session, in file order, exactly as before windowing: the file
+   * is the conversation, and a caller that wants all of it still asks for it that way.
+   * `<key>#<n>` is that window alone — the unit retrieval ranks and the reader reads —
+   * and is `undefined` when the session holds no such window.
+   */
   readSession(
     namespace: string,
-    key: string,
+    id: string,
   ): { header: SessionHeader; turns: SessionTurn[] } | undefined {
     assertNamespace(namespace);
+    const { key, window } = parseSessionWindowId(id);
     assertSessionKey(key);
-    return this.readSessionFile(join(this.root, namespace, `${key}.jsonl`));
+    const session = this.readSessionFile(
+      join(this.root, namespace, `${key}.jsonl`),
+    );
+    if (session === undefined || window === undefined) return session;
+    const turns = this.windowsOf(session.turns)[window];
+    return turns === undefined ? undefined : { header: session.header, turns };
+  }
+
+  /**
+   * Every window of one session, from a single read of its file.
+   *
+   * Reading the windows one at a time would parse a 346 KB file once per window, and
+   * the reading path wants all of them: this is the call it makes.
+   */
+  readSessionWindows(namespace: string, key: string): SessionWindowRead[] {
+    assertNamespace(namespace);
+    assertSessionKey(key);
+    const session = this.readSessionFile(
+      join(this.root, namespace, `${key}.jsonl`),
+    );
+    if (session === undefined) return [];
+    const grouped = this.windowsOf(session.turns);
+    return grouped.map((turns, window) => ({
+      key,
+      window,
+      windowKey: sessionWindowKey(key, window),
+      windows: grouped.length,
+      header: session.header,
+      startedAt: turns[0]?.ts ?? session.header.startedAt,
+      lastTs: turns.at(-1)?.ts ?? session.header.startedAt,
+      turns,
+    }));
+  }
+
+  /** This store's window rule, applied to one session's turns in file order. */
+  private windowsOf(turns: readonly SessionTurn[]): SessionTurn[][] {
+    return windowSessionTurns(turns, this.windowLimits);
   }
 
   /**
@@ -488,15 +640,83 @@ export class SessionStore {
     return names.filter((name) => NAMESPACE_PATTERN.test(name)).sort();
   }
 
-  list(namespace: string): SessionIndexEntry[] {
+  /**
+   * The namespace's windows, oldest session first and each session's windows in order.
+   *
+   * This is the unit: `sessions list` shows a window's own time range and turn count,
+   * and the reading path ranks one candidate per window. Every entry still carries the
+   * session key, so what a user sees here is what `forget_sessions` takes.
+   *
+   * The summaries come from the index, which the append wrote them into. A session whose
+   * entry predates windowing has none, and its file is windowed here instead — one read
+   * per such session, until the next append records them.
+   */
+  list(namespace: string): SessionWindowEntry[] {
+    return this.listSessions(namespace).flatMap((entry) => {
+      const windows = entry.windows ?? this.windowSummaries(namespace, entry);
+      return windows.map((window) => ({
+        ...window,
+        key: entry.key,
+        windowKey: sessionWindowKey(entry.key, window.window),
+        source: entry.source,
+        windows: windows.length,
+      }));
+    });
+  }
+
+  /** The namespace's whole sessions: one entry per file, as the byte cap counts them. */
+  listSessions(namespace: string): SessionIndexEntry[] {
     assertNamespace(namespace);
     const dir = join(this.root, namespace);
     if (!existsSync(dir)) return [];
     return this.readIndex(dir).sort(byStartedAt);
   }
 
-  deleteSession(namespace: string, key: string): boolean {
+  /** A pre-windowing entry's windows, derived from its file. */
+  private windowSummaries(
+    namespace: string,
+    entry: SessionIndexEntry,
+  ): SessionWindowSummary[] {
+    const session = this.readSessionFile(
+      join(this.root, namespace, `${entry.key}.jsonl`),
+    );
+    return this.summariesOf(session?.turns ?? [], entry.startedAt);
+  }
+
+  /** One session's windows as the index records them. */
+  private summariesOf(
+    turns: readonly SessionTurn[],
+    startedAt: string,
+  ): SessionWindowSummary[] {
+    const grouped = this.windowsOf(turns);
+    // A header with no turn still names a session the user can see and forget, so it
+    // gets one empty window rather than disappearing from the listing.
+    if (grouped.length === 0) {
+      return [
+        { window: 0, startedAt, lastTs: startedAt, turns: 0, bytes: 0 },
+      ];
+    }
+    return grouped.map((window, ordinal) => ({
+      window: ordinal,
+      startedAt: window[0]!.ts,
+      lastTs: window.at(-1)!.ts,
+      turns: window.length,
+      bytes: storedTurnBytes(window),
+    }));
+  }
+
+  /**
+   * Forget one stored conversation: the file, its index entry and every quarantined copy.
+   *
+   * A window id (`<key>#<n>`) forgets the whole session too. Windows are a reading unit
+   * over one append-only file, not files of their own, and the user is handed window ids
+   * by recall: taking one and deleting only part of the conversation would need the file
+   * rewritten, and answering "forget that" with "some of it is still here" is worse than
+   * the plain reading. `forget_sessions` documents the session key for this reason.
+   */
+  deleteSession(namespace: string, id: string): boolean {
     assertNamespace(namespace);
+    const { key } = parseSessionWindowId(id);
     assertSessionKey(key);
     return this.withNamespaceLock(namespace, () => {
       const dir = join(this.root, namespace);
@@ -663,6 +883,9 @@ export class SessionStore {
       lastTs: last?.ts ?? session.header.startedAt,
       turns: session.turns.length,
       bytes: statSync(path).size,
+      // Written at append time, from the turns now on disk. The rule is a left fold, so
+      // an append extends the last window or opens a new one and renumbers nothing.
+      windows: this.summariesOf(session.turns, session.header.startedAt),
     };
   }
 
@@ -674,13 +897,29 @@ export class SessionStore {
         const parsed: unknown = JSON.parse(readFileSync(path, 'utf8'));
         const sessions = (parsed as { sessions?: unknown }).sessions;
         if (Array.isArray(sessions)) {
-          return sessions.filter(
-            (entry): entry is SessionIndexEntry =>
-              typeof entry === 'object' &&
-              entry !== null &&
-              SESSION_KEY_PATTERN.test(String((entry as SessionIndexEntry).key)) &&
-              existsSync(join(dir, `${(entry as SessionIndexEntry).key}.jsonl`)),
-          );
+          return sessions
+            .filter(
+              (entry): entry is SessionIndexEntry =>
+                typeof entry === 'object' &&
+                entry !== null &&
+                SESSION_KEY_PATTERN.test(String((entry as SessionIndexEntry).key)) &&
+                existsSync(join(dir, `${(entry as SessionIndexEntry).key}.jsonl`)),
+            )
+            // An entry whose windows cannot be read — an old index that has none, or a
+            // hand-edited one — keeps everything else it says, and `list` derives its
+            // windows from the file instead of showing a broken time range.
+            .map((entry) =>
+              areWindowSummaries(entry.windows)
+                ? entry
+                : ({
+                    key: entry.key,
+                    source: entry.source,
+                    startedAt: entry.startedAt,
+                    lastTs: entry.lastTs,
+                    turns: entry.turns,
+                    bytes: entry.bytes,
+                  } satisfies SessionIndexEntry),
+            );
         }
       } catch {
         this.log(`rembero sessions: rebuilding an unreadable ${path}`);

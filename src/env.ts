@@ -348,6 +348,88 @@ export function sessionCapBytesFromEnv(
   return parsed;
 }
 
+/**
+ * How a long conversation is cut into the units retrieval ranks and the reader reads.
+ *
+ * A LongMemEval session is about 30 turns and a few kilobytes; one real Claude Code
+ * conversation measured 468 turns and 346 KB over five days. Ranking whole sessions
+ * then has nothing to choose between, and the reading budget keeps whichever 7% of
+ * the file comes first. 40 turns is a little over a LongMemEval session, so the unit
+ * the reader sees is the size the reader was trained on, and six hours splits a
+ * conversation resumed the next morning from the one it continues.
+ */
+export const DEFAULT_SESSION_WINDOW_TURNS = 40;
+export const DEFAULT_SESSION_WINDOW_GAP_MS = 6 * 60 * 60 * 1000;
+/**
+ * And at most 8 KB of turn text, because one turn is not one size. The reading budget is
+ * 24,576 bytes over four sessions, about 6 KB each, and the reader is never shown more
+ * than the first 16,384 characters of a source: a window past that size has a tail
+ * nothing can reach. Measured, a 40-turn window of the real transcript came to 63 KB
+ * around a single 16.8 KB paste, and the sentence that answered the question sat behind
+ * it. A turn larger than this keeps a window to itself rather than being cut.
+ */
+export const DEFAULT_SESSION_WINDOW_BYTES = 8 * 1024;
+/** A window of one turn is no window at all: nothing would ever be read with its neighbours. */
+export const MIN_SESSION_WINDOW_TURNS = 2;
+/** Below a minute a window would break on the pause inside a single exchange. */
+export const MIN_SESSION_WINDOW_GAP_MS = 60 * 1000;
+/** Below a kilobyte nearly every turn would be a window of its own. */
+export const MIN_SESSION_WINDOW_BYTES = 1024;
+
+/** REMBERO_SESSION_WINDOW_TURNS: how many turns one window holds at most. */
+export function sessionWindowTurnsFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): number {
+  const configured = env.REMBERO_SESSION_WINDOW_TURNS;
+  if (configured === undefined) return DEFAULT_SESSION_WINDOW_TURNS;
+  if (!/^\d+$/.test(configured)) {
+    throw new Error('REMBERO_SESSION_WINDOW_TURNS must be an integer');
+  }
+  const parsed = Number(configured);
+  if (!Number.isSafeInteger(parsed) || parsed < MIN_SESSION_WINDOW_TURNS) {
+    throw new Error(
+      `REMBERO_SESSION_WINDOW_TURNS must be at least ${MIN_SESSION_WINDOW_TURNS}`,
+    );
+  }
+  return parsed;
+}
+
+/** REMBERO_SESSION_WINDOW_GAP_MS: the silence that starts a new window. */
+export function sessionWindowGapMsFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): number {
+  const configured = env.REMBERO_SESSION_WINDOW_GAP_MS;
+  if (configured === undefined) return DEFAULT_SESSION_WINDOW_GAP_MS;
+  if (!/^\d+$/.test(configured)) {
+    throw new Error('REMBERO_SESSION_WINDOW_GAP_MS must be an integer');
+  }
+  const parsed = Number(configured);
+  if (!Number.isSafeInteger(parsed) || parsed < MIN_SESSION_WINDOW_GAP_MS) {
+    throw new Error(
+      `REMBERO_SESSION_WINDOW_GAP_MS must be at least ${MIN_SESSION_WINDOW_GAP_MS}`,
+    );
+  }
+  return parsed;
+}
+
+/** REMBERO_SESSION_WINDOW_BYTES: how much turn text one window holds at most. */
+export function sessionWindowBytesFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): number {
+  const configured = env.REMBERO_SESSION_WINDOW_BYTES;
+  if (configured === undefined) return DEFAULT_SESSION_WINDOW_BYTES;
+  if (!/^\d+$/.test(configured)) {
+    throw new Error('REMBERO_SESSION_WINDOW_BYTES must be an integer');
+  }
+  const parsed = Number(configured);
+  if (!Number.isSafeInteger(parsed) || parsed < MIN_SESSION_WINDOW_BYTES) {
+    throw new Error(
+      `REMBERO_SESSION_WINDOW_BYTES must be at least ${MIN_SESSION_WINDOW_BYTES}`,
+    );
+  }
+  return parsed;
+}
+
 export function entityIdentityFromEnv(
   env: NodeJS.ProcessEnv = process.env,
 ): EntityIdentityMode | undefined {
