@@ -179,6 +179,81 @@ describe('session store', () => {
     expect(owner.deleteSession('default', key)).toBe(false);
   });
 
+  it('forgets the quarantined copy with the session, not only the live file', () => {
+    // `forget` is a privacy promise. A quarantined <key>.jsonl.corrupt holds the very
+    // turns the user asked to be gone, is invisible to `sessions list`, and is not
+    // counted by the cap, so unlinking only <key>.jsonl left a readable copy behind.
+    const root = mkdtempSync(join(tmpdir(), 'rembero-sessions-del-corrupt-'));
+    const owner = new SessionStore({ root, capBytes: 1024 * 1024, log: () => {} });
+    owner.appendTurns('default', header, [
+      { role: 'user', ts: '2026-09-18T00:00:00.000Z', text: 'my address is 11 Vine Lane' },
+    ]);
+    const key = owner.sessionKey('claude-code', 'abc');
+    const path = join(root, 'default', `${key}.jsonl`);
+    // tear the header so the next append quarantines the file
+    writeFileSync(path, `{"version":1,"source":"claude-c\n`);
+    owner.appendTurns('default', header, [
+      { role: 'user', ts: '2026-09-18T00:00:01.000Z', text: 'after the tear' },
+    ]);
+    expect(existsSync(`${path}.corrupt`)).toBe(true);
+
+    expect(owner.deleteSession('default', key)).toBe(true);
+    expect(existsSync(path)).toBe(false);
+    expect(existsSync(`${path}.corrupt`)).toBe(false);
+  });
+
+  it('suffixes a second quarantine rather than overwriting the first', () => {
+    // The first tear's turns must not be destroyed by the second tear, nor left with
+    // no name of their own: each quarantined copy keeps its own file, and `forget`
+    // removes every one of them.
+    const root = mkdtempSync(join(tmpdir(), 'rembero-sessions-requarantine-'));
+    const owner = new SessionStore({ root, capBytes: 1024 * 1024, log: () => {} });
+    const key = owner.sessionKey('claude-code', 'abc');
+    const path = join(root, 'default', `${key}.jsonl`);
+    for (const text of ['first tear', 'second tear']) {
+      owner.appendTurns('default', header, [
+        { role: 'user', ts: '2026-09-18T00:00:00.000Z', text },
+      ]);
+      writeFileSync(path, `{"version":1,"source":"claude-c\n`);
+      owner.appendTurns('default', header, [
+        { role: 'user', ts: '2026-09-18T00:00:01.000Z', text: `after ${text}` },
+      ]);
+    }
+    expect(existsSync(`${path}.corrupt`)).toBe(true);
+    expect(existsSync(`${path}.corrupt.1`)).toBe(true);
+
+    expect(owner.deleteSession('default', key)).toBe(true);
+    expect(existsSync(`${path}.corrupt`)).toBe(false);
+    expect(existsSync(`${path}.corrupt.1`)).toBe(false);
+  });
+
+  it('drops a quarantined copy with the session the cap evicts', () => {
+    const root = mkdtempSync(join(tmpdir(), 'rembero-sessions-cap-corrupt-'));
+    const owner = new SessionStore({ root, capBytes: 1024 * 1024, log: () => {} });
+    const old = { ...header, sourceSessionId: 'old', startedAt: '2026-09-01T00:00:00.000Z' };
+    owner.appendTurns('default', old, [
+      { role: 'user', ts: '2026-09-01T00:00:00.000Z', text: 'x'.repeat(300) },
+    ]);
+    const oldKey = owner.sessionKey('claude-code', 'old');
+    const oldPath = join(root, 'default', `${oldKey}.jsonl`);
+    writeFileSync(oldPath, `{"version":1,"source":"claude-c\n`);
+    owner.appendTurns('default', old, [
+      { role: 'user', ts: '2026-09-01T00:00:01.000Z', text: 'x'.repeat(300) },
+    ]);
+    expect(existsSync(`${oldPath}.corrupt`)).toBe(true);
+
+    // now shrink the cap and write a newer session, so the old one is evicted
+    const tight = new SessionStore({ root, capBytes: 400, log: () => {} });
+    const result = tight.appendTurns(
+      'default',
+      { ...header, sourceSessionId: 'new', startedAt: '2026-09-18T00:00:00.000Z' },
+      [{ role: 'user', ts: '2026-09-18T00:00:00.000Z', text: 'y'.repeat(300) }],
+    );
+    expect(result.dropped).toEqual([oldKey]);
+    expect(existsSync(oldPath)).toBe(false);
+    expect(existsSync(`${oldPath}.corrupt`)).toBe(false);
+  });
+
   it('deletes a whole namespace and reports how many sessions went', () => {
     const root = mkdtempSync(join(tmpdir(), 'rembero-sessions-ns-'));
     const owner = new SessionStore({ root, capBytes: 1024 * 1024 });

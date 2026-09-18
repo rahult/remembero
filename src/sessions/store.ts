@@ -30,6 +30,17 @@ const NAMESPACE_PATTERN = /^[a-z0-9_-]+$/;
 /** A session key is the first 32 hex characters of a digest, so no id can escape the directory. */
 const SESSION_KEY_PATTERN = /^[0-9a-f]{32}$/;
 const INDEX_FILE = 'index.json';
+/** What an unreadable session file is renamed to, plus `.1`, `.2`, … when one is taken. */
+const QUARANTINE_SUFFIX = '.corrupt';
+/** Numbered suffixes tried before falling back to a random one, so the search is bounded. */
+const MAX_QUARANTINE_SUFFIXES = 1_000;
+/** `<key>.jsonl.corrupt`, `<key>.jsonl.corrupt.7`, `<key>.jsonl.corrupt.<uuid>`. */
+function quarantinedName(key: string, name: string): boolean {
+  return (
+    name === `${key}.jsonl${QUARANTINE_SUFFIX}` ||
+    name.startsWith(`${key}.jsonl${QUARANTINE_SUFFIX}.`)
+  );
+}
 
 // The same lock discipline as the fact store's `withLock` (src/store/store.ts): a
 // `wx` create for the lock, the owner's pid inside it, and an age-plus-liveness
@@ -460,7 +471,11 @@ export class SessionStore {
     return this.withNamespaceLock(namespace, () => {
       const dir = join(this.root, namespace);
       const path = join(dir, `${key}.jsonl`);
-      if (!existsSync(path)) return false;
+      // A quarantined sibling can outlive the live file, so the copies are removed
+      // whether or not <key>.jsonl is still there: forgetting must leave nothing
+      // readable, and `sessions list` never showed these to say they were there.
+      const quarantined = this.unlinkQuarantined(dir, key);
+      if (!existsSync(path)) return quarantined;
       unlinkSync(path);
       this.writeIndex(
         dir,
@@ -547,9 +562,25 @@ export class SessionStore {
     return undefined;
   }
 
-  /** Move an unreadable file aside so a fresh session can take its place. */
+  /**
+   * Move an unreadable file aside so a fresh session can take its place.
+   *
+   * A second tear must not overwrite the first quarantined copy: those turns are the
+   * user's, they are all that is left of them, and destroying them silently is the one
+   * thing quarantine exists to avoid. So the name is suffixed until it is free. The
+   * search is bounded — a namespace that has somehow torn a thousand times gets a
+   * random name rather than an unbounded loop — and `deleteSession` removes every
+   * suffix, so a forgotten session leaves none of them behind.
+   */
   private quarantine(path: string, reason: string): void {
-    const target = `${path}.corrupt`;
+    let target = `${path}${QUARANTINE_SUFFIX}`;
+    for (let attempt = 1; existsSync(target); attempt += 1) {
+      if (attempt >= MAX_QUARANTINE_SUFFIXES) {
+        target = `${path}${QUARANTINE_SUFFIX}.${randomUUID()}`;
+        break;
+      }
+      target = `${path}${QUARANTINE_SUFFIX}.${attempt}`;
+    }
     renameSync(path, target);
     this.log(
       `rembero sessions: quarantined ${path} as ${target} because ${reason}; ` +
@@ -572,6 +603,8 @@ export class SessionStore {
         .sort(byStartedAt)) {
         if (total <= this.capBytes) break;
         this.unlinkIfPresent(join(dir, `${candidate.key}.jsonl`));
+        // the same reasoning as deleteSession: an evicted session leaves no readable copy
+        this.unlinkQuarantined(dir, candidate.key);
         total -= candidate.bytes;
         dropped.add(candidate.key);
         this.log(
@@ -733,6 +766,24 @@ export class SessionStore {
         if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
       }
     }
+  }
+
+  /** Remove every quarantined copy of one session. True when there was at least one. */
+  private unlinkQuarantined(dir: string, key: string): boolean {
+    let removed = false;
+    let names: string[];
+    try {
+      names = readdirSync(dir);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return false;
+      throw error;
+    }
+    for (const name of names) {
+      if (!quarantinedName(key, name)) continue;
+      this.unlinkIfPresent(join(dir, name));
+      removed = true;
+    }
+    return removed;
   }
 
   private unlinkIfPresent(path: string): void {
