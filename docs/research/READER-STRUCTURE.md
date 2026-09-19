@@ -806,3 +806,29 @@ is treated as no answer rather than presented to a user with the reader's workin
 scores therefore overstate the product slightly for that class of reply, which is the right direction
 for a product to err.
 
+## What the product smoke test taught us (2026-09-19)
+
+The plan's last step imported a real Claude Code transcript (468 turns, 346 KB of stored text, five
+days, 81 user turns against 387 assistant turns) into a scratch namespace and asked reader v7,
+served locally, through the product's own `recall --answer-mode sessions`. Both questions came back
+`unknown` although 35 stored turns named the H100 the first question asked about. Two causes, both
+about the shape of a real conversation rather than the reader:
+
+1. **A Claude Code session is one retrieval unit of 346 KB**, where a LongMemEval session is a few
+   KB. The 24,576-byte reading budget therefore kept the session's first 7%, its continuation
+   summary. Sessions are now split into windows (40 turns, a six-hour gap, or 8 KB of text,
+   whichever comes first): 33 windows for that transcript, which retrieval can rank against each
+   other. `forget_sessions` by session key still removes every window.
+2. **The substance lives in the assistant's turns.** LongMemEval states its facts in user turns, so
+   the harness shows the reader user turns unless the question asks what the assistant said. In a
+   coding transcript that rule hid almost everything: 13 KB of user turns with no mention of the
+   H100. Windows from captured or imported transcripts now render both roles; chat and `remember`
+   sessions keep the harness's rule.
+
+After both changes the first question answers with the right GPU. The second still answers wrongly:
+the turn holding the conclusion sits in the window ranked seventh, and the product reads the top
+four, so the reader summarises the plan instead of the outcome. At depth 8 the conclusion is in the
+prompt. Depth against the 24 KB budget is a measured trade-off, not a guess, so it is the next arm
+rather than a patch. The reader itself behaved correctly throughout: before windowing it said it did
+not know instead of inventing an answer.
+
