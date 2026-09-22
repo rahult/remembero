@@ -1,0 +1,532 @@
+{
+  "corpus": "xl-docbench-page-tiers",
+  "ranAt": "2026-09-22T15:10:42.448Z",
+  "writer": "qwen2.5-coder:7b",
+  "judge": "deepseek-chat",
+  "results": [
+    {
+      "tier": "100p",
+      "document": "doc_000156",
+      "pages": 108,
+      "summary": {
+        "pagesSampled": 23,
+        "evidencePagesSampled": 15,
+        "facts": 0,
+        "factsPerPage": 0,
+        "pagesWithNoFacts": 23,
+        "extractionErrors": 0,
+        "factsJudged": 0,
+        "precision": 0,
+        "questionsScored": 10,
+        "recall": 0
+      },
+      "coverage": [
+        {
+          "questionId": "adubench_single_000303",
+          "evidencePages": [
+            24,
+            29,
+            34,
+            35
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000304",
+          "evidencePages": [
+            77
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000305",
+          "evidencePages": [
+            25,
+            26
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000306",
+          "evidencePages": [
+            6,
+            15
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000307",
+          "evidencePages": [
+            6,
+            94,
+            95
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000308",
+          "evidencePages": [
+            70
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000309",
+          "evidencePages": [
+            78
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000991",
+          "evidencePages": [
+            6,
+            29
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000992",
+          "evidencePages": [
+            6,
+            79,
+            81
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000993",
+          "evidencePages": [
+            6,
+            94,
+            95
+          ],
+          "facts": 0,
+          "answered": false
+        }
+      ],
+      "verdicts": [],
+      "perPage": [
+        {
+          "page": 1,
+          "facts": []
+        },
+        {
+          "page": 6,
+          "facts": []
+        },
+        {
+          "page": 14,
+          "facts": []
+        },
+        {
+          "page": 15,
+          "facts": []
+        },
+        {
+          "page": 24,
+          "facts": []
+        },
+        {
+          "page": 25,
+          "facts": []
+        },
+        {
+          "page": 26,
+          "facts": []
+        },
+        {
+          "page": 27,
+          "facts": []
+        },
+        {
+          "page": 29,
+          "facts": []
+        },
+        {
+          "page": 34,
+          "facts": []
+        },
+        {
+          "page": 35,
+          "facts": []
+        },
+        {
+          "page": 40,
+          "facts": []
+        },
+        {
+          "page": 53,
+          "facts": []
+        },
+        {
+          "page": 66,
+          "facts": []
+        },
+        {
+          "page": 70,
+          "facts": []
+        },
+        {
+          "page": 77,
+          "facts": []
+        },
+        {
+          "page": 78,
+          "facts": []
+        },
+        {
+          "page": 79,
+          "facts": []
+        },
+        {
+          "page": 81,
+          "facts": []
+        },
+        {
+          "page": 92,
+          "facts": []
+        },
+        {
+          "page": 94,
+          "facts": []
+        },
+        {
+          "page": 95,
+          "facts": []
+        },
+        {
+          "page": 105,
+          "facts": []
+        }
+      ]
+    },
+    {
+      "tier": "500p",
+      "document": "doc_000175",
+      "pages": 514,
+      "summary": {
+        "pagesSampled": 20,
+        "evidencePagesSampled": 12,
+        "facts": 0,
+        "factsPerPage": 0,
+        "pagesWithNoFacts": 19,
+        "extractionErrors": 1,
+        "factsJudged": 0,
+        "precision": 0,
+        "questionsScored": 10,
+        "recall": 0
+      },
+      "coverage": [
+        {
+          "questionId": "adubench_single_000339",
+          "evidencePages": [
+            11,
+            12,
+            77
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000340",
+          "evidencePages": [
+            141,
+            169
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000341",
+          "evidencePages": [
+            11,
+            146
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000342",
+          "evidencePages": [
+            12
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000343",
+          "evidencePages": [
+            165
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000344",
+          "evidencePages": [
+            12,
+            13,
+            21,
+            22,
+            77
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000345",
+          "evidencePages": [
+            22,
+            148
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_001020",
+          "evidencePages": [
+            141
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_001021",
+          "evidencePages": [
+            77
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_001023",
+          "evidencePages": [
+            14,
+            77
+          ],
+          "facts": 0,
+          "answered": false
+        }
+      ],
+      "verdicts": [],
+      "perPage": [
+        {
+          "page": 1,
+          "facts": []
+        },
+        {
+          "page": 11,
+          "facts": []
+        },
+        {
+          "page": 12,
+          "facts": []
+        },
+        {
+          "page": 13,
+          "facts": []
+        },
+        {
+          "page": 14,
+          "facts": []
+        },
+        {
+          "page": 21,
+          "facts": []
+        },
+        {
+          "page": 22,
+          "facts": []
+        },
+        {
+          "page": 65,
+          "facts": []
+        },
+        {
+          "page": 77,
+          "facts": []
+        },
+        {
+          "page": 129,
+          "facts": []
+        },
+        {
+          "page": 141,
+          "facts": []
+        },
+        {
+          "page": 146,
+          "facts": []
+        },
+        {
+          "page": 148,
+          "facts": []
+        },
+        {
+          "page": 165,
+          "facts": []
+        },
+        {
+          "page": 169,
+          "facts": []
+        },
+        {
+          "page": 193,
+          "facts": []
+        },
+        {
+          "page": 257,
+          "facts": []
+        },
+        {
+          "page": 321,
+          "facts": []
+        },
+        {
+          "page": 385,
+          "facts": [],
+          "error": "refusing to send sensitive memory text to the external LLM"
+        },
+        {
+          "page": 449,
+          "facts": []
+        }
+      ]
+    },
+    {
+      "tier": "1000p",
+      "document": "doc_000120",
+      "pages": 708,
+      "summary": {
+        "pagesSampled": 12,
+        "evidencePagesSampled": 4,
+        "facts": 0,
+        "factsPerPage": 0,
+        "pagesWithNoFacts": 12,
+        "extractionErrors": 0,
+        "factsJudged": 0,
+        "precision": 0,
+        "questionsScored": 6,
+        "recall": 0
+      },
+      "coverage": [
+        {
+          "questionId": "adubench_single_000228",
+          "evidencePages": [
+            19,
+            20
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000229",
+          "evidencePages": [
+            21,
+            22
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000230",
+          "evidencePages": [
+            20
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000231",
+          "evidencePages": [
+            21
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000232",
+          "evidencePages": [
+            19,
+            20,
+            21,
+            22
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000916",
+          "evidencePages": [
+            19,
+            20,
+            22
+          ],
+          "facts": 0,
+          "answered": false
+        }
+      ],
+      "verdicts": [],
+      "perPage": [
+        {
+          "page": 1,
+          "facts": []
+        },
+        {
+          "page": 19,
+          "facts": []
+        },
+        {
+          "page": 20,
+          "facts": []
+        },
+        {
+          "page": 21,
+          "facts": []
+        },
+        {
+          "page": 22,
+          "facts": []
+        },
+        {
+          "page": 89,
+          "facts": []
+        },
+        {
+          "page": 177,
+          "facts": []
+        },
+        {
+          "page": 265,
+          "facts": []
+        },
+        {
+          "page": 353,
+          "facts": []
+        },
+        {
+          "page": 441,
+          "facts": []
+        },
+        {
+          "page": 529,
+          "facts": []
+        },
+        {
+          "page": 617,
+          "facts": []
+        }
+      ]
+    }
+  ]
+}

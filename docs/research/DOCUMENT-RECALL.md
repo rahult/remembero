@@ -79,6 +79,17 @@ Reader: `deepseek-chat` throughout, so only retrieval changes between rows.
 | depth 12 | 2.3% / 31.8% | 14.9% / 36.2% | 7.4% / 29.6% |
 | **oracle pages** (gold pages handed over) | **13.3% / 40.0%** | **21.3% / 46.8%** | **36.7% / 60.0%** |
 
+The local reader shows the same shape, and its ceiling is no lower:
+
+| arm (local v7 Q4) | 100p rule / judge | 500p rule / judge | 1000p rule / judge |
+| --- | --- | --- | --- |
+| depth 4 | 6.7% / 11.1% | 14.9% / 31.9% | 10.3% / 27.6% |
+| **oracle pages** | **6.7% / 33.3%** | **27.7% / 55.3%** | **26.7% / 33.3%** |
+
+On the 500-page tier the local model's ceiling (27.7% / 55.3%) is *above* the cloud model's
+(21.3% / 46.8%), and it answers an oracle question in 9–15 seconds rather than 20 — a short
+prompt of exactly the right pages is the case a small fine-tuned reader is good at.
+
 Page-level retrieval behind those rows:
 
 | arm | 100p hit / recall | 500p hit / recall | 1000p hit / recall |
@@ -134,6 +145,18 @@ stores is not what was asked**, and for two separate reasons:
 - On the 500-page document, 8 of 10 questions *did* have facts from their evidence pages — 24 to
   33 of them — and still none contained the answer. The questions are comparisons ("which
   standard appears in X but not Y"), and extraction is not question-aware.
+
+**The local writer extracts nothing at all.** `qwen2.5-coder:7b` — the local writer that scores
+81.6% on the repo's own extraction bench — returns the NOTHING sentinel (`% nothing`) on every
+sampled page of all three documents, including pages where `deepseek-chat` extracts 7 to 25
+supported facts. Verified by calling it directly with `extractionSystemPrompt`: it declines, it is
+not being rejected by the write-side guards. So on this evidence the local stack can *read* a
+thousand-page document (Result 1) but cannot *remember* one.
+
+| writer | facts/page (100p / 500p / 1000p) | precision |
+| --- | --- | --- |
+| deepseek-chat | 0.9 / 6.5 / 2.2 | 81% / 95% / 100% |
+| qwen2.5-coder:7b (local) | 0 / 0 / 0 | n/a |
 
 A separate negative result worth keeping: pointed at document prose, the **autocapture writer
 extracts nothing at all** — zero facts on every page of all three documents, no errors. That is
