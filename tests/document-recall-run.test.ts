@@ -175,7 +175,8 @@ describe('evaluateDocumentTier', () => {
       windowBytes: 12 * 1024,
       concurrency: 1,
     });
-    expect(result.outcomes[0]!.readerTokens).toEqual({ prompt: 10, completion: 5 });
+    expect(result.outcomes[0]!.readerTokens).toEqual({ prompt: 10, completion: 5, reasoning: 0 });
+    expect(result.outcomes[0]!.retrievalMs).toBeGreaterThanOrEqual(0);
   });
 });
 

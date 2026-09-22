@@ -114,7 +114,15 @@ export interface QuestionOutcome {
   latencyMs: number;
   contextBytes: number;
   /** What the read cost, so a tier's price per answer can be reported alongside its accuracy. */
-  readerTokens?: { prompt: number; completion: number };
+  readerTokens?: { prompt: number; completion: number; reasoning?: number };
+  /**
+   * Dollars for the read: what the endpoint reported (OpenRouter does), else the tokens priced at
+   * the caller's rate, else undefined. A local reader priced at zero is zero, not unknown.
+   */
+  readerCostUsd?: number;
+  /** Where the time went: ranking the pages, and the reader producing its answer. */
+  retrievalMs?: number;
+  readerMs?: number;
 }
 
 export interface TierSummary {
@@ -141,6 +149,19 @@ export interface TierSummary {
   /** XL-DocBench's secondary diagnostics over the same answers. */
   meanTokenF1: number;
   meanAnls: number;
+  /** The speed lens: time to rank pages versus time to read them, and the tail. */
+  meanRetrievalMs: number;
+  meanReaderMs: number;
+  p50LatencyMs: number;
+  p95LatencyMs: number;
+  /** The cost lens: tokens per answer and dollars per answer, where the price is known. */
+  meanPromptTokens: number;
+  meanCompletionTokens: number;
+  meanReasoningTokens: number;
+  costPerAnswerUsd?: number;
+  totalCostUsd?: number;
+  /** Dollars per correct answer by the judge (else the rule): what one right answer costs. */
+  costPerCorrectUsd?: number;
   /** Judge accuracy over the questions a judge saw, when one was asked. */
   judgedAccuracy?: number;
   judgedQuestions: number;
@@ -155,6 +176,16 @@ export function summariseTier(
   const answerable = outcomes.filter((outcome) => outcome.question.answer !== null);
   const unanswerable = outcomes.filter((outcome) => outcome.question.answer === null);
   const judged = outcomes.filter((outcome) => outcome.judged !== undefined);
+  const latencies = outcomes.map((o) => o.latencyMs).sort((a, b) => a - b);
+  const quantile = (q: number) =>
+    latencies.length === 0 ? 0 : latencies[Math.min(latencies.length - 1, Math.floor(q * latencies.length))]!;
+  const priced = outcomes.filter((o) => o.readerCostUsd !== undefined);
+  const totalCost = priced.length === outcomes.length && outcomes.length > 0
+    ? priced.reduce((sum, o) => sum + o.readerCostUsd!, 0)
+    : undefined;
+  const rightAnswers = judged.length > 0
+    ? judged.filter((o) => o.judged === true).length
+    : outcomes.filter((o) => o.correct).length;
   const mean = (values: number[]) => (values.length === 0 ? 0 : values.reduce((a, b) => a + b, 0) / values.length);
   return {
     tier: tier.tier,
@@ -172,6 +203,20 @@ export function summariseTier(
     falseAnswerRate: unanswerable.length === 0 ? 0 : unanswerable.filter((o) => !o.abstained).length / unanswerable.length,
     meanLatencyMs: mean(outcomes.map((o) => o.latencyMs)),
     meanContextBytes: mean(outcomes.map((o) => o.contextBytes)),
+    meanRetrievalMs: mean(outcomes.map((o) => o.retrievalMs ?? 0)),
+    meanReaderMs: mean(outcomes.map((o) => o.readerMs ?? 0)),
+    p50LatencyMs: quantile(0.5),
+    p95LatencyMs: quantile(0.95),
+    meanPromptTokens: mean(outcomes.map((o) => o.readerTokens?.prompt ?? 0)),
+    meanCompletionTokens: mean(outcomes.map((o) => o.readerTokens?.completion ?? 0)),
+    meanReasoningTokens: mean(outcomes.map((o) => o.readerTokens?.reasoning ?? 0)),
+    ...(totalCost === undefined
+      ? {}
+      : {
+          totalCostUsd: totalCost,
+          costPerAnswerUsd: totalCost / outcomes.length,
+          ...(rightAnswers === 0 ? {} : { costPerCorrectUsd: totalCost / rightAnswers }),
+        }),
     meanTokenF1: mean(answerable.map((o) => o.tokenF1)),
     meanAnls: mean(answerable.map((o) => o.anls)),
     ...(judged.length === 0 ? {} : { judgedAccuracy: judged.filter((o) => o.judged === true).length / judged.length }),

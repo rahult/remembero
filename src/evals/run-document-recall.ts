@@ -79,6 +79,7 @@ interface Args {
   concurrency: number;
   limitPerDocument?: number;
   oraclePages: boolean;
+  price?: { inputPerMillion: number; outputPerMillion: number };
   output?: string;
   predictions?: string;
 }
@@ -120,6 +121,15 @@ function parseArgs(argv: string[]): Args {
       case '--concurrency': args.concurrency = Number(value()); break;
       case '--limit-per-document': args.limitPerDocument = Number(value()); break;
       case '--oracle-pages': args.oraclePages = true; break;
+      case '--reader-price': {
+        // "IN,OUT" dollars per million tokens, for an endpoint that reports no cost; 0,0 for local
+        const [input, output] = value().split(',').map(Number);
+        if (!Number.isFinite(input) || !Number.isFinite(output)) {
+          throw new Error('--reader-price takes IN,OUT dollars per million tokens, e.g. 0.28,0.42');
+        }
+        args.price = { inputPerMillion: input!, outputPerMillion: output! };
+        break;
+      }
       case '--output': args.output = value(); break;
       case '--predictions': args.predictions = value(); break;
       default: throw new Error(`unknown flag: ${flag}`);
@@ -320,6 +330,9 @@ async function main(): Promise<void> {
         latencyMs: Math.round(outcome.latencyMs),
         contextBytes: outcome.contextBytes,
         readerTokens: outcome.readerTokens,
+        readerCostUsd: outcome.readerCostUsd,
+        retrievalMs: Math.round(outcome.retrievalMs ?? 0),
+        readerMs: Math.round(outcome.readerMs ?? 0),
       })),
     });
     console.log(
@@ -358,6 +371,7 @@ async function main(): Promise<void> {
           judge: judge?.model ?? null,
           settings: {
             oraclePages: args.oraclePages,
+            price: args.price ?? null,
             topK: args.topK,
             contextBytes: args.contextBytes,
             pagesPerWindow: args.pagesPerWindow,
@@ -389,6 +403,7 @@ async function runOne(
     windowBytes: args.windowBytes,
     concurrency: args.concurrency,
     ...(args.oraclePages ? { oraclePages: true } : {}),
+    ...(args.price === undefined ? {} : { price: args.price }),
     ...(args.maxTokens === undefined ? {} : { maxTokens: args.maxTokens }),
     onQuestion: (outcome, index, total) => {
       const mark = outcome.correct ? 'ok  ' : 'MISS';

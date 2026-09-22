@@ -184,3 +184,56 @@ describe('summariseTier', () => {
     expect(summary.answerableAccuracy).toBe(0);
   });
 });
+
+describe('summariseTier cost and speed', () => {
+  const tier = { tier: '100p', pages: 100, members: [], questions: [] };
+  const base = (id: string, overrides: Partial<QuestionOutcome>): QuestionOutcome => ({
+    question: { id, question: 'q', answer: 'a', evidencePages: [1], sourceDocument: 'd' },
+    retrieval: scoreRetrieval([{ id: 'pages-0001-0001' }], [1]),
+    answer: 'a',
+    correct: true,
+    correctLocale: true,
+    tokenF1: 1,
+    anls: 1,
+    abstained: false,
+    latencyMs: 1_000,
+    contextBytes: 1_000,
+    ...overrides,
+  });
+
+  it('prices answers, and a right answer, when every read is priced', () => {
+    const summary = summariseTier(tier, 1, [
+      base('a', { readerCostUsd: 0.01, judged: true, readerTokens: { prompt: 1000, completion: 100, reasoning: 40 } }),
+      base('b', { readerCostUsd: 0.03, judged: false, readerTokens: { prompt: 3000, completion: 300, reasoning: 0 } }),
+    ]);
+    expect(summary.totalCostUsd).toBeCloseTo(0.04);
+    expect(summary.costPerAnswerUsd).toBeCloseTo(0.02);
+    expect(summary.costPerCorrectUsd).toBeCloseTo(0.04);
+    expect(summary.meanPromptTokens).toBe(2000);
+    expect(summary.meanReasoningTokens).toBe(20);
+  });
+
+  it('reports no cost rather than a wrong one when a read is unpriced', () => {
+    const summary = summariseTier(tier, 1, [base('a', { readerCostUsd: 0.01 }), base('b', {})]);
+    expect(summary.totalCostUsd).toBeUndefined();
+    expect(summary.costPerAnswerUsd).toBeUndefined();
+  });
+
+  it('treats a local reader priced at zero as free, not unknown', () => {
+    const summary = summariseTier(tier, 1, [base('a', { readerCostUsd: 0 })]);
+    expect(summary.costPerAnswerUsd).toBe(0);
+  });
+
+  it('splits retrieval from reading and reports the latency tail', () => {
+    const summary = summariseTier(
+      tier,
+      1,
+      [1, 2, 3, 4, 20].map((seconds, index) =>
+        base(String(index), { latencyMs: seconds * 1000, retrievalMs: 500, readerMs: seconds * 1000 - 500 }),
+      ),
+    );
+    expect(summary.meanRetrievalMs).toBe(500);
+    expect(summary.p50LatencyMs).toBe(3000);
+    expect(summary.p95LatencyMs).toBe(20000);
+  });
+});

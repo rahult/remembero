@@ -175,3 +175,50 @@ path that reaches its own autocapture.
   reading. This flatters every no-retrieval baseline and understates what retrieval contributes.
 - **The local reader runs at Q4_K_M**, requantised from the Q8 GGUF, because the 8 GB Q8 model
   loads on a 16 GB machine but fails at compute against the Metal wired-memory limit.
+
+## Result 4: GPT-5.6 Sol, and the cost and speed lens (2026-09-23)
+
+`openai/gpt-5.6-sol` via OpenRouter ($2 / $10 per M tokens, measured cost from the endpoint),
+same retrieval, same questions, judge `deepseek-chat`. Costs for the other arms are their saved
+token counts priced at DeepSeek's off-peak Flash rate ($0.15 / $0.60 per M, the runs were
+off-peak) and $0 marginal for the local model. `benchmarks/document-recall/summarise.mjs` prints
+the full table.
+
+| reader, arm | judge 100p / 500p / 1000p | $ per answer | $ per right answer | p50 / p95 latency |
+| --- | --- | --- | --- | --- |
+| local v7 Q4, depth 4 | 11.1 / 31.9 / 27.6% | $0 | $0 | 16–23s / 34–39s |
+| deepseek, depth 12 | 31.8 / 36.2 / 29.6% | $0.0013 | $0.0035–0.0042 | 1.3–1.9s / 3s |
+| **Sol, depth 12** | **43.2 / 59.6 / 51.9%** | $0.020–0.022 | $0.034–0.051 | 5.3–6.0s / 12–17s |
+| Sol, oracle pages | 62.2 / 70.2 / 70.0% | $0.005–0.008 | $0.007–0.012 | 4.0–4.6s / 7–15s |
+| deepseek, oracle pages | 40.0 / 46.8 / 60.0% | $0.0003–0.0004 | $0.0005–0.0011 | ~1s / 2s |
+
+By the benchmark's strict rule Sol at depth 12 scores 20.5 / 29.8 / 22.2% and at oracle
+24.4 / 34.0 / 46.7% — the 1000-page oracle figure is past the published whole-document
+baselines (39.5–44.0%). Total spend for the three Sol arms: $4.69.
+
+What the lens shows:
+
+- **With a strong reader the reader matters again.** At depth 12 Sol beats deepseek by 11–23
+  judge points on the same pages. Retrieval still costs Sol a quarter of its ceiling at 100 and
+  1000 pages (43 of 62, 52 of 70) and a seventh at 500 (60 of 70).
+- **Precision is a cost lever, not only an accuracy one.** Sol's oracle prompt is 6–15 KB
+  against 37–44 KB at depth 12, so the right pages are both more accurate *and* three to four
+  times cheaper per answer. Every point of window precision is money.
+- **Ranking time grows with the document** (0.1s, 0.4s, 0.8s per question at 100, 500, 1000
+  pages) because the harness re-indexes per question. The product should index a document once.
+- **Sol never declines.** It answered every unanswerable question on the 100 and 500-page tiers.
+  Only 11 such questions exist, so the rate is imprecise, but the direction is consistent.
+
+### Routing, replayed offline (`benchmarks/document-recall/cascade.mjs`)
+
+A cascade answers with a cheap reader and escalates to Sol only when the cheap one declines.
+Replayed from the saved per-question records, no new calls:
+
+| cascade | judge 100p / 500p / 1000p | $ per question | vs Sol alone |
+| --- | --- | --- | --- |
+| deepseek d12 → Sol d12 | 47.7 / 59.6 / 40.7% | $0.011–0.015 | equal or better on 100p/500p at ~55–70% of the cost; worse on 1000p |
+| local d4 → Sol d12 | 13.6 / 36.2 / 44.4% | $0.002–0.009 | cheap, but the local model rarely declines — it answers wrongly instead |
+
+The cascade only works when the cheap reader knows when it doesn't know. The local reader
+escalates 9–41% of questions while getting 68–89% wrong, so its miscalibration, not its
+accuracy, is what blocks the zero-cost path.

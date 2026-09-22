@@ -103,6 +103,8 @@ export interface DocumentRecallOptions {
    * retrieval's fault?". A tier's oracle accuracy bounds its real accuracy from above.
    */
   oraclePages?: boolean;
+  /** Dollars per million tokens, for an endpoint that does not report its own cost. */
+  price?: { inputPerMillion: number; outputPerMillion: number };
   concurrency: number;
   /** Called after each question so a long tier reports progress as it goes. */
   onQuestion?: (outcome: QuestionOutcome, index: number, total: number) => void;
@@ -175,7 +177,9 @@ export async function evaluateDocumentQuestion(
       : (await retrieveSessions(question.question, askedAt, sessions, retrieval)).chosen
           .map((id) => byId.get(id))
           .filter((session): session is RetrievableSession => session !== undefined);
+  const retrievalMs = performance.now() - started;
   const prompt = buildReadingPrompt(question.question, askedAt, chosenSessions, retrieval);
+  const readStarted = performance.now();
   const completion = await options.reader.completeWithUsage(
     [
       { role: 'system', content: prompt.system },
@@ -184,7 +188,15 @@ export async function evaluateDocumentQuestion(
     options.maxTokens === undefined ? {} : { maxTokens: options.maxTokens },
   );
   const answer = finalAnswerLine(completion.content);
+  const readerMs = performance.now() - readStarted;
   const latencyMs = performance.now() - started;
+  const promptTokens = completion.usage?.promptTokens ?? 0;
+  const completionTokens = completion.usage?.completionTokens ?? 0;
+  const readerCostUsd =
+    completion.usage?.costUsd ??
+    (options.price === undefined
+      ? undefined
+      : (promptTokens * options.price.inputPerMillion + completionTokens * options.price.outputPerMillion) / 1e6);
 
   const answerType = xlAnswerType(question.answerFormat, question.verificationRule);
   const scored = scoreAgainstXlDocBench(answer, question.answer ?? '', answerType);
@@ -212,9 +224,13 @@ export async function evaluateDocumentQuestion(
     latencyMs,
     contextBytes: Buffer.byteLength(prompt.user, 'utf8'),
     readerTokens: {
-      prompt: completion.usage?.promptTokens ?? 0,
-      completion: completion.usage?.completionTokens ?? 0,
+      prompt: promptTokens,
+      completion: completionTokens,
+      reasoning: completion.usage?.reasoningTokens ?? 0,
     },
+    ...(readerCostUsd === undefined ? {} : { readerCostUsd }),
+    retrievalMs,
+    readerMs,
   };
 }
 
