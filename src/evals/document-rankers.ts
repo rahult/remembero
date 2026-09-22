@@ -22,6 +22,7 @@ import { dirname } from 'node:path';
 import { questionKindFromText } from '../knowledge/question-kind.js';
 import { retrieveSessions, type RetrievableSession } from '../knowledge/session-retrieval.js';
 import { Bm25Index, DenseIndex, reciprocalRankFusion, type Embed } from './document-index.js';
+import { pageRangeFromId } from './document-corpus.js';
 import { rerankSessionOrder, type TypesafeNouls } from './typesafe-rerank.js';
 import type { LongMemEvalCompletionClient } from './longmemeval-answer.js';
 
@@ -33,6 +34,8 @@ export const RANKERS = [
   'hybrid+rerank',
   'decomposed',
   'decomposed+rerank',
+  'facts',
+  'hybrid+facts',
 ] as const;
 export type RankerName = (typeof RANKERS)[number];
 
@@ -47,6 +50,8 @@ export interface RankerDeps {
   denseCachePath?: string;
   nouls?: TypesafeNouls;
   decomposer?: QuestionDecomposer;
+  /** Facts extracted from each page (page number → facts), for the fact-pointer rankers. */
+  factsByPage?: ReadonlyMap<number, readonly string[]>;
 }
 
 /** How deep each fused list goes before fusion or re-ranking. */
@@ -85,6 +90,15 @@ export async function buildDocumentRanker(
   const bm25 = new Bm25Index(windows);
   if (name === 'bm25') return { name, rank: async (question, limit) => bm25.rank(question, limit) };
 
+  const factPointer = () => {
+    if (deps.factsByPage === undefined) throw new Error(`ranker ${name} needs extracted facts`);
+    return new FactPointerIndex(sessions.map((session) => session.id), deps.factsByPage);
+  };
+  if (name === 'facts') {
+    const facts = factPointer();
+    return { name, rank: async (question, limit) => facts.rank(question, limit) };
+  }
+
   if (deps.embed === undefined) throw new Error(`ranker ${name} needs an embedding function`);
   const dense = await DenseIndex.build(windows, deps.embed, { cachePath: deps.denseCachePath });
   if (name === 'dense') return { name, rank: (question, limit) => dense.rank(question, limit) };
@@ -118,6 +132,15 @@ export async function buildDocumentRanker(
     });
     return order.slice(0, limit);
   };
+
+  if (name === 'hybrid+facts') {
+    const facts = factPointer();
+    return {
+      name,
+      rank: async (question, limit) =>
+        reciprocalRankFusion([await hybrid(question, CANDIDATES), facts.rank(question, CANDIDATES)], limit),
+    };
+  }
 
   switch (name) {
     case 'hybrid':
@@ -186,4 +209,54 @@ export function llmDecomposer(client: LongMemEvalCompletionClient, cachePath: st
     writeFileSync(cachePath, JSON.stringify(cache, null, 1));
     return parts;
   };
+}
+
+/**
+ * Search the extracted facts, then answer with the pages they came from.
+ *
+ * Each fact is a BM25 document (`budget_dollars(kestrel, 4200000).` tokenizes to budget, dollars,
+ * kestrel, 4200000). The top facts vote for their page with 1 / log2(rank + 1), the same
+ * aggregation the chat retrieval uses to roll turns up into sessions, so a page with several
+ * matching facts beats a page with one. The fact is a pointer; the reader still reads the page.
+ */
+export class FactPointerIndex {
+  private readonly index: Bm25Index;
+  private readonly windowOfFact: string[] = [];
+
+  constructor(windowIds: readonly string[], factsByPage: ReadonlyMap<number, readonly string[]>, private readonly topFacts = 60) {
+    const windowOfPage = new Map<number, string>();
+    for (const id of windowIds) {
+      const range = pageRangeFromId(id);
+      if (range === undefined) continue;
+      for (let page = range.firstPage; page <= range.lastPage; page += 1) windowOfPage.set(page, id);
+    }
+    const docs: Array<{ id: string; text: string }> = [];
+    for (const [page, facts] of factsByPage) {
+      const windowId = windowOfPage.get(page);
+      if (windowId === undefined) continue;
+      for (const fact of facts) {
+        docs.push({ id: String(docs.length), text: fact });
+        this.windowOfFact.push(windowId);
+      }
+    }
+    this.index = new Bm25Index(docs);
+  }
+
+  get facts(): number {
+    return this.windowOfFact.length;
+  }
+
+  rank(question: string, limit: number): string[] {
+    const votes = new Map<string, number>();
+    const firstSeen = new Map<string, number>();
+    this.index.rank(question, this.topFacts).forEach((factId, rank) => {
+      const windowId = this.windowOfFact[Number(factId)]!;
+      votes.set(windowId, (votes.get(windowId) ?? 0) + 1 / Math.log2(rank + 2));
+      if (!firstSeen.has(windowId)) firstSeen.set(windowId, rank);
+    });
+    return [...votes.entries()]
+      .sort((left, right) => right[1] - left[1] || firstSeen.get(left[0])! - firstSeen.get(right[0])!)
+      .slice(0, limit)
+      .map(([id]) => id);
+  }
 }

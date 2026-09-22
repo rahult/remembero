@@ -75,3 +75,35 @@ describe('llmDecomposer', () => {
     expect(calls).toBe(1);
   });
 });
+
+describe('fact-pointer rankers', () => {
+  const factsByPage = new Map<number, string[]>([
+    [1, ['issued_to_restructure(brady_bonds, emerging_market_debt).', 'plan_year(brady_plan, 1989).']],
+    [2, ['issuer(japanese_government_bonds, ministry_of_finance).']],
+    [4, ['maturity_within_years(treasury_bills, 1).']],
+  ]);
+
+  it('returns the page a matching fact came from', async () => {
+    const ranker = await buildDocumentRanker('facts', sessions, { factsByPage });
+    expect((await ranker.rank('Who issues Japanese government bonds?', 1))[0]).toBe('pages-0002-0002');
+  });
+
+  it('lets a page with several matching facts outrank a page with one', async () => {
+    const ranker = await buildDocumentRanker('facts', sessions, { factsByPage });
+    expect((await ranker.rank('Brady plan bonds', 2))[0]).toBe('pages-0001-0001');
+  });
+
+  it('never returns a page no fact points at', async () => {
+    const ranker = await buildDocumentRanker('facts', sessions, { factsByPage });
+    expect(await ranker.rank('glossary index', 3)).not.toContain('pages-0003-0003');
+  });
+
+  it('fuses fact pointers with the hybrid ranking', async () => {
+    const ranker = await buildDocumentRanker('hybrid+facts', sessions, { embed: toyEmbed, factsByPage });
+    expect(await ranker.rank('treasury bills maturity', 2)).toContain('pages-0004-0004');
+  });
+
+  it('refuses a fact ranker without facts', async () => {
+    await expect(buildDocumentRanker('facts', sessions)).rejects.toThrow(/facts/);
+  });
+});

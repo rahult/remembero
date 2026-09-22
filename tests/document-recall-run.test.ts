@@ -235,3 +235,20 @@ describe('evaluateDocumentTier with a document ranker', () => {
     expect(result.summary.accuracy).toBe(1);
   });
 });
+
+describe('evaluateDocumentTier with a reader view', () => {
+  it('shows the reader the transformed window, not the page', async () => {
+    const pages = pagesWithFact(8, 2, 'The Kestrel programme remediation budget was 4.2 million pounds.');
+    const result = await evaluateDocumentTier(tierOf([question({ evidencePages: [2] })], pages.length), pages, {
+      reader: readerThatQuotes('budget_million_gbp(kestrel, 4.2)', '4.2 million pounds'),
+      topK: 1,
+      contextBytes: 24 * 1024,
+      pagesPerWindow: 1,
+      windowBytes: 12 * 1024,
+      concurrency: 1,
+      buildRanker: async () => ({ name: 'facts', rank: async () => ['pages-0002-0002'] }),
+      readerView: (session) => ({ ...session, turns: [{ role: 'user', text: 'budget_million_gbp(kestrel, 4.2).' }] }),
+    });
+    expect(result.summary.accuracy).toBe(1);
+  });
+});

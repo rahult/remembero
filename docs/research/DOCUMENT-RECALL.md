@@ -284,3 +284,50 @@ not "always shallow".
 4. Items 1 and 4–5 of Result 4 (abstention training, the 64 KB cap, "cannot be determined").
 
 OpenRouter balance after these runs: $1.98 — enough for one more small Sol arm, not a full one.
+
+## Result 6: facts as pointers help; facts as the answer source do not (2026-09-23)
+
+The question: if we read every page at ingest and store facts, shouldn't retrieving facts be
+*more* relevant than retrieving pages? Tested directly.
+
+**Extraction over the whole corpus** (`npm run eval:doc-facts`): all 7,430 pages through
+`deepseek-chat`, ~270,000 facts, 0 failures, 15 minutes, **$4.49** ($0.0006 a page). Every fact
+keeps its page.
+
+- The **product's extraction prompt** is written for personal memory ("the speaker", "durable
+  facts") and answers `% nothing` on **78% of pages** — all 100 pages of an FDA regulation. A
+  document prompt with the same Datalog contract (`DOCUMENT_EXTRACTION_PROMPT`: entities, numbers
+  with units, list items and table rows, `in_section`, `references`) yields 13–46 facts a page
+  with a handful of empty pages. Only the document prompt's facts are used below.
+
+**Fact pointers as a ranker** (search the facts, return the pages they came from; retrieval only):
+
+| ranker | 100p hit / recall @12 | 500p hit / recall @12 | 1000p hit / recall @12 | query |
+| --- | --- | --- | --- | --- |
+| product | 88.4 / 62.9% | 83.7 / 65.2% | 61.5 / 41.7% | 89–384 ms |
+| hybrid | 86.0 / 66.8% | 88.4 / 80.2% | 73.1 / 60.9% | ~50 ms |
+| facts alone | 88.4 / 74.0% | 86.0 / 72.6% | 76.9 / 54.8% | 1–7 ms |
+| **hybrid + facts** | **93.0 / 79.0%** | **90.7 / 79.8%** | **84.6 / 65.7%** | ~50 ms |
+
+Hybrid + facts is best or tied-best on every tier — the only ranker so far that is, with no
+per-query API cost (TypeSafe re-ranking matched it at 100p and lost at 1000p; decomposition the
+reverse).
+
+**Reading facts instead of pages** (same hybrid + facts retrieval, deepseek, depth 12, paired):
+judge 31.4% reading pages → 27.3% reading only those pages' facts (7 won, 12 lost); the rule
+drops 15.7 → 12.4%. Tied at 1000 pages. Extraction still loses what the question turns out to
+need, and the reader can't get it back from a fact.
+
+**End to end with Sol** (depth 4, paired against the product's ranking at depth 4):
+judge 39.7 → 43.0% (18 won, 14 lost), rule 12.4 → 17.4%; on the **1000-page tier 37.9 → 51.7%**
+(5 won, 1 lost), rule 13.8 → 27.6%.
+
+And the cost lens: Sol reading **4** hybrid + facts pages matches Sol reading **12** product-
+ranked pages on the 1000-page tier (53.3% vs 51.9% judge) and the 100-page tier (42.2% vs 43.2%)
+at **$0.009 instead of $0.022 an answer** and 4.1 s instead of 6.0 s median. It does not hold at
+500 pages (38.3% vs 59.6%), where depth still matters. At $0.013 saved per answer, the $4.49 of
+extraction pays for itself after about 350 questions.
+
+**So the design is facts as an index into the document, not a replacement for it**: extract at
+ingest with a document prompt, keep the page on every fact, search facts and pages together, and
+hand the reader the pages.

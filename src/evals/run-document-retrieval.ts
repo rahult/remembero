@@ -15,6 +15,7 @@ import { pagesFromTextFile, windowPages, windowsAsSessions } from './document-co
 import { ollamaEmbed } from './document-index.js';
 import { RANKERS, buildDocumentRanker, llmDecomposer, type RankerName } from './document-rankers.js';
 import { scoreRetrieval } from './document-recall.js';
+import { loadFactsByPage } from './run-document-facts.js';
 import { mapConcurrent } from './map-concurrent.js';
 import { DEFAULT_RERANK_KEY_ENV, typesafeCostUsd, typesafeNouls } from './typesafe-rerank.js';
 
@@ -101,6 +102,7 @@ async function main() {
           denseCachePath: `.cache/document-recall/${documentId}.dense.nomic.json`,
           ...(nouls === undefined ? {} : { nouls }),
           ...(decomposer === undefined ? {} : { decomposer }),
+          ...(name.includes('facts') ? { factsByPage: loadFactsByPage(documentId) } : {}),
         });
         const buildMs = performance.now() - started;
         const key = `${tier.name}\u0000${name}`;

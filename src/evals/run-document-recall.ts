@@ -15,7 +15,9 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { OpenRouterClient } from '../llm/client.js';
+import type { RetrievableSession } from '../knowledge/session-retrieval.js';
 import {
+  pageRangeFromId,
   pagesFromPdf,
   pagesFromTextFile,
   DEFAULT_PAGES_PER_WINDOW,
@@ -26,6 +28,7 @@ import { evaluateDocumentTier } from './document-recall-run.js';
 import { ollamaEmbed } from './document-index.js';
 import { RANKERS, buildDocumentRanker, llmDecomposer, type RankerName } from './document-rankers.js';
 import { DEFAULT_RERANK_KEY_ENV, typesafeNouls } from './typesafe-rerank.js';
+import { loadFactsByPage } from './run-document-facts.js';
 import { assembleTier, type TierSource } from './document-tier.js';
 import {
   summariseTier,
@@ -83,6 +86,7 @@ interface Args {
   limitPerDocument?: number;
   oraclePages: boolean;
   ranker?: RankerName;
+  read: 'pages' | 'facts';
   price?: { inputPerMillion: number; outputPerMillion: number };
   output?: string;
   predictions?: string;
@@ -98,6 +102,7 @@ function parseArgs(argv: string[]): Args {
     windowBytes: DEFAULT_WINDOW_BYTES,
     concurrency: 1,
     oraclePages: false,
+    read: 'pages',
   };
   for (let index = 0; index < argv.length; index += 1) {
     const flag = argv[index];
@@ -125,6 +130,12 @@ function parseArgs(argv: string[]): Args {
       case '--concurrency': args.concurrency = Number(value()); break;
       case '--limit-per-document': args.limitPerDocument = Number(value()); break;
       case '--oracle-pages': args.oraclePages = true; break;
+      case '--read': {
+        const mode = value();
+        if (mode !== 'pages' && mode !== 'facts') throw new Error('--read is pages or facts');
+        args.read = mode;
+        break;
+      }
       case '--ranker': {
         const name = value();
         if (!(RANKERS as readonly string[]).includes(name)) throw new Error(`unknown ranker ${name}`);
@@ -383,6 +394,7 @@ async function main(): Promise<void> {
           settings: {
             oraclePages: args.oraclePages,
             ranker: args.ranker ?? 'product',
+            read: args.read,
             price: args.price ?? null,
             topK: args.topK,
             contextBytes: args.contextBytes,
@@ -411,6 +423,7 @@ function rankerFactory(args: Args, documentId: string) {
       ...(name.endsWith('+rerank') && typesafeKey
         ? { nouls: (state: unknown, questions: Parameters<typeof typesafeNouls>[1]) => typesafeNouls(state, questions, { apiKey: typesafeKey }) }
         : {}),
+      ...(name.includes('facts') ? { factsByPage: loadFactsByPage(documentId) } : {}),
       ...(name.startsWith('decomposed')
         ? {
             decomposer: llmDecomposer(
@@ -439,6 +452,21 @@ async function runOne(
     concurrency: args.concurrency,
     ...(args.oraclePages ? { oraclePages: true } : {}),
     ...(args.price === undefined ? {} : { price: args.price }),
+    ...(() => {
+      if (args.read !== 'facts') return {};
+      const documentId = tier.tier.split('/')[1] ?? tier.tier;
+      const facts = loadFactsByPage(documentId);
+      return {
+        readerView: (session: RetrievableSession) => {
+          const range = pageRangeFromId(session.id);
+          const lines: string[] = [];
+          for (let page = range?.firstPage ?? 0; page <= (range?.lastPage ?? -1); page += 1) {
+            lines.push(...(facts.get(page) ?? []));
+          }
+          return { ...session, turns: [{ role: 'user' as const, text: lines.join('\n') || '(no facts stored for this page)' }] };
+        },
+      };
+    })(),
     ...(() => {
       const documentId = tier.tier.includes('/') ? tier.tier.split('/')[1]! : tier.tier;
       const buildRanker = rankerFactory(args, documentId);

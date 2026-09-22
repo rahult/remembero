@@ -1,0 +1,4979 @@
+{
+  "corpus": "xl-docbench-page-tiers",
+  "labels": "XL-DocBench (arXiv:2608.00036), data/qa_single_doc.jsonl",
+  "ranAt": "2026-09-22T23:33:48.347Z",
+  "reader": "openai/gpt-5.6-sol",
+  "judge": "deepseek-chat",
+  "settings": {
+    "oraclePages": false,
+    "ranker": "hybrid+facts",
+    "read": "pages",
+    "price": null,
+    "topK": 4,
+    "contextBytes": 16384,
+    "pagesPerWindow": 1,
+    "windowBytes": 12288
+  },
+  "tiers": [
+    {
+      "tier": "100p",
+      "band": [
+        85,
+        130
+      ],
+      "assembled": false,
+      "summary": {
+        "tier": "100p",
+        "pages": 544,
+        "windows": 544,
+        "questions": 45,
+        "answerable": 42,
+        "unanswerable": 3,
+        "accuracy": 0.1111111111111111,
+        "answerableAccuracy": 0.11904761904761904,
+        "localeAccuracy": 0.1111111111111111,
+        "evidenceHitRate": 0.7619047619047619,
+        "meanPageRecall": 0.5095238095238095,
+        "meanWindowPrecision": 0.26785714285714285,
+        "falseAnswerRate": 1,
+        "meanLatencyMs": 5026.541123155555,
+        "meanContextBytes": 14749.533333333333,
+        "meanRetrievalMs": 52.29772862222254,
+        "meanReaderMs": 4971.96797311111,
+        "p50LatencyMs": 4025.6937910000015,
+        "p95LatencyMs": 9960.594667000005,
+        "meanPromptTokens": 2404.2,
+        "meanCompletionTokens": 253.75555555555556,
+        "meanReasoningTokens": 185.95555555555555,
+        "totalCostUsd": 0.384595,
+        "costPerAnswerUsd": 0.008546555555555556,
+        "costPerCorrectUsd": 0.02024184210526316,
+        "meanTokenF1": 0.13659303448621027,
+        "meanAnls": 0.045351473922902494,
+        "judgedAccuracy": 0.4222222222222222,
+        "judgedQuestions": 45
+      },
+      "documents": [
+        {
+          "document": "doc_000156",
+          "title": "doc_000156",
+          "sourceUrl": "https://curia.europa.eu/site/upload/docs/application/pdf/2024-04/ra_pan_2023_nl.pdf",
+          "sha256": "acb2135f3f63f592808a33363c808e87fe46868169a161aeea3da49739c1b185",
+          "pages": 108,
+          "summary": {
+            "tier": "100p/doc_000156",
+            "pages": 108,
+            "windows": 108,
+            "questions": 11,
+            "answerable": 10,
+            "unanswerable": 1,
+            "accuracy": 0.09090909090909091,
+            "answerableAccuracy": 0.1,
+            "localeAccuracy": 0.09090909090909091,
+            "evidenceHitRate": 0.8,
+            "meanPageRecall": 0.5833333333333333,
+            "meanWindowPrecision": 0.325,
+            "falseAnswerRate": 1,
+            "meanLatencyMs": 5340.464662909091,
+            "meanContextBytes": 12055.181818181818,
+            "meanRetrievalMs": 56.51504927272729,
+            "meanReaderMs": 5281.989401272726,
+            "p50LatencyMs": 4100.9970410000005,
+            "p95LatencyMs": 11602.462333000001,
+            "meanPromptTokens": 2105.2727272727275,
+            "meanCompletionTokens": 227.27272727272728,
+            "meanReasoningTokens": 145.36363636363637,
+            "totalCostUsd": 0.08287850000000001,
+            "costPerAnswerUsd": 0.007534409090909092,
+            "costPerCorrectUsd": 0.013813083333333335,
+            "meanTokenF1": 0.10941019389295252,
+            "meanAnls": 0,
+            "judgedAccuracy": 0.5454545454545454,
+            "judgedQuestions": 11
+          }
+        },
+        {
+          "document": "doc_000251",
+          "title": "doc_000251",
+          "sourceUrl": "https://dailycardiology.com/wp-content/uploads/2025/05/2024-ESC-CCS.pdf",
+          "sha256": "f39959bb2a66b2249b9a73bc475ae30b2784e620a0ae00eaf9250f933831000c",
+          "pages": 123,
+          "summary": {
+            "tier": "100p/doc_000251",
+            "pages": 123,
+            "windows": 123,
+            "questions": 11,
+            "answerable": 10,
+            "unanswerable": 1,
+            "accuracy": 0.09090909090909091,
+            "answerableAccuracy": 0.1,
+            "localeAccuracy": 0.09090909090909091,
+            "evidenceHitRate": 0.8,
+            "meanPageRecall": 0.465,
+            "meanWindowPrecision": 0.275,
+            "falseAnswerRate": 1,
+            "meanLatencyMs": 4450.884916727274,
+            "meanContextBytes": 16576.272727272728,
+            "meanRetrievalMs": 47.081977090909774,
+            "meanReaderMs": 4400.847083272727,
+            "p50LatencyMs": 4025.6937910000015,
+            "p95LatencyMs": 7762.620083000002,
+            "meanPromptTokens": 2616.5454545454545,
+            "meanCompletionTokens": 245.36363636363637,
+            "meanReasoningTokens": 197.8181818181818,
+            "totalCostUsd": 0.0989285,
+            "costPerAnswerUsd": 0.0089935,
+            "costPerCorrectUsd": 0.0197857,
+            "meanTokenF1": 0.09813343519225873,
+            "meanAnls": 0,
+            "judgedAccuracy": 0.45454545454545453,
+            "judgedQuestions": 11
+          }
+        },
+        {
+          "document": "doc_000150",
+          "title": "doc_000150",
+          "sourceUrl": "https://curia.europa.eu/site/upload/docs/application/pdf/2025-09/ra_gestion_2022_en.pdf",
+          "sha256": "5d5df9eb360089e0f359d9091d4d01a97025da3ffa35defbaf1989b96beb3b2f",
+          "pages": 118,
+          "summary": {
+            "tier": "100p/doc_000150",
+            "pages": 118,
+            "windows": 118,
+            "questions": 8,
+            "answerable": 7,
+            "unanswerable": 1,
+            "accuracy": 0,
+            "answerableAccuracy": 0,
+            "localeAccuracy": 0,
+            "evidenceHitRate": 0.7142857142857143,
+            "meanPageRecall": 0.5476190476190477,
+            "meanWindowPrecision": 0.25,
+            "falseAnswerRate": 1,
+            "meanLatencyMs": 4330.799937375,
+            "meanContextBytes": 12428.75,
+            "meanRetrievalMs": 52.57611437499918,
+            "meanReaderMs": 4277.317223999999,
+            "p50LatencyMs": 3873.5346250000002,
+            "p95LatencyMs": 6819.6156249999985,
+            "meanPromptTokens": 2513.625,
+            "meanCompletionTokens": 207,
+            "meanReasoningTokens": 126.125,
+            "totalCostUsd": 0.0668205,
+            "costPerAnswerUsd": 0.0083525625,
+            "costPerCorrectUsd": 0.0668205,
+            "meanTokenF1": 0.05357142857142857,
+            "meanAnls": 0,
+            "judgedAccuracy": 0.125,
+            "judgedQuestions": 8
+          }
+        },
+        {
+          "document": "doc_000324",
+          "title": "doc_000324",
+          "sourceUrl": "https://api.iscpcardio.org/storage/guidelines/___23_ESC_Endocarditis.pdf",
+          "sha256": "3b539dba9c4045b53a0228033a285bff06063e64d7ff234bd082763aaaf9e281",
+          "pages": 95,
+          "summary": {
+            "tier": "100p/doc_000324",
+            "pages": 95,
+            "windows": 95,
+            "questions": 8,
+            "answerable": 8,
+            "unanswerable": 0,
+            "accuracy": 0.25,
+            "answerableAccuracy": 0.25,
+            "localeAccuracy": 0.25,
+            "evidenceHitRate": 0.75,
+            "meanPageRecall": 0.5208333333333333,
+            "meanWindowPrecision": 0.21875,
+            "falseAnswerRate": 0,
+            "meanLatencyMs": 4731.596729124999,
+            "meanContextBytes": 16636,
+            "meanRetrievalMs": 52.56017174999943,
+            "meanReaderMs": 4676.417604249999,
+            "p50LatencyMs": 5939.278749999998,
+            "p95LatencyMs": 7143.432708,
+            "meanPromptTokens": 2688.125,
+            "meanCompletionTokens": 278.5,
+            "meanReasoningTokens": 225,
+            "totalCostUsd": 0.0760305,
+            "costPerAnswerUsd": 0.0095038125,
+            "costPerCorrectUsd": 0.019007625,
+            "meanTokenF1": 0.1935866724738676,
+            "meanAnls": 0.12142857142857143,
+            "judgedAccuracy": 0.5,
+            "judgedQuestions": 8
+          }
+        },
+        {
+          "document": "doc_000220",
+          "title": "doc_000220",
+          "sourceUrl": "https://www.govinfo.gov/content/pkg/CFR-2023-title21-vol4/pdf/CFR-2023-title21-vol4-part201.pdf",
+          "sha256": "4c7caef766c5efdc96a9c82942ac9190c9833d6ff3ae90d6b9b10dbb7eb8cd84",
+          "pages": 100,
+          "summary": {
+            "tier": "100p/doc_000220",
+            "pages": 100,
+            "windows": 100,
+            "questions": 7,
+            "answerable": 7,
+            "unanswerable": 0,
+            "accuracy": 0.14285714285714285,
+            "answerableAccuracy": 0.14285714285714285,
+            "localeAccuracy": 0.14285714285714285,
+            "evidenceHitRate": 0.7142857142857143,
+            "meanPageRecall": 0.4166666666666667,
+            "meanWindowPrecision": 0.25,
+            "falseAnswerRate": 0,
+            "meanLatencyMs": 6570.047404857146,
+            "meanContextBytes": 16609.285714285714,
+            "meanRetrievalMs": 53.24860128571682,
+            "meanReaderMs": 6513.925547714285,
+            "p50LatencyMs": 4112.120292000007,
+            "p95LatencyMs": 16474.369667,
+            "meanPromptTokens": 2090.714285714286,
+            "meanCompletionTokens": 333.7142857142857,
+            "meanReasoningTokens": 254.85714285714286,
+            "totalCostUsd": 0.059937,
+            "costPerAnswerUsd": 0.008562428571428572,
+            "costPerCorrectUsd": 0.019979,
+            "meanTokenF1": 0.24825396825396823,
+            "meanAnls": 0.13333333333333333,
+            "judgedAccuracy": 0.42857142857142855,
+            "judgedQuestions": 7
+          }
+        }
+      ],
+      "errors": [
+        {
+          "questionId": "adubench_single_000297",
+          "message": "refusing to send sensitive reading prompt to the external LLM"
+        }
+      ],
+      "outcomes": [
+        {
+          "id": "adubench_single_000303",
+          "document": "doc_000156",
+          "question": "Met hoeveel zaken overtroffen de rechtstreekse beroepen van het Gerecht (2023) de prejudiciële procedures van het Hof van Justitie?",
+          "gold": "616",
+          "answerFormat": "Int",
+          "evidencePages": [
+            24,
+            29,
+            34,
+            35
+          ],
+          "answer": "Dat is niet vast te stellen uit de gegeven informatie; het aantal rechtstreekse beroepen bij het Gerecht wordt niet vermeld.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 8339,
+          "contextBytes": 13969,
+          "readerTokens": {
+            "prompt": 2545,
+            "completion": 468,
+            "reasoning": 435
+          },
+          "readerCostUsd": 0.011041,
+          "retrievalMs": 67,
+          "readerMs": 8258
+        },
+        {
+          "id": "adubench_single_000304",
+          "document": "doc_000156",
+          "question": "Welke in de inleiding genoemde prioriteit krijgt geen eigen operationele uitwerking in 'Belangrijkste gebeurtenissen van het jaar' of 'Relatie met het publiek'?",
+          "gold": "de aantrekkelijkheid van Luxemburg als werkplek vergroten",
+          "answerFormat": "Str",
+          "evidencePages": [
+            77
+          ],
+          "answer": "Dat is op basis van de aangeleverde fragmenten niet vast te stellen; de inleiding met de genoemde prioriteiten ontbreekt.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.167,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 2494,
+          "contextBytes": 7957,
+          "readerTokens": {
+            "prompt": 1278,
+            "completion": 67,
+            "reasoning": 34
+          },
+          "readerCostUsd": 0.0038635,
+          "retrievalMs": 114,
+          "readerMs": 2380
+        },
+        {
+          "id": "adubench_single_000305",
+          "document": "doc_000156",
+          "question": "Welk percentage van alle in 2023 aanhangig gemaakte zaken bestond uit prejudiciële procedures, de in het voorwoord cruciale categorie voor herverdeling van de werklast?",
+          "gold": "63.1%",
+          "answerFormat": "Float",
+          "evidencePages": [
+            25,
+            26
+          ],
+          "answer": "(518 ÷ 821) × 100 = 63,1%.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 11602,
+          "contextBytes": 13296,
+          "readerTokens": {
+            "prompt": 2653,
+            "completion": 370,
+            "reasoning": 196
+          },
+          "readerCostUsd": 0.010331,
+          "retrievalMs": 77,
+          "readerMs": 11524
+        },
+        {
+          "id": "adubench_single_000306",
+          "document": "doc_000156",
+          "question": "Welke in het voorwoord genoemde internationale ontwikkeling correspondeert het meest direct met de septemberconferentie \"EUnited in Diversity II\" in \"Een jaar in beelden\"?",
+          "gold": "de voortdurende oorlog in Oekraïne",
+          "answerFormat": "Str",
+          "evidencePages": [
+            6,
+            15
+          ],
+          "answer": "De toenemende bedreiging van de rechtsstaat en democratische waarden in de gespannen geopolitieke context, met name door de oorlog in Oekraïne. De conferentie richtte zich direct op de rechtsstaat en constitutionele diversiteit.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.207,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 7045,
+          "contextBytes": 13272,
+          "readerTokens": {
+            "prompt": 2116,
+            "completion": 288,
+            "reasoning": 234
+          },
+          "readerCostUsd": 0.0081685,
+          "retrievalMs": 99,
+          "readerMs": 6945
+        },
+        {
+          "id": "adubench_single_000307",
+          "document": "doc_000156",
+          "question": "Welke procentpunt-afwijking resteert er, wanneer de in het voorwoord van de president afleidbare 100%-norm voor volledige institutionele verantwoordelijkheid wordt vergeleken met de in de figuur van 'Een milieuvriendelijke instelling' gerapporteerde reductie van de zwakst presterende milieu-indicator in 2023 ten opzichte van 2015?",
+          "gold": "89,9",
+          "answerFormat": "Float",
+          "evidencePages": [
+            6,
+            94,
+            95
+          ],
+          "answer": "Dat is niet vast te stellen uit de aangeleverde geschiedenis, omdat de reductiepercentages van de milieu-indicatoren in 2023 ten opzichte van 2015 ontbreken.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.6666666666666666,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4101,
+          "contextBytes": 13170,
+          "readerTokens": {
+            "prompt": 2253,
+            "completion": 120,
+            "reasoning": 77
+          },
+          "readerCostUsd": 0.006831,
+          "retrievalMs": 82,
+          "readerMs": 4018
+        },
+        {
+          "id": "adubench_single_000308",
+          "document": "doc_000156",
+          "question": "Welke expliciet behandelde zaak in 'Gerechtelijke werkzaamheden' sluit het duidelijkst aan bij het oorlog/Oekraïne-sanctiethema uit het voorwoord en 'Een jaar in beelden'?",
+          "gold": "Violetta Prigozhina",
+          "answerFormat": "Str",
+          "evidencePages": [
+            70
+          ],
+          "answer": "De zaak **Prigozhina/Raad** (arrest van 8 maart 2023, **T‑212/22**). Deze betrof EU-sancties naar aanleiding van Ruslands oorlog tegen Oekraïne.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 2940,
+          "contextBytes": 14426,
+          "readerTokens": {
+            "prompt": 2410,
+            "completion": 50,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0065235,
+          "retrievalMs": 67,
+          "readerMs": 2871
+        },
+        {
+          "id": "adubench_single_000309",
+          "document": "doc_000156",
+          "question": "Welke administratieve prioriteit uit de griffiersinleiding past het best bij de hogere zakenlast per rechter van het Hof van Justitie (821/27; 783/27 vs. 868/54; 904/54)?",
+          "gold": "de integratie van artificiële intelligentie in de werkmethoden van de instelling",
+          "answerFormat": "Str",
+          "evidencePages": [
+            78
+          ],
+          "answer": "Dat is niet te bepalen uit de aangeleverde geschiedenis; de griffiersinleiding met de administratieve prioriteiten ontbreekt.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.091,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3370,
+          "contextBytes": 9972,
+          "readerTokens": {
+            "prompt": 1988,
+            "completion": 92,
+            "reasoning": 60
+          },
+          "readerCostUsd": 0.0058885,
+          "retrievalMs": 26,
+          "readerMs": 3344
+        },
+        {
+          "id": "adubench_single_000991",
+          "document": "doc_000156",
+          "question": "Welk percentage van de in 2023 afgesloten zaken bestond uit prejudiciële procedures, de in het voorwoord benadrukte dialoog met nationale rechters?",
+          "gold": "67.9",
+          "answerFormat": "Float",
+          "evidencePages": [
+            6,
+            29
+          ],
+          "answer": "(532 ÷ 783) × 100 = 67,9%, dus ongeveer 68% van de afgesloten zaken.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3867,
+          "contextBytes": 11439,
+          "readerTokens": {
+            "prompt": 2038,
+            "completion": 207,
+            "reasoning": 80
+          },
+          "readerCostUsd": 0.0071635,
+          "retrievalMs": 22,
+          "readerMs": 3844
+        },
+        {
+          "id": "adubench_single_000992",
+          "document": "doc_000156",
+          "question": "Welke concrete maatregel in de administratieve meertaligheidssectie werkt de in het voorwoord benadrukte meertaligheid het meest direct uit via de door de griffier genoemde Tuin der Meertaligheid?",
+          "gold": "de inwijding van de Tuin der Meertaligheid op 9 mei 2023",
+          "answerFormat": "Str",
+          "evidencePages": [
+            6,
+            79,
+            81
+          ],
+          "answer": "De concrete maatregel was de **inwijding van de Tuin der Meertaligheid op 9 mei 2023, de Dag van Europa**. Deze groene ruimte symboliseert de eenheid in de taalkundige en culturele verscheidenheid van de Unie.",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.556,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4260,
+          "contextBytes": 13798,
+          "readerTokens": {
+            "prompt": 2163,
+            "completion": 146,
+            "reasoning": 84
+          },
+          "readerCostUsd": 0.006866,
+          "retrievalMs": 22,
+          "readerMs": 4237
+        },
+        {
+          "id": "adubench_single_000993",
+          "document": "doc_000156",
+          "question": "Welke EMAS-indicator uit de milieu-infographic past het best bij de in het voorwoord genoemde langetermijnverantwoordelijkheid voor stabiliteit, en wat is de exacte verbetering t.o.v. 2015?",
+          "gold": "vermindering van het papierverbruik, -62,1 % kg/VTE",
+          "answerFormat": "Str",
+          "evidencePages": [
+            6,
+            94,
+            95
+          ],
+          "answer": "Dat kan ik niet bepalen uit de aangeleverde passages: de milieu-infographic met de exacte EMAS-indicatoren en verbeteringspercentages ten opzichte van 2015 ontbreekt.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.074,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 2669,
+          "contextBytes": 10948,
+          "readerTokens": {
+            "prompt": 2017,
+            "completion": 129,
+            "reasoning": 85
+          },
+          "readerCostUsd": 0.006331,
+          "retrievalMs": 23,
+          "readerMs": 2645
+        },
+        {
+          "id": "adubench_single_000994",
+          "document": "doc_000156",
+          "question": "Can the report support an exact quarter-by-quarter 2023 allocation of crisis-related incoming cases across the foreword crises, at-a-glance total, court statistics, and future measures?",
+          "gold": null,
+          "answerFormat": "None",
+          "evidencePages": [],
+          "answer": "No. The supplied report history contains annual totals and selected dates, but not exact Q1–Q4 crisis-related incoming-case counts, so the requested allocation cannot be derived.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 8057,
+          "contextBytes": 10360,
+          "readerTokens": {
+            "prompt": 1697,
+            "completion": 563,
+            "reasoning": 314
+          },
+          "readerCostUsd": 0.009871,
+          "retrievalMs": 23,
+          "readerMs": 8034
+        },
+        {
+          "id": "adubench_single_000495",
+          "document": "doc_000251",
+          "question": "Which 2024 recommendation explicitly covers both obstructive CAD and ANOCA/INOCA after uncertain non-invasive testing?",
+          "gold": "Invasive coronary angiography + invasive functional assessments",
+          "answerFormat": "Str",
+          "evidencePages": [
+            13
+          ],
+          "answer": "**Class I, Level B:**  \n“Invasive coronary angiography with the availability of invasive functional assessments is recommended to confirm or exclude the diagnosis of **obstructive CAD or ANOCA/INOCA** in individuals with an **uncertain diagnosis on non-invasive testing**.”",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.303,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 1509,
+          "contextBytes": 16495,
+          "readerTokens": {
+            "prompt": 2762,
+            "completion": 60,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0075035,
+          "retrievalMs": 35,
+          "readerMs": 1472
+        },
+        {
+          "id": "adubench_single_000496",
+          "document": "doc_000251",
+          "question": "Which major Guideline-directed therapy subsection is not explicitly named in the Step 4 antianginal-therapy overview?",
+          "gold": "Medical therapy for event prevention",
+          "answerFormat": "Str",
+          "evidencePages": [
+            43,
+            44,
+            46
+          ],
+          "answer": "Patient education (Section 4.1.1) is not explicitly named.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3691,
+          "contextBytes": 16439,
+          "readerTokens": {
+            "prompt": 2336,
+            "completion": 201,
+            "reasoning": 179
+          },
+          "readerCostUsd": 0.0078485,
+          "retrievalMs": 64,
+          "readerMs": 3625
+        },
+        {
+          "id": "adubench_single_000497",
+          "document": "doc_000251",
+          "question": "Across specific groups and long-term follow-up, which shared theme is emphasized?",
+          "gold": "cardiovascular risk reduction",
+          "answerFormat": "Str",
+          "evidencePages": [
+            72,
+            78,
+            79
+          ],
+          "answer": "Patient-centred, individualized care—especially clear communication and shared decision-making—is emphasized throughout.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.6666666666666666,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3171,
+          "contextBytes": 16524,
+          "readerTokens": {
+            "prompt": 2615,
+            "completion": 90,
+            "reasoning": 66
+          },
+          "readerCostUsd": 0.007436,
+          "retrievalMs": 93,
+          "readerMs": 3076
+        },
+        {
+          "id": "adubench_single_000498",
+          "document": "doc_000251",
+          "question": "Which 2024 'What is new' recommendation matches Step 1 general clinical evaluation of suspected CCS?",
+          "gold": "Detailed assessment — Class I, Level C",
+          "answerFormat": "Str",
+          "evidencePages": [
+            12,
+            19
+          ],
+          "answer": "**Class I, Level C:** In individuals with symptoms of suspected myocardial ischaemia, a **detailed assessment of cardiovascular risk factors, medical history, and symptom characteristics**—including onset, duration, type, location, triggers, relieving factors, and time of day—is recommended, together with a **resting ECG**.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.3,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3512,
+          "contextBytes": 16422,
+          "readerTokens": {
+            "prompt": 2573,
+            "completion": 176,
+            "reasoning": 104
+          },
+          "readerCostUsd": 0.008191,
+          "retrievalMs": 105,
+          "readerMs": 3404
+        },
+        {
+          "id": "adubench_single_000499",
+          "document": "doc_000251",
+          "question": "Which topic listed as new or revised in the Introduction reappears both in the guideline-directed therapy recommendations and in the long-term follow-up adherence recommendations, with the latest occurrence in the document among such cross-section topics?",
+          "gold": "Mobile health / digital and mHealth",
+          "answerFormat": "Str",
+          "evidencePages": [
+            12,
+            13,
+            15,
+            43,
+            78
+          ],
+          "answer": "The topic is **adherence to medical therapy and lifestyle changes**, particularly improving adherence through simplified regimens, patient education, and patient involvement.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.091,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.4,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 7763,
+          "contextBytes": 16698,
+          "readerTokens": {
+            "prompt": 2826,
+            "completion": 550,
+            "reasoning": 516
+          },
+          "readerCostUsd": 0.0125635,
+          "retrievalMs": 81,
+          "readerMs": 7678
+        },
+        {
+          "id": "adubench_single_001163",
+          "document": "doc_000251",
+          "question": "Using the Introduction’s Levels of evidence figure, where Level A is the highest evidence label, and the recommendation table in the Invasive coronary angiography section of the Stepwise approach to the initial management of individuals with suspected chronic coronary syndrome, which Step 3 recommendation is the one that aligns with that top evidence level while also carrying Class I?",
+          "gold": "When ICA is indicated, it is recommended to have coronary pressure assessment",
+          "answerFormat": "Str",
+          "evidencePages": [
+            32
+          ],
+          "answer": "**Class I, Level A:** In patients undergoing invasive coronary angiography, **FFR or iFR is recommended to assess the functional severity of intermediate non-left-main coronary stenoses before revascularization**.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.229,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4026,
+          "contextBytes": 16832,
+          "readerTokens": {
+            "prompt": 2398,
+            "completion": 346,
+            "reasoning": 298
+          },
+          "readerCostUsd": 0.0094535,
+          "retrievalMs": 46,
+          "readerMs": 3973
+        },
+        {
+          "id": "adubench_single_001164",
+          "document": "doc_000251",
+          "question": "What is the percentage-point gap between ischaemic-cause heart failure cases in \"Coronary artery disease and heart failure\" and asymptomatic plaque prevalence in the Swedish screening study?",
+          "gold": "8",
+          "answerFormat": "Int",
+          "evidencePages": [
+            64,
+            74
+          ],
+          "answer": "I do not know; the ischaemic-cause heart failure percentage needed to subtract from 42% is not provided.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5036,
+          "contextBytes": 16633,
+          "readerTokens": {
+            "prompt": 2658,
+            "completion": 257,
+            "reasoning": 148
+          },
+          "readerCostUsd": 0.0092135,
+          "retrievalMs": 24,
+          "readerMs": 5009
+        },
+        {
+          "id": "adubench_single_001165",
+          "document": "doc_000251",
+          "question": "Which specific patient-group subsection lacks a matching long-term follow-up subsection title?",
+          "gold": "Socially and geographically diverse groups",
+          "answerFormat": "Str",
+          "evidencePages": [
+            73,
+            75,
+            78
+          ],
+          "answer": "I do not know from the supplied history.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5286,
+          "contextBytes": 16537,
+          "readerTokens": {
+            "prompt": 2682,
+            "completion": 298,
+            "reasoning": 283
+          },
+          "readerCostUsd": 0.0096835,
+          "retrievalMs": 16,
+          "readerMs": 5268
+        },
+        {
+          "id": "adubench_single_001166",
+          "document": "doc_000251",
+          "question": "Which Figure 1 CCS presentation is explicitly named in the 2024 \"What is new\" section and also has its own specific-groups subsection with Figure 15?",
+          "gold": "ANOCA/INOCA",
+          "answerFormat": "Str",
+          "evidencePages": [
+            10,
+            15,
+            69,
+            70
+          ],
+          "answer": "Angina/ischaemia with non-obstructive coronary arteries (ANOCA/INOCA).",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.25,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5091,
+          "contextBytes": 16592,
+          "readerTokens": {
+            "prompt": 2538,
+            "completion": 355,
+            "reasoning": 330
+          },
+          "readerCostUsd": 0.0098935,
+          "retrievalMs": 17,
+          "readerMs": 5071
+        },
+        {
+          "id": "adubench_single_001167",
+          "document": "doc_000251",
+          "question": "Do these sections report one exact long-term adherence effect size tied to the newly emphasized exercise/lifestyle intervention?",
+          "gold": null,
+          "answerFormat": "None",
+          "evidencePages": [],
+          "answer": "No. The sections state that lifestyle-intervention effects attenuated over time as intervention intensity declined, but they do not provide one exact long-term adherence effect size for the exercise/lifestyle intervention.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 7202,
+          "contextBytes": 16571,
+          "readerTokens": {
+            "prompt": 2994,
+            "completion": 151,
+            "reasoning": 107
+          },
+          "readerCostUsd": 0.0089935,
+          "retrievalMs": 18,
+          "readerMs": 7181
+        },
+        {
+          "id": "adubench_single_001168",
+          "document": "doc_000251",
+          "question": "Across the four branches, which recommendation area outranks the stepwise diagnostic CCTA item by reaching Class I, Level A rather than Class I, Level B?",
+          "gold": "Statins are recommended in all patients with CCS",
+          "answerFormat": "Str",
+          "evidencePages": [
+            17,
+            39
+          ],
+          "answer": "**Invasive coronary angiography (ICA)** outranks CCTA: when ICA is indicated, **radial access** and **coronary pressure assessment of intermediate non-left-main stenoses (FFR/iFR)** are **Class I, Level A**, versus CCTA’s **Class I, Level B**.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.059,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 2673,
+          "contextBytes": 16596,
+          "readerTokens": {
+            "prompt": 2400,
+            "completion": 215,
+            "reasoning": 145
+          },
+          "readerCostUsd": 0.0081485,
+          "retrievalMs": 18,
+          "readerMs": 2651
+        },
+        {
+          "id": "adubench_single_000295",
+          "document": "doc_000150",
+          "question": "In Section VI, by how many percentage points was the 2022 staff-post shortfall larger than the budget-appropriations shortfall?",
+          "gold": "1.9",
+          "answerFormat": "Float",
+          "evidencePages": [
+            45,
+            46
+          ],
+          "answer": "Approximately **1.4 percentage points** larger (3.0% − 1.6% = 1.4 percentage points).",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3874,
+          "contextBytes": 12959,
+          "readerTokens": {
+            "prompt": 2697,
+            "completion": 253,
+            "reasoning": 132
+          },
+          "readerCostUsd": 0.009271,
+          "retrievalMs": 29,
+          "readerMs": 3844
+        },
+        {
+          "id": "adubench_single_000296",
+          "document": "doc_000150",
+          "question": "Using both the section titled \"INTERINSTITUTIONAL COOPERATION AND COOPERATION WITH MEMBER STATE BODIES\" to identify the jointly procured purchase area and the annex table in \"Report on budgetary and financial management for the financial year 2022\" to read its final appropriations and the budget TOTAL, what percentage of the Court’s 2022 final appropriations is represented by the budget line for \"Purchase, servicing and maintenance of equipment and software, and related work\"?",
+          "gold": "2.52%",
+          "answerFormat": "Float",
+          "evidencePages": [
+            87
+          ],
+          "answer": "I do not know; the supplied history lacks the item 2100 final-appropriation amount needed to calculate `(item 2100 final appropriations ÷ Court total final appropriations) × 100`.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 6820,
+          "contextBytes": 12696,
+          "readerTokens": {
+            "prompt": 2651,
+            "completion": 475,
+            "reasoning": 233
+          },
+          "readerCostUsd": 0.011376,
+          "retrievalMs": 93,
+          "readerMs": 6725
+        },
+        {
+          "id": "adubench_single_000298",
+          "document": "doc_000150",
+          "question": "By how many percentage points did 2022 implementation for Chapter 21 (data processing, equipment and furniture) exceed the overall 2022 budget implementation rate?",
+          "gold": "0.9",
+          "answerFormat": "Float",
+          "evidencePages": [
+            45
+          ],
+          "answer": "99.27% − 98.4% = **0.87 percentage points**.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3870,
+          "contextBytes": 13842,
+          "readerTokens": {
+            "prompt": 3029,
+            "completion": 166,
+            "reasoning": 80
+          },
+          "readerCostUsd": 0.009231,
+          "retrievalMs": 61,
+          "readerMs": 3808
+        },
+        {
+          "id": "adubench_single_000972",
+          "document": "doc_000150",
+          "question": "Across the Section VI annex summaries, what is the numeric gap between 2022 total final appropriations and the total posts in the establishment plan?",
+          "gold": "-1642.1",
+          "answerFormat": "Float",
+          "evidencePages": [
+            45,
+            46
+          ],
+          "answer": "467,900,000 − 2,110 = 467,897,890.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3686,
+          "contextBytes": 12205,
+          "readerTokens": {
+            "prompt": 2409,
+            "completion": 193,
+            "reasoning": 94
+          },
+          "readerCostUsd": 0.007951,
+          "retrievalMs": 76,
+          "readerMs": 3610
+        },
+        {
+          "id": "adubench_single_000973",
+          "document": "doc_000150",
+          "question": "Which internal-audit mission is listed in the internal-control results section but not in the interinstitutional cooperation section?",
+          "gold": "Audit of bank account management, treasury and payment execution",
+          "answerFormat": "Str",
+          "evidencePages": [
+            40,
+            50
+          ],
+          "answer": "The audit of insurance contracts and risk coverage.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.375,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4659,
+          "contextBytes": 14254,
+          "readerTokens": {
+            "prompt": 2844,
+            "completion": 114,
+            "reasoning": 99
+          },
+          "readerCostUsd": 0.0082485,
+          "retrievalMs": 65,
+          "readerMs": 4593
+        },
+        {
+          "id": "adubench_single_000974",
+          "document": "doc_000150",
+          "question": "Using both the section titled \"INTERINSTITUTIONAL COOPERATION AND COOPERATION WITH MEMBER STATE BODIES\" and the \"Report on staff policy\", which internal function name is the authoritative match for the staff-administration activity area that the cooperation section says is partly handled through shared applications and outsourcing, and therefore should be excluded before comparing establishment-plan sectors in \"Allocation of posts in the establishment plan\"?",
+          "gold": "DRHAP",
+          "answerFormat": "Str",
+          "evidencePages": [
+            40,
+            64,
+            66
+          ],
+          "answer": "Human resources (staff administration).",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5599,
+          "contextBytes": 9310,
+          "readerTokens": {
+            "prompt": 1715,
+            "completion": 276,
+            "reasoning": 264
+          },
+          "readerCostUsd": 0.007046,
+          "retrievalMs": 60,
+          "readerMs": 5538
+        },
+        {
+          "id": "adubench_single_000975",
+          "document": "doc_000150",
+          "question": "What was the 2022 implemented appropriations amount per explicitly named internal-control pillar?",
+          "gold": "115137405.56",
+          "answerFormat": "Float",
+          "evidencePages": [
+            85,
+            87
+          ],
+          "answer": "The supplied history does not state the 2022 implemented appropriations amount for any internal-control pillar.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 2616,
+          "contextBytes": 12796,
+          "readerTokens": {
+            "prompt": 2498,
+            "completion": 72,
+            "reasoning": 46
+          },
+          "readerCostUsd": 0.0069635,
+          "retrievalMs": 16,
+          "readerMs": 2599
+        },
+        {
+          "id": "adubench_single_000976",
+          "document": "doc_000150",
+          "question": "What tender-specific formula or baseline do the cooperation, budget-use, internal-control, and 2022 budget annex sections give for measuring savings from interinstitutional calls for tenders?",
+          "gold": null,
+          "answerFormat": "None",
+          "evidencePages": [],
+          "answer": "The supplied sections give no tender-specific formula or baseline for measuring savings. They only cite qualitative benefits such as better market prices, lower administrative or development costs, economies of scale, and favourable discount rates.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3523,
+          "contextBytes": 11368,
+          "readerTokens": {
+            "prompt": 2266,
+            "completion": 107,
+            "reasoning": 61
+          },
+          "readerCostUsd": 0.0067335,
+          "retrievalMs": 20,
+          "readerMs": 3502
+        },
+        {
+          "id": "adubench_single_000645",
+          "document": "doc_000324",
+          "question": "Comparing section 3.1 \"Rationale\" with section 3.3.3 \"Cardiac or vascular interventions\", which portal/source named in the latter is the more specific dental-origin counterpart to the oral cavity entry port emphasized in the former?",
+          "gold": "Potential sources of dental sepsis",
+          "answerFormat": "Str",
+          "evidencePages": [
+            12,
+            15
+          ],
+          "answer": "Potential sources of dental sepsis.",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.8,
+          "anls": 0.971,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 2355,
+          "contextBytes": 16675,
+          "readerTokens": {
+            "prompt": 2578,
+            "completion": 70,
+            "reasoning": 57
+          },
+          "readerCostUsd": 0.0071435,
+          "retrievalMs": 33,
+          "readerMs": 2319
+        },
+        {
+          "id": "adubench_single_000646",
+          "document": "doc_000324",
+          "question": "Which section and recommendation table identified in 'What is new' contains the revised diagnostic recommendations that reference the 2023 IE classification defining 'possible IE' as 1 major and 1 or 2 minor criteria?",
+          "gold": "Section 5, Recommendation Table 6",
+          "answerFormat": "Str",
+          "evidencePages": [
+            9,
+            28
+          ],
+          "answer": "The revised diagnostic recommendations are in **Section 5, “Diagnosis of infective endocarditis,” specifically Section 5.5 (“Diagnostic criteria and algorithms”)**, and are summarized in **Recommendation Table 3: Recommendations for the role of imaging in infective endocarditis**. The 2023 classification defines **possible IE as 1 major plus 1–2 minor criteria**.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.195,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 7143,
+          "contextBytes": 16660,
+          "readerTokens": {
+            "prompt": 2980,
+            "completion": 601,
+            "reasoning": 516
+          },
+          "readerCostUsd": 0.0134585,
+          "retrievalMs": 45,
+          "readerMs": 7094
+        },
+        {
+          "id": "adubench_single_000647",
+          "document": "doc_000324",
+          "question": "Which prevention-only prophylaxis risk group is not named in the diagnosis clinical-features high-risk examples?",
+          "gold": "Patients with ventricular assist devices as destination therapy",
+          "answerFormat": "Str",
+          "evidencePages": [
+            13,
+            18
+          ],
+          "answer": "I do not know; the supplied history does not include the diagnosis clinical-features high-risk examples needed for comparison.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3184,
+          "contextBytes": 16555,
+          "readerTokens": {
+            "prompt": 2338,
+            "completion": 147,
+            "reasoning": 118
+          },
+          "readerCostUsd": 0.0073135,
+          "retrievalMs": 96,
+          "readerMs": 3086
+        },
+        {
+          "id": "adubench_single_000648",
+          "document": "doc_000324",
+          "question": "Using the Preamble’s evidence hierarchy and the 'What is new' comparison table, the strongest-evidence 2023 item among prevention and Endocarditis Team organization is the Endocarditis Team recommendation for uncomplicated IE in a Referring Centre. In 'The Endocarditis Team' section and its Figure 3, what exact communication process implements that Level B recommendation between the local and Heart Valve Centre teams?",
+          "gold": "Frequent communication with clinical, microbiological, and imaging data sharing",
+          "answerFormat": "Str",
+          "evidencePages": [
+            17
+          ],
+          "answer": "**Early and regular—depicted in Figure 3 as “frequent”—communication between the two Endocarditis Teams, with sharing of clinical, microbiological, and imaging data.**",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.429,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3070,
+          "contextBytes": 16866,
+          "readerTokens": {
+            "prompt": 2492,
+            "completion": 193,
+            "reasoning": 149
+          },
+          "readerCostUsd": 0.0081585,
+          "retrievalMs": 86,
+          "readerMs": 2981
+        },
+        {
+          "id": "adubench_single_000649",
+          "document": "doc_000324",
+          "question": "In the 2023 infective endocarditis classification, what is the difference between the maximum minor criteria for possible IE and the five top-level Diagnosis subsections?",
+          "gold": "-3",
+          "answerFormat": "Int",
+          "evidencePages": [
+            28
+          ],
+          "answer": "5 − 4 = 1; there is one more Diagnosis subsection than the maximum minor criteria for possible IE.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 6753,
+          "contextBytes": 16613,
+          "readerTokens": {
+            "prompt": 3042,
+            "completion": 375,
+            "reasoning": 294
+          },
+          "readerCostUsd": 0.0113535,
+          "retrievalMs": 69,
+          "readerMs": 6683
+        },
+        {
+          "id": "adubench_single_000650",
+          "document": "doc_000324",
+          "question": "Which updated prevention topic also appears in Prevention but not as a child subdomain in the Diagnosis workflow?",
+          "gold": "Non-dental procedures",
+          "answerFormat": "Str",
+          "evidencePages": [
+            14
+          ],
+          "answer": "Antibiotic prophylaxis.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 6213,
+          "contextBytes": 16556,
+          "readerTokens": {
+            "prompt": 2603,
+            "completion": 385,
+            "reasoning": 282
+          },
+          "readerCostUsd": 0.010356,
+          "retrievalMs": 55,
+          "readerMs": 6156
+        },
+        {
+          "id": "adubench_single_001303",
+          "document": "doc_000324",
+          "question": "Which prevention prophylaxis category had the largest upward recommendation-class change from 2015 to 2023?",
+          "gold": "non-dental procedures",
+          "answerFormat": "Str",
+          "evidencePages": [
+            10,
+            14,
+            16
+          ],
+          "answer": "**Antibiotic prophylaxis for invasive non-dental procedures** had the largest upward change: from **Class III in 2015** (not recommended) to **Class IIb in 2023** (may be considered in patients at high risk of infective endocarditis).",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.125,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.6666666666666666,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5939,
+          "contextBytes": 16550,
+          "readerTokens": {
+            "prompt": 2458,
+            "completion": 336,
+            "reasoning": 272
+          },
+          "readerCostUsd": 0.0095035,
+          "retrievalMs": 19,
+          "readerMs": 5919
+        },
+        {
+          "id": "adubench_single_001304",
+          "document": "doc_000324",
+          "question": "In Section 5.5, diagnosis is based on clinical suspicion, blood cultures, and imaging findings. Which of these is not a correspondingly titled Diagnosis child subsection?",
+          "gold": "blood cultures",
+          "answerFormat": "Str",
+          "evidencePages": [
+            19,
+            28
+          ],
+          "answer": "Clinical suspicion.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3195,
+          "contextBytes": 16613,
+          "readerTokens": {
+            "prompt": 3014,
+            "completion": 121,
+            "reasoning": 112
+          },
+          "readerCostUsd": 0.0087435,
+          "retrievalMs": 19,
+          "readerMs": 3173
+        },
+        {
+          "id": "adubench_single_000442",
+          "document": "doc_000220",
+          "question": "Which warning is required in §201.325 nonoxynol 9 labeling but absent from §201.326 internal analgesic/antipyretic warnings?",
+          "gold": "For vaginal use only; Not for rectal (anal) use.",
+          "answerFormat": "Str",
+          "evidencePages": [
+            84,
+            85,
+            86,
+            87
+          ],
+          "answer": "The warning that nonoxynol 9 vaginal contraceptives **do not protect against HIV/AIDS or other sexually transmitted diseases (STDs)**.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.16,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.75,
+            "windowPrecision": 0.75,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3400,
+          "contextBytes": 16569,
+          "readerTokens": {
+            "prompt": 2098,
+            "completion": 108,
+            "reasoning": 72
+          },
+          "readerCostUsd": 0.0063235,
+          "retrievalMs": 63,
+          "readerMs": 3335
+        },
+        {
+          "id": "adubench_single_000443",
+          "document": "doc_000220",
+          "question": "Between § 201.326 and sunscreen § 201.327(g), what is the exact difference in enumerated prohibited or restricted claim terms?",
+          "gold": "3",
+          "answerFormat": "Int",
+          "evidencePages": [
+            85,
+            91
+          ],
+          "answer": "I do not know; the supplied history does not enumerate the prohibited or restricted claim terms in § 201.326 and § 201.327(g).",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4112,
+          "contextBytes": 16570,
+          "readerTokens": {
+            "prompt": 2239,
+            "completion": 231,
+            "reasoning": 79
+          },
+          "readerCostUsd": 0.007906,
+          "retrievalMs": 43,
+          "readerMs": 4066
+        },
+        {
+          "id": "adubench_single_000445",
+          "document": "doc_000220",
+          "question": "Across the sections titled “Over-the-counter drug products containing internal analgesic/antipyretic active ingredients; required warnings and other labeling” and “Prescription-drug advertisements,” which regulated name has the stricter explicit repeat/display rule when compared with the naming requirements in the nonoxynol 9 and sunscreen sections?",
+          "gold": "The established name must accompany the proprietary name or designation each",
+          "answerFormat": "Str",
+          "evidencePages": [
+            85,
+            100
+          ],
+          "answer": "I do not know; the supplied history does not include the “Prescription-drug advertisements” requirements needed for the comparison.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 6573,
+          "contextBytes": 16802,
+          "readerTokens": {
+            "prompt": 2176,
+            "completion": 382,
+            "reasoning": 352
+          },
+          "readerCostUsd": 0.0092585,
+          "retrievalMs": 33,
+          "readerMs": 6534
+        },
+        {
+          "id": "adubench_single_001103",
+          "document": "doc_000220",
+          "question": "Which exact PDP statement is required in the OTC internal analgesic/antipyretic labeling rule but not used as a sunscreen effectiveness claim in the sunscreen labeling rule?",
+          "gold": "See new warnings information",
+          "answerFormat": "Str",
+          "evidencePages": [
+            89
+          ],
+          "answer": "“See new warnings information”",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 1,
+          "anls": 0.933,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 1599,
+          "contextBytes": 16615,
+          "readerTokens": {
+            "prompt": 2138,
+            "completion": 10,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0054435,
+          "retrievalMs": 75,
+          "readerMs": 1521
+        },
+        {
+          "id": "adubench_single_001104",
+          "document": "doc_000220",
+          "question": "Which section mandates more separately enumerated warning statements under its labeling requirements, 21 CFR § 201.326 or 21 CFR § 201.327?",
+          "gold": "21 CFR § 201.326, by 13 warning statements.",
+          "answerFormat": "Str",
+          "evidencePages": [
+            85,
+            86,
+            90
+          ],
+          "answer": "21 CFR § 201.326 mandates more separately enumerated warning statements than § 201.327.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.444,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3871,
+          "contextBytes": 16584,
+          "readerTokens": {
+            "prompt": 1927,
+            "completion": 115,
+            "reasoning": 88
+          },
+          "readerCostUsd": 0.005966,
+          "retrievalMs": 52,
+          "readerMs": 3817
+        },
+        {
+          "id": "adubench_single_001105",
+          "document": "doc_000220",
+          "question": "Across the nonoxynol 9, internal analgesic/antipyretic, and sunscreen labeling sections, what is the gap between the highest and lowest warning-statement counts?",
+          "gold": "15",
+          "answerFormat": "Int",
+          "evidencePages": [
+            86,
+            88,
+            89
+          ],
+          "answer": "I do not know; the internal analgesic/antipyretic warning-statement count is not supplied, so the highest-minus-lowest gap cannot be determined.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 16474,
+          "contextBytes": 16604,
+          "readerTokens": {
+            "prompt": 2183,
+            "completion": 971,
+            "reasoning": 789
+          },
+          "readerCostUsd": 0.015166,
+          "retrievalMs": 88,
+          "readerMs": 16384
+        },
+        {
+          "id": "adubench_single_001106",
+          "document": "doc_000220",
+          "question": "Across §201.325-.328, which section has the highest operative numeric cutoff?",
+          "gold": "§201.327 — 1,500 W/m²",
+          "answerFormat": "Str",
+          "evidencePages": [
+            91
+          ],
+          "answer": "§ 201.327 has the highest operative numeric cutoff: mean critical wavelength ≥ 370 nm (370 > 5).",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.133,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 9961,
+          "contextBytes": 16521,
+          "readerTokens": {
+            "prompt": 1874,
+            "completion": 519,
+            "reasoning": 404
+          },
+          "readerCostUsd": 0.0098735,
+          "retrievalMs": 18,
+          "readerMs": 9941
+        }
+      ]
+    },
+    {
+      "tier": "500p",
+      "band": [
+        430,
+        600
+      ],
+      "assembled": false,
+      "summary": {
+        "tier": "500p",
+        "pages": 2537,
+        "windows": 2537,
+        "questions": 47,
+        "answerable": 43,
+        "unanswerable": 4,
+        "accuracy": 0.1702127659574468,
+        "answerableAccuracy": 0.18604651162790697,
+        "localeAccuracy": 0.1702127659574468,
+        "evidenceHitRate": 0.7674418604651163,
+        "meanPageRecall": 0.5984496124031008,
+        "meanWindowPrecision": 0.3081395348837209,
+        "falseAnswerRate": 1,
+        "meanLatencyMs": 4516.084977914893,
+        "meanContextBytes": 12150.212765957447,
+        "meanRetrievalMs": 55.168436191488425,
+        "meanReaderMs": 4460.054406085103,
+        "p50LatencyMs": 3855.542874999999,
+        "p95LatencyMs": 8401.853416999991,
+        "meanPromptTokens": 2446.468085106383,
+        "meanCompletionTokens": 215.10638297872342,
+        "meanReasoningTokens": 143.82978723404256,
+        "totalCostUsd": 0.38848950000000004,
+        "costPerAnswerUsd": 0.008265734042553192,
+        "costPerCorrectUsd": 0.02158275,
+        "meanTokenF1": 0.13293604421964653,
+        "meanAnls": 0.043466223698781836,
+        "judgedAccuracy": 0.3829787234042553,
+        "judgedQuestions": 47
+      },
+      "documents": [
+        {
+          "document": "doc_000175",
+          "title": "doc_000175",
+          "sourceUrl": "https://semspub.epa.gov/work/08/1772067.pdf",
+          "sha256": "05a9a78eb34dbb859207295a16b9830c50d16ec2d10e4fac8e6d6cd50776ef53",
+          "pages": 514,
+          "summary": {
+            "tier": "500p/doc_000175",
+            "pages": 514,
+            "windows": 514,
+            "questions": 11,
+            "answerable": 10,
+            "unanswerable": 1,
+            "accuracy": 0,
+            "answerableAccuracy": 0,
+            "localeAccuracy": 0,
+            "evidenceHitRate": 0.6,
+            "meanPageRecall": 0.4066666666666666,
+            "meanWindowPrecision": 0.225,
+            "falseAnswerRate": 1,
+            "meanLatencyMs": 4267.831427999999,
+            "meanContextBytes": 8029.636363636364,
+            "meanRetrievalMs": 50.36643936363742,
+            "meanReaderMs": 4217.052939545454,
+            "p50LatencyMs": 3495.621583,
+            "p95LatencyMs": 9360.792625000002,
+            "meanPromptTokens": 1913.1818181818182,
+            "meanCompletionTokens": 195.0909090909091,
+            "meanReasoningTokens": 151.1818181818182,
+            "totalCostUsd": 0.074056,
+            "costPerAnswerUsd": 0.006732363636363636,
+            "costPerCorrectUsd": 0.074056,
+            "meanTokenF1": 0.08645683688128511,
+            "meanAnls": 0,
+            "judgedAccuracy": 0.09090909090909091,
+            "judgedQuestions": 11
+          }
+        },
+        {
+          "document": "doc_000032",
+          "title": "doc_000032",
+          "sourceUrl": "https://www.federalreserve.gov/boarddocs/supmanual/trading.pdf",
+          "sha256": "2b1286e326195fd0195e2b39e4932aa8b4bfaf5053b5c34ba6bc84990651a437",
+          "pages": 597,
+          "summary": {
+            "tier": "500p/doc_000032",
+            "pages": 597,
+            "windows": 597,
+            "questions": 10,
+            "answerable": 9,
+            "unanswerable": 1,
+            "accuracy": 0.2,
+            "answerableAccuracy": 0.2222222222222222,
+            "localeAccuracy": 0.2,
+            "evidenceHitRate": 0.8888888888888888,
+            "meanPageRecall": 0.6296296296296295,
+            "meanWindowPrecision": 0.4166666666666667,
+            "falseAnswerRate": 1,
+            "meanLatencyMs": 4192.353433499998,
+            "meanContextBytes": 15946.4,
+            "meanRetrievalMs": 51.98204179999884,
+            "meanReaderMs": 4139.000954100001,
+            "p50LatencyMs": 3785.9109590000007,
+            "p95LatencyMs": 6927.826541999995,
+            "meanPromptTokens": 3175.9,
+            "meanCompletionTokens": 154.6,
+            "meanReasoningTokens": 95.7,
+            "totalCostUsd": 0.09484250000000001,
+            "costPerAnswerUsd": 0.009484250000000001,
+            "costPerCorrectUsd": 0.018968500000000003,
+            "meanTokenF1": 0.1952991121789076,
+            "meanAnls": 0.10185185185185185,
+            "judgedAccuracy": 0.5,
+            "judgedQuestions": 10
+          }
+        },
+        {
+          "document": "doc_000160",
+          "title": "doc_000160",
+          "sourceUrl": "https://planning.erdc.dren.mil/toolbox/library/EMs/em1110.2.2502.pdf",
+          "sha256": "636a117782eba30477b752ceaf611707c8b12045a103ef93cfe7b5dde42c16a4",
+          "pages": 448,
+          "summary": {
+            "tier": "500p/doc_000160",
+            "pages": 448,
+            "windows": 448,
+            "questions": 9,
+            "answerable": 9,
+            "unanswerable": 0,
+            "accuracy": 0.1111111111111111,
+            "answerableAccuracy": 0.1111111111111111,
+            "localeAccuracy": 0.1111111111111111,
+            "evidenceHitRate": 0.5555555555555556,
+            "meanPageRecall": 0.4444444444444444,
+            "meanWindowPrecision": 0.2222222222222222,
+            "falseAnswerRate": 0,
+            "meanLatencyMs": 4469.33785666667,
+            "meanContextBytes": 9171.666666666666,
+            "meanRetrievalMs": 53.80050933333243,
+            "meanReaderMs": 4415.072277777774,
+            "p50LatencyMs": 3855.542874999999,
+            "p95LatencyMs": 7934.752833999999,
+            "meanPromptTokens": 2053.8888888888887,
+            "meanCompletionTokens": 231.44444444444446,
+            "meanReasoningTokens": 132.11111111111111,
+            "totalCostUsd": 0.06702899999999999,
+            "costPerAnswerUsd": 0.007447666666666666,
+            "costPerCorrectUsd": 0.016757249999999998,
+            "meanTokenF1": 0.06989247311827956,
+            "meanAnls": 0,
+            "judgedAccuracy": 0.4444444444444444,
+            "judgedQuestions": 9
+          }
+        },
+        {
+          "document": "doc_000029",
+          "title": "doc_000029",
+          "sourceUrl": "https://www1.eere.energy.gov/buildings/publications/pdfs/energysmartschools/nationalbestpracticesmanual31545.pdf",
+          "sha256": "1afa805633171acfe865ab5f20ebacdd6944955637e8dc807f082d2b487043a0",
+          "pages": 457,
+          "summary": {
+            "tier": "500p/doc_000029",
+            "pages": 457,
+            "windows": 457,
+            "questions": 9,
+            "answerable": 8,
+            "unanswerable": 1,
+            "accuracy": 0.4444444444444444,
+            "answerableAccuracy": 0.5,
+            "localeAccuracy": 0.4444444444444444,
+            "evidenceHitRate": 1,
+            "meanPageRecall": 0.7500000000000001,
+            "meanWindowPrecision": 0.40625,
+            "falseAnswerRate": 1,
+            "meanLatencyMs": 4575.371245333332,
+            "meanContextBytes": 12847.111111111111,
+            "meanRetrievalMs": 47.83866188888593,
+            "meanReaderMs": 4526.706495444442,
+            "p50LatencyMs": 3934.6321670000034,
+            "p95LatencyMs": 8975.051333999989,
+            "meanPromptTokens": 2084,
+            "meanCompletionTokens": 242.22222222222223,
+            "meanReasoningTokens": 184.11111111111111,
+            "totalCostUsd": 0.0686765,
+            "costPerAnswerUsd": 0.007630722222222223,
+            "costPerCorrectUsd": 0.0137353,
+            "meanTokenF1": 0.18055555555555555,
+            "meanAnls": 0.11904761904761904,
+            "judgedAccuracy": 0.5555555555555556,
+            "judgedQuestions": 9
+          }
+        },
+        {
+          "document": "doc_000189",
+          "title": "doc_000189",
+          "sourceUrl": "https://lms.trilogyems.com/wp-content/uploads/2026/01/NOAA-Diving-Manual.pdf",
+          "sha256": "f00a2417d8c66bc1ba0167dbbbbd128a7425e31318a5ceab1b11fd4f3a57c170",
+          "pages": 521,
+          "summary": {
+            "tier": "500p/doc_000189",
+            "pages": 521,
+            "windows": 521,
+            "questions": 8,
+            "answerable": 7,
+            "unanswerable": 1,
+            "accuracy": 0.125,
+            "answerableAccuracy": 0.14285714285714285,
+            "localeAccuracy": 0.125,
+            "evidenceHitRate": 0.8571428571428571,
+            "meanPageRecall": 0.8571428571428571,
+            "meanWindowPrecision": 0.2857142857142857,
+            "falseAnswerRate": 1,
+            "meanLatencyMs": 5247.991500124997,
+            "meanContextBytes": 15637.625,
+            "meanRetrievalMs": 75.53908862499884,
+            "meanReaderMs": 5171.119531374998,
+            "p50LatencyMs": 6026.629167000006,
+            "p95LatencyMs": 8401.853416999991,
+            "meanPromptTokens": 3117.375,
+            "meanCompletionTokens": 269.375,
+            "meanReasoningTokens": 161.75,
+            "totalCostUsd": 0.08388550000000002,
+            "costPerAnswerUsd": 0.010485687500000002,
+            "costPerCorrectUsd": 0.02796183333333334,
+            "meanTokenF1": 0.14578754578754577,
+            "meanAnls": 0,
+            "judgedAccuracy": 0.375,
+            "judgedQuestions": 8
+          }
+        }
+      ],
+      "errors": [],
+      "outcomes": [
+        {
+          "id": "adubench_single_000339",
+          "document": "doc_000175",
+          "question": "Which authority cited in Chapter 20's General Project Planning is absent from ZERO CODE's AUTHORITY list?",
+          "gold": "30 CFR Parts 1-199 and 42 CFR Part 11",
+          "answerFormat": "Str",
+          "evidencePages": [
+            11,
+            12,
+            77
+          ],
+          "answer": "Chapter 20 additionally cites **30 CFR Parts 1–199, 42 CFR Part 11, and 49 CFR Parts 1–199 and 301–399**, none of which appear in ZERO CODE’s authority list.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.452,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.6666666666666666,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3496,
+          "contextBytes": 7707,
+          "readerTokens": {
+            "prompt": 1922,
+            "completion": 138,
+            "reasoning": 85
+          },
+          "readerCostUsd": 0.0061835,
+          "retrievalMs": 37,
+          "readerMs": 3458
+        },
+        {
+          "id": "adubench_single_000340",
+          "document": "doc_000175",
+          "question": "Which activity explicitly requires an additional on-site person for emergency support, beyond the worker performing the task: the Chapter 20 tree-climbing rescue rule or the telecommunications tower/pole-climbing qualifications section?",
+          "gold": "Chapter 20 tree-climbing rescue rule",
+          "answerFormat": "Str",
+          "evidencePages": [
+            141,
+            169
+          ],
+          "answer": "I do not know from the supplied history. The excerpts do not show an explicit requirement for an additional on-site person in either section.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3897,
+          "contextBytes": 7614,
+          "readerTokens": {
+            "prompt": 1873,
+            "completion": 127,
+            "reasoning": 94
+          },
+          "readerCostUsd": 0.005951,
+          "retrievalMs": 79,
+          "readerMs": 3817
+        },
+        {
+          "id": "adubench_single_000341",
+          "document": "doc_000175",
+          "question": "Which ZERO CODE authority also underlies the State and Private Forestry H2S/oil-and-gas safety rules based on 29 CFR?",
+          "gold": "Occupational Safety and Health Administration (OSHA)",
+          "answerFormat": "Str",
+          "evidencePages": [
+            11,
+            146
+          ],
+          "answer": "The Occupational Safety and Health Act of 1970, sections 19 and 24, as amended (29 U.S.C. 668 and 673), underlies those 29 CFR safety rules.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.308,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 2644,
+          "contextBytes": 7587,
+          "readerTokens": {
+            "prompt": 1933,
+            "completion": 128,
+            "reasoning": 81
+          },
+          "readerCostUsd": 0.006111,
+          "retrievalMs": 93,
+          "readerMs": 2550
+        },
+        {
+          "id": "adubench_single_000342",
+          "document": "doc_000175",
+          "question": "Which named standard appears in ZERO CODE's referenced standards but not in the RESEARCH PPE/fire-protection authorities?",
+          "gold": "National Fire Codes of the National Fire Protection Association (NFPA)",
+          "answerFormat": "Str",
+          "evidencePages": [
+            12
+          ],
+          "answer": "“Basic Program Elements for Federal Employee Occupational Safety and Health Programs and Related Matters” (29 CFR Part 1960).",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3289,
+          "contextBytes": 7977,
+          "readerTokens": {
+            "prompt": 2017,
+            "completion": 156,
+            "reasoning": 126
+          },
+          "readerCostUsd": 0.006601,
+          "retrievalMs": 46,
+          "readerMs": 3243
+        },
+        {
+          "id": "adubench_single_000343",
+          "document": "doc_000175",
+          "question": "Which child title under PROTECTION AND DEVELOPMENT has no matching child title under MANAGEMENT SERVICES?",
+          "gold": "Law Enforcement",
+          "answerFormat": "Str",
+          "evidencePages": [
+            165
+          ],
+          "answer": "Authority (25.01).",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 9361,
+          "contextBytes": 7276,
+          "readerTokens": {
+            "prompt": 1815,
+            "completion": 493,
+            "reasoning": 481
+          },
+          "readerCostUsd": 0.009466,
+          "retrievalMs": 107,
+          "readerMs": 9253
+        },
+        {
+          "id": "adubench_single_000344",
+          "document": "doc_000175",
+          "question": "Across ZERO CODE, Travel, and Work Projects JHA provisions, what is the highest-ranking role explicitly assigned JHA-related responsibility in all three?",
+          "gold": "Supervisor",
+          "answerFormat": "Str",
+          "evidencePages": [
+            12,
+            13,
+            21,
+            22,
+            77
+          ],
+          "answer": "I do not know; no role is explicitly assigned JHA-related responsibility in all three excerpts.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.4,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 7932,
+          "contextBytes": 8790,
+          "readerTokens": {
+            "prompt": 1942,
+            "completion": 514,
+            "reasoning": 357
+          },
+          "readerCostUsd": 0.0099935,
+          "retrievalMs": 59,
+          "readerMs": 7873
+        },
+        {
+          "id": "adubench_single_000345",
+          "document": "doc_000175",
+          "question": "Across CHAPTER 10 – TRAVEL (11.12 – Job Hazard Analyses), CHAPTER 20 – WORK PROJECTS AND ACTIVITIES (21.1 – Job Hazard Analysis), and PROTECTION AND DEVELOPMENT (25.08 – Procedures / 25.1 – Fire), which exact document name is the only prework planning document explicitly named beyond the generic \"Job hazard analysis (JHA)\" used in both chapter-level JHA sections?",
+          "gold": "district or project safety and health plan",
+          "answerFormat": "Str",
+          "evidencePages": [
+            22,
+            148
+          ],
+          "answer": "I do not know. The supplied history does not include sections 25.08 or 25.1.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.105,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3422,
+          "contextBytes": 9305,
+          "readerTokens": {
+            "prompt": 1940,
+            "completion": 128,
+            "reasoning": 100
+          },
+          "readerCostUsd": 0.0061285,
+          "retrievalMs": 31,
+          "readerMs": 3390
+        },
+        {
+          "id": "adubench_single_001020",
+          "document": "doc_000175",
+          "question": "Which Chapter 20 work-project category appears later only as a reserved heading, unlike Resource Management and Minerals and Geology?",
+          "gold": "Special Uses",
+          "answerFormat": "Str",
+          "evidencePages": [
+            141
+          ],
+          "answer": "“State and Private Forestry” (Chapter 23) and “Research” (Chapter 24) appear only as reserved headings.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5005,
+          "contextBytes": 7130,
+          "readerTokens": {
+            "prompt": 1838,
+            "completion": 152,
+            "reasoning": 120
+          },
+          "readerCostUsd": 0.0061135,
+          "retrievalMs": 22,
+          "readerMs": 4982
+        },
+        {
+          "id": "adubench_single_001021",
+          "document": "doc_000175",
+          "question": "Which JHA field is explicitly required in Chapter 20 but not explicitly named in the ZERO CODE supervisor, work leader, and employee responsibility sections?",
+          "gold": "the worksite",
+          "answerFormat": "Str",
+          "evidencePages": [
+            77
+          ],
+          "answer": "I do not know; the ZERO CODE supervisor, work leader, and employee responsibility sections were not supplied.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 2628,
+          "contextBytes": 7839,
+          "readerTokens": {
+            "prompt": 1944,
+            "completion": 117,
+            "reasoning": 90
+          },
+          "readerCostUsd": 0.0060285,
+          "retrievalMs": 24,
+          "readerMs": 2603
+        },
+        {
+          "id": "adubench_single_001022",
+          "document": "doc_000175",
+          "question": "Under the ZERO CODE authority and the wildfire CO guidance, what exact numeric CO exposure limit or monitoring trigger is explicitly required?",
+          "gold": null,
+          "answerFormat": "None",
+          "evidencePages": [],
+          "answer": "No exact numeric CO exposure limit or monitoring trigger is explicitly stated. The guidance only requires monitoring for possible CO concentrations and taking appropriate action based on symptoms and behavior.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 1574,
+          "contextBytes": 8203,
+          "readerTokens": {
+            "prompt": 1925,
+            "completion": 36,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.005171,
+          "retrievalMs": 25,
+          "readerMs": 1549
+        },
+        {
+          "id": "adubench_single_001023",
+          "document": "doc_000175",
+          "question": "Which JHA content elements are explicitly listed in CHAPTER 20 – WORK PROJECTS AND ACTIVITIES, section 21.1, and also appear in the ZERO CODE JHA definition, but are not explicitly listed in the travel JHA requirements in CHAPTER 10 – TRAVEL, section 11.12?",
+          "gold": "qualifications; training",
+          "answerFormat": "Str",
+          "evidencePages": [
+            14,
+            77
+          ],
+          "answer": "I do not know. The supplied ZERO CODE excerpt does not include the JHA definition needed for the comparison.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3698,
+          "contextBytes": 8898,
+          "readerTokens": {
+            "prompt": 1896,
+            "completion": 157,
+            "reasoning": 129
+          },
+          "readerCostUsd": 0.0063085,
+          "retrievalMs": 30,
+          "readerMs": 3668
+        },
+        {
+          "id": "adubench_single_000058",
+          "document": "doc_000032",
+          "question": "Comparing the maturity classifications in the Spanish and U.K. government bond sections, which country’s government bonds include the longest explicitly stated maturity?",
+          "gold": "United Kingdom, over 15 years",
+          "answerFormat": "Str",
+          "evidencePages": [
+            488,
+            494
+          ],
+          "answer": "I do not know; Spain’s longest explicitly stated maturity is 15 years, but no U.K. maturity is available for comparison.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.174,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5061,
+          "contextBytes": 16614,
+          "readerTokens": {
+            "prompt": 3242,
+            "completion": 136,
+            "reasoning": 43
+          },
+          "readerCostUsd": 0.0094635,
+          "retrievalMs": 31,
+          "readerMs": 5029
+        },
+        {
+          "id": "adubench_single_000059",
+          "document": "doc_000032",
+          "question": "Which bond category is in the Brady restructuring section but not the JGB direct-government-guarantee section?",
+          "gold": "Brady bonds",
+          "answerFormat": "Str",
+          "evidencePages": [
+            484,
+            498
+          ],
+          "answer": "Below-investment-grade emerging-market bonds (Brady bonds).",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.571,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 2860,
+          "contextBytes": 16553,
+          "readerTokens": {
+            "prompt": 3356,
+            "completion": 103,
+            "reasoning": 85
+          },
+          "readerCostUsd": 0.0094185,
+          "retrievalMs": 50,
+          "readerMs": 2809
+        },
+        {
+          "id": "adubench_single_000060",
+          "document": "doc_000032",
+          "question": "Using the minimum original maturities stated in the sections titled \"Japanese Government Bonds and Notes,\" \"Spanish Government Bonds,\" and \"Swiss Government Notes and Bonds,\" what is the gap in days between the lowest minimum maturity and the second-lowest minimum maturity after converting the Spanish and Swiss minima of 3 years to days on a 365-day basis?",
+          "gold": "915",
+          "answerFormat": "Int",
+          "evidencePages": [
+            484,
+            488,
+            491
+          ],
+          "answer": "Spanish and Swiss minima are 3 × 365 = 1,095 days; the gap from the lowest minimum of 180 days to the second-lowest minimum of 1,095 days is 1,095 − 180 = **915 days**.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.095,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.75,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5972,
+          "contextBytes": 16801,
+          "readerTokens": {
+            "prompt": 3398,
+            "completion": 254,
+            "reasoning": 127
+          },
+          "readerCostUsd": 0.0110335,
+          "retrievalMs": 93,
+          "readerMs": 5877
+        },
+        {
+          "id": "adubench_single_000061",
+          "document": "doc_000032",
+          "question": "Across Japan, Spain, and the U.K. bond sections, what non-book-entry form appears only in Japan?",
+          "gold": "bearer form",
+          "answerFormat": "Str",
+          "evidencePages": [
+            484,
+            488,
+            494
+          ],
+          "answer": "Bearer form.",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.5,
+          "anls": 0.917,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.6666666666666666,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 2987,
+          "contextBytes": 16539,
+          "readerTokens": {
+            "prompt": 3223,
+            "completion": 54,
+            "reasoning": 45
+          },
+          "readerCostUsd": 0.008596,
+          "retrievalMs": 106,
+          "readerMs": 2879
+        },
+        {
+          "id": "adubench_single_000062",
+          "document": "doc_000032",
+          "question": "Unlike Japanese and Spanish government bonds backed by national guarantees, what external collateral instrument backs collateralized Brady deals?",
+          "gold": "U.S. Treasury zero-coupon bonds and U.S. Treasury bills",
+          "answerFormat": "Str",
+          "evidencePages": [
+            499
+          ],
+          "answer": "I do not know from the supplied history; it does not identify the external collateral instrument backing collateralized Brady deals.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3031,
+          "contextBytes": 15492,
+          "readerTokens": {
+            "prompt": 3051,
+            "completion": 86,
+            "reasoning": 57
+          },
+          "readerCostUsd": 0.008486,
+          "retrievalMs": 61,
+          "readerMs": 2969
+        },
+        {
+          "id": "adubench_single_000063",
+          "document": "doc_000032",
+          "question": "Across the Japanese, Spanish, Swiss, and U.K. government-bond sections, what is the gap between the highest and lowest stated maximum maturities?",
+          "gold": "15",
+          "answerFormat": "Int",
+          "evidencePages": [
+            484,
+            488,
+            491,
+            495
+          ],
+          "answer": "I do not know; the Spanish and U.K. maximum maturities are missing.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3376,
+          "contextBytes": 13840,
+          "readerTokens": {
+            "prompt": 2873,
+            "completion": 162,
+            "reasoning": 69
+          },
+          "readerCostUsd": 0.008801,
+          "retrievalMs": 73,
+          "readerMs": 3302
+        },
+        {
+          "id": "adubench_single_000751",
+          "document": "doc_000032",
+          "question": "Across the sections titled \"Japanese Government Bonds and Notes\" and \"Brady Bonds and Other Emerging-Markets Bonds,\" what exact support-structure phrase appears in the Brady section but not in the JGB section, given that the JGB section instead says the bonds are guaranteed by the Japanese national government?",
+          "gold": "U.S. Treasury zero-coupon bonds and U.S. Treasury bills",
+          "answerFormat": "Str",
+          "evidencePages": [
+            484,
+            499
+          ],
+          "answer": "“Principal-payment and rolling interest-rate guarantees.”",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.182,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 6928,
+          "contextBytes": 15176,
+          "readerTokens": {
+            "prompt": 3218,
+            "completion": 288,
+            "reasoning": 273
+          },
+          "readerCostUsd": 0.0109235,
+          "retrievalMs": 33,
+          "readerMs": 6894
+        },
+        {
+          "id": "adubench_single_000752",
+          "document": "doc_000032",
+          "question": "Across the JGB and Foreign Exchange sections, what explicit FX-linked convention is stated for settling or converting yen-denominated JGB trades into another currency?",
+          "gold": null,
+          "answerFormat": "None",
+          "evidencePages": [],
+          "answer": "No explicit FX-linked convention is stated for settling or converting yen-denominated JGB trades into another currency. The excerpts only discuss exchange-rate risk, FX quotation methods, and hedging with forwards, futures, options, or swaps.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3219,
+          "contextBytes": 16610,
+          "readerTokens": {
+            "prompt": 3173,
+            "completion": 131,
+            "reasoning": 79
+          },
+          "readerCostUsd": 0.009241,
+          "retrievalMs": 24,
+          "readerMs": 3194
+        },
+        {
+          "id": "adubench_single_000753",
+          "document": "doc_000032",
+          "question": "Among the Japan, Spain, and U.K. government-bond sections, which market is the outlier from {book-entry-only, dematerialized}?",
+          "gold": "Japan — registered; convertible to bearer within 2 market days",
+          "answerFormat": "Str",
+          "evidencePages": [
+            484,
+            488
+          ],
+          "answer": "Japan is the outlier: JGBs may be registered or converted to bearer form, unlike Spain’s book-entry-only bonds. The supplied history does not include the U.K. section for confirmation.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.235,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3786,
+          "contextBytes": 15473,
+          "readerTokens": {
+            "prompt": 2962,
+            "completion": 151,
+            "reasoning": 105
+          },
+          "readerCostUsd": 0.0089135,
+          "retrievalMs": 26,
+          "readerMs": 3759
+        },
+        {
+          "id": "adubench_single_000754",
+          "document": "doc_000032",
+          "question": "Across the Japanese, Spanish, Swiss, and U.K. government-bond sections, what is the gap between the highest and lowest explicitly stated maximum maturities?",
+          "gold": "15",
+          "answerFormat": "Int",
+          "evidencePages": [
+            484,
+            488,
+            491,
+            494
+          ],
+          "answer": "I do not know; the Spanish and U.K. maximum maturities are missing, so the overall highest-to-lowest gap cannot be calculated.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4702,
+          "contextBytes": 16366,
+          "readerTokens": {
+            "prompt": 3263,
+            "completion": 181,
+            "reasoning": 74
+          },
+          "readerCostUsd": 0.009966,
+          "retrievalMs": 23,
+          "readerMs": 4678
+        },
+        {
+          "id": "adubench_single_000312",
+          "document": "doc_000160",
+          "question": "Using both \"Distribution of Horizontal Earth Pressure\" and \"Pressure Calculations,\" which depth label in the compaction-induced pressure figure marks the point where the added compaction pressure reconciles with the baseline triangular at-rest earth-pressure distribution from Figure 3-19?",
+          "gold": "z2",
+          "answerFormat": "Str",
+          "evidencePages": [
+            83
+          ],
+          "answer": "The depth label is **\\(z_2\\)**, where the compaction-induced pressure equals the baseline at-rest earth pressure.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 2906,
+          "contextBytes": 8423,
+          "readerTokens": {
+            "prompt": 1740,
+            "completion": 77,
+            "reasoning": 45
+          },
+          "readerCostUsd": 0.0051185,
+          "retrievalMs": 30,
+          "readerMs": 2875
+        },
+        {
+          "id": "adubench_single_000313",
+          "document": "doc_000160",
+          "question": "For retaining walls, which Chapter 4 loading case matches wind load checked during construction before backfill is placed?",
+          "gold": "Case R2, Unusual Loading",
+          "answerFormat": "Str",
+          "evidencePages": [
+            91,
+            110
+          ],
+          "answer": "**Case R2, Unusual Loading**, which includes short-duration high wind loads during construction.",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.5,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3296,
+          "contextBytes": 11413,
+          "readerTokens": {
+            "prompt": 2630,
+            "completion": 119,
+            "reasoning": 94
+          },
+          "readerCostUsd": 0.0077635,
+          "retrievalMs": 45,
+          "readerMs": 3251
+        },
+        {
+          "id": "adubench_single_000314",
+          "document": "doc_000160",
+          "question": "Across Section \"Earth Pressure Calculations Including Wall Friction\" and Chapter 4's \"Bearing Capacity Criteria\" plus Figure 4-12, what exact exposure condition qualifies the use of the resisting-side passive pressure coefficient KP by identifying when the fronting soil or rock should not be relied upon for the greater sliding resistance shown in the flowchart unless protected?",
+          "gold": "high velocity water scouring",
+          "answerFormat": "Str",
+          "evidencePages": [
+            67,
+            137
+          ],
+          "answer": "The fronting soil or rock should not be relied upon for passive resistance if it may be subjected to **high-velocity water scouring**, unless it is **amply protected** against that scour.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.129,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3312,
+          "contextBytes": 9864,
+          "readerTokens": {
+            "prompt": 2216,
+            "completion": 131,
+            "reasoning": 85
+          },
+          "readerCostUsd": 0.0068485,
+          "retrievalMs": 80,
+          "readerMs": 3232
+        },
+        {
+          "id": "adubench_single_000315",
+          "document": "doc_000160",
+          "question": "Using Section 0002’s superposition rule together with the labels identified in Sections 0001 and 0004, if the usual surcharge component in the total horizontal pressure calculation were replaced by the finite-surcharge resultant from wedge analysis, which expression would represent the new total horizontal resultant on the wall?",
+          "gold": "P′H soil + Pwater + ΔPH",
+          "answerFormat": "Str",
+          "evidencePages": [
+            68,
+            70,
+            77,
+            78,
+            79
+          ],
+          "answer": "\\(\\displaystyle P_{H,\\mathrm{new}}=P_{H,\\mathrm{no\\ surcharge}}+\\Delta P_H^{(\\mathrm{finite\\ surcharge,\\ wedge})}\\).",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 7935,
+          "contextBytes": 9122,
+          "readerTokens": {
+            "prompt": 2021,
+            "completion": 518,
+            "reasoning": 351
+          },
+          "readerCostUsd": 0.010231,
+          "retrievalMs": 104,
+          "readerMs": 7830
+        },
+        {
+          "id": "adubench_single_000316",
+          "document": "doc_000160",
+          "question": "Across the sections titled \"Distribution of Horizontal Earth Pressure,\" \"Surcharge Effects,\" and \"Earth Pressures Due to Compaction,\" what is the exact number obtained by adding the number of pressure components that must be superposed to form total horizontal pressure, the number of linear segments in the compaction design pressure diagram, and the number of quantities in the quotient used to locate the point of application of a general-shape surcharge resultant?",
+          "gold": "8",
+          "answerFormat": "Int",
+          "evidencePages": [
+            68,
+            77,
+            83
+          ],
+          "answer": "I do not know; the required compaction-diagram segment count is not supplied in the history.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5027,
+          "contextBytes": 11961,
+          "readerTokens": {
+            "prompt": 2687,
+            "completion": 261,
+            "reasoning": 126
+          },
+          "readerCostUsd": 0.009326,
+          "retrievalMs": 62,
+          "readerMs": 4965
+        },
+        {
+          "id": "adubench_single_000996",
+          "document": "doc_000160",
+          "question": "For retaining wall Case R1, what sliding factor-of-safety ratio is defined in Chapter 4 using Chapter 3 forces, including resisting-side passive pressure with wall friction?",
+          "gold": "T_F / T",
+          "answerFormat": "Str",
+          "evidencePages": [
+            126,
+            127
+          ],
+          "answer": "I do not know; the supplied history does not include Chapter 4’s Case R1 sliding factor-of-safety ratio.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3855,
+          "contextBytes": 10356,
+          "readerTokens": {
+            "prompt": 2272,
+            "completion": 81,
+            "reasoning": 50
+          },
+          "readerCostUsd": 0.0064885,
+          "retrievalMs": 90,
+          "readerMs": 3764
+        },
+        {
+          "id": "adubench_single_000997",
+          "document": "doc_000160",
+          "question": "Using wall-friction earth pressure and the superposition rule, what is the vertical offset between the earth-only line of action at H/3 and the final combined resultant at 0.45H?",
+          "gold": "0.1167",
+          "answerFormat": "Float",
+          "evidencePages": [
+            75
+          ],
+          "answer": "Vertical offset \\(=0.45H-\\frac{H}{3}=\\frac{7H}{60}\\approx0.117H\\) upward.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5768,
+          "contextBytes": 4806,
+          "readerTokens": {
+            "prompt": 1237,
+            "completion": 340,
+            "reasoning": 238
+          },
+          "readerCostUsd": 0.006491,
+          "retrievalMs": 23,
+          "readerMs": 5745
+        },
+        {
+          "id": "adubench_single_000998",
+          "document": "doc_000160",
+          "question": "Using the superposition rule in \"Distribution of Horizontal Earth Pressure\" and the keyed-base geometry in Figure 3-33 referenced from \"Section III. Water Pressures,\" which labeled point pair defines the diagonal segment whose pressure-head-derived water pressure must be added to effective earth pressure to obtain the total Type IV pressure condition?",
+          "gold": "BC",
+          "answerFormat": "Str",
+          "evidencePages": [
+            85
+          ],
+          "answer": "I do not know; the labeled point pair cannot be determined from the supplied history.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3856,
+          "contextBytes": 10448,
+          "readerTokens": {
+            "prompt": 2243,
+            "completion": 224,
+            "reasoning": 92
+          },
+          "readerCostUsd": 0.007846,
+          "retrievalMs": 27,
+          "readerMs": 3828
+        },
+        {
+          "id": "adubench_single_000999",
+          "document": "doc_000160",
+          "question": "Before water pressure is added, what total lateral force per unit wall length does the superposition rule give from earth pressure, surcharge, and compaction?",
+          "gold": "P_H + ΔP_H + P'_hc",
+          "answerFormat": "Str",
+          "evidencePages": [
+            68,
+            77,
+            83
+          ],
+          "answer": "I do not know; the supplied history lacks the three force values needed to calculate earth force + surcharge force + compaction force.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.6666666666666666,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4269,
+          "contextBytes": 6152,
+          "readerTokens": {
+            "prompt": 1439,
+            "completion": 332,
+            "reasoning": 108
+          },
+          "readerCostUsd": 0.006916,
+          "retrievalMs": 23,
+          "readerMs": 4245
+        },
+        {
+          "id": "adubench_single_000052",
+          "document": "doc_000029",
+          "question": "Which cross-cutting goal is the only one not explicitly matched by any chapter title in The Design Process?",
+          "gold": "Buildings as a Teaching Tool",
+          "answerFormat": "Str",
+          "evidencePages": [
+            12
+          ],
+          "answer": "Acoustic Comfort.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 8975,
+          "contextBytes": 15163,
+          "readerTokens": {
+            "prompt": 2341,
+            "completion": 633,
+            "reasoning": 623
+          },
+          "readerCostUsd": 0.012181,
+          "retrievalMs": 66,
+          "readerMs": 8908
+        },
+        {
+          "id": "adubench_single_000053",
+          "document": "doc_000029",
+          "question": "Which role is listed in the Integrated Design project team but not in the Introduction to the Manual audience list?",
+          "gold": "commissioning agents",
+          "answerFormat": "Str",
+          "evidencePages": [
+            7,
+            10
+          ],
+          "answer": "I do not know; the Introduction to the Manual audience list is not included in the supplied history.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3160,
+          "contextBytes": 13322,
+          "readerTokens": {
+            "prompt": 2304,
+            "completion": 121,
+            "reasoning": 95
+          },
+          "readerCostUsd": 0.0069685,
+          "retrievalMs": 33,
+          "readerMs": 3126
+        },
+        {
+          "id": "adubench_single_000054",
+          "document": "doc_000029",
+          "question": "Which cross-cutting goal matches the Introduction’s environmental focus but is not named in the Introduction summary?",
+          "gold": "Ecosystem Protection",
+          "answerFormat": "Str",
+          "evidencePages": [
+            7,
+            8,
+            12,
+            18
+          ],
+          "answer": "Ecosystem Protection.",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.5,
+          "anls": 0.952,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3208,
+          "contextBytes": 13218,
+          "readerTokens": {
+            "prompt": 1893,
+            "completion": 98,
+            "reasoning": 87
+          },
+          "readerCostUsd": 0.005711,
+          "retrievalMs": 49,
+          "readerMs": 3158
+        },
+        {
+          "id": "adubench_single_000055",
+          "document": "doc_000029",
+          "question": "Using the audience groups explicitly named in \"Introduction to the Manual\" and the 10 technical chapters listed in \"The Design Process,\" what numeric average of technical chapters per named audience group is the manual intended to coordinate across under the whole-building, cross-discipline principle stated in \"Integrated Design\"?",
+          "gold": "2",
+          "answerFormat": "Int",
+          "evidencePages": [
+            7,
+            8,
+            10
+          ],
+          "answer": "I do not know; the average would be 10 ÷ number of named audience groups, but that group count is not provided.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5504,
+          "contextBytes": 13620,
+          "readerTokens": {
+            "prompt": 2457,
+            "completion": 320,
+            "reasoning": 170
+          },
+          "readerCostUsd": 0.009341,
+          "retrievalMs": 80,
+          "readerMs": 5423
+        },
+        {
+          "id": "adubench_single_000056",
+          "document": "doc_000029",
+          "question": "According to the Introduction to the Manual, the manual supports decisions about energy and environmental issues; comparing The Design Process with Goals and Cross-Cutting Issues, what percentage of the manual’s 10 technical chapters are also represented by an equal number of cross-cutting goals in that same decision framework?",
+          "gold": "100",
+          "answerFormat": "Float",
+          "evidencePages": [
+            8,
+            12
+          ],
+          "answer": "100% (10 cross-cutting goals ÷ 10 technical chapters × 100).",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4236,
+          "contextBytes": 10762,
+          "readerTokens": {
+            "prompt": 1817,
+            "completion": 283,
+            "reasoning": 159
+          },
+          "readerCostUsd": 0.007371,
+          "retrievalMs": 95,
+          "readerMs": 4141
+        },
+        {
+          "id": "adubench_single_000743",
+          "document": "doc_000029",
+          "question": "Which Introduction audience group best matches the Integrated Design role of the architect coordinating across disciplines?",
+          "gold": "architects and engineers",
+          "answerFormat": "Str",
+          "evidencePages": [
+            7,
+            10
+          ],
+          "answer": "Architects and engineers responsible for designing or retrofitting schools.",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.5,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3156,
+          "contextBytes": 11285,
+          "readerTokens": {
+            "prompt": 1888,
+            "completion": 74,
+            "reasoning": 55
+          },
+          "readerCostUsd": 0.0054585,
+          "retrievalMs": 38,
+          "readerMs": 3117
+        },
+        {
+          "id": "adubench_single_000744",
+          "document": "doc_000029",
+          "question": "Which Introduction audience role is positioned to work with design teams across all 10 design-process chapters and cross-cutting goals?",
+          "gold": "Project managers",
+          "answerFormat": "Str",
+          "evidencePages": [
+            7,
+            8
+          ],
+          "answer": "The project managers who work with the design teams.",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.444,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 1385,
+          "contextBytes": 11039,
+          "readerTokens": {
+            "prompt": 1633,
+            "completion": 14,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.004221,
+          "retrievalMs": 22,
+          "readerMs": 1363
+        },
+        {
+          "id": "adubench_single_000745",
+          "document": "doc_000029",
+          "question": "Do these sections explicitly prescribe an audience-by-climate-zone-by-chapter matrix starting in the programming phase?",
+          "gold": null,
+          "answerFormat": "None",
+          "evidencePages": [],
+          "answer": "No. They provide climate-zone tables and guideline applicability by space, climate, and design phase, but do not explicitly prescribe an audience-by-climate-zone-by-chapter matrix beginning in programming.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3935,
+          "contextBytes": 14554,
+          "readerTokens": {
+            "prompt": 2465,
+            "completion": 137,
+            "reasoning": 93
+          },
+          "readerCostUsd": 0.007531,
+          "retrievalMs": 19,
+          "readerMs": 3915
+        },
+        {
+          "id": "adubench_single_000746",
+          "document": "doc_000029",
+          "question": "Using the counts stated in \"Introduction to the Manual,\" \"The Design Process,\" and \"Goals and Cross-Cutting Issues,\" and treating the latter two as one combined coordination scope because \"Integrated Design\" says all systems and components must be considered together, what is the audience-group count minus the combined total of technical chapters and cross-cutting goals?",
+          "gold": "-15",
+          "answerFormat": "Int",
+          "evidencePages": [
+            7,
+            8,
+            12
+          ],
+          "answer": "The combined total is 10 + 10 = 20, but the audience-group count is missing, so I do not know the requested difference.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.6666666666666666,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 7620,
+          "contextBytes": 12661,
+          "readerTokens": {
+            "prompt": 1958,
+            "completion": 500,
+            "reasoning": 375
+          },
+          "readerCostUsd": 0.0098935,
+          "retrievalMs": 29,
+          "readerMs": 7590
+        },
+        {
+          "id": "adubench_single_000381",
+          "document": "doc_000189",
+          "question": "Between the earliest explicitly dated innovation milestone in the DIVING BELLS section (Alexander the Great’s Colimpha descent) and the earliest explicitly dated innovation milestone in the HELMET (HARD-HAT) DIVING section (Sieur Freminet’s first true helmet-hose apparatus), what is the absolute difference in years?",
+          "gold": "2104",
+          "answerFormat": "Int",
+          "evidencePages": [
+            3,
+            4
+          ],
+          "answer": "330 + 1,774 = approximately 2,104 years.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.333,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 6027,
+          "contextBytes": 16519,
+          "readerTokens": {
+            "prompt": 3439,
+            "completion": 233,
+            "reasoning": 151
+          },
+          "readerCostUsd": 0.010926,
+          "retrievalMs": 58,
+          "readerMs": 5966
+        },
+        {
+          "id": "adubench_single_000382",
+          "document": "doc_000189",
+          "question": "Using Bachrach’s GENERAL sequence, what is the year gap between the earliest free-diving example and the earliest diving-bell example?",
+          "gold": "4170",
+          "answerFormat": "Int",
+          "evidencePages": [
+            3
+          ],
+          "answer": "4,170 years (4500 − 330 = 4170).",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.333,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3411,
+          "contextBytes": 15372,
+          "readerTokens": {
+            "prompt": 3127,
+            "completion": 144,
+            "reasoning": 57
+          },
+          "readerCostUsd": 0.009256,
+          "retrievalMs": 91,
+          "readerMs": 3318
+        },
+        {
+          "id": "adubench_single_000383",
+          "document": "doc_000189",
+          "question": "From GENERAL’s historical sequence and the mode-specific narratives, which named diving mode is the earliest with a specific inventor or innovator named in its own section?",
+          "gold": "Bell diving",
+          "answerFormat": "Str",
+          "evidencePages": [
+            3
+          ],
+          "answer": "Scuba diving—the first mode in the stated order with a specifically named inventor or innovator in its narrative (e.g., Christian Lambertsen), preceding saturation diving.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 8402,
+          "contextBytes": 16615,
+          "readerTokens": {
+            "prompt": 3175,
+            "completion": 579,
+            "reasoning": 298
+          },
+          "readerCostUsd": 0.013726,
+          "retrievalMs": 111,
+          "readerMs": 8289
+        },
+        {
+          "id": "adubench_single_001049",
+          "document": "doc_000189",
+          "question": "Across the free-diving, diving-bell, and hard-hat sections, who is the earliest explicitly dated named individual overall?",
+          "gold": "The Emperor of China",
+          "answerFormat": "Str",
+          "evidencePages": [
+            3
+          ],
+          "answer": "Alexander the Great—approximately 330 B.C., earlier than the explicitly dated individuals in the later diving-bell and hard-hat developments.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 6067,
+          "contextBytes": 16138,
+          "readerTokens": {
+            "prompt": 3213,
+            "completion": 438,
+            "reasoning": 264
+          },
+          "readerCostUsd": 0.012411,
+          "retrievalMs": 123,
+          "readerMs": 5943
+        },
+        {
+          "id": "adubench_single_001050",
+          "document": "doc_000189",
+          "question": "If NOAA’s first associated year is shifted 10 years later, what is the gap to the 1977 undersea research benchmark in GENERAL?",
+          "gold": "3",
+          "answerFormat": "Int",
+          "evidencePages": [
+            7
+          ],
+          "answer": "The gap is **10 years** (1977 shifted to 1987, compared with the 1977 benchmark).",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4873,
+          "contextBytes": 13030,
+          "readerTokens": {
+            "prompt": 2874,
+            "completion": 185,
+            "reasoning": 155
+          },
+          "readerCostUsd": 0.0090335,
+          "retrievalMs": 71,
+          "readerMs": 4801
+        },
+        {
+          "id": "adubench_single_001051",
+          "document": "doc_000189",
+          "question": "Across SATURATION DIVING and NOAA’S DIVING PROGRAM, is any explicit saturation decompression schedule, staged ascent table, or formula provided?",
+          "gold": null,
+          "answerFormat": "None",
+          "evidencePages": [],
+          "answer": "Yes. The **Saturation Diving** section provides explicit decompression schedules, including:\n\n- **Table 17.9:** NOAA Air Decompression Table for air saturation at 50 fsw, with depth-specific decompression rates and times.\n- **Table 17.10:** NOAA Air/Oxygen Decompression Table for air saturation at 42 fsw, with staged ascent rates, stops, durations, and breathing gases.\n- Additional schedules are referenced in Tables 17.11–17.12.\n\nThe **NOAA’s Diving Program** section only notes NOAA’s development of nitrox mixtures and decompression tables; it does not itself provide an explicit schedule or formula.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4133,
+          "contextBytes": 16245,
+          "readerTokens": {
+            "prompt": 3021,
+            "completion": 232,
+            "reasoning": 91
+          },
+          "readerCostUsd": 0.009871,
+          "retrievalMs": 93,
+          "readerMs": 4039
+        },
+        {
+          "id": "adubench_single_001053",
+          "document": "doc_000189",
+          "question": "Which GENERAL diving purpose fits the Ama and Hae-Nyu pearl-diving example in free diving, rather than the hard-hat focus on surface-supplied air?",
+          "gold": "search for treasure",
+          "answerFormat": "Str",
+          "evidencePages": [
+            3
+          ],
+          "answer": "Acquiring food/searching for treasure—specifically gathering pearl shells.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.2,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 2425,
+          "contextBytes": 14835,
+          "readerTokens": {
+            "prompt": 2873,
+            "completion": 18,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.007361,
+          "retrievalMs": 28,
+          "readerMs": 2396
+        },
+        {
+          "id": "adubench_single_001054",
+          "document": "doc_000189",
+          "question": "In Bachrach’s three-period sequence—free diving, bell diving, and saturation diving—which period’s own section lacks a specific named person?",
+          "gold": "Free (breath-hold) diving",
+          "answerFormat": "Str",
+          "evidencePages": [
+            3,
+            6
+          ],
+          "answer": "None. Each section names specific people: free diving names William Beebe and Thucydides; bell diving names Alexander the Great and Aristotle; saturation diving names George Bond and Robert Workman, among others.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.154,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 6646,
+          "contextBytes": 16347,
+          "readerTokens": {
+            "prompt": 3217,
+            "completion": 326,
+            "reasoning": 278
+          },
+          "readerCostUsd": 0.011301,
+          "retrievalMs": 29,
+          "readerMs": 6615
+        }
+      ]
+    },
+    {
+      "tier": "1000p",
+      "band": [
+        700,
+        1250
+      ],
+      "assembled": false,
+      "summary": {
+        "tier": "1000p",
+        "pages": 4404,
+        "windows": 4404,
+        "questions": 30,
+        "answerable": 26,
+        "unanswerable": 4,
+        "accuracy": 0.3,
+        "answerableAccuracy": 0.34615384615384615,
+        "localeAccuracy": 0.3,
+        "evidenceHitRate": 0.6538461538461539,
+        "meanPageRecall": 0.47115384615384615,
+        "meanWindowPrecision": 0.23076923076923078,
+        "falseAnswerRate": 0.5,
+        "meanLatencyMs": 5290.335770899999,
+        "meanContextBytes": 11343.566666666668,
+        "meanRetrievalMs": 90.37720409999844,
+        "meanReaderMs": 5198.511665166667,
+        "p50LatencyMs": 4056.6634170000034,
+        "p95LatencyMs": 14043.186291999999,
+        "meanPromptTokens": 2417.5333333333333,
+        "meanCompletionTokens": 301.6666666666667,
+        "meanReasoningTokens": 214.36666666666667,
+        "totalCostUsd": 0.27177000000000007,
+        "costPerAnswerUsd": 0.009059000000000003,
+        "costPerCorrectUsd": 0.016985625000000004,
+        "meanTokenF1": 0.16080125771537807,
+        "meanAnls": 0.09666666666666668,
+        "judgedAccuracy": 0.5333333333333333,
+        "judgedQuestions": 30
+      },
+      "documents": [
+        {
+          "document": "doc_000120",
+          "title": "doc_000120",
+          "sourceUrl": "https://www.moh.gov.gh/wp-content/uploads/2020/07/GHANA-STG-2017-1.pdf",
+          "sha256": "0eede683b4bf8b3a86108137c79c27b76828d0c99a18e23e63e609653fe4b454",
+          "pages": 708,
+          "summary": {
+            "tier": "1000p/doc_000120",
+            "pages": 708,
+            "windows": 708,
+            "questions": 7,
+            "answerable": 6,
+            "unanswerable": 1,
+            "accuracy": 0.14285714285714285,
+            "answerableAccuracy": 0.16666666666666666,
+            "localeAccuracy": 0.14285714285714285,
+            "evidenceHitRate": 0.6666666666666666,
+            "meanPageRecall": 0.625,
+            "meanWindowPrecision": 0.3333333333333333,
+            "falseAnswerRate": 1,
+            "meanLatencyMs": 6827.891065571428,
+            "meanContextBytes": 9036.42857142857,
+            "meanRetrievalMs": 65.34487499999939,
+            "meanReaderMs": 6762.132981857144,
+            "p50LatencyMs": 3697.596166999996,
+            "p95LatencyMs": 28836.72099999999,
+            "meanPromptTokens": 1915.2857142857142,
+            "meanCompletionTokens": 406.42857142857144,
+            "meanReasoningTokens": 333,
+            "totalCostUsd": 0.061957,
+            "costPerAnswerUsd": 0.008851,
+            "costPerCorrectUsd": 0.02065233333333333,
+            "meanTokenF1": 0.2287084398976982,
+            "meanAnls": 0.1388888888888889,
+            "judgedAccuracy": 0.42857142857142855,
+            "judgedQuestions": 7
+          }
+        },
+        {
+          "document": "doc_000209",
+          "title": "doc_000209",
+          "sourceUrl": "https://www-iam.nies.go.jp/aim/india0210/cc_papers/ipccreports/climate_change_2001/working_group1/WG1_full_report.pdf",
+          "sha256": "7469df92ca2489e36cb29a4ec34fc891d8bc91c9a07218242f43629877b41cf8",
+          "pages": 891,
+          "summary": {
+            "tier": "1000p/doc_000209",
+            "pages": 891,
+            "windows": 891,
+            "questions": 7,
+            "answerable": 6,
+            "unanswerable": 1,
+            "accuracy": 0.42857142857142855,
+            "answerableAccuracy": 0.5,
+            "localeAccuracy": 0.42857142857142855,
+            "evidenceHitRate": 0.5,
+            "meanPageRecall": 0.2222222222222222,
+            "meanWindowPrecision": 0.125,
+            "falseAnswerRate": 0,
+            "meanLatencyMs": 6851.414773999996,
+            "meanContextBytes": 12193.142857142857,
+            "meanRetrievalMs": 95.06735114285506,
+            "meanReaderMs": 6752.35917257143,
+            "p50LatencyMs": 5316.909875000012,
+            "p95LatencyMs": 14043.186291999999,
+            "meanPromptTokens": 2885.1428571428573,
+            "meanCompletionTokens": 460,
+            "meanReasoningTokens": 369.14285714285717,
+            "totalCostUsd": 0.0826795,
+            "costPerAnswerUsd": 0.011811357142857143,
+            "costPerCorrectUsd": 0.020669875,
+            "meanTokenF1": 0.22380952380952382,
+            "meanAnls": 0.16333333333333333,
+            "judgedAccuracy": 0.5714285714285714,
+            "judgedQuestions": 7
+          }
+        },
+        {
+          "document": "doc_000267",
+          "title": "doc_000267",
+          "sourceUrl": "https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2021-06/jrc122816_sts_2020_final.pdf",
+          "sha256": "715728ab871227b68050aad8cb10a08d82fca8d3ab2f0e2e97536c6fecdceaf5",
+          "pages": 1056,
+          "summary": {
+            "tier": "1000p/doc_000267",
+            "pages": 1056,
+            "windows": 1056,
+            "questions": 6,
+            "answerable": 5,
+            "unanswerable": 1,
+            "accuracy": 0.16666666666666666,
+            "answerableAccuracy": 0.2,
+            "localeAccuracy": 0.16666666666666666,
+            "evidenceHitRate": 0.6,
+            "meanPageRecall": 0.3333333333333333,
+            "meanWindowPrecision": 0.2,
+            "falseAnswerRate": 1,
+            "meanLatencyMs": 4314.1359511666715,
+            "meanContextBytes": 12738,
+            "meanRetrievalMs": 132.46336100000676,
+            "meanReaderMs": 4180.985506833327,
+            "p50LatencyMs": 4495.030333000002,
+            "p95LatencyMs": 6234.280416000023,
+            "meanPromptTokens": 2807.8333333333335,
+            "meanCompletionTokens": 225.5,
+            "meanReasoningTokens": 114.33333333333333,
+            "totalCostUsd": 0.0556385,
+            "costPerAnswerUsd": 0.009273083333333333,
+            "costPerCorrectUsd": 0.02781925,
+            "meanTokenF1": 0.039999999999999994,
+            "meanAnls": 0,
+            "judgedAccuracy": 0.3333333333333333,
+            "judgedQuestions": 6
+          }
+        },
+        {
+          "document": "doc_000181",
+          "title": "doc_000181",
+          "sourceUrl": "https://flrules.elaws.us/gateway/refpdf/69/69U/Ref-06103/FDIC%20Risk%20Management%20Manual%20of%20Examination%20Policies_EFFECTIVE%2004-2015.pdf",
+          "sha256": "98c856138d1f000ddbe3259fb4cfdf7debf7b846e632ad8a78fb9a7b5a77aa1a",
+          "pages": 704,
+          "summary": {
+            "tier": "1000p/doc_000181",
+            "pages": 704,
+            "windows": 704,
+            "questions": 5,
+            "answerable": 5,
+            "unanswerable": 0,
+            "accuracy": 0.4,
+            "answerableAccuracy": 0.4,
+            "localeAccuracy": 0.4,
+            "evidenceHitRate": 0.6,
+            "meanPageRecall": 0.5,
+            "meanWindowPrecision": 0.15,
+            "falseAnswerRate": 0,
+            "meanLatencyMs": 4392.2546752,
+            "meanContextBytes": 15640.6,
+            "meanRetrievalMs": 78.5206831999938,
+            "meanReaderMs": 4312.390991600003,
+            "p50LatencyMs": 4056.6634170000034,
+            "p95LatencyMs": 5418.404042000009,
+            "meanPromptTokens": 2695.8,
+            "meanCompletionTokens": 226.6,
+            "meanReasoningTokens": 127,
+            "totalCostUsd": 0.045020000000000004,
+            "costPerAnswerUsd": 0.009004000000000002,
+            "costPerCorrectUsd": 0.011255000000000001,
+            "meanTokenF1": 0.12987012987012989,
+            "meanAnls": 0,
+            "judgedAccuracy": 0.8,
+            "judgedQuestions": 5
+          }
+        },
+        {
+          "document": "doc_000179",
+          "title": "doc_000179",
+          "sourceUrl": "https://ussafety.us/wp-content/uploads/2019/12/EM385-1-1FINAL1.pdf",
+          "sha256": "72573a85e57bc3d3bd35f4c650421417e1b1680ea0e7436ee64b160ac828cc5f",
+          "pages": 1045,
+          "summary": {
+            "tier": "1000p/doc_000179",
+            "pages": 1045,
+            "windows": 1045,
+            "questions": 5,
+            "answerable": 4,
+            "unanswerable": 1,
+            "accuracy": 0.4,
+            "answerableAccuracy": 0.5,
+            "localeAccuracy": 0.4,
+            "evidenceHitRate": 1,
+            "meanPageRecall": 0.75,
+            "meanWindowPrecision": 0.375,
+            "falseAnswerRate": 0,
+            "meanLatencyMs": 3021.768633399997,
+            "meanContextBytes": 7413.8,
+            "meanRetrievalMs": 80.20939159999253,
+            "meanReaderMs": 2941.207375000004,
+            "p50LatencyMs": 3300.205957999977,
+            "p95LatencyMs": 4682.821999999986,
+            "meanPromptTokens": 1719.4,
+            "meanCompletionTokens": 99.8,
+            "meanReasoningTokens": 39,
+            "totalCostUsd": 0.026475000000000002,
+            "costPerAnswerUsd": 0.005295,
+            "costPerCorrectUsd": 0.008825000000000001,
+            "meanTokenF1": 0.154093567251462,
+            "meanAnls": 0.175,
+            "judgedAccuracy": 0.6,
+            "judgedQuestions": 5
+          }
+        }
+      ],
+      "errors": [],
+      "outcomes": [
+        {
+          "id": "adubench_single_000228",
+          "document": "doc_000120",
+          "question": "Which National Medicine Policy objective best matches the guidance to avoid symptomatic treatment when diagnosis is uncertain?",
+          "gold": "rational use of medicines",
+          "answerFormat": "Str",
+          "evidencePages": [
+            19,
+            20
+          ],
+          "answer": "The rational use of medicines.",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.75,
+          "anls": 0.833,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 1406,
+          "contextBytes": 9810,
+          "readerTokens": {
+            "prompt": 2016,
+            "completion": 10,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0051385,
+          "retrievalMs": 96,
+          "readerMs": 1309
+        },
+        {
+          "id": "adubench_single_000229",
+          "document": "doc_000120",
+          "question": "Which Referral trigger matches the prescriber competence limit in Notes on cost-effectiveness?",
+          "gold": "lack of personal experience/competence",
+          "answerFormat": "Str",
+          "evidencePages": [
+            21,
+            22
+          ],
+          "answer": "Refer the patient when the prescriber cannot manage them due to lack of personal experience or appropriate facilities.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.3,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3036,
+          "contextBytes": 9764,
+          "readerTokens": {
+            "prompt": 1794,
+            "completion": 74,
+            "reasoning": 48
+          },
+          "readerCostUsd": 0.0052235,
+          "retrievalMs": 50,
+          "readerMs": 2985
+        },
+        {
+          "id": "adubench_single_000230",
+          "document": "doc_000120",
+          "question": "Which evidence rating is the lower non-compliant standard for rational prescribing when uncertain diagnoses should not be treated symptomatically?",
+          "gold": "Evidence Rating C",
+          "answerFormat": "Str",
+          "evidencePages": [
+            20
+          ],
+          "answer": "No evidence rating is specified for the recommendation to avoid symptomatic management of uncertain diagnoses.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.235,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4387,
+          "contextBytes": 9531,
+          "readerTokens": {
+            "prompt": 1997,
+            "completion": 207,
+            "reasoning": 185
+          },
+          "readerCostUsd": 0.007061,
+          "retrievalMs": 80,
+          "readerMs": 4306
+        },
+        {
+          "id": "adubench_single_000231",
+          "document": "doc_000120",
+          "question": "After deduplicating overlapping prescriber directives, which section has the most explicit obligations or decision constraints?",
+          "gold": "Prescribing for NHIS reimbursement",
+          "answerFormat": "Str",
+          "evidencePages": [
+            21
+          ],
+          "answer": "**Eclampsia** has the most: **11 unique explicit obligations or decision constraints**, versus **10 for Haemorrhoids** and **5 for Referral** after deduplication.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.087,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 28837,
+          "contextBytes": 8595,
+          "readerTokens": {
+            "prompt": 1882,
+            "completion": 2079,
+            "reasoning": 1798
+          },
+          "readerCostUsd": 0.0254935,
+          "retrievalMs": 36,
+          "readerMs": 28800
+        },
+        {
+          "id": "adubench_single_000232",
+          "document": "doc_000120",
+          "question": "Across How to use this book, NHIS reimbursement, and Referral, which National Medicine Policy aim is reflected in the fewest sections?",
+          "gold": "availability and accessibility of affordable, good quality medicines",
+          "answerFormat": "Str",
+          "evidencePages": [
+            19,
+            20,
+            21,
+            22
+          ],
+          "answer": "I do not know.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.75,
+            "windowPrecision": 0.75,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4669,
+          "contextBytes": 9539,
+          "readerTokens": {
+            "prompt": 2034,
+            "completion": 232,
+            "reasoning": 105
+          },
+          "readerCostUsd": 0.0074035,
+          "retrievalMs": 105,
+          "readerMs": 4563
+        },
+        {
+          "id": "adubench_single_000915",
+          "document": "doc_000120",
+          "question": "What exact evidence rating is explicitly assigned to the pediatric recommendation \"Use the oral route whenever possible\"?",
+          "gold": null,
+          "answerFormat": "None",
+          "evidencePages": [],
+          "answer": "No evidence rating is explicitly assigned to the pediatric recommendation “Use the oral route whenever possible.”",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 1764,
+          "contextBytes": 8495,
+          "readerTokens": {
+            "prompt": 1801,
+            "completion": 22,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.004721,
+          "retrievalMs": 65,
+          "readerMs": 1698
+        },
+        {
+          "id": "adubench_single_000916",
+          "document": "doc_000120",
+          "question": "What is the Introduction objective count minus the sum of the evidence-rating categories and Referral triggers?",
+          "gold": "-3",
+          "answerFormat": "Int",
+          "evidencePages": [
+            19,
+            20,
+            22
+          ],
+          "answer": "2 objectives − (3 evidence-rating categories + 1 referral trigger) = **−2**.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3698,
+          "contextBytes": 7521,
+          "readerTokens": {
+            "prompt": 1883,
+            "completion": 221,
+            "reasoning": 195
+          },
+          "readerCostUsd": 0.006916,
+          "retrievalMs": 23,
+          "readerMs": 3674
+        },
+        {
+          "id": "adubench_single_000424",
+          "document": "doc_000209",
+          "question": "Which chapter has the highest Contributing Authors-to-(Lead Authors + Co-ordinating Lead Authors) ratio: The Climate System, Observed Climate Variability and Change, or The Carbon Cycle?",
+          "gold": "Observed Climate Variability and Change",
+          "answerFormat": "Str",
+          "evidencePages": [
+            838,
+            839,
+            841
+          ],
+          "answer": "**Observed Climate Variability and Change** has the highest ratio: 140 ÷ (8 + 2) = **14**, versus 51 ÷ (9 + 1) = 5.1 and 0 ÷ (3 + 1) = 0.",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.4,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 12487,
+          "contextBytes": 6827,
+          "readerTokens": {
+            "prompt": 2179,
+            "completion": 1204,
+            "reasoning": 1016
+          },
+          "readerCostUsd": 0.017486,
+          "retrievalMs": 85,
+          "readerMs": 12401
+        },
+        {
+          "id": "adubench_single_000425",
+          "document": "doc_000209",
+          "question": "Which affiliation is listed for C. Prentice in Chapter 2 and I.C. Prentice in Chapter 3?",
+          "gold": "Max-Planck Institute for Biogeochemistry, Germany",
+          "answerFormat": "Str",
+          "evidencePages": [
+            840,
+            841
+          ],
+          "answer": "Max-Planck Institute for Biogeochemistry, Germany.",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.8,
+          "anls": 0.98,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3567,
+          "contextBytes": 10663,
+          "readerTokens": {
+            "prompt": 2410,
+            "completion": 196,
+            "reasoning": 178
+          },
+          "readerCostUsd": 0.0079835,
+          "retrievalMs": 33,
+          "readerMs": 3532
+        },
+        {
+          "id": "adubench_single_000426",
+          "document": "doc_000209",
+          "question": "Which role appears in the Technical Summary role schema but not in Chapter 3, \"The Carbon Cycle and Atmospheric Carbon Dioxide\"?",
+          "gold": "Co-ordinating Lead Authors",
+          "answerFormat": "Str",
+          "evidencePages": [
+            837,
+            841
+          ],
+          "answer": "I do not know; the supplied history does not show the Technical Summary role schema.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3418,
+          "contextBytes": 12839,
+          "readerTokens": {
+            "prompt": 3150,
+            "completion": 129,
+            "reasoning": 106
+          },
+          "readerCostUsd": 0.0091635,
+          "retrievalMs": 51,
+          "readerMs": 3365
+        },
+        {
+          "id": "adubench_single_001089",
+          "document": "doc_000209",
+          "question": "Which of these three chapter contributor lists has the highest CLA/LA ratio: The Climate System: an Overview, Observed Climate Variability and Change, or The Carbon Cycle and Atmospheric Carbon Dioxide?",
+          "gold": "The Climate System: an Overview",
+          "answerFormat": "Str",
+          "evidencePages": [
+            838,
+            839,
+            841
+          ],
+          "answer": "I do not know; the supplied history does not include the three contributor lists or the CLA and LA counts needed to calculate the ratios.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5317,
+          "contextBytes": 16628,
+          "readerTokens": {
+            "prompt": 4102,
+            "completion": 257,
+            "reasoning": 126
+          },
+          "readerCostUsd": 0.0128235,
+          "retrievalMs": 106,
+          "readerMs": 5208
+        },
+        {
+          "id": "adubench_single_001090",
+          "document": "doc_000209",
+          "question": "Which role category appears in the Technical Summary Appendix III overview but is omitted from the roster for \"The Climate System: an Overview\"?",
+          "gold": "Contributing Authors",
+          "answerFormat": "Str",
+          "evidencePages": [
+            837,
+            838
+          ],
+          "answer": "I do not know; the supplied history does not include the contributor roster for “The Climate System: an Overview.”",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3564,
+          "contextBytes": 14810,
+          "readerTokens": {
+            "prompt": 2823,
+            "completion": 112,
+            "reasoning": 83
+          },
+          "readerCostUsd": 0.008176,
+          "retrievalMs": 196,
+          "readerMs": 3366
+        },
+        {
+          "id": "adubench_single_001091",
+          "document": "doc_000209",
+          "question": "Across the chapter-title listings for \"Atmospheric Chemistry and Greenhouse Gases\" and the adjacent standalone sections \"Aerosols, their Direct and Indirect Effects\" and \"Radiative Forcing of Climate Change,\" what percentage of the chapter titles named in the Atmospheric Chemistry and Greenhouse Gases listing are represented as standalone chapter sections in this excerpt?",
+          "gold": "100%",
+          "answerFormat": "Float",
+          "evidencePages": [
+            843
+          ],
+          "answer": "100% — both named adjacent chapter titles are represented as standalone sections (2 ÷ 2 × 100).",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.143,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 14043,
+          "contextBytes": 13797,
+          "readerTokens": {
+            "prompt": 3237,
+            "completion": 1062,
+            "reasoning": 929
+          },
+          "readerCostUsd": 0.018711,
+          "retrievalMs": 155,
+          "readerMs": 13871
+        },
+        {
+          "id": "adubench_single_001092",
+          "document": "doc_000209",
+          "question": "Across the Review Editor rosters for Technical Summary, The Climate System: an Overview, Observed Climate Variability and Change, and Atmospheric Chemistry and Greenhouse Gases, what is the shared editor's affiliation?",
+          "gold": null,
+          "answerFormat": "None",
+          "evidencePages": [],
+          "answer": "I do not know; the supplied history does not identify a shared editor or provide the editors’ affiliations.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5564,
+          "contextBytes": 9788,
+          "readerTokens": {
+            "prompt": 2295,
+            "completion": 260,
+            "reasoning": 146
+          },
+          "readerCostUsd": 0.008336,
+          "retrievalMs": 40,
+          "readerMs": 5523
+        },
+        {
+          "id": "adubench_single_000533",
+          "document": "doc_000267",
+          "question": "Using the Consumption sections, what is the minimum g/m² difference between plastic-surface solvent use and passenger-car paint-shop VOC emissions?",
+          "gold": "124.9",
+          "answerFormat": "Float",
+          "evidencePages": [
+            84,
+            158
+          ],
+          "answer": "I do not know; the plastic-surface solvent-use value needed to calculate the minimum difference is missing.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3830,
+          "contextBytes": 12581,
+          "readerTokens": {
+            "prompt": 2993,
+            "completion": 248,
+            "reasoning": 130
+          },
+          "readerCostUsd": 0.009961,
+          "retrievalMs": 75,
+          "readerMs": 3753
+        },
+        {
+          "id": "adubench_single_000534",
+          "document": "doc_000267",
+          "question": "For ships and yachts, which Chapter 17 general technique category matches the vehicle branch's VOC-reducing switch to water-based systems?",
+          "gold": "Raw material management (including substitution)",
+          "answerFormat": "Str",
+          "evidencePages": [
+            116
+          ],
+          "answer": "**Coating processes and equipment (Section 17.7).**",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4495,
+          "contextBytes": 12467,
+          "readerTokens": {
+            "prompt": 2472,
+            "completion": 190,
+            "reasoning": 109
+          },
+          "readerCostUsd": 0.0080785,
+          "retrievalMs": 192,
+          "readerMs": 4303
+        },
+        {
+          "id": "adubench_single_001205",
+          "document": "doc_000267",
+          "question": "Across passenger-car SB paint shops and van coating, what is the largest exceedance over a shared type’s BAT upper VOC benchmark?",
+          "gold": "8.5",
+          "answerFormat": "Float",
+          "evidencePages": [
+            89,
+            116,
+            118
+          ],
+          "answer": "I do not know; the history does not provide the van-coating VOC result or the shared type’s BAT upper VOC benchmark needed to calculate the largest exceedance.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4799,
+          "contextBytes": 12529,
+          "readerTokens": {
+            "prompt": 3021,
+            "completion": 277,
+            "reasoning": 125
+          },
+          "readerCostUsd": 0.010321,
+          "retrievalMs": 118,
+          "readerMs": 4680
+        },
+        {
+          "id": "adubench_single_001206",
+          "document": "doc_000267",
+          "question": "Is an Airbus A320-specific NMVOC emission factor per m² explicitly stated across the STS solvents and aircraft coating sections?",
+          "gold": null,
+          "answerFormat": "None",
+          "evidencePages": [],
+          "answer": "No. The supplied sections give A320 paint area and consumption data, but do not explicitly state an A320-specific NMVOC emission factor per m².",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 2180,
+          "contextBytes": 10823,
+          "readerTokens": {
+            "prompt": 2251,
+            "completion": 35,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.005976,
+          "retrievalMs": 138,
+          "readerMs": 2041
+        },
+        {
+          "id": "adubench_single_001207",
+          "document": "doc_000267",
+          "question": "Using the SCOPE activity wording for Annex I 6.7, the Figure 1.2 label in “General environmental issues related to installations for surface treatment using organic solvents,” and the Chapter 4 heading “COATING OF SHIPS AND YACHTS,” what exact Figure 1.2 sub-activity name identifies the ships-related installation type that falls within the overall STS scope and is then developed in its own dedicated sector chapter?",
+          "gold": "Building of painting or removal of paint from ships",
+          "answerFormat": "Str",
+          "evidencePages": [
+            38,
+            44,
+            176
+          ],
+          "answer": "I do not know the exact Figure 1.2 sub-activity name because Figure 1.2 and its label are not included in the supplied history.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.6666666666666666,
+            "windowPrecision": 0.5,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4347,
+          "contextBytes": 13595,
+          "readerTokens": {
+            "prompt": 2996,
+            "completion": 269,
+            "reasoning": 104
+          },
+          "readerCostUsd": 0.0101785,
+          "retrievalMs": 166,
+          "readerMs": 4180
+        },
+        {
+          "id": "adubench_single_001208",
+          "document": "doc_000267",
+          "question": "Within the STS coating framework covered by Directive 2010/75/EU, which paint shop type in the vehicle-coating emissions table has an average VOC emission value numerically closest to the aircraft operational lifetime of around 25 years cited in the aircraft construction section?",
+          "gold": "SB-MIX",
+          "answerFormat": "Str",
+          "evidencePages": [
+            84,
+            209
+          ],
+          "answer": "SB-MIX, at 28.7 g VOCs/m²; |28.7 − 25| = 3.7, the smallest difference.",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.2,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 6234,
+          "contextBytes": 14433,
+          "readerTokens": {
+            "prompt": 3114,
+            "completion": 334,
+            "reasoning": 218
+          },
+          "readerCostUsd": 0.0111235,
+          "retrievalMs": 106,
+          "readerMs": 6128
+        },
+        {
+          "id": "adubench_single_000358",
+          "document": "doc_000181",
+          "question": "Using the Tier 1 Leverage Capital ratio reported in the \"CAPITAL - 3\" subsection and the eight percent dividend threshold stated in the same subsection, and taking the current ratio value from the referenced \"Examination Data and Ratios\" page, what would the revised percentage-point gap versus the threshold be if that reported ratio were increased by 1.0 percentage point?",
+          "gold": "0.44",
+          "answerFormat": "Float",
+          "evidencePages": [
+            585
+          ],
+          "answer": "7.44% + 1.00 percentage point = 8.44%; 8.44% − 8.00% = 0.44 percentage points above the threshold.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.182,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4057,
+          "contextBytes": 14464,
+          "readerTokens": {
+            "prompt": 2784,
+            "completion": 197,
+            "reasoning": 88
+          },
+          "readerCostUsd": 0.0089285,
+          "retrievalMs": 52,
+          "readerMs": 4003
+        },
+        {
+          "id": "adubench_single_000359",
+          "document": "doc_000181",
+          "question": "Which citation appears in both sections, as a direct violation in Violations of Laws and Regulations but as the SAR reporting basis in Suspicious Activity and Criminal Violations?",
+          "gold": "Part 353 of the FDIC Rules and Regulations",
+          "answerFormat": "Str",
+          "evidencePages": [
+            380,
+            381
+          ],
+          "answer": "12 C.F.R. Part 353.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.182,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5101,
+          "contextBytes": 16594,
+          "readerTokens": {
+            "prompt": 2666,
+            "completion": 188,
+            "reasoning": 173
+          },
+          "readerCostUsd": 0.0085435,
+          "retrievalMs": 100,
+          "readerMs": 5000
+        },
+        {
+          "id": "adubench_single_000360",
+          "document": "doc_000181",
+          "question": "Using the Capital rating in Liquidity and Funds Management as the embedded sensitivity rating there, what is the numeric difference from the standalone Sensitivity to Market Risk rating?",
+          "gold": "1",
+          "answerFormat": "Int",
+          "evidencePages": [
+            585
+          ],
+          "answer": "The numeric difference is **1** (Capital rating **3** minus Sensitivity to Market Risk rating **2**).",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.143,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3607,
+          "contextBytes": 15570,
+          "readerTokens": {
+            "prompt": 2581,
+            "completion": 111,
+            "reasoning": 81
+          },
+          "readerCostUsd": 0.007561,
+          "retrievalMs": 94,
+          "readerMs": 3512
+        },
+        {
+          "id": "adubench_single_000361",
+          "document": "doc_000181",
+          "question": "If the $3,250 ALLL provision were removed but liquidity figures stayed unchanged, which repeat violation would still be the binding supervisory issue?",
+          "gold": "Bank Secrecy Act late CTR filings",
+          "answerFormat": "Str",
+          "evidencePages": [
+            583,
+            584,
+            585
+          ],
+          "answer": "I do not know; the history does not identify which repeat violation would remain binding.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3778,
+          "contextBytes": 15044,
+          "readerTokens": {
+            "prompt": 2480,
+            "completion": 233,
+            "reasoning": 96
+          },
+          "readerCostUsd": 0.0085285,
+          "retrievalMs": 79,
+          "readerMs": 3697
+        },
+        {
+          "id": "adubench_single_000362",
+          "document": "doc_000181",
+          "question": "By the stated specificity ranking across the four sections, which section ranks highest?",
+          "gold": "Earnings",
+          "answerFormat": "Str",
+          "evidencePages": [
+            582,
+            583,
+            584,
+            585
+          ],
+          "answer": "“FUTURE EARNINGS PROSPECTS” ranks highest because it contains the most specific, applicant-level quantitative details.",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.143,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 5418,
+          "contextBytes": 16531,
+          "readerTokens": {
+            "prompt": 2968,
+            "completion": 404,
+            "reasoning": 197
+          },
+          "readerCostUsd": 0.0114585,
+          "retrievalMs": 67,
+          "readerMs": 5350
+        },
+        {
+          "id": "adubench_single_000363",
+          "document": "doc_000179",
+          "question": "Across the TOILETS section and the MEDICAL AND FIRST-AID REQUIREMENTS section, which exact phrase from TOILETS sets a stricter access standard than the medical rule requiring accessibility within five (5) minutes after an injury?",
+          "gold": "immediately available",
+          "answerFormat": "Str",
+          "evidencePages": [
+            45,
+            52
+          ],
+          "answer": "I do not know; the supplied history does not include the TOILETS section’s exact access-standard phrase.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3300,
+          "contextBytes": 7123,
+          "readerTokens": {
+            "prompt": 1799,
+            "completion": 187,
+            "reasoning": 68
+          },
+          "readerCostUsd": 0.006366,
+          "retrievalMs": 49,
+          "readerMs": 3251
+        },
+        {
+          "id": "adubench_single_000364",
+          "document": "doc_000179",
+          "question": "Which Section 2 sanitation child topic follows SHOWERS and is not covered in Section 1 emergency-operations sanitation, which mentions housekeeping and drinking water?",
+          "gold": "CHANGING ROOMS",
+          "answerFormat": "Str",
+          "evidencePages": [
+            48
+          ],
+          "answer": "02.H CHANGING ROOMS.",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.4,
+          "anls": 0.7,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 1473,
+          "contextBytes": 7507,
+          "readerTokens": {
+            "prompt": 1649,
+            "completion": 12,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.004241,
+          "retrievalMs": 100,
+          "readerMs": 1373
+        },
+        {
+          "id": "adubench_single_001029",
+          "document": "doc_000179",
+          "question": "For Temporary Facilities access/haul roads, what minimum illuminance does Lighting Table 7-1 set for construction roads in general outdoor areas?",
+          "gold": "33",
+          "answerFormat": "Int",
+          "evidencePages": [
+            65,
+            158,
+            160
+          ],
+          "answer": "Lighting Table 7-1 sets a minimum illuminance of **33 lux (3 lm/ft²)** for construction roads in general outdoor areas.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.105,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.75,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 1829,
+          "contextBytes": 6982,
+          "readerTokens": {
+            "prompt": 1567,
+            "completion": 34,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.004256,
+          "retrievalMs": 79,
+          "readerMs": 1750
+        },
+        {
+          "id": "adubench_single_001030",
+          "document": "doc_000179",
+          "question": "Across Program Management and Hazardous or Toxic Agents, what exact air-sampling averaging period is specified for compliance documentation?",
+          "gold": null,
+          "answerFormat": "None",
+          "evidencePages": [],
+          "answer": "I do not know; the supplied history does not specify an exact air-sampling averaging period for compliance documentation.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 3823,
+          "contextBytes": 7563,
+          "readerTokens": {
+            "prompt": 1703,
+            "completion": 64,
+            "reasoning": 36
+          },
+          "readerCostUsd": 0.004896,
+          "retrievalMs": 115,
+          "readerMs": 3707
+        },
+        {
+          "id": "adubench_single_001031",
+          "document": "doc_000179",
+          "question": "At what minimum shift workforce do construction-site toilets require more than one unit and medical staffing require a full-time licensed physician?",
+          "gold": "1000",
+          "answerFormat": "Int",
+          "evidencePages": [
+            47,
+            59
+          ],
+          "answer": "I do not know the combined answer because the toilet threshold is not provided; the full-time licensed-physician threshold is 1,000 workers per shift.",
+          "correct": true,
+          "correctLocale": true,
+          "tokenF1": 0.111,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.25,
+            "pagesShown": 4,
+            "windowsShown": 4
+          },
+          "latencyMs": 4683,
+          "contextBytes": 7894,
+          "readerTokens": {
+            "prompt": 1879,
+            "completion": 202,
+            "reasoning": 91
+          },
+          "readerCostUsd": 0.006716,
+          "retrievalMs": 59,
+          "readerMs": 4624
+        }
+      ]
+    }
+  ]
+}

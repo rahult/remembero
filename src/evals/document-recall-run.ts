@@ -109,6 +109,12 @@ export interface DocumentRecallOptions {
    * `retrieveSessions`. Absent, the product's ranking is used, as in every earlier run.
    */
   buildRanker?: (sessions: readonly RetrievableSession[]) => Promise<DocumentRanker>;
+  /**
+   * What the reader is shown for each chosen window. Absent, the page itself. The facts-only arm
+   * swaps in the facts extracted from that page — the "store facts, read facts" design — so the
+   * same retrieval can be read two ways and the difference is the extraction alone.
+   */
+  readerView?: (session: RetrievableSession) => RetrievableSession;
   /** Dollars per million tokens, for an endpoint that does not report its own cost. */
   price?: { inputPerMillion: number; outputPerMillion: number };
   concurrency: number;
@@ -190,7 +196,8 @@ export async function evaluateDocumentQuestion(
           .map((id) => byId.get(id))
           .filter((session): session is RetrievableSession => session !== undefined);
   const retrievalMs = performance.now() - started;
-  const prompt = buildReadingPrompt(question.question, askedAt, chosenSessions, retrieval);
+  const shown = options.readerView === undefined ? chosenSessions : chosenSessions.map(options.readerView);
+  const prompt = buildReadingPrompt(question.question, askedAt, shown, retrieval);
   const readStarted = performance.now();
   const completion = await options.reader.completeWithUsage(
     [
