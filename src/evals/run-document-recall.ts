@@ -23,6 +23,9 @@ import {
   type DocumentPage,
 } from './document-corpus.js';
 import { evaluateDocumentTier } from './document-recall-run.js';
+import { ollamaEmbed } from './document-index.js';
+import { RANKERS, buildDocumentRanker, llmDecomposer, type RankerName } from './document-rankers.js';
+import { DEFAULT_RERANK_KEY_ENV, typesafeNouls } from './typesafe-rerank.js';
 import { assembleTier, type TierSource } from './document-tier.js';
 import {
   summariseTier,
@@ -79,6 +82,7 @@ interface Args {
   concurrency: number;
   limitPerDocument?: number;
   oraclePages: boolean;
+  ranker?: RankerName;
   price?: { inputPerMillion: number; outputPerMillion: number };
   output?: string;
   predictions?: string;
@@ -121,6 +125,12 @@ function parseArgs(argv: string[]): Args {
       case '--concurrency': args.concurrency = Number(value()); break;
       case '--limit-per-document': args.limitPerDocument = Number(value()); break;
       case '--oracle-pages': args.oraclePages = true; break;
+      case '--ranker': {
+        const name = value();
+        if (!(RANKERS as readonly string[]).includes(name)) throw new Error(`unknown ranker ${name}`);
+        args.ranker = name as RankerName;
+        break;
+      }
       case '--reader-price': {
         // "IN,OUT" dollars per million tokens, for an endpoint that reports no cost; 0,0 for local
         const [input, output] = value().split(',').map(Number);
@@ -216,6 +226,7 @@ async function main(): Promise<void> {
   console.log(
     `reader ${reader.model}${judge === undefined ? '' : ` · judge ${judge.model}`} · ` +
       `depth ${args.topK} · ${args.pagesPerWindow} pages/window · ${Math.round(args.contextBytes / 1024)}KB context` +
+      ` · ranker ${args.ranker ?? 'product'}` +
       `${args.oraclePages ? ' · ORACLE PAGES (retrieval bypassed: this is the reader ceiling)' : ''}\n`,
   );
 
@@ -371,6 +382,7 @@ async function main(): Promise<void> {
           judge: judge?.model ?? null,
           settings: {
             oraclePages: args.oraclePages,
+            ranker: args.ranker ?? 'product',
             price: args.price ?? null,
             topK: args.topK,
             contextBytes: args.contextBytes,
@@ -385,6 +397,29 @@ async function main(): Promise<void> {
     );
     console.log(`wrote ${args.output}`);
   }
+}
+
+/** The ranker factory for --ranker: embeddings, TypeSafe and decomposition wired only if needed. */
+function rankerFactory(args: Args, documentId: string) {
+  if (args.ranker === undefined || args.ranker === 'product') return undefined;
+  const name = args.ranker;
+  const typesafeKey = process.env[DEFAULT_RERANK_KEY_ENV];
+  return (sessions: Parameters<typeof buildDocumentRanker>[1]) =>
+    buildDocumentRanker(name, sessions, {
+      embed: ollamaEmbed(),
+      denseCachePath: `${CACHE_DIR}/${documentId}.dense.nomic.json`,
+      ...(name.endsWith('+rerank') && typesafeKey
+        ? { nouls: (state: unknown, questions: Parameters<typeof typesafeNouls>[1]) => typesafeNouls(state, questions, { apiKey: typesafeKey }) }
+        : {}),
+      ...(name.startsWith('decomposed')
+        ? {
+            decomposer: llmDecomposer(
+              new OpenRouterClient({ model: 'deepseek-chat', apiKey: process.env.DEEPSEEK_API_KEY ?? '', baseUrl: 'https://api.deepseek.com/v1' }),
+              `${CACHE_DIR}/decompose.json`,
+            ),
+          }
+        : {}),
+    });
 }
 
 async function runOne(
@@ -404,6 +439,11 @@ async function runOne(
     concurrency: args.concurrency,
     ...(args.oraclePages ? { oraclePages: true } : {}),
     ...(args.price === undefined ? {} : { price: args.price }),
+    ...(() => {
+      const documentId = tier.tier.includes('/') ? tier.tier.split('/')[1]! : tier.tier;
+      const buildRanker = rankerFactory(args, documentId);
+      return buildRanker === undefined ? {} : { buildRanker };
+    })(),
     ...(args.maxTokens === undefined ? {} : { maxTokens: args.maxTokens }),
     onQuestion: (outcome, index, total) => {
       const mark = outcome.correct ? 'ok  ' : 'MISS';

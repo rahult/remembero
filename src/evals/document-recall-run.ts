@@ -29,6 +29,7 @@ import {
 import { mapConcurrent } from './map-concurrent.js';
 import { scoreAgainstXlDocBench, scoreWithLocaleTolerance, xlAnswerType } from './xl-docbench-score.js';
 import type { LongMemEvalCompletionClient } from './longmemeval-answer.js';
+import type { DocumentRanker } from './document-rankers.js';
 
 /** The phrases a reader uses when the pages do not answer the question. */
 const DECLINED = [
@@ -103,6 +104,11 @@ export interface DocumentRecallOptions {
    * retrieval's fault?". A tier's oracle accuracy bounds its real accuracy from above.
    */
   oraclePages?: boolean;
+  /**
+   * Build a page ranker once for this document and use it instead of the product's per-question
+   * `retrieveSessions`. Absent, the product's ranking is used, as in every earlier run.
+   */
+  buildRanker?: (sessions: readonly RetrievableSession[]) => Promise<DocumentRanker>;
   /** Dollars per million tokens, for an endpoint that does not report its own cost. */
   price?: { inputPerMillion: number; outputPerMillion: number };
   concurrency: number;
@@ -131,13 +137,14 @@ export async function evaluateDocumentTier(
   const byId = new Map(sessions.map((session) => [session.id, session]));
   const askedAt = new Date(sessions[sessions.length - 1]?.date ?? Date.now());
   const errors: Array<{ questionId: string; message: string }> = [];
+  const ranker = options.buildRanker === undefined ? undefined : await options.buildRanker(sessions);
 
   const results = await mapConcurrent(
     tier.questions,
     options.concurrency,
     async (question, index) => {
       try {
-        const outcome = await evaluateDocumentQuestion(question, sessions, byId, askedAt, options);
+        const outcome = await evaluateDocumentQuestion(question, sessions, byId, askedAt, options, ranker);
         options.onQuestion?.(outcome, index, tier.questions.length);
         return outcome;
       } catch (error) {
@@ -161,6 +168,7 @@ export async function evaluateDocumentQuestion(
   byId: Map<string, RetrievableSession>,
   askedAt: Date,
   options: DocumentRecallOptions,
+  ranker?: DocumentRanker,
 ): Promise<QuestionOutcome> {
   const kind = questionKindFromText(question.question);
   const retrieval: SessionRetrievalOptions = {
@@ -174,6 +182,10 @@ export async function evaluateDocumentQuestion(
   const chosenSessions =
     options.oraclePages === true
       ? oracleSessions(sessions, question.evidencePages, options.topK)
+      : ranker !== undefined
+        ? (await ranker.rank(question.question, options.topK))
+            .map((id) => byId.get(id))
+            .filter((session): session is RetrievableSession => session !== undefined)
       : (await retrieveSessions(question.question, askedAt, sessions, retrieval)).chosen
           .map((id) => byId.get(id))
           .filter((session): session is RetrievableSession => session !== undefined);

@@ -203,3 +203,35 @@ describe('oracleSessions', () => {
     expect(oracleSessions(sessions, [1, 6, 11, 16, 21, 26], 4)).toHaveLength(4);
   });
 });
+
+describe('evaluateDocumentTier with a document ranker', () => {
+  it('builds the ranker once and reads the pages it returns', async () => {
+    const pages = pagesWithFact(200, 150, 'The Kestrel programme remediation budget was 4.2 million pounds.');
+    let builds = 0;
+    const result = await evaluateDocumentTier(
+      tierOf(
+        [
+          question({ question: 'Which annexe lists procurement schedules?', evidencePages: [150] }),
+          question({ id: 'q2', question: 'Another question?', evidencePages: [150] }),
+        ],
+        pages.length,
+      ),
+      pages,
+      {
+        reader: readerThatQuotes('4.2 million pounds', '4.2 million pounds'),
+        topK: 1,
+        contextBytes: 24 * 1024,
+        pagesPerWindow: 1,
+        windowBytes: 12 * 1024,
+        concurrency: 1,
+        buildRanker: async () => {
+          builds += 1;
+          return { name: 'bm25', rank: async () => ['pages-0150-0150'] };
+        },
+      },
+    );
+    expect(builds).toBe(1);
+    expect(result.summary.evidenceHitRate).toBe(1);
+    expect(result.summary.accuracy).toBe(1);
+  });
+});

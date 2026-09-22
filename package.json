@@ -163,6 +163,7 @@
     "eval:extract-bench": "npm run build:core && node dist/evals/run-extraction-bench.js",
     "eval:recall": "npm run build && node dist/evals/run-recall.js",
     "eval:doc-extract": "npm run build:core && node dist/evals/run-document-extraction.js",
+    "eval:doc-retrieval": "npm run build:core && node dist/evals/run-document-retrieval.js",
     "eval:doc-recall": "npm run build:core && node dist/evals/run-document-recall.js",
     "eval:documents": "npm run build:core && node dist/evals/run-document-showcase.js",
     "export:documents:memorg": "npm run build:core && node dist/evals/run-document-memorg.js --check --output docs/research/results/document-intelligence.memorg.json --public-output web/public/documents/document-intelligence.memorg.json",
