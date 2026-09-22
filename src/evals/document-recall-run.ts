@@ -27,11 +27,17 @@ import {
   type TierSummary,
 } from './document-recall.js';
 import { mapConcurrent } from './map-concurrent.js';
-import { scoreAgainstXlDocBench, xlAnswerType } from './xl-docbench-score.js';
+import { scoreAgainstXlDocBench, scoreWithLocaleTolerance, xlAnswerType } from './xl-docbench-score.js';
 import type { LongMemEvalCompletionClient } from './longmemeval-answer.js';
 
 /** The phrases a reader uses when the pages do not answer the question. */
 const DECLINED = [
+  // the product's reading prompt tells the reader to "say that you do not know", so its own
+  // wording has to be recognised here — XL-DocBench's rule does not accept it, which is why the
+  // two abstention numbers in a tier row can disagree
+  'do not know',
+  "don't know",
+  'dont know',
   'no information',
   'not mentioned',
   'not stated',
@@ -180,11 +186,9 @@ export async function evaluateDocumentQuestion(
   const answer = finalAnswerLine(completion.content);
   const latencyMs = performance.now() - started;
 
-  const scored = scoreAgainstXlDocBench(
-    answer,
-    question.answer ?? '',
-    xlAnswerType(question.answerFormat, question.verificationRule),
-  );
+  const answerType = xlAnswerType(question.answerFormat, question.verificationRule);
+  const scored = scoreAgainstXlDocBench(answer, question.answer ?? '', answerType);
+  const locale = scoreWithLocaleTolerance(answer, question.answer ?? '', answerType);
   const judged =
     options.judge === undefined
       ? undefined
@@ -200,6 +204,7 @@ export async function evaluateDocumentQuestion(
     retrieval: scoreRetrieval(chosenSessions, question.evidencePages),
     answer,
     correct: scored.accuracy === 1,
+    correctLocale: locale.localeAccuracy === 1,
     tokenF1: scored.tokenF1,
     anls: scored.anls,
     ...(judged === undefined ? {} : { judged }),

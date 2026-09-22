@@ -158,6 +158,37 @@ export function xlTokenF1(prediction: string, gold: string): number {
   return (2 * precision * recall) / (precision + recall);
 }
 
+/**
+ * A decimal comma read as a decimal point.
+ *
+ * Their `normalize_answer` deletes commas as thousands separators, so a Dutch or French answer of
+ * "63,1%" becomes "631%" and a correct answer scores zero against a gold of "63.1%". Several of
+ * this corpus's documents are not in English, so the artefact is not rare. It is left in the
+ * headline number, because that number's whole purpose is comparability with their published
+ * baselines; this is the diagnostic that says how much it costs.
+ */
+export function withDecimalCommaAsPoint(text: string): string {
+  return text.replace(/(\d),(\d{1,2})(?!\d)/g, '$1.$2');
+}
+
+/** Their accuracy, plus the same accuracy once a decimal comma is read as a decimal point. */
+export function scoreWithLocaleTolerance(
+  prediction: string,
+  gold: string,
+  answerType: XlAnswerType,
+): { accuracy: number; localeAccuracy: number } {
+  const accuracy = xlAccuracyScore(prediction, gold, answerType);
+  if (accuracy === 1) return { accuracy, localeAccuracy: 1 };
+  return {
+    accuracy,
+    localeAccuracy: xlAccuracyScore(
+      withDecimalCommaAsPoint(prediction),
+      withDecimalCommaAsPoint(gold),
+      answerType,
+    ),
+  };
+}
+
 /** The three numbers their evaluator reports for one question. */
 export function scoreAgainstXlDocBench(
   prediction: string,

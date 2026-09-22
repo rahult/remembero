@@ -151,6 +151,7 @@ describe('summariseTier', () => {
     retrieval: scoreRetrieval([{ id: 'pages-0001-0004' }], evidencePages),
     answer: 'said something',
     correct: true,
+    correctLocale: true,
     abstained: false,
     latencyMs: 1_000,
     contextBytes: 20_000,

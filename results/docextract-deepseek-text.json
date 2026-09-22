@@ -1,0 +1,1172 @@
+{
+  "corpus": "xl-docbench-page-tiers",
+  "ranAt": "2026-09-22T14:06:15.284Z",
+  "writer": "deepseek-chat",
+  "judge": "deepseek-chat",
+  "results": [
+    {
+      "tier": "100p",
+      "document": "doc_000156",
+      "pages": 108,
+      "summary": {
+        "pagesSampled": 23,
+        "evidencePagesSampled": 15,
+        "facts": 21,
+        "factsPerPage": 0.9130434782608695,
+        "pagesWithNoFacts": 16,
+        "extractionErrors": 3,
+        "factsJudged": 21,
+        "precision": 0.8095238095238095,
+        "questionsScored": 10,
+        "recall": 0
+      },
+      "coverage": [
+        {
+          "questionId": "adubench_single_000303",
+          "evidencePages": [
+            24,
+            29,
+            34,
+            35
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000304",
+          "evidencePages": [
+            77
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000305",
+          "evidencePages": [
+            25,
+            26
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000306",
+          "evidencePages": [
+            6,
+            15
+          ],
+          "facts": 4,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000307",
+          "evidencePages": [
+            6,
+            94,
+            95
+          ],
+          "facts": 8,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000308",
+          "evidencePages": [
+            70
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000309",
+          "evidencePages": [
+            78
+          ],
+          "facts": 8,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000991",
+          "evidencePages": [
+            6,
+            29
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000992",
+          "evidencePages": [
+            6,
+            79,
+            81
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000993",
+          "evidencePages": [
+            6,
+            94,
+            95
+          ],
+          "facts": 8,
+          "answered": false
+        }
+      ],
+      "verdicts": [
+        {
+          "page": 15,
+          "fact": "oath_ceremony_judge('Saulius Lukas Kalėda', gerecht).",
+          "supported": true
+        },
+        {
+          "page": 15,
+          "fact": "oath_ceremony_judge('Louise Spangsberg Grønfeldt', gerecht).",
+          "supported": true
+        },
+        {
+          "page": 15,
+          "fact": "judge_from('Saulius Lukas Kalėda', litouwen).",
+          "supported": true
+        },
+        {
+          "page": 15,
+          "fact": "judge_from('Louise Spangsberg Grønfeldt', denemarken).",
+          "supported": true
+        },
+        {
+          "page": 40,
+          "fact": "griffier(gerecht, 'Vittorio Di Bucci').",
+          "supported": true
+        },
+        {
+          "page": 78,
+          "fact": "oath_ceremony_judge('Alfredo Calot Escobar', hof_van_justitie).",
+          "supported": false
+        },
+        {
+          "page": 78,
+          "fact": "griffier(hof_van_justitie, 'Alfredo Calot Escobar').",
+          "supported": true
+        },
+        {
+          "page": 78,
+          "fact": "leads_administrative_services(griffier, onder_gezag_van_president).",
+          "supported": true
+        },
+        {
+          "page": 78,
+          "fact": "established(ai_management_board, 2023).",
+          "supported": false
+        },
+        {
+          "page": 78,
+          "fact": "oversees(ai_management_board, ethische_aspecten_ai_gebruik).",
+          "supported": true
+        },
+        {
+          "page": 78,
+          "fact": "composed_of(ai_management_board, leden_hof_van_justitie).",
+          "supported": false
+        },
+        {
+          "page": 78,
+          "fact": "composed_of(ai_management_board, leden_gerecht).",
+          "supported": false
+        },
+        {
+          "page": 78,
+          "fact": "adopted_guidelines(ai_management_board, gebruik_ai_personeel).",
+          "supported": true
+        },
+        {
+          "page": 94,
+          "fact": "emiss_certificate(hof_van_justitie, emas).",
+          "supported": true
+        },
+        {
+          "page": 94,
+          "fact": "obtained_certificate(hof_van_justitie, emas, 2016).",
+          "supported": true
+        },
+        {
+          "page": 94,
+          "fact": "banned_sale(plastic_water_flessen, hof_van_justitie, 2023).",
+          "supported": true
+        },
+        {
+          "page": 94,
+          "fact": "installed_water_fountains(hof_van_justitie, 2022).",
+          "supported": true
+        },
+        {
+          "page": 94,
+          "fact": "distributed_reusable_bottles(hof_van_justitie, personeel).",
+          "supported": true
+        },
+        {
+          "page": 94,
+          "fact": "reduced_paper_use(hof_van_justitie, 54.1, 2022).",
+          "supported": true
+        },
+        {
+          "page": 94,
+          "fact": "limited_personal_printers(hof_van_justitie, 2023).",
+          "supported": true
+        },
+        {
+          "page": 94,
+          "fact": "reference_year(emas, 2015).",
+          "supported": true
+        }
+      ],
+      "perPage": [
+        {
+          "page": 1,
+          "facts": []
+        },
+        {
+          "page": 6,
+          "facts": []
+        },
+        {
+          "page": 14,
+          "facts": []
+        },
+        {
+          "page": 15,
+          "facts": [
+            "oath_ceremony_judge('Saulius Lukas Kalėda', gerecht).",
+            "oath_ceremony_judge('Louise Spangsberg Grønfeldt', gerecht).",
+            "judge_from('Saulius Lukas Kalėda', litouwen).",
+            "judge_from('Louise Spangsberg Grønfeldt', denemarken)."
+          ]
+        },
+        {
+          "page": 24,
+          "facts": []
+        },
+        {
+          "page": 25,
+          "facts": []
+        },
+        {
+          "page": 26,
+          "facts": []
+        },
+        {
+          "page": 27,
+          "facts": []
+        },
+        {
+          "page": 29,
+          "facts": []
+        },
+        {
+          "page": 34,
+          "facts": []
+        },
+        {
+          "page": 35,
+          "facts": [],
+          "error": "unexpected character 'ø' at line 2"
+        },
+        {
+          "page": 40,
+          "facts": [
+            "griffier(gerecht, 'Vittorio Di Bucci')."
+          ]
+        },
+        {
+          "page": 53,
+          "facts": []
+        },
+        {
+          "page": 66,
+          "facts": []
+        },
+        {
+          "page": 70,
+          "facts": [],
+          "error": "expected ')' but found '-' at line 5"
+        },
+        {
+          "page": 77,
+          "facts": []
+        },
+        {
+          "page": 78,
+          "facts": [
+            "oath_ceremony_judge('Alfredo Calot Escobar', hof_van_justitie).",
+            "griffier(hof_van_justitie, 'Alfredo Calot Escobar').",
+            "leads_administrative_services(griffier, onder_gezag_van_president).",
+            "established(ai_management_board, 2023).",
+            "oversees(ai_management_board, ethische_aspecten_ai_gebruik).",
+            "composed_of(ai_management_board, leden_hof_van_justitie).",
+            "composed_of(ai_management_board, leden_gerecht).",
+            "adopted_guidelines(ai_management_board, gebruik_ai_personeel)."
+          ]
+        },
+        {
+          "page": 79,
+          "facts": []
+        },
+        {
+          "page": 81,
+          "facts": [],
+          "error": "constants 'book', '2023-05-09' are not in the input; store only values the text states, do not infer or rename them"
+        },
+        {
+          "page": 92,
+          "facts": []
+        },
+        {
+          "page": 94,
+          "facts": [
+            "emiss_certificate(hof_van_justitie, emas).",
+            "obtained_certificate(hof_van_justitie, emas, 2016).",
+            "banned_sale(plastic_water_flessen, hof_van_justitie, 2023).",
+            "installed_water_fountains(hof_van_justitie, 2022).",
+            "distributed_reusable_bottles(hof_van_justitie, personeel).",
+            "reduced_paper_use(hof_van_justitie, 54.1, 2022).",
+            "limited_personal_printers(hof_van_justitie, 2023).",
+            "reference_year(emas, 2015)."
+          ]
+        },
+        {
+          "page": 95,
+          "facts": []
+        },
+        {
+          "page": 105,
+          "facts": []
+        }
+      ]
+    },
+    {
+      "tier": "500p",
+      "document": "doc_000175",
+      "pages": 514,
+      "summary": {
+        "pagesSampled": 20,
+        "evidencePagesSampled": 12,
+        "facts": 131,
+        "factsPerPage": 6.55,
+        "pagesWithNoFacts": 7,
+        "extractionErrors": 3,
+        "factsJudged": 40,
+        "precision": 0.95,
+        "questionsScored": 10,
+        "recall": 0
+      },
+      "coverage": [
+        {
+          "questionId": "adubench_single_000339",
+          "evidencePages": [
+            11,
+            12,
+            77
+          ],
+          "facts": 24,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000340",
+          "evidencePages": [
+            141,
+            169
+          ],
+          "facts": 26,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000341",
+          "evidencePages": [
+            11,
+            146
+          ],
+          "facts": 33,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000342",
+          "evidencePages": [
+            12
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000343",
+          "evidencePages": [
+            165
+          ],
+          "facts": 2,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000344",
+          "evidencePages": [
+            12,
+            13,
+            21,
+            22,
+            77
+          ],
+          "facts": 25,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000345",
+          "evidencePages": [
+            22,
+            148
+          ],
+          "facts": 3,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_001020",
+          "evidencePages": [
+            141
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_001021",
+          "evidencePages": [
+            77
+          ],
+          "facts": 22,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_001023",
+          "evidencePages": [
+            14,
+            77
+          ],
+          "facts": 29,
+          "answered": false
+        }
+      ],
+      "verdicts": [
+        {
+          "page": 11,
+          "fact": "indicates(bold_italic_type, fatality).",
+          "supported": true
+        },
+        {
+          "page": 14,
+          "fact": "defines(job_hazard_analysis, systematic_process_to_identify_safety_and_health_hazards_in_a_work_project_or_activity_and_to_develop_abatement_actions_for_those_hazards).",
+          "supported": true
+        },
+        {
+          "page": 14,
+          "fact": "defines(tailgate_safety_and_health_session, 'documented discussion among the first-line supervisor, work leaders, and crew members concerning any aspect of a work project or activity').",
+          "supported": true
+        },
+        {
+          "page": 22,
+          "fact": "requires_jha(back_country_travel, jha).",
+          "supported": true
+        },
+        {
+          "page": 77,
+          "fact": "responsibility(line_officers, use_job_hazard_analysis_to_document_experience_and_skill).",
+          "supported": true
+        },
+        {
+          "page": 77,
+          "fact": "responsibility(line_officers, select_tools_and_ppe_for_employee_needs).",
+          "supported": true
+        },
+        {
+          "page": 77,
+          "fact": "responsibility(supervisors, analyze_tools_equipment_and_facility_needs).",
+          "supported": true
+        },
+        {
+          "page": 77,
+          "fact": "authority(forest_service_work_projects, '29 CFR Parts 1910, 1926, and 1960').",
+          "supported": true
+        },
+        {
+          "page": 77,
+          "fact": "reference(forest_service_work_projects, 'NFPA 1977: Protective Clothing and Equipment for Wildland Fire Fighting').",
+          "supported": true
+        },
+        {
+          "page": 77,
+          "fact": "requires_jha(work_activity).",
+          "supported": true
+        },
+        {
+          "page": 77,
+          "fact": "identifies_in_jha(approving_line_officer).",
+          "supported": true
+        },
+        {
+          "page": 146,
+          "fact": "authority(ppe, '29 CFR 1926.100 - 1926.103').",
+          "supported": true
+        },
+        {
+          "page": 146,
+          "fact": "authority(fire_extinguishers, '29 CFR 1910.132 - 1910.138').",
+          "supported": true
+        },
+        {
+          "page": 146,
+          "fact": "authority(fire_detection_systems, '29 CFR 1910.157 - 1910.165').",
+          "supported": true
+        },
+        {
+          "page": 146,
+          "fact": "authority(fire_protection_and_prevention, '29 CFR 1926.1000').",
+          "supported": true
+        },
+        {
+          "page": 146,
+          "fact": "authority(liquefied_petroleum_gas, '29 CFR 1926.100 - 1926.103').",
+          "supported": true
+        },
+        {
+          "page": 146,
+          "fact": "authority(temporary_heating_devices, '29 CFR 1926.100 - 1926.103').",
+          "supported": true
+        },
+        {
+          "page": 146,
+          "fact": "authority(rollover_protective_structures, '29 CFR 1926.100 - 1926.103').",
+          "supported": true
+        },
+        {
+          "page": 146,
+          "fact": "contains(fsm_1500, memorandums_of_understanding_and_agreements).",
+          "supported": true
+        },
+        {
+          "page": 146,
+          "fact": "issued_by(fsh_5109_32a_fireline_handbook, national_wildfire_coordinating_group).",
+          "supported": true
+        },
+        {
+          "page": 165,
+          "fact": "authorized_to(employees_who_have_graduated_from_fletc, contact_disorderly_individuals).",
+          "supported": true
+        },
+        {
+          "page": 169,
+          "fact": "responsibility(supervisor, report_injuries_and_potential_exposures).",
+          "supported": true
+        },
+        {
+          "page": 169,
+          "fact": "limit_weight(recycling_materials, 45).",
+          "supported": true
+        },
+        {
+          "page": 169,
+          "fact": "authority(telecommunications_safety_and_health_standards, '29 CFR 1910.66').",
+          "supported": true
+        },
+        {
+          "page": 169,
+          "fact": "authority(fall_protection_equipment, '29 CFR 1926.104').",
+          "supported": true
+        },
+        {
+          "page": 169,
+          "fact": "authority(fall_protection_equipment, '29 CFR 1926.502').",
+          "supported": true
+        },
+        {
+          "page": 169,
+          "fact": "authority(fall_protection_equipment, 'ASTM B117-64').",
+          "supported": true
+        },
+        {
+          "page": 169,
+          "fact": "requires_training_course(tower_and_pole_climbing, approved_training_course).",
+          "supported": true
+        },
+        {
+          "page": 169,
+          "fact": "requires_confirmation(trainer, requirements).",
+          "supported": true
+        },
+        {
+          "page": 193,
+          "fact": "responsibility(informal_inspection, report_unusual_conditions_to_forest_officer_responsible_for_dams).",
+          "supported": true
+        },
+        {
+          "page": 193,
+          "fact": "recommended_after(special_inspection, floods).",
+          "supported": true
+        },
+        {
+          "page": 193,
+          "fact": "responsibility(operation_and_maintenance_inspections, conduct_periodic_inspections_of_dams).",
+          "supported": true
+        },
+        {
+          "page": 193,
+          "fact": "responsibility(qualified_engineer, periodically_review_operation_maintenance_and_inspection_records).",
+          "supported": true
+        },
+        {
+          "page": 193,
+          "fact": "performed_by(safety_inspection_and_hazard_assessment, teams_of_forest_service_engineers_engineering_geologists_and_allied_technical_people).",
+          "supported": true
+        },
+        {
+          "page": 193,
+          "fact": "requires_hazard_classification_review_interval(moderate_hazard_dams, 5).",
+          "supported": true
+        },
+        {
+          "page": 193,
+          "fact": "indicates(water, slippery_walking_surfaces).",
+          "supported": false
+        },
+        {
+          "page": 321,
+          "fact": "requires_jha(end_loaders_backhoes, preventative_maintenance_and_walk_around_safety_inspection).",
+          "supported": false
+        },
+        {
+          "page": 321,
+          "fact": "requires_jha(end_loaders_backhoes, walk_around_safety_inspection).",
+          "supported": true
+        },
+        {
+          "page": 321,
+          "fact": "requires_jha(end_loaders_backhoes, fasten_seatbelts_before_starting_engine).",
+          "supported": true
+        },
+        {
+          "page": 321,
+          "fact": "indicates(cage_canopy, safety_cage_and_canopy).",
+          "supported": true
+        }
+      ],
+      "perPage": [
+        {
+          "page": 1,
+          "facts": []
+        },
+        {
+          "page": 11,
+          "facts": [
+            "indicates(bold_italic_type, fatality).",
+            "date(executive_order_12196, 'February 26, 1980')."
+          ]
+        },
+        {
+          "page": 12,
+          "facts": [],
+          "error": "constant 'eliminate_potential_causes_of_accidents_injuries_illnesses' is not in the input; store only values the text states, do not infer or rename them"
+        },
+        {
+          "page": 13,
+          "facts": []
+        },
+        {
+          "page": 14,
+          "facts": [
+            "defines(first_line_supervisor, employee_responsible_for_planning_or_implementing_project_work_activities_of_other_employees).",
+            "defines(job_hazard_analysis, systematic_process_to_identify_safety_and_health_hazards_in_a_work_project_or_activity_and_to_develop_abatement_actions_for_those_hazards).",
+            "defines(line_officer, 'employee from the Chief and Associate Chief to District Ranger who carries out line authority').",
+            "defines(personal_protective_equipment, 'equipment for eyes, head, and extremities; protective clothing; respiratory devices; and protective shields and barriers').",
+            "defines(tailgate_safety_and_health_session, 'documented discussion among the first-line supervisor, work leaders, and crew members concerning any aspect of a work project or activity').",
+            "defines(work_leaders, individuals_involved_in_day_to_day_supervision_of_field_crews).",
+            "reports_to(work_leaders, first_line_supervisor)."
+          ]
+        },
+        {
+          "page": 21,
+          "facts": []
+        },
+        {
+          "page": 22,
+          "facts": [
+            "requires_jha(back_country_travel, jha).",
+            "requires_jha(back_country_travel, emergency_evacuation_procedures).",
+            "requires_jha(back_country_travel, communication_plan)."
+          ]
+        },
+        {
+          "page": 65,
+          "facts": []
+        },
+        {
+          "page": 77,
+          "facts": [
+            "responsibility(line_officers, ensure_safety_of_employees_and_public).",
+            "responsibility(line_officers, use_job_hazard_analysis_to_document_experience_and_skill).",
+            "responsibility(line_officers, analyze_tools_equipment_and_facility_needs).",
+            "responsibility(line_officers, require_use_of_selected_tools_and_ppe).",
+            "responsibility(line_officers, select_tools_and_ppe_for_employee_needs).",
+            "responsibility(supervisors, ensure_safety_of_employees_and_public).",
+            "responsibility(supervisors, use_job_hazard_analysis_to_document_experience_and_skill).",
+            "responsibility(supervisors, analyze_tools_equipment_and_facility_needs).",
+            "responsibility(supervisors, require_use_of_selected_tools_and_ppe).",
+            "responsibility(supervisors, select_tools_and_ppe_for_employee_needs).",
+            "authority(forest_service_work_projects, '29 CFR Parts 1910, 1926, and 1960').",
+            "authority(forest_service_work_projects, '30 CFR Parts 1-199').",
+            "authority(forest_service_work_projects, '42 CFR Part 11').",
+            "authority(forest_service_work_projects, '49 CFR Parts 1-199 and 301-399').",
+            "reference(forest_service_work_projects, 'NFPA 1977: Protective Clothing and Equipment for Wildland Fire Fighting').",
+            "reference(forest_service_work_projects, 'Manual on Uniform Traffic Control Devices').",
+            "requires_jha(work_project).",
+            "requires_jha(work_activity).",
+            "identifies_in_jha(worksite).",
+            "identifies_in_jha(employee_writing_jha).",
+            "identifies_in_jha(approving_line_officer).",
+            "identifies_in_jha(jha_date)."
+          ]
+        },
+        {
+          "page": 129,
+          "facts": []
+        },
+        {
+          "page": 141,
+          "facts": []
+        },
+        {
+          "page": 146,
+          "facts": [
+            "authority(ppe, '29 CFR 1910.132 - 1910.138').",
+            "authority(ppe, '29 CFR 1910.157 - 1910.165').",
+            "authority(ppe, '29 CFR 1926.100 - 1926.103').",
+            "authority(ppe, '29 CFR 1926.150 - 1926.155').",
+            "authority(ppe, '29 CFR 1926.1000').",
+            "authority(fire_extinguishers, '29 CFR 1910.132 - 1910.138').",
+            "authority(fire_extinguishers, '29 CFR 1910.157 - 1910.165').",
+            "authority(fire_detection_systems, '29 CFR 1910.132 - 1910.138').",
+            "authority(fire_detection_systems, '29 CFR 1910.157 - 1910.165').",
+            "authority(fire_protection_and_prevention, '29 CFR 1926.100 - 1926.103').",
+            "authority(fire_protection_and_prevention, '29 CFR 1926.150 - 1926.155').",
+            "authority(fire_protection_and_prevention, '29 CFR 1926.1000').",
+            "authority(flammable_and_combustible_liquids, '29 CFR 1926.100 - 1926.103').",
+            "authority(flammable_and_combustible_liquids, '29 CFR 1926.150 - 1926.155').",
+            "authority(flammable_and_combustible_liquids, '29 CFR 1926.1000').",
+            "authority(liquefied_petroleum_gas, '29 CFR 1926.100 - 1926.103').",
+            "authority(liquefied_petroleum_gas, '29 CFR 1926.150 - 1926.155').",
+            "authority(liquefied_petroleum_gas, '29 CFR 1926.1000').",
+            "authority(temporary_heating_devices, '29 CFR 1926.100 - 1926.103').",
+            "authority(temporary_heating_devices, '29 CFR 1926.150 - 1926.155').",
+            "authority(temporary_heating_devices, '29 CFR 1926.1000').",
+            "authority(rollover_protective_structures, '29 CFR 1926.100 - 1926.103').",
+            "authority(rollover_protective_structures, '29 CFR 1926.150 - 1926.155').",
+            "authority(rollover_protective_structures, '29 CFR 1926.1000').",
+            "contains(fsm_1500, memorandums_of_understanding_and_agreements).",
+            "contains(fsm_5130, direction_on_structure_and_vehicle_fires).",
+            "contains(fsm_5140, direction_on_prescribed_fire).",
+            "authority(fsh_5109_32a_fireline_handbook, incident_command_system).",
+            "issued_by(fsh_5109_32a_fireline_handbook, national_wildfire_coordinating_group).",
+            "requires_jha(oil_and_gas_operations).",
+            "identifies_in_jha(h2s_safety_hazards)."
+          ]
+        },
+        {
+          "page": 148,
+          "facts": [],
+          "error": "constant 'brief_personnel_on_local_conditions' is not in the input; store only values the text states, do not infer or rename them"
+        },
+        {
+          "page": 165,
+          "facts": [
+            "authorized_to(employees_who_have_graduated_from_fletc, contact_disorderly_individuals).",
+            "authorized_to(employees_who_have_graduated_from_fletc, enforce_laws_and_regulations)."
+          ]
+        },
+        {
+          "page": 169,
+          "facts": [
+            "requires_jha(recycling, safety_practices).",
+            "responsibility(supervisor, report_injuries_and_potential_exposures).",
+            "indicates(hiv, exposure).",
+            "indicates(hepatitis_b, exposure).",
+            "indicates(hantavirus, exposure).",
+            "limit_weight(recycling_materials, 45).",
+            "limit_weight_kg(recycling_materials, 21).",
+            "authority(telecommunications_safety_and_health_standards, '29 CFR 1910.29').",
+            "authority(telecommunications_safety_and_health_standards, '29 CFR 1910.66').",
+            "authority(telecommunications_safety_and_health_standards, '29 CFR 1910.67').",
+            "authority(telecommunications_safety_and_health_standards, '29 CFR 1910.268').",
+            "authority(fall_protection_equipment, '29 CFR 1926.104').",
+            "authority(fall_protection_equipment, '29 CFR 1926.107').",
+            "authority(fall_protection_equipment, '29 CFR 1926.500').",
+            "authority(fall_protection_equipment, '29 CFR 1926.502').",
+            "authority(fall_protection_equipment, '29 CFR 1926.959').",
+            "authority(fall_protection_equipment, 'ANSI Z10.14-1991').",
+            "authority(fall_protection_equipment, 'ANSI Z133.1-1994').",
+            "authority(fall_protection_equipment, 'ASTM B117-64').",
+            "requires_experience_before_assignment(tower_or_pole_climbing, climbing_techniques).",
+            "requires_certification(tower_and_pole_climbing, qualified_to_climb).",
+            "requires_training_course(tower_and_pole_climbing, approved_training_course).",
+            "requires_proficiency(tower_and_pole_climbing, climbing).",
+            "requires_knowledge(tower_and_pole_climbing, equipment_and_hazards).",
+            "requires_confirmation(trainer, requirements).",
+            "requires_concurrence(trainer, supervisor)."
+          ]
+        },
+        {
+          "page": 193,
+          "facts": [
+            "responsibility(informal_inspection, observe_overall_condition_and_function_of_structure).",
+            "responsibility(informal_inspection, report_unusual_conditions_to_forest_officer_responsible_for_dams).",
+            "responsibility(informal_inspection, pay_particular_attention_to_leakage_erosion_sinkholes_boils_seepage_slope_instability_undue_settlement_displacement_tilting_cracking_deterioration_improper_functioning_of_drains_and_relief_wells).",
+            "reference(informal_inspection, 'FSM 7516.11').",
+            "requires_jha(special_inspection, experienced_and_qualified_engineer).",
+            "recommended_after(special_inspection, floods).",
+            "recommended_after(special_inspection, earthquakes).",
+            "recommended_after(special_inspection, unusual_events).",
+            "responsibility(operation_and_maintenance_inspections, conduct_periodic_inspections_of_dams).",
+            "responsibility(operation_and_maintenance_inspections, maintain_records_of_inspections_and_follow_up_activities).",
+            "responsibility(operation_and_maintenance_inspections, document_inspections_and_actions_taken_to_correct_deficiencies).",
+            "responsibility(qualified_engineer, periodically_review_operation_maintenance_and_inspection_records).",
+            "responsibility(qualified_engineer, make_thorough_inspection_of_each_structure_on_national_forest_system_lands).",
+            "reference(operation_and_maintenance_inspections, 'FSH 7509.11, ch. 30').",
+            "responsibility(safety_inspection_and_hazard_assessment, safety_inspections_of_forest_service_owned_dams).",
+            "performed_by(safety_inspection_and_hazard_assessment, teams_of_forest_service_engineers_engineering_geologists_and_allied_technical_people).",
+            "reference(safety_inspection_and_hazard_assessment, 'FSH 7509.11, ch. 40').",
+            "requires_inspection_interval(high_hazard_dams, 5).",
+            "requires_hazard_classification_review_interval(moderate_hazard_dams, 5).",
+            "requires_hazard_classification_review_interval(low_hazard_dams, 5).",
+            "responsibility(walking_surfaces, inspected_before_use).",
+            "indicates(water, slippery_walking_surfaces).",
+            "indicates(moss_or_algae_growth, slippery_walking_surfaces).",
+            "indicates(winter_conditions, walking_surface_hazards)."
+          ]
+        },
+        {
+          "page": 257,
+          "facts": []
+        },
+        {
+          "page": 321,
+          "facts": [
+            "requires_jha(end_loaders_backhoes, preventative_maintenance_and_walk_around_safety_inspection).",
+            "responsibility(operators, be_familiar_with_weight_distribution).",
+            "responsibility(operators, be_familiar_with_effects_on_center_of_gravity_and_machine_stability).",
+            "requires_jha(end_loaders_backhoes, preventative_maintenance).",
+            "requires_jha(end_loaders_backhoes, walk_around_safety_inspection).",
+            "requires_jha(end_loaders_backhoes, operate_machine_controls_only_from_operators_seat).",
+            "requires_jha(end_loaders_backhoes, equip_loaders_with_bucket_supported_arms_pivoted_behind_operator_with_suitable_cage_canopy).",
+            "requires_jha(end_loaders_backhoes, fasten_seatbelts_before_starting_engine).",
+            "requires_jha(end_loaders_backhoes, make_sure_everyone_is_clear_before_starting_machine).",
+            "requires_jha(end_loaders_backhoes, keep_persons_away_from_backhoe_swing_arc_by_warning_and_barricading_area).",
+            "indicates(cage_canopy, safety_cage_and_canopy).",
+            "date(wo_amendment_6709_11_99_1, '12/01/1999')."
+          ]
+        },
+        {
+          "page": 385,
+          "facts": [],
+          "error": "refusing to send sensitive memory text to the external LLM"
+        },
+        {
+          "page": 449,
+          "facts": [
+            "limit_weight(lp_gas_storage_tank, 45).",
+            "limit_weight_kg(lp_gas_storage_tank, 21)."
+          ]
+        }
+      ]
+    },
+    {
+      "tier": "1000p",
+      "document": "doc_000120",
+      "pages": 708,
+      "summary": {
+        "pagesSampled": 12,
+        "evidencePagesSampled": 4,
+        "facts": 26,
+        "factsPerPage": 2.1666666666666665,
+        "pagesWithNoFacts": 7,
+        "extractionErrors": 1,
+        "factsJudged": 26,
+        "precision": 1,
+        "questionsScored": 6,
+        "recall": 0
+      },
+      "coverage": [
+        {
+          "questionId": "adubench_single_000228",
+          "evidencePages": [
+            19,
+            20
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000229",
+          "evidencePages": [
+            21,
+            22
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000230",
+          "evidencePages": [
+            20
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000231",
+          "evidencePages": [
+            21
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000232",
+          "evidencePages": [
+            19,
+            20,
+            21,
+            22
+          ],
+          "facts": 0,
+          "answered": false
+        },
+        {
+          "questionId": "adubench_single_000916",
+          "evidencePages": [
+            19,
+            20,
+            22
+          ],
+          "facts": 0,
+          "answered": false
+        }
+      ],
+      "verdicts": [
+        {
+          "page": 89,
+          "fact": "dosage(diclofenac, '> 12 years', '50 mg', '12 hourly').",
+          "supported": true
+        },
+        {
+          "page": 89,
+          "fact": "not_recommended(diclofenac, '< 12 years').",
+          "supported": true
+        },
+        {
+          "page": 441,
+          "fact": "effectiveness_rate(vasectomy, 99.85).",
+          "supported": true
+        },
+        {
+          "page": 441,
+          "fact": "effectiveness_rate(male_condom, 86).",
+          "supported": true
+        },
+        {
+          "page": 441,
+          "fact": "effectiveness_rate(withdrawal_method, 81).",
+          "supported": true
+        },
+        {
+          "page": 441,
+          "fact": "less_invasive_than(vasectomy, female_sterilisation).",
+          "supported": true
+        },
+        {
+          "page": 441,
+          "fact": "reversal_success_rate(vasectomy, 60, 80) :- true.",
+          "supported": true
+        },
+        {
+          "page": 529,
+          "fact": "causes(exposure_keratopathy, 'Steven Johnson’s Syndrome').",
+          "supported": true
+        },
+        {
+          "page": 529,
+          "fact": "symptom(exposure_keratopathy, 'Feeling of drying of the eye').",
+          "supported": true
+        },
+        {
+          "page": 529,
+          "fact": "symptom(exposure_keratopathy, 'Blurring of vision').",
+          "supported": true
+        },
+        {
+          "page": 529,
+          "fact": "investigation(cataract, fbc).",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "dosage(ciprofloxacin, adult, '400 mg', '8-12 hourly for 14 days').",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "dosage(ciprofloxacin, child, '10 mg/kg (max. 400 mg)', '12 hourly for 14 days').",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "dosage(clindamycin, adult, '300 mg', '6 hourly for 7 days').",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "dosage(clindamycin, child, '3-6 mg/kg', '6 hourly for 7 days').",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "dosage(amoxicillin_clavulanic_acid, adult, '1.2 g', '12 hourly').",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "dosage(amoxicillin_clavulanic_acid, '12-18 years', '600 mg to 1.2 g', '12 hourly').",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "dosage(amoxicillin_clavulanic_acid, '3 months-12 years', '30 mg/kg', '12 hourly').",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "dosage(amoxicillin_clavulanic_acid, '7 days-3 months', '30 mg/kg', '8 hourly for 7 days').",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "dosage(amoxicillin_clavulanic_acid, 'preterm and < 7 days', '30 mg/kg', '12 hourly for 7 days').",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "dosage(gentamicin, adult, '40-80 mg', '8 hourly for 14 days').",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "dosage(gentamicin, '1-12 years', '2.5 mg/kg', '8 hourly for 14 days').",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "dosage(gentamicin, '< 1 year', '2.5 mg/kg', '12 hourly for 14 days').",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "monitor_weekly(gentamicin, bue).",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "monitor_weekly(gentamicin, creatinine).",
+          "supported": true
+        },
+        {
+          "page": 617,
+          "fact": "monitor_weekly(gentamicin, auditory_examination).",
+          "supported": true
+        }
+      ],
+      "perPage": [
+        {
+          "page": 1,
+          "facts": []
+        },
+        {
+          "page": 19,
+          "facts": []
+        },
+        {
+          "page": 20,
+          "facts": []
+        },
+        {
+          "page": 21,
+          "facts": []
+        },
+        {
+          "page": 22,
+          "facts": []
+        },
+        {
+          "page": 89,
+          "facts": [
+            "dosage(diclofenac, '> 12 years', '50 mg', '12 hourly').",
+            "not_recommended(diclofenac, '< 12 years')."
+          ]
+        },
+        {
+          "page": 177,
+          "facts": []
+        },
+        {
+          "page": 265,
+          "facts": [],
+          "error": "constant 'every_12_hours' is not in the input; store only values the text states, do not infer or rename them"
+        },
+        {
+          "page": 353,
+          "facts": []
+        },
+        {
+          "page": 441,
+          "facts": [
+            "effectiveness_rate(vasectomy, 99.85).",
+            "effectiveness_rate(male_condom, 86).",
+            "effectiveness_rate(withdrawal_method, 81).",
+            "less_invasive_than(vasectomy, female_sterilisation).",
+            "reversal_success_rate(vasectomy, 60, 80) :- true."
+          ]
+        },
+        {
+          "page": 529,
+          "facts": [
+            "causes(exposure_keratopathy, 'Steven Johnson’s Syndrome').",
+            "symptom(exposure_keratopathy, 'Feeling of drying of the eye').",
+            "symptom(exposure_keratopathy, 'Blurring of vision').",
+            "investigation(cataract, fbc)."
+          ]
+        },
+        {
+          "page": 617,
+          "facts": [
+            "dosage(ciprofloxacin, adult, '400 mg', '8-12 hourly for 14 days').",
+            "dosage(ciprofloxacin, child, '10 mg/kg (max. 400 mg)', '12 hourly for 14 days').",
+            "dosage(clindamycin, adult, '300 mg', '6 hourly for 7 days').",
+            "dosage(clindamycin, child, '3-6 mg/kg', '6 hourly for 7 days').",
+            "dosage(amoxicillin_clavulanic_acid, adult, '1.2 g', '12 hourly').",
+            "dosage(amoxicillin_clavulanic_acid, '12-18 years', '600 mg to 1.2 g', '12 hourly').",
+            "dosage(amoxicillin_clavulanic_acid, '3 months-12 years', '30 mg/kg', '12 hourly').",
+            "dosage(amoxicillin_clavulanic_acid, '7 days-3 months', '30 mg/kg', '8 hourly for 7 days').",
+            "dosage(amoxicillin_clavulanic_acid, 'preterm and < 7 days', '30 mg/kg', '12 hourly for 7 days').",
+            "dosage(gentamicin, adult, '40-80 mg', '8 hourly for 14 days').",
+            "dosage(gentamicin, '1-12 years', '2.5 mg/kg', '8 hourly for 14 days').",
+            "dosage(gentamicin, '< 1 year', '2.5 mg/kg', '12 hourly for 14 days').",
+            "monitor_weekly(gentamicin, bue).",
+            "monitor_weekly(gentamicin, creatinine).",
+            "monitor_weekly(gentamicin, auditory_examination)."
+          ]
+        }
+      ]
+    }
+  ]
+}

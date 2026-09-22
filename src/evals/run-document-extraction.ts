@@ -14,7 +14,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { OpenRouterClient } from '../llm/client.js';
-import { rememberTranscriptText } from '../llm/pipeline.js';
+import { rememberText, rememberTranscriptText } from '../llm/pipeline.js';
 import { MemoryStore } from '../store/store.js';
 import { pagesFromPdf, pagesFromTextFile, type DocumentPage } from './document-corpus.js';
 import { measureDocumentExtraction, type ExtractionSummary } from './document-extraction.js';
@@ -59,6 +59,12 @@ interface Args {
   judgeApiKey?: string;
   concurrency: number;
   output?: string;
+  /**
+   * Which writer to point at a page. `text` is the general one; `transcript` is the autocapture
+   * path, whose prompt asks for "durable personal-memory facts ... confirmed by the USER" and so
+   * returns nothing at all from report prose — measured, and worth keeping runnable as evidence.
+   */
+  writerMode: 'text' | 'transcript';
 }
 
 function parseArgs(argv: string[]): Args {
@@ -70,6 +76,7 @@ function parseArgs(argv: string[]): Args {
     writerModel: process.env.WRITER_MODEL ?? 'rembero-reader-v7',
     judgeModel: process.env.JUDGE_MODEL ?? 'deepseek-chat',
     concurrency: 1,
+    writerMode: 'text',
   };
   for (let index = 0; index < argv.length; index += 1) {
     const flag = argv[index];
@@ -94,6 +101,14 @@ function parseArgs(argv: string[]): Args {
       case '--judge-api-key': args.judgeApiKey = value(); break;
       case '--concurrency': args.concurrency = Number(value()); break;
       case '--output': args.output = value(); break;
+      case '--writer-mode': {
+        const mode = value();
+        if (mode !== 'text' && mode !== 'transcript') {
+          throw new Error(`--writer-mode must be text or transcript, got ${mode}`);
+        }
+        args.writerMode = mode;
+        break;
+      }
       default: throw new Error(`unknown flag: ${flag}`);
     }
   }
@@ -133,10 +148,18 @@ async function main(): Promise<void> {
   });
 
   const byId = new Map(spec.sources.map((source) => [source.id, source]));
-  console.log(`corpus ${spec.name} · writer ${writer.model} · fact judge ${judge.model}`);
+  console.log(`corpus ${spec.name} · writer ${writer.model} (${args.writerMode} mode) · fact judge ${judge.model}`);
   console.log(`sampling ${args.samplePages} pages beyond the evidence pages, judging ${args.judgeFacts} facts\n`);
 
-  const results: Array<{ tier: string; document: string; pages: number; summary: ExtractionSummary }> = [];
+  const results: Array<{
+    tier: string;
+    document: string;
+    pages: number;
+    summary: ExtractionSummary;
+    coverage?: unknown;
+    verdicts?: unknown;
+    perPage?: unknown;
+  }> = [];
   for (const tier of spec.tiers) {
     if (args.tiers !== undefined && !args.tiers.has(tier.name)) continue;
     for (const documentId of (tier.documents ?? []).slice(0, args.documentsPerTier)) {
@@ -159,12 +182,14 @@ async function main(): Promise<void> {
         judgeFacts: args.judgeFacts,
         concurrency: args.concurrency,
         extract: async (page) => {
-          const outcome = await rememberTranscriptText(
-            { store, llm: writer },
-            `[page ${page.page} of ${source.title}]\n${page.text.slice(0, 12_000)}`,
-            'document',
-            { captureId: `${documentId}-p${page.page}`, origin: 'manual' },
-          );
+          const text = `[page ${page.page} of ${source.title}]\n${page.text.slice(0, 12_000)}`;
+          const outcome =
+            args.writerMode === 'transcript'
+              ? await rememberTranscriptText({ store, llm: writer }, text, 'document', {
+                  captureId: `${documentId}-p${page.page}`,
+                  origin: 'manual',
+                })
+              : await rememberText({ store, llm: writer }, text, 'document');
           return { facts: outcome.added };
         },
         onPage: (page, facts, index, total) => {
@@ -178,7 +203,17 @@ async function main(): Promise<void> {
           `precision ${(summary.precision * 100).toFixed(1)}% of ${summary.factsJudged} judged · ` +
           `recall ${(summary.recall * 100).toFixed(1)}% of ${summary.questionsScored} questions\n`,
       );
-      results.push({ tier: tier.name, document: documentId, pages: pages.length, summary });
+      results.push({
+        tier: tier.name,
+        document: documentId,
+        pages: pages.length,
+        summary,
+        // the evidence behind the two numbers: which question the facts missed, and which fact
+        // the judge refused
+        coverage: result.coverage,
+        verdicts: result.verdicts,
+        perPage: result.perPage,
+      });
 
       if (args.output !== undefined) {
         mkdirSync(dirname(resolve(args.output)), { recursive: true });

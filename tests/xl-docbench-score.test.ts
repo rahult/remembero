@@ -5,9 +5,11 @@ import {
   normalizeAnswer,
   normalizedLevenshteinSimilarity,
   scoreAgainstXlDocBench,
+  scoreWithLocaleTolerance,
   xlAccuracyScore,
   xlAnswerType,
   xlTokenF1,
+  withDecimalCommaAsPoint,
 } from '../src/evals/xl-docbench-score.js';
 
 describe('xlAnswerType', () => {
@@ -122,6 +124,40 @@ describe('scoreAgainstXlDocBench', () => {
       accuracy: 1,
       tokenF1: 1,
       anls: expect.closeTo(0.66, 1),
+    });
+  });
+});
+
+describe('withDecimalCommaAsPoint', () => {
+  it('reads a decimal comma as a decimal point', () => {
+    expect(withDecimalCommaAsPoint('63,1%')).toBe('63.1%');
+    expect(withDecimalCommaAsPoint('ongeveer 89,9 procent')).toBe('ongeveer 89.9 procent');
+  });
+
+  it('leaves a thousands separator alone', () => {
+    expect(withDecimalCommaAsPoint('1,234 cases')).toBe('1,234 cases');
+  });
+});
+
+describe('scoreWithLocaleTolerance', () => {
+  it('rescues a correct answer written with a decimal comma', () => {
+    expect(scoreWithLocaleTolerance('dat is ongeveer 63,1%', '63.1%', 'entity')).toEqual({
+      accuracy: 0,
+      localeAccuracy: 1,
+    });
+  });
+
+  it('does not rescue a wrong answer', () => {
+    expect(scoreWithLocaleTolerance('dat is ongeveer 44,2%', '63.1%', 'entity')).toEqual({
+      accuracy: 0,
+      localeAccuracy: 0,
+    });
+  });
+
+  it('leaves an already-correct answer untouched', () => {
+    expect(scoreWithLocaleTolerance('63.1%', '63.1%', 'entity')).toEqual({
+      accuracy: 1,
+      localeAccuracy: 1,
     });
   });
 });

@@ -169,6 +169,8 @@ function row(summary: TierSummary): string {
     String(summary.windows).padStart(7),
     `${summary.answerable}+${summary.unanswerable}`.padStart(6),
     percent(summary.accuracy).padStart(8),
+    percent(summary.localeAccuracy).padStart(7),
+    (summary.judgedAccuracy === undefined ? '-' : percent(summary.judgedAccuracy)).padStart(6),
     percent(summary.evidenceHitRate).padStart(8),
     percent(summary.meanPageRecall).padStart(11),
     percent(summary.meanWindowPrecision).padStart(11),
@@ -309,6 +311,7 @@ async function main(): Promise<void> {
         evidencePages: outcome.question.evidencePages,
         answer: outcome.answer,
         correct: outcome.correct,
+        correctLocale: outcome.correctLocale,
         tokenF1: Number(outcome.tokenF1.toFixed(3)),
         anls: Number(outcome.anls.toFixed(3)),
         judged: outcome.judged,
@@ -320,13 +323,18 @@ async function main(): Promise<void> {
       })),
     });
     console.log(
-      `  ${tierSpec.name}: accuracy ${percent(summary.accuracy)} · page hit ${percent(summary.evidenceHitRate)} · ` +
-        `token F1 ${summary.meanTokenF1.toFixed(3)} · ${errors.length} errors\n`,
+      `  ${tierSpec.name}: accuracy ${percent(summary.accuracy)} (locale-tolerant ${percent(summary.localeAccuracy)}` +
+        `${summary.judgedAccuracy === undefined ? '' : `, judge ${percent(summary.judgedAccuracy)}`}) · ` +
+        `page hit ${percent(summary.evidenceHitRate)} · token F1 ${summary.meanTokenF1.toFixed(3)} · ${errors.length} errors\n`,
     );
   }
 
-  console.log('tier   | pages | windows |    Qs | accuracy | page hit | page recall | window prec | false answer | latency | context');
-  console.log('------ | ----- | ------- | ----- | -------- | -------- | ----------- | ----------- | ------------ | ------- | -------');
+  console.log(
+    'tier   | pages | windows |    Qs | accuracy | locale | judge | page hit | page recall | window prec | false answer | latency | context',
+  );
+  console.log(
+    '------ | ----- | ------- | ----- | -------- | ------ | ----- | -------- | ----------- | ----------- | ------------ | ------- | -------',
+  );
   for (const summary of summaries) console.log(row(summary));
 
   if (args.predictions !== undefined) {

@@ -63,6 +63,11 @@ describe('declinedToAnswer', () => {
     expect(declinedToAnswer('The figure is not stated.')).toBe(true);
     expect(declinedToAnswer('4.2 million pounds')).toBe(false);
   });
+
+  it("recognises the product prompt's own wording", () => {
+    expect(declinedToAnswer('I do not know.')).toBe(true);
+    expect(declinedToAnswer("I don't know from these pages.")).toBe(true);
+  });
 });
 
 describe('buildDocumentJudgePrompt', () => {

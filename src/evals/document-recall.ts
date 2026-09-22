@@ -102,6 +102,8 @@ export interface QuestionOutcome {
   answer: string;
   /** The benchmark's own rule: 1 or 0, relaxed by answer type. */
   correct: boolean;
+  /** The same rule once a decimal comma is read as a decimal point (a diagnostic, not the number). */
+  correctLocale: boolean;
   /** Their two surface-form diagnostics, reported alongside accuracy. */
   tokenF1: number;
   anls: number;
@@ -126,6 +128,8 @@ export interface TierSummary {
   accuracy: number;
   /** Correct answers over answerable questions only. */
   answerableAccuracy: number;
+  /** Accuracy once a decimal comma counts as a decimal point. */
+  localeAccuracy: number;
   /** Of the answerable questions, how often retrieval put a gold page in front of the reader. */
   evidenceHitRate: number;
   meanPageRecall: number;
@@ -161,6 +165,7 @@ export function summariseTier(
     unanswerable: unanswerable.length,
     accuracy: outcomes.length === 0 ? 0 : outcomes.filter((o) => o.correct).length / outcomes.length,
     answerableAccuracy: answerable.length === 0 ? 0 : answerable.filter((o) => o.correct).length / answerable.length,
+    localeAccuracy: outcomes.length === 0 ? 0 : outcomes.filter((o) => o.correctLocale).length / outcomes.length,
     evidenceHitRate: answerable.length === 0 ? 0 : answerable.filter((o) => o.retrieval.evidenceHit).length / answerable.length,
     meanPageRecall: mean(answerable.map((o) => o.retrieval.pageRecall)),
     meanWindowPrecision: mean(answerable.map((o) => o.retrieval.windowPrecision)),
