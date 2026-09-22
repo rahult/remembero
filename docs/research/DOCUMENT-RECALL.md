@@ -222,3 +222,65 @@ Replayed from the saved per-question records, no new calls:
 The cascade only works when the cheap reader knows when it doesn't know. The local reader
 escalates 9–41% of questions while getting 68–89% wrong, so its miscalibration, not its
 accuracy, is what blocks the zero-cost path.
+
+## Result 5: a better page index — large retrieval gains, small answer gains (2026-09-23)
+
+Two changes from Result 4's list. **Index once** (`src/evals/document-index.ts`): a per-document
+BM25 index and a cached local-embedding index (nomic-embed-text via Ollama), replacing the
+product's per-question `searchKnowledge` pass. **Rank better** (`src/evals/document-rankers.ts`):
+BM25, dense, hybrid (reciprocal-rank fusion of the two), hybrid + TypeSafe re-rank, and
+"decomposed" (an LLM splits the question into one query per passage it needs; each part's best
+page is guaranteed a slot).
+
+### Retrieval alone (`npm run eval:doc-retrieval`, no reader, 112 answerable questions)
+
+| ranker | 100p recall@12 | 500p recall@12 | 1000p hit@4 | 1000p hit@12 / recall@12 | query time | build (1000p tier) |
+| --- | --- | --- | --- | --- | --- | --- |
+| product (before) | 62.9% | 65.2% | 34.6% | 61.5 / 41.7% | 96–401 ms | none |
+| bm25 | 64.0% | 72.5% | 61.5% | 73.1 / 54.8% | 1 ms | 1 s |
+| hybrid | 66.8% | 80.2% | 65.4% | 73.1 / 60.9% | ~50 ms | ~5 min, cached |
+| hybrid + TypeSafe | **80.1%** | **82.9%** | 53.8% | 61.5 / 54.2% | ~1.6 s | as hybrid |
+| decomposed | 65.3% | 72.5% | 61.5% | **80.8 / 66.0%** | ~0.85 s | as hybrid |
+
+The product's flat word score is the problem at scale: IDF alone (bm25) nearly doubles 1000-page
+hit@4 and makes a query 400× faster. TypeSafe re-ranking helps short documents and hurts the
+1000-page tier; decomposition is the reverse. Hybrid is the robust default. TypeSafe cost for the
+whole sweep: $0.22.
+
+### What it does to answers (paired, pooled over all tiers, judge)
+
+| change | judge | rule | per-question won / lost |
+| --- | --- | --- | --- |
+| Sol d12: product → hybrid | 50.4 → 52.2% | 23.5 → 26.1% | 13 / 11 |
+| Sol d4: product → hybrid | 40.0 → 40.8% | 12.5 → 15.8% | 11 / 10 |
+| deepseek d12: product → hybrid | 33.9 → 30.4% | 8.7 → 13.0% | 11 / 15 |
+| deepseek d12: product → decomposed, **1000p only** | 29.6 → 40.7% | 7.4 → 22.2% | 4 / 1 |
+
+Honest reading: **the retrieval gains are real, the answer gains are mostly inside the noise.**
+The strict rule rises in every pairing (the right page makes the exact string likelier), and the
+1000-page tier, where retrieval was worst, is where answers move. Everywhere else the product
+already put a gold page in front of the reader at depth 12 (74% pooled hit), so the remaining
+misses are not about finding a page: they are multi-page questions only half-retrieved (page
+recall 60–80%) and a reader that misses even with every page in hand (Sol's oracle ceiling is
+62–70%).
+
+### The cost lever this does unlock
+
+Sharper ranking lets a reader read fewer pages. On the 1000-page tier Sol at depth 4 with hybrid
+matches Sol at depth 12 with the product ranking on judge (48.3% vs 51.9%, within noise) at
+**$0.0088 instead of $0.022 per answer** and 3.9 s instead of 6.0 s median. It does not hold on
+the shorter tiers (depth 4 loses 8–17 points there), so the rule is "depth by document size",
+not "always shallow".
+
+### What would move the answer numbers next
+
+1. **More questions before the next decision.** 27–47 per tier cannot resolve the 2–5 point
+   effects left. XL-DocBench has 455 / 270 / 85 questions in these bands; the retrieval-only
+   sweep can run on all of them for the cost of downloading PDFs and local embeddings.
+2. **Route the ranker by document size**: hybrid + TypeSafe under ~600 pages, decomposed above.
+   Both halves are measured above; the switch is untested end to end.
+3. **Multi-page questions**: 73% need more than one page and page recall is the metric still
+   lagging hit rate. Decomposition is the one change that raised both at 1000 pages.
+4. Items 1 and 4–5 of Result 4 (abstention training, the 64 KB cap, "cannot be determined").
+
+OpenRouter balance after these runs: $1.98 — enough for one more small Sol arm, not a full one.
