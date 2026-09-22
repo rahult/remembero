@@ -1,0 +1,711 @@
+{
+  "corpus": "xl-docbench-page-tiers",
+  "labels": "XL-DocBench (arXiv:2608.00036), data/qa_single_doc.jsonl",
+  "ranAt": "2026-09-22T14:12:10.090Z",
+  "reader": "deepseek-chat",
+  "judge": "deepseek-chat",
+  "settings": {
+    "oraclePages": false,
+    "topK": 24,
+    "contextBytes": 98304,
+    "pagesPerWindow": 1,
+    "windowBytes": 12288
+  },
+  "tiers": [
+    {
+      "tier": "1000p",
+      "band": [
+        700,
+        1250
+      ],
+      "assembled": false,
+      "summary": {
+        "tier": "1000p",
+        "pages": 4404,
+        "windows": 4404,
+        "questions": 15,
+        "answerable": 13,
+        "unanswerable": 2,
+        "accuracy": 0,
+        "answerableAccuracy": 0,
+        "localeAccuracy": 0,
+        "evidenceHitRate": 0.6923076923076923,
+        "meanPageRecall": 0.4743589743589744,
+        "meanWindowPrecision": 0.0782051282051282,
+        "falseAnswerRate": 0.5,
+        "meanLatencyMs": 1864.9298944666666,
+        "meanContextBytes": 46024.333333333336,
+        "meanTokenF1": 0.039493395663865165,
+        "meanAnls": 0.054945054945054944,
+        "judgedAccuracy": 0.26666666666666666,
+        "judgedQuestions": 15
+      },
+      "documents": [
+        {
+          "document": "doc_000120",
+          "title": "doc_000120",
+          "sourceUrl": "https://www.moh.gov.gh/wp-content/uploads/2020/07/GHANA-STG-2017-1.pdf",
+          "sha256": "0eede683b4bf8b3a86108137c79c27b76828d0c99a18e23e63e609653fe4b454",
+          "pages": 708,
+          "summary": {
+            "tier": "1000p/doc_000120",
+            "pages": 708,
+            "windows": 708,
+            "questions": 7,
+            "answerable": 6,
+            "unanswerable": 1,
+            "accuracy": 0,
+            "answerableAccuracy": 0,
+            "localeAccuracy": 0,
+            "evidenceHitRate": 0.6666666666666666,
+            "meanPageRecall": 0.5555555555555556,
+            "meanWindowPrecision": 0.09027777777777778,
+            "falseAnswerRate": 1,
+            "meanLatencyMs": 1628.354029857143,
+            "meanContextBytes": 50508.142857142855,
+            "meanTokenF1": 0.0792797157622739,
+            "meanAnls": 0,
+            "judgedAccuracy": 0.2857142857142857,
+            "judgedQuestions": 7
+          }
+        },
+        {
+          "document": "doc_000209",
+          "title": "doc_000209",
+          "sourceUrl": "https://www-iam.nies.go.jp/aim/india0210/cc_papers/ipccreports/climate_change_2001/working_group1/WG1_full_report.pdf",
+          "sha256": "7469df92ca2489e36cb29a4ec34fc891d8bc91c9a07218242f43629877b41cf8",
+          "pages": 891,
+          "summary": {
+            "tier": "1000p/doc_000209",
+            "pages": 891,
+            "windows": 891,
+            "questions": 0,
+            "answerable": 0,
+            "unanswerable": 0,
+            "accuracy": 0,
+            "answerableAccuracy": 0,
+            "localeAccuracy": 0,
+            "evidenceHitRate": 0,
+            "meanPageRecall": 0,
+            "meanWindowPrecision": 0,
+            "falseAnswerRate": 0,
+            "meanLatencyMs": 0,
+            "meanContextBytes": 0,
+            "meanTokenF1": 0,
+            "meanAnls": 0,
+            "judgedQuestions": 0
+          }
+        },
+        {
+          "document": "doc_000267",
+          "title": "doc_000267",
+          "sourceUrl": "https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2021-06/jrc122816_sts_2020_final.pdf",
+          "sha256": "715728ab871227b68050aad8cb10a08d82fca8d3ab2f0e2e97536c6fecdceaf5",
+          "pages": 1056,
+          "summary": {
+            "tier": "1000p/doc_000267",
+            "pages": 1056,
+            "windows": 1056,
+            "questions": 3,
+            "answerable": 3,
+            "unanswerable": 0,
+            "accuracy": 0,
+            "answerableAccuracy": 0,
+            "localeAccuracy": 0,
+            "evidenceHitRate": 0.6666666666666666,
+            "meanPageRecall": 0.27777777777777773,
+            "meanWindowPrecision": 0.05555555555555555,
+            "falseAnswerRate": 0,
+            "meanLatencyMs": 2988.957458333333,
+            "meanContextBytes": 48522.666666666664,
+            "meanTokenF1": 0,
+            "meanAnls": 0,
+            "judgedAccuracy": 0,
+            "judgedQuestions": 3
+          }
+        },
+        {
+          "document": "doc_000181",
+          "title": "doc_000181",
+          "sourceUrl": "https://flrules.elaws.us/gateway/refpdf/69/69U/Ref-06103/FDIC%20Risk%20Management%20Manual%20of%20Examination%20Policies_EFFECTIVE%2004-2015.pdf",
+          "sha256": "98c856138d1f000ddbe3259fb4cfdf7debf7b846e632ad8a78fb9a7b5a77aa1a",
+          "pages": 704,
+          "summary": {
+            "tier": "1000p/doc_000181",
+            "pages": 704,
+            "windows": 704,
+            "questions": 0,
+            "answerable": 0,
+            "unanswerable": 0,
+            "accuracy": 0,
+            "answerableAccuracy": 0,
+            "localeAccuracy": 0,
+            "evidenceHitRate": 0,
+            "meanPageRecall": 0,
+            "meanWindowPrecision": 0,
+            "falseAnswerRate": 0,
+            "meanLatencyMs": 0,
+            "meanContextBytes": 0,
+            "meanTokenF1": 0,
+            "meanAnls": 0,
+            "judgedQuestions": 0
+          }
+        },
+        {
+          "document": "doc_000179",
+          "title": "doc_000179",
+          "sourceUrl": "https://ussafety.us/wp-content/uploads/2019/12/EM385-1-1FINAL1.pdf",
+          "sha256": "72573a85e57bc3d3bd35f4c650421417e1b1680ea0e7436ee64b160ac828cc5f",
+          "pages": 1045,
+          "summary": {
+            "tier": "1000p/doc_000179",
+            "pages": 1045,
+            "windows": 1045,
+            "questions": 5,
+            "answerable": 4,
+            "unanswerable": 1,
+            "accuracy": 0,
+            "answerableAccuracy": 0,
+            "localeAccuracy": 0,
+            "evidenceHitRate": 0.75,
+            "meanPageRecall": 0.5,
+            "meanWindowPrecision": 0.07708333333333334,
+            "falseAnswerRate": 0,
+            "meanLatencyMs": 1521.7195665999996,
+            "meanContextBytes": 38248,
+            "meanTokenF1": 0.009433962264150945,
+            "meanAnls": 0.17857142857142858,
+            "judgedAccuracy": 0.4,
+            "judgedQuestions": 5
+          }
+        }
+      ],
+      "errors": [
+        {
+          "questionId": "adubench_single_000424",
+          "message": "reading prompt exceeds 65536 bytes"
+        },
+        {
+          "questionId": "adubench_single_000425",
+          "message": "reading prompt exceeds 65536 bytes"
+        },
+        {
+          "questionId": "adubench_single_000426",
+          "message": "reading prompt exceeds 65536 bytes"
+        },
+        {
+          "questionId": "adubench_single_001089",
+          "message": "reading prompt exceeds 65536 bytes"
+        },
+        {
+          "questionId": "adubench_single_001090",
+          "message": "reading prompt exceeds 65536 bytes"
+        },
+        {
+          "questionId": "adubench_single_001091",
+          "message": "reading prompt exceeds 65536 bytes"
+        },
+        {
+          "questionId": "adubench_single_001092",
+          "message": "reading prompt exceeds 65536 bytes"
+        },
+        {
+          "questionId": "adubench_single_000534",
+          "message": "reading prompt exceeds 65536 bytes"
+        },
+        {
+          "questionId": "adubench_single_001206",
+          "message": "reading prompt exceeds 65536 bytes"
+        },
+        {
+          "questionId": "adubench_single_001208",
+          "message": "refusing to send sensitive reading prompt to the external LLM"
+        },
+        {
+          "questionId": "adubench_single_000358",
+          "message": "reading prompt exceeds 65536 bytes"
+        },
+        {
+          "questionId": "adubench_single_000359",
+          "message": "reading prompt exceeds 65536 bytes"
+        },
+        {
+          "questionId": "adubench_single_000360",
+          "message": "reading prompt exceeds 65536 bytes"
+        },
+        {
+          "questionId": "adubench_single_000361",
+          "message": "reading prompt exceeds 65536 bytes"
+        },
+        {
+          "questionId": "adubench_single_000362",
+          "message": "reading prompt exceeds 65536 bytes"
+        }
+      ],
+      "outcomes": [
+        {
+          "id": "adubench_single_000228",
+          "document": "doc_000120",
+          "question": "Which National Medicine Policy objective best matches the guidance to avoid symptomatic treatment when diagnosis is uncertain?",
+          "gold": "rational use of medicines",
+          "answerFormat": "Str",
+          "evidencePages": [
+            19,
+            20
+          ],
+          "answer": "The guidance to avoid symptomatic management of uncertain diagnoses best matches the National Medicine Policy objective that medicines should be used rationally.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.167,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 24,
+            "windowsShown": 24
+          },
+          "latencyMs": 1892,
+          "contextBytes": 59593,
+          "readerTokens": {
+            "prompt": 11298,
+            "completion": 23
+          }
+        },
+        {
+          "id": "adubench_single_000229",
+          "document": "doc_000120",
+          "question": "Which Referral trigger matches the prescriber competence limit in Notes on cost-effectiveness?",
+          "gold": "lack of personal experience/competence",
+          "answerFormat": "Str",
+          "evidencePages": [
+            21,
+            22
+          ],
+          "answer": "I do not know. The retrieved sessions include a heading “Notes on cost-effectiveness” but do not provide its content, so there is no basis to match a referral trigger to a prescriber competence limit.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 24,
+            "windowsShown": 24
+          },
+          "latencyMs": 1309,
+          "contextBytes": 59243,
+          "readerTokens": {
+            "prompt": 10958,
+            "completion": 42
+          }
+        },
+        {
+          "id": "adubench_single_000230",
+          "document": "doc_000120",
+          "question": "Which evidence rating is the lower non-compliant standard for rational prescribing when uncertain diagnoses should not be treated symptomatically?",
+          "gold": "Evidence Rating C",
+          "answerFormat": "Str",
+          "evidencePages": [
+            20
+          ],
+          "answer": "I do not know. The supplied history does not state an evidence rating for that recommendation.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.25,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 24,
+            "windowsShown": 24
+          },
+          "latencyMs": 1181,
+          "contextBytes": 59208,
+          "readerTokens": {
+            "prompt": 11058,
+            "completion": 18
+          }
+        },
+        {
+          "id": "adubench_single_000231",
+          "document": "doc_000120",
+          "question": "After deduplicating overlapping prescriber directives, which section has the most explicit obligations or decision constraints?",
+          "gold": "Prescribing for NHIS reimbursement",
+          "answerFormat": "Str",
+          "evidencePages": [
+            21
+          ],
+          "answer": "Notes:\n- Session 8 (2020-04-13): Tetanus section states \"Tetanus should be treated as a medical emergency.\"\n- Session 8 (2020-04-13): Tetanus section states \"Tetanus immunisation is the key for prevention.\"\n- Session 8 (2020-04-13): Referral Criteria states \"Refer infants who have an episode of apnoea or cyanosis after initial resuscitation to a specialist.\"\n- Session 9 (2020-04-25): Sick newborn treatment states \"Keep baby warm either wrapped up in dry clothes or in an incubator.\"\n- Session 9 (2020-04-25): Sick newborn treatment states \"Oxygen by face mask or nasal prongs, 1-2 L/minute if available, (monitor and maintain oxygen saturation between 92-95%).\"\n- Session 9 (2020-04-25): Sick newborn treatment states \"If hypoglycaemic, correct (See section on 'Neonatal Hypoglycaemia').\"\n- Session 10 (2020-04-29): Neonatal Jaundice states \"Exchange transfusion is the definitive treatment for hyperbilirubinaemia that has reached the level where kernicterus may occur.\"\n- Session 11 (2020-05-07): Wilms Tumour Referral Criteria states \"All patients should be referred to a tertiary centre that can effectively treat retinoblastoma.\"\n- Session 11 (2020-05-07): Wilms Tumour section states \"Abdominal mass (palpate with care to prevent rupture or dissemination).\"\n- Session 12 (2020-05-09): Wilms Tumour Referral Criteria states \"All patients should be referred to specialist centres for appropriate treatment.\"\n- Session 1 (2020-05-20): DVT section states \"In cases of confirmed DVT, treatment with anticoagulants must not be delayed unnecessarily unless there are significant contraindications to their use.\"\n- Session 2 (2020-08-22): Depression section states \"All cases of attempted suicide should be referred to a psychiatrist after initial management of the presenting complication.\"\n- Session 2 (2020-08-22): Depression section states \"maximum tolerable doses of antidepressant medications must be given for at least 6 weeks before deciding a particular medication is not effective.\"\n- Session 2 (2020-08-22): Depression section states \"After an episode of depression, treatment must be continued for at least",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.013,
+          "anls": 0,
+          "judged": false,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 2356,
+          "contextBytes": 31117,
+          "readerTokens": {
+            "prompt": 5840,
+            "completion": 512
+          }
+        },
+        {
+          "id": "adubench_single_000232",
+          "document": "doc_000120",
+          "question": "Across How to use this book, NHIS reimbursement, and Referral, which National Medicine Policy aim is reflected in the fewest sections?",
+          "gold": "availability and accessibility of affordable, good quality medicines",
+          "answerFormat": "Str",
+          "evidencePages": [
+            19,
+            20,
+            21,
+            22
+          ],
+          "answer": "I do not know. The history does not state which National Medicine Policy aim is reflected in each of the three sections (How to use this book, NHIS reimbursement, Referral), so the number of sections reflecting each aim cannot be counted or compared.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.047,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.3333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1967,
+          "contextBytes": 35212,
+          "readerTokens": {
+            "prompt": 6129,
+            "completion": 320
+          }
+        },
+        {
+          "id": "adubench_single_000915",
+          "document": "doc_000120",
+          "question": "What exact evidence rating is explicitly assigned to the pediatric recommendation \"Use the oral route whenever possible\"?",
+          "gold": null,
+          "answerFormat": "None",
+          "evidencePages": [],
+          "answer": "The retrieved history does not contain any evidence rating explicitly assigned to the statement \"Use the oral route whenever possible.\" That line appears in the Introduction (page 25) as general guidance on route of administration, not as a rated treatment recommendation.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 24,
+            "windowsShown": 24
+          },
+          "latencyMs": 987,
+          "contextBytes": 52496,
+          "readerTokens": {
+            "prompt": 11189,
+            "completion": 48
+          }
+        },
+        {
+          "id": "adubench_single_000916",
+          "document": "doc_000120",
+          "question": "What is the Introduction objective count minus the sum of the evidence-rating categories and Referral triggers?",
+          "gold": "-3",
+          "answerFormat": "Int",
+          "evidencePages": [
+            19,
+            20,
+            22
+          ],
+          "answer": "I do not know. The supplied history does not provide a defined count of \"Introduction objectives,\" \"evidence-rating categories,\" or \"Referral triggers,\" so the requested calculation cannot be supported.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.041666666666666664,
+            "pagesShown": 24,
+            "windowsShown": 24
+          },
+          "latencyMs": 1706,
+          "contextBytes": 56688,
+          "readerTokens": {
+            "prompt": 10645,
+            "completion": 39
+          }
+        },
+        {
+          "id": "adubench_single_000533",
+          "document": "doc_000267",
+          "question": "Using the Consumption sections, what is the minimum g/m² difference between plastic-surface solvent use and passenger-car paint-shop VOC emissions?",
+          "gold": "124.9",
+          "answerFormat": "Float",
+          "evidencePages": [
+            84,
+            158
+          ],
+          "answer": "I do not know. The supplied history contains no \"Consumption\" sections and no plastic-surface solvent use value in g/m², so the minimum difference from passenger-car paint-shop VOC emissions cannot be calculated.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 2547,
+          "contextBytes": 48536,
+          "readerTokens": {
+            "prompt": 10037,
+            "completion": 321
+          }
+        },
+        {
+          "id": "adubench_single_001205",
+          "document": "doc_000267",
+          "question": "Across passenger-car SB paint shops and van coating, what is the largest exceedance over a shared type’s BAT upper VOC benchmark?",
+          "gold": "8.5",
+          "answerFormat": "Float",
+          "evidencePages": [
+            89,
+            116,
+            118
+          ],
+          "answer": "I do not know. The history gives VOC emission values for passenger-car SB",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 3411,
+          "contextBytes": 52031,
+          "readerTokens": {
+            "prompt": 10442,
+            "completion": 512
+          }
+        },
+        {
+          "id": "adubench_single_001207",
+          "document": "doc_000267",
+          "question": "Using the SCOPE activity wording for Annex I 6.7, the Figure 1.2 label in “General environmental issues related to installations for surface treatment using organic solvents,” and the Chapter 4 heading “COATING OF SHIPS AND YACHTS,” what exact Figure 1.2 sub-activity name identifies the ships-related installation type that falls within the overall STS scope and is then developed in its own dedicated sector chapter?",
+          "gold": "Building of painting or removal of paint from ships",
+          "answerFormat": "Str",
+          "evidencePages": [
+            38,
+            44,
+            176
+          ],
+          "answer": "I do not know. The supplied history does not include the SCOPE activity wording for Annex",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 3008,
+          "contextBytes": 45001,
+          "readerTokens": {
+            "prompt": 8372,
+            "completion": 512
+          }
+        },
+        {
+          "id": "adubench_single_000363",
+          "document": "doc_000179",
+          "question": "Across the TOILETS section and the MEDICAL AND FIRST-AID REQUIREMENTS section, which exact phrase from TOILETS sets a stricter access standard than the medical rule requiring accessibility within five (5) minutes after an injury?",
+          "gold": "immediately available",
+          "answerFormat": "Str",
+          "evidencePages": [
+            45,
+            52
+          ],
+          "answer": "I do not know. The supplied history does not include the TOILETS section text, so it does not identify any exact phrase from TOILETS that sets a stricter access standard than the medical rule requiring accessibility within five (5) minutes after an injury.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.1,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 2177,
+          "contextBytes": 21248,
+          "readerTokens": {
+            "prompt": 4462,
+            "completion": 304
+          }
+        },
+        {
+          "id": "adubench_single_000364",
+          "document": "doc_000179",
+          "question": "Which Section 2 sanitation child topic follows SHOWERS and is not covered in Section 1 emergency-operations sanitation, which mentions housekeeping and drinking water?",
+          "gold": "CHANGING ROOMS",
+          "answerFormat": "Str",
+          "evidencePages": [
+            48
+          ],
+          "answer": "Change Rooms.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0.714,
+          "judged": true,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 24,
+            "windowsShown": 24
+          },
+          "latencyMs": 1096,
+          "contextBytes": 46841,
+          "readerTokens": {
+            "prompt": 9799,
+            "completion": 3
+          }
+        },
+        {
+          "id": "adubench_single_001029",
+          "document": "doc_000179",
+          "question": "For Temporary Facilities access/haul roads, what minimum illuminance does Lighting Table 7-1 set for construction roads in general outdoor areas?",
+          "gold": "33",
+          "answerFormat": "Int",
+          "evidencePages": [
+            65,
+            158,
+            160
+          ],
+          "answer": "I do not know. The supplied history does not state a minimum illuminance for construction roads in general outdoor areas in Table 7-1.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.125,
+            "pagesShown": 24,
+            "windowsShown": 24
+          },
+          "latencyMs": 1196,
+          "contextBytes": 52138,
+          "readerTokens": {
+            "prompt": 10533,
+            "completion": 29
+          }
+        },
+        {
+          "id": "adubench_single_001030",
+          "document": "doc_000179",
+          "question": "Across Program Management and Hazardous or Toxic Agents, what exact air-sampling averaging period is specified for compliance documentation?",
+          "gold": null,
+          "answerFormat": "None",
+          "evidencePages": [],
+          "answer": "I do not know. The supplied history does not specify an exact air-sampling averaging period for compliance documentation.",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0,
+          "anls": 0,
+          "judged": true,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 24,
+            "windowsShown": 24
+          },
+          "latencyMs": 1039,
+          "contextBytes": 47899,
+          "readerTokens": {
+            "prompt": 10026,
+            "completion": 22
+          }
+        },
+        {
+          "id": "adubench_single_001031",
+          "document": "doc_000179",
+          "question": "At what minimum shift workforce do construction-site toilets require more than one unit and medical staffing require a full-time licensed physician?",
+          "gold": "1000",
+          "answerFormat": "Int",
+          "evidencePages": [
+            47,
+            59
+          ],
+          "answer": "I do not know the minimum shift workforce at which construction-site toilets require more than one unit, because the retrieved history only lists the titles/page numbers of Tables 2-1 and 2-2 and does not state the toilet-facility thresholds. For medical staffing, the history states a full-time Licensed Physician is required at 1,000 persons or more employed (greatest total aggregate number of employees on a shift) (03.D.01).",
+          "correct": false,
+          "correctLocale": false,
+          "tokenF1": 0.038,
+          "anls": 0,
+          "judged": false,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 2102,
+          "contextBytes": 23114,
+          "readerTokens": {
+            "prompt": 5196,
+            "completion": 329
+          }
+        }
+      ]
+    }
+  ]
+}

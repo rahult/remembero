@@ -51,7 +51,25 @@ quantifying:
   and a correct answer scores zero. Several of these documents are not in English.
 - **judge** — DeepSeek asked whether the answer is right. The honest read of usefulness.
 
-## Result 1: retrieval is the ceiling, and the ceiling is high
+## Result 1: a 4.9 GB local model reads a thousand pages as well as a cloud model
+
+Same retrieval, same depth (4), same questions; only the reader differs. The local arm is
+reader v7 (Gemma 3n E4B, fine-tuned here) requantised to Q4_K_M, served by `llama-server` on one
+Mac, nothing leaving the machine.
+
+| tier | local v7 Q4 rule / judge | deepseek-chat rule / judge | local latency |
+| --- | --- | --- | --- |
+| 100p | **6.7% / 11.1%** | 2.2% / 13.3% | 22.5s |
+| 500p | **14.9% / 31.9%** | 10.6% / 21.3% | 19.4s |
+| 1000p | **10.3% / 27.6%** | 6.9% / 31.0% | 21.1s |
+
+On the benchmark's own rule the local 4B model wins every tier; on the judge the two trade places
+and the gaps are inside the noise of 30–47 questions. The interesting part is what it costs: about
+21 seconds and zero dollars per answer, against 1.6 seconds and a per-token bill, over documents
+that never leave the laptop. For a memory system that reads a customer's documents, that is the
+trade that matters.
+
+## Result 2: retrieval is the ceiling, and the ceiling is high
 
 Reader: `deepseek-chat` throughout, so only retrieval changes between rows.
 
@@ -83,7 +101,20 @@ Reading the two tables together:
   baseline pays the same tax, so the rule stays the headline, but the judge column is what the
   system is actually worth to a user.
 
-## Result 2: extraction is accurate and beside the point
+### The depth lever runs out at about twenty pages
+
+Depth 24 on the 1000-page tier reaches a **69.2%** page hit rate (from 60.9% at depth 12) and
+47.4% page recall — but **14 of its 30 questions never ran**: `reading prompt exceeds 65536
+bytes`. `MAX_INPUT_BYTES` in `src/safety.ts` bounds anything sent to an external LLM at 64 KB, so
+at roughly 3 KB per page the product can show a reader about twenty pages and no more. Of the
+questions that did run, judge accuracy was 26.7% — no better than depth 12. Brute force is
+already close to exhausted; what the 1000-page tier needs is better ranking, not more pages.
+
+(One further prompt was refused outright — "refusing to send sensitive reading prompt to the
+external LLM" — because a page of a public government manual tripped the secret-shaped-span
+check. Worth knowing before pointing this at a customer's documents.)
+
+## Result 3: extraction is accurate and beside the point
 
 The product's writer over sampled pages (every labelled evidence page, plus an even spread),
 `deepseek-chat`, facts judged against the page they came from:
