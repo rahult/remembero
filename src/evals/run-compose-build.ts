@@ -76,7 +76,7 @@ async function main() {
         )
       : [];
     const sisterPages = sisters.flatMap((sister) =>
-      paginate(renderWorld(sister)).map((page) => ({ text: page.text, keys: [] as string[] })),
+      paginate(renderWorld(sister)).map((page) => ({ text: page.text, keys: [] as string[], facts: page.facts })),
     );
     const worldPages = [...mainPages, ...sisterPages];
 

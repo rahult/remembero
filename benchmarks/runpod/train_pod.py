@@ -53,6 +53,7 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--grad-accum", type=int, default=DEFAULTS["grad_accum"])
     ap.add_argument("--quant", choices=QUANTS, default=DEFAULTS["quant"])
     ap.add_argument("--no-liger", action="store_true")
+    ap.add_argument("--base-model", default=None, help="Hugging Face id of the base model (default: the reader's)")
     a = ap.parse_args(argv)
 
     def say(message: str) -> None:
@@ -61,7 +62,7 @@ def main(argv: list[str] | None = None) -> None:
     try:
         cfg = build_config(a.run, root=a.root, local_root=a.local_root, max_length=a.max_length,
                            batch_size=a.batch_size, grad_accum=a.grad_accum, quant=a.quant,
-                           liger=not a.no_liger)
+                           liger=not a.no_liger, base_model=a.base_model)
     except ValueError as error:
         say(f"TRAIN_FAILED {error}")
         raise SystemExit(2)

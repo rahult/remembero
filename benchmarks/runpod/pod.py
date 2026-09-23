@@ -320,7 +320,7 @@ def train_command(run: str, *, root: str = ROOT, local_root: str = TRAIN_LOCAL_R
                   batch_size: int = TRAIN_DEFAULTS["batch_size"],
                   grad_accum: int = TRAIN_DEFAULTS["grad_accum"],
                   quant: str = TRAIN_DEFAULTS["quant"], liger: bool = True,
-                  max_hours: float = TRAIN_MAX_HOURS) -> str:
+                  max_hours: float = TRAIN_MAX_HOURS, base_model: str | None = None) -> str:
     """The training pod's whole start command, for `bash -lc`: make the run directory on the
     volume, bootstrap the image, train, then stop the pod.
 
@@ -343,7 +343,8 @@ def train_command(run: str, *, root: str = ROOT, local_root: str = TRAIN_LOCAL_R
     train = ["python3", "-u", "-m", "benchmarks.runpod.train_pod", "--run", run,
              "--root", root, "--local-root", local_root, "--max-length", str(max_length),
              "--batch-size", str(batch_size), "--grad-accum", str(grad_accum), "--quant", quant,
-             *([] if liger else ["--no-liger"])]
+             *([] if liger else ["--no-liger"]),
+             *([] if base_model is None else ["--base-model", base_model])]
     return "; ".join([
         "set -o pipefail",
         "export PYTHONUNBUFFERED=1 DEBIAN_FRONTEND=noninteractive TOKENIZERS_PARALLELISM=false"
@@ -542,7 +543,8 @@ def create_train(a, env: dict[str, str], key: str) -> None:
     payload = build_train_payload(run=a.run, volume_id=volume, gpu=a.gpu, datacenter=a.datacenter,
                                   public_key=public_key, cloud_type=a.cloud, max_length=a.max_length,
                                   batch_size=a.batch_size, grad_accum=a.grad_accum, quant=a.quant,
-                                  liger=not a.no_liger, max_hours=a.max_hours)
+                                  liger=not a.no_liger, max_hours=a.max_hours,
+                                  base_model=getattr(a, "base_model", None))
     pod = api("POST", "/pods", key, payload)
     pod_id = pod["id"]
     # the pod bills from here: its id reaches stdout before anything else can fail
@@ -639,6 +641,7 @@ def main(argv: list[str] | None = None) -> None:
     training.add_argument("--grad-accum", type=int, default=TRAIN_DEFAULTS["grad_accum"])
     training.add_argument("--quant", choices=QUANTS, default=TRAIN_DEFAULTS["quant"])
     training.add_argument("--no-liger", action="store_true")
+    training.add_argument("--base-model", default=None, help="Hugging Face id of the base model (default: the reader's)")
     training.add_argument("--max-hours", type=float, default=TRAIN_MAX_HOURS,
                           help="the pod stops itself after this long, however the run is going")
     tailing = sub.add_parser("train-log")

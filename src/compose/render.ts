@@ -15,6 +15,17 @@ export interface Line {
   text: string;
   /** Evidence keys of the facts this line states; empty for headings and proposals. */
   keys: string[];
+  /**
+   * The line's facts in the extraction schema, as a perfect extractor would write them (names as
+   * the line writes them, without honorifics; dates as yyyymmdd; money in whole dollars). The
+   * training targets for a local extractor come from here.
+   */
+  facts?: SchemaFact[];
+}
+
+export interface SchemaFact {
+  predicate: string;
+  args: Array<string | number>;
 }
 
 export interface Section {
@@ -26,6 +37,7 @@ export interface Section {
 export interface RenderedPage {
   text: string;
   keys: string[];
+  facts: SchemaFact[];
 }
 
 export const keys = {
@@ -77,17 +89,24 @@ export function renderWorld(world: World, seed = world.seed): Section[] {
           `The Board noted that ${personName(p)} assumes the role of ${role} from ${date(term.from)}.`,
         ]),
         keys: [keys.person(p.id), keys.roleStart(term.role, p.id)],
+        facts: [{ predicate: 'appointed', args: [org, personName(p), role, term.from] }],
       },
     });
     if (term.to !== OPEN_END) {
+      // both sentences are built before one is picked, as they always were: each draws a date
+      // style, and changing the number of draws would re-render every existing benchmark
+      const variants = [
+        `${personName(p)} stepped down as ${role} on ${date(term.to)}.`,
+        `The Board recorded that ${p.title} ${p.last} ceased to hold the office of ${role} on ${date(term.to)}.`,
+      ];
+      const text = rng.pick(variants);
+      const fullName = text === variants[0];
       items.push({
         on: term.to,
         line: {
-          text: rng.pick([
-            `${personName(p)} stepped down as ${role} on ${date(term.to)}.`,
-            `The Board recorded that ${p.title} ${p.last} ceased to hold the office of ${role} on ${date(term.to)}.`,
-          ]),
+          text,
           keys: [keys.person(p.id), keys.roleEnd(term.role, p.id)],
+          facts: [{ predicate: 'ceased', args: [org, fullName ? personName(p) : p.last, role, term.to] }],
         },
       });
     }
@@ -103,6 +122,7 @@ export function renderWorld(world: World, seed = world.seed): Section[] {
           `The Board delegated to the ${role} authority to approve contracts not exceeding ${money(a.limit)}, effective ${date(a.from)} and ${until === 'until further notice' ? 'continuing until further notice' : until}.`,
         ]),
         keys: [keys.authority(a.role, a.from)],
+        facts: [{ predicate: 'authority', args: [org, role, a.limit, a.from, a.to] }],
       },
     });
   }
@@ -137,6 +157,7 @@ export function renderWorld(world: World, seed = world.seed): Section[] {
         ]),
         // a role-named approval also needs the appointment that says who held the role that day
         keys: [keys.approval(c.id), ...(approval.namedAs === 'role' ? [keys.roleStart(heldRole.role, p.id)] : [])],
+        facts: [{ predicate: 'approved', args: [org, c.ref, who.replace(/^the /, ''), approval.on] }],
       },
     });
   }
@@ -164,6 +185,7 @@ export function renderWorld(world: World, seed = world.seed): Section[] {
     return {
       text: `${c.ref} | ${supplier.get(c.supplier)!.name} | ${formatDate(c.from, registerStyle)} | ${formatDate(c.to, registerStyle)} | ${formatMoney(signed.value, 'full')}`,
       keys: [keys.contract(c.id), keys.value(c.id, 0)],
+      facts: [{ predicate: 'contract', args: [org, c.ref, supplier.get(c.supplier)!.name, c.from, c.to, signed.value] }],
     };
   });
   const half = Math.ceil(registerRows.length / 2);
@@ -189,6 +211,7 @@ export function renderWorld(world: World, seed = world.seed): Section[] {
             `Variation no. ${v.amendment} (${c.ref}, ${supplier.get(c.supplier)!.name}): from ${date(v.effective)} the contract value is ${money(v.value)}.`,
           ]),
           keys: [keys.value(c.id, v.amendment)],
+          facts: [{ predicate: 'amendment', args: [org, c.ref, v.amendment, v.effective, v.value] }],
         };
       }),
     });
@@ -204,6 +227,7 @@ export function renderWorld(world: World, seed = world.seed): Section[] {
         `${supplier.get(s.supplier)!.name} operates the ${s.name}.`,
       ]),
       keys: [keys.site(s.id)],
+      facts: [{ predicate: 'site_operator', args: [org, s.name, supplier.get(s.supplier)!.name] }],
     })),
   });
 
@@ -214,6 +238,7 @@ export function renderWorld(world: World, seed = world.seed): Section[] {
     lines: world.certificates.map((c) => ({
       text: `${supplier.get(c.supplier)!.name} | ${STANDARD_NAMES[c.standard]} | ${formatDate(c.issued, 'slash')} | ${formatDate(c.expires, 'slash')}`,
       keys: [keys.cert(c.supplier, c.standard, c.issued)],
+      facts: [{ predicate: 'certificate', args: [org, supplier.get(c.supplier)!.name, STANDARD_NAMES[c.standard], c.issued, c.expires] }],
     })),
   });
 
@@ -226,6 +251,7 @@ export function renderWorld(world: World, seed = world.seed): Section[] {
       .map((i) => ({
         text: `${i.ref} | ${formatDate(i.on, 'short')} | ${site.get(i.site)!.name} | ${i.severity}`,
         keys: [keys.incident(i.id)],
+        facts: [{ predicate: 'incident', args: [org, i.ref, i.on, site.get(i.site)!.name, i.severity] }],
       })),
   });
 
@@ -238,18 +264,21 @@ export function paginate(sections: readonly Section[], maxChars = 2_400): Render
   for (const section of sections) {
     let text = `${section.heading}\n\n`;
     let pageKeys: string[] = [];
+    let pageFacts: SchemaFact[] = [];
     let continued = false;
     for (const line of section.lines) {
       if (text.length + line.text.length + 1 > maxChars && pageKeys.length + (continued ? 1 : 0) > 0) {
-        pages.push({ text, keys: [...new Set(pageKeys)] });
+        pages.push({ text, keys: [...new Set(pageKeys)], facts: pageFacts });
         text = `${section.heading} (continued)\n\n`;
         pageKeys = [];
+        pageFacts = [];
         continued = true;
       }
       text += `${line.text}\n`;
       pageKeys.push(...line.keys);
+      pageFacts.push(...(line.facts ?? []));
     }
-    pages.push({ text, keys: [...new Set(pageKeys)] });
+    pages.push({ text, keys: [...new Set(pageKeys)], facts: pageFacts });
   }
   return pages;
 }
