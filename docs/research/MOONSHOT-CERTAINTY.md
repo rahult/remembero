@@ -208,3 +208,40 @@ v1 adds same-domain distractor organisations to make length bite.
 Blocked: GPT-5.6 Sol runs stopped at the OpenRouter **key's** monthly limit (403 "Key limit
 exceeded") although the account has credit; the key's limit must be raised in the OpenRouter
 dashboard. The local reader run is in progress.
+
+## First engine result: Proved-or-Unknown on Compose (2026-09-23)
+
+`npm run compose:engine`: every page of each haystack through a schema-guided extraction
+(`src/compose/extract.ts`, nine predicates, DeepSeek), each fact kept only if its dates, amounts
+and names appear on its page, deterministic type checks (a contract reference must look like one
+— swapped arguments are put back; a role title cannot be a person), then the Datalog engine
+answers with Unknown whenever the facts do not settle the question (`src/compose/engine-answer.ts`).
+The question → query step uses the question's parameters: an **oracle planner**, so this measures
+extraction and reasoning, not question understanding.
+
+| arm (1000 pages; 100 and 500 identical for the engine) | right | confidently wrong | Unknown / partial |
+| --- | --- | --- | --- |
+| local reader v7, depth 12 | 62% | 21% | 18% |
+| deepseek-chat, depth 12 | 67% | 12% | 21% |
+| deepseek-chat, gold pages handed over | 82% | 3% | 15% |
+| **engine over extracted facts, test worlds** (checks tuned on these) | **100%** | **0%** | 0% |
+| **engine over extracted facts, held-out dev worlds** | **97.8%** | **0%** | 2.2% |
+
+- Extraction: recall 100% of the true facts on all four worlds; precision 97.5–100% (the extra
+  facts are stray appointments, e.g. an "appointment" read off a resignation line). On the dev
+  worlds those strays created a conflicting role holder and the engine answered one authority
+  question per world Unknown — the contract working as designed: a conflict is never guessed.
+- Cost: extracting 2,000 + 1,139 pages cost $0.41 + $0.23 ($0.0002 a page); filler pages yielded
+  no schema facts at all, which is why document length does not move the engine. Answering is a
+  query: milliseconds, no model.
+- With perfectly extracted facts the rules and templates score 93/93 (a check of the engine
+  alone, run before any extraction).
+
+What this does **not** yet show:
+- **Question understanding.** The planner is an oracle. The next measurement is an LLM (then our
+  ~2B planner) turning the question text into the query or template + parameters.
+- **Realistic prose.** Compose v0 pages come from templates; extraction on real documents is
+  harder (XL-DocBench). v1: paraphrased rendering with fact-recovery checks.
+- **Hostile filler.** Government-report filler never produces schema facts. v1: same-domain
+  distractor organisations, so the extractor meets near-duplicate names and values.
+- **Scale of the world.** ~125 facts per world; v1 grows the organisation with page count.

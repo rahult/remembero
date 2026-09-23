@@ -22,11 +22,11 @@ const FILLER: Record<Split, string[][]> = {
     ['doc_000209', 'doc_000267'],
     ['doc_000120', 'doc_000181', 'doc_000179'],
   ],
-  dev: [['doc_000032', 'doc_000189']],
+  dev: [['doc_000032', 'doc_000189'], ['doc_000189', 'doc_000032']],
   train: [['doc_000175', 'doc_000029', 'doc_000160'], ['doc_000156', 'doc_000251', 'doc_000150', 'doc_000324', 'doc_000220', 'doc_000029']],
 };
 
-const SEEDS: Record<Split, number[]> = { test: [101, 102], dev: [201], train: [301, 302] };
+const SEEDS: Record<Split, number[]> = { test: [101, 102], dev: [201, 202], train: [301, 302] };
 
 function main() {
   const split = (process.argv[2] ?? 'test') as Split;
@@ -76,6 +76,7 @@ function main() {
           answerFormat: 'Compose',
           hops: q.hops,
           compose: q.gold,
+          params: q.params,
         })),
       });
       console.log(

@@ -57,6 +57,12 @@ export interface ComposeQuestion {
   evidence: string[];
   /** The engine query the gold came from, kept for audit and for training the planner. */
   datalog: string;
+  /**
+   * What the question is about, as the documents write it (a contract reference, a role title, a
+   * yyyymmdd date, a supplier name, a standard). An engine planner builds its query from these;
+   * a model reader never sees them.
+   */
+  params: Record<string, string | number>;
 }
 
 function personSpellings(p: Person): string[] {
@@ -102,6 +108,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         gold: { kind: 'number', items: [], number: signed.value, distractors: [], distractorNumbers: values.filter((v) => v.amendment > 0).map((v) => v.value), display: String(signed.value) },
         evidence: [keys.value(c.id, 0)],
         datalog: `value_on(${c.id}, V, ${signed.effective})`,
+        params: { contract: c.ref },
       };
     });
   }
@@ -123,6 +130,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         gold: { kind: 'entity', items: [personSpellings(holder)], distractors: everyoneBut(holder), distractorNumbers: [], display: personName(holder) },
         evidence: [keys.roleStart(held.role, holder.id), ...(held.to === OPEN_END ? [] : [keys.roleEnd(held.role, holder.id)])],
         datalog: `holds_role_on(${term.role}, P, ${on})`,
+        params: { role: roleName(world, term.role), date: on },
       };
     });
   }
@@ -143,6 +151,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         gold: { kind: 'entity', items: [[personName(approver), `${approver.title} ${approver.first} ${approver.last}`]], distractors: everyoneBut(approver), partial: [approver.last], distractorNumbers: [], display: personName(approver) },
         evidence: [keys.approval(c.id), keys.roleStart(term.role, approver.id), keys.person(approver.id)],
         datalog: `approved(${c.id}, P, D), person_name(P, N)`,
+        params: { contract: c.ref },
       };
     });
   }
@@ -165,6 +174,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         gold: { kind: 'number', items: [], number: Number(found[0]), distractors: [], distractorNumbers: values.filter((v) => v !== latest).map((v) => v.value), display: String(found[0]) },
         evidence: values.map((v) => keys.value(contractId, v.amendment)),
         datalog: `value_on(${contractId}, V, ${on})`,
+        params: { contract: c.ref, date: on },
       };
     });
   }
@@ -189,6 +199,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         gold: { kind: 'entity', items: [[win.ref]], distractors: [lose.ref], distractorNumbers: [], display: win.ref },
         evidence: [...valueKeys(a.id, on), ...valueKeys(b.id, on)],
         datalog: `value_on(${a.id}, VA, ${on}), value_on(${b.id}, VB, ${on}), VA > VB`,
+        params: { contractA: a.ref, contractB: b.ref, date: on },
       };
     });
   }
@@ -207,6 +218,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         gold: { kind: 'number', items: [], number: uncertified.length, distractors: [], distractorNumbers: [all, all - uncertified.length].filter((x) => x !== uncertified.length), display: String(uncertified.length) },
         evidence: [...touched.map((i) => keys.incident(i.id)), ...touched.map((i) => keys.site(i.site))],
         datalog: `incident_uncertified(I, ${standard})`,
+        params: { standard: STANDARD_NAMES[standard] },
       };
     });
   }
@@ -223,6 +235,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         gold: { kind: 'number', items: [], number: found.length, distractors: [], distractorNumbers: [world.incidents.length].filter((x) => x !== found.length), display: String(found.length) },
         evidence: [...siteKeys, ...world.incidents.filter((i) => found.includes(i.id)).map((i) => keys.incident(i.id))],
         datalog: `incident(I, Site, _, _), site(Site, ${s.id})`,
+        params: { supplier: s.name },
       };
     });
   }
@@ -249,6 +262,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         },
         evidence: world.certificates.filter((c) => c.standard === standard).map((c) => keys.cert(c.supplier, c.standard, c.issued)),
         datalog: `supplier_name(S, _), \\+ cert_valid_on(S, ${standard}, ${on})`,
+        params: { standard: STANDARD_NAMES[standard], date: on },
       };
     });
   }
@@ -273,6 +287,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
           ...(authority === undefined ? [] : [keys.authority(authority.role, authority.from)]),
         ],
         datalog: `may_approve(${approval.person}, ${c.id}, ${approval.on})`,
+        params: { contract: c.ref },
       };
     });
   }
@@ -280,7 +295,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
   // --- unanswerable: before the records start, or a contract that does not exist ---
   for (let k = 0; k < count('unanswerable', 4); k += 1) {
     const early = k % 2 === 0;
-    plans.push(() => {
+    plans.push((): ComposeQuestion => {
       if (early) {
         const role = rng.pick(world.roles);
         const on = addDays(WORLD_START, -rng.int(200, 900));
@@ -292,6 +307,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
           gold: { kind: 'unknown', items: [], distractors: world.roleTerms.filter((t) => t.role === role.id).map((t) => person.get(t.person)!.last), distractorNumbers: [], display: 'unknown' },
           evidence: [],
           datalog: `holds_role_on(${role.id}, P, ${on})  % no row: before the first record`,
+          params: { role: role.name, date: on },
         };
       }
       const used = new Set(world.contracts.map((c) => c.ref));
@@ -306,6 +322,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         gold: { kind: 'unknown', items: [], distractors: [], distractorNumbers: [], display: 'unknown' },
         evidence: [],
         datalog: `contract(c${ref.slice(3)}, _, _, _)  % no such contract`,
+        params: { contract: ref },
       };
     });
   }

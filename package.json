@@ -166,6 +166,7 @@
     "eval:doc-retrieval": "npm run build:core && node dist/evals/run-document-retrieval.js",
     "eval:doc-facts": "npm run build:core && node dist/evals/run-document-facts.js",
     "compose:build": "npm run build:core && node dist/evals/run-compose-build.js",
+    "compose:engine": "npm run build:core && node dist/evals/run-compose-engine.js",
     "eval:doc-recall": "npm run build:core && node dist/evals/run-document-recall.js",
     "eval:documents": "npm run build:core && node dist/evals/run-document-showcase.js",
     "export:documents:memorg": "npm run build:core && node dist/evals/run-document-memorg.js --check --output docs/research/results/document-intelligence.memorg.json --public-output web/public/documents/document-intelligence.memorg.json",

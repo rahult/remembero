@@ -1,0 +1,2372 @@
+{
+ "model": "deepseek-chat",
+ "spec": "benchmarks/compose/test/spec.json",
+ "ranAt": "2026-09-23T07:01:09.752Z",
+ "costUsd": 0,
+ "runs": [
+  {
+   "tier": "100p",
+   "world": 101,
+   "pages": 100,
+   "extraction": {
+    "kept": 131,
+    "dropped": 0,
+    "repaired": 4,
+    "rejectedByTypeCheck": [
+     "appointed(chief operating officer|chief operating officer|20230320)"
+    ],
+    "truth": 129,
+    "truePositives": 129,
+    "falseFacts": [
+     "appointed(kofi whitcombe|chair|20220601)",
+     "appointed(signe fairbairn|head of safety|20240514)"
+    ],
+    "missedFacts": [],
+    "droppedSample": []
+   },
+   "outcomes": [
+    {
+     "id": "w101-needle-1-100p",
+     "family": "needle",
+     "question": "What was the value of contract CN-9103 at signing?",
+     "gold": "715000",
+     "answer": "715000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-2-100p",
+     "family": "needle",
+     "question": "What was the value of contract CN-4275 at signing?",
+     "gold": "260000",
+     "answer": "260000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-3-100p",
+     "family": "needle",
+     "question": "What was the value of contract CN-5003 at signing?",
+     "gold": "170000",
+     "answer": "170000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-4-100p",
+     "family": "needle",
+     "question": "What was the value of contract CN-8765 at signing?",
+     "gold": "765000",
+     "answer": "765000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-5-100p",
+     "family": "needle",
+     "question": "What was the value of contract CN-6441 at signing?",
+     "gold": "640000",
+     "answer": "640000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-6-100p",
+     "family": "needle",
+     "question": "What was the value of contract CN-5822 at signing?",
+     "gold": "110000",
+     "answer": "110000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-7-100p",
+     "family": "validity",
+     "question": "Who was the Chief Operating Officer of Carrow Group on 15 March 2022?",
+     "gold": "Kofi Whitcombe",
+     "answer": "kofi whitcombe",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-8-100p",
+     "family": "validity",
+     "question": "Who was the Head of Safety of Carrow Group on 23 February 2023?",
+     "gold": "Signe Fairbairn",
+     "answer": "signe fairbairn",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-9-100p",
+     "family": "validity",
+     "question": "Who was the Head of Safety of Carrow Group on 29 January 2022?",
+     "gold": "Aiko Sorensen",
+     "answer": "aiko sorensen",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-10-100p",
+     "family": "validity",
+     "question": "Who was the Chief Risk Officer of Carrow Group on 2022-03-29?",
+     "gold": "Ingrid Halloran",
+     "answer": "ingrid halloran",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-11-100p",
+     "family": "validity",
+     "question": "Who was the Chief Operating Officer of Carrow Group on 31 January 2025?",
+     "gold": "Vera Andrade",
+     "answer": "vera andrade",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-12-100p",
+     "family": "validity",
+     "question": "Who was the Head of Procurement of Carrow Group on 14 November 2023?",
+     "gold": "Declan Lundgren",
+     "answer": "declan lundgren",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-13-100p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-4480?",
+     "gold": "Declan Lundgren",
+     "answer": "declan lundgren",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-14-100p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-8765?",
+     "gold": "Kofi Whitcombe",
+     "answer": "kofi whitcombe",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-15-100p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-2157?",
+     "gold": "Matteo Tremblay",
+     "answer": "matteo tremblay",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-16-100p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-4275?",
+     "gold": "Oskar Szabo",
+     "answer": "oskar szabo",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-17-100p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-6425?",
+     "gold": "Viktor Dubois",
+     "answer": "viktor dubois",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-18-100p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-7898 on 16 August 2023, taking any amendments into account?",
+     "gold": "160000",
+     "answer": "160000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-19-100p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-2157 on 21 March 2023, taking any amendments into account?",
+     "gold": "495000",
+     "answer": "495000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-20-100p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-5822 on 2025-01-11, taking any amendments into account?",
+     "gold": "100000",
+     "answer": "100000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-21-100p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-6441 on 4 November 2023, taking any amendments into account?",
+     "gold": "800000",
+     "answer": "800000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-22-100p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-2482 on 21 April 2025, taking any amendments into account?",
+     "gold": "500000",
+     "answer": "500000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-23-100p",
+     "family": "comparison",
+     "question": "On 6 August 2026, which contract had the higher value: CN-2482 or CN-4275?",
+     "gold": "CN-2482",
+     "answer": "CN-2482",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-24-100p",
+     "family": "comparison",
+     "question": "On 19 March 2026, which contract had the higher value: CN-4480 or CN-4275?",
+     "gold": "CN-4275",
+     "answer": "CN-4275",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-25-100p",
+     "family": "comparison",
+     "question": "On 1 August 2024, which contract had the higher value: CN-8765 or CN-9560?",
+     "gold": "CN-8765",
+     "answer": "CN-8765",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-26-100p",
+     "family": "comparison",
+     "question": "On 2023-10-16, which contract had the higher value: CN-5598 or CN-5822?",
+     "gold": "CN-5598",
+     "answer": "CN-5598",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-27-100p",
+     "family": "comparison",
+     "question": "On 2025-11-10, which contract had the higher value: CN-6425 or CN-4275?",
+     "gold": "CN-6425",
+     "answer": "CN-6425",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-aggregate-28-100p",
+     "family": "aggregate",
+     "question": "How many safety incidents occurred at a site whose operating supplier did not hold a valid ISO 9001 certificate on the day of the incident?",
+     "gold": "2",
+     "answer": "2",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-aggregate-29-100p",
+     "family": "aggregate",
+     "question": "How many safety incidents occurred at a site whose operating supplier did not hold a valid ISO/IEC 27001 certificate on the day of the incident?",
+     "gold": "12",
+     "answer": "12",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-aggregate-30-100p",
+     "family": "aggregate",
+     "question": "How many safety incidents were recorded at sites operated by Oakhurst Data Services Pty Ltd?",
+     "gold": "1",
+     "answer": "1",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-aggregate-31-100p",
+     "family": "aggregate",
+     "question": "How many safety incidents were recorded at sites operated by Harrowgate Systems Pty Ltd?",
+     "gold": "2",
+     "answer": "2",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-absence-32-100p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 21 March 2022?",
+     "gold": "Nettlefield Facilities Pty Ltd; Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
+     "answer": "oakhurst data services pty ltd; emberton data services pty ltd; pennant data services pty ltd; nettlefield facilities pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-absence-33-100p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO 9001 certificate on 2022-03-08?",
+     "gold": "Kingsmead Data Services Pty Ltd",
+     "answer": "kingsmead data services pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-absence-34-100p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO 9001 certificate on 2025-02-13?",
+     "gold": "Kingsmead Data Services Pty Ltd",
+     "answer": "kingsmead data services pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-absence-35-100p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO 9001 certificate on 26 June 2024?",
+     "gold": "Kingsmead Data Services Pty Ltd",
+     "answer": "kingsmead data services pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-36-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-9103 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-37-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-5598 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-38-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-9560 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-39-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-7898 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-40-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-5003 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-41-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-4564 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-42-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-6441 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-43-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-6425 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-unanswerable-44-100p",
+     "family": "unanswerable",
+     "question": "Who was the Chief Operating Officer of Carrow Group on 27 March 2019?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-unanswerable-45-100p",
+     "family": "unanswerable",
+     "question": "What was the value of contract CN-1056 at signing?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-unanswerable-46-100p",
+     "family": "unanswerable",
+     "question": "Who was the Chief Risk Officer of Carrow Group on 5 October 2019?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-unanswerable-47-100p",
+     "family": "unanswerable",
+     "question": "What was the value of contract CN-5507 at signing?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    }
+   ]
+  },
+  {
+   "tier": "100p",
+   "world": 102,
+   "pages": 100,
+   "extraction": {
+    "kept": 124,
+    "dropped": 0,
+    "repaired": 0,
+    "rejectedByTypeCheck": [
+     "appointed(chief financial officer|chief financial officer|20231001)",
+     "appointed(head of procurement|head of procurement|20240124)"
+    ],
+    "truth": 124,
+    "truePositives": 124,
+    "falseFacts": [],
+    "missedFacts": [],
+    "droppedSample": []
+   },
+   "outcomes": [
+    {
+     "id": "w102-needle-1-100p",
+     "family": "needle",
+     "question": "What was the value of contract CN-5035 at signing?",
+     "gold": "730000",
+     "answer": "730000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-2-100p",
+     "family": "needle",
+     "question": "What was the value of contract CN-3941 at signing?",
+     "gold": "230000",
+     "answer": "230000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-3-100p",
+     "family": "needle",
+     "question": "What was the value of contract CN-8873 at signing?",
+     "gold": "450000",
+     "answer": "450000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-4-100p",
+     "family": "needle",
+     "question": "What was the value of contract CN-2924 at signing?",
+     "gold": "360000",
+     "answer": "360000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-5-100p",
+     "family": "needle",
+     "question": "What was the value of contract CN-7335 at signing?",
+     "gold": "265000",
+     "answer": "265000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-6-100p",
+     "family": "needle",
+     "question": "What was the value of contract CN-2898 at signing?",
+     "gold": "765000",
+     "answer": "765000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-7-100p",
+     "family": "validity",
+     "question": "Who was the Chief Risk Officer of Ferrous Pacific on 2026-03-19?",
+     "gold": "Oskar Okonkwo",
+     "answer": "oskar okonkwo",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-8-100p",
+     "family": "validity",
+     "question": "Who was the Head of Procurement of Ferrous Pacific on 2022-05-29?",
+     "gold": "Lorcan Moreau",
+     "answer": "lorcan moreau",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-9-100p",
+     "family": "validity",
+     "question": "Who was the Head of Safety of Ferrous Pacific on 2023-03-12?",
+     "gold": "Ayesha Solberg",
+     "answer": "ayesha solberg",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-10-100p",
+     "family": "validity",
+     "question": "Who was the Chief Risk Officer of Ferrous Pacific on 2022-06-28?",
+     "gold": "Clara Novak",
+     "answer": "clara novak",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-11-100p",
+     "family": "validity",
+     "question": "Who was the Chief Financial Officer of Ferrous Pacific on 2021-09-18?",
+     "gold": "Oskar Halloran",
+     "answer": "oskar halloran",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-12-100p",
+     "family": "validity",
+     "question": "Who was the Chief Operating Officer of Ferrous Pacific on 22 May 2026?",
+     "gold": "Noor Sorensen",
+     "answer": "noor sorensen",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-13-100p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-5013?",
+     "gold": "Vera Rautio",
+     "answer": "vera rautio",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-14-100p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-5083?",
+     "gold": "Oskar Halloran",
+     "answer": "oskar halloran",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-15-100p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-3699?",
+     "gold": "Noor Sorensen",
+     "answer": "noor sorensen",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-16-100p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-5212?",
+     "gold": "Clara Novak",
+     "answer": "clara novak",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-17-100p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-2898?",
+     "gold": "Declan Lundgren",
+     "answer": "declan lundgren",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-18-100p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-6822 on 6 September 2023, taking any amendments into account?",
+     "gold": "225000",
+     "answer": "225000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-19-100p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-5083 on 9 June 2023, taking any amendments into account?",
+     "gold": "400000",
+     "answer": "400000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-20-100p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-3699 on 21 August 2025, taking any amendments into account?",
+     "gold": "645000",
+     "answer": "645000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-21-100p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-2924 on 10 January 2026, taking any amendments into account?",
+     "gold": "505000",
+     "answer": "505000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-22-100p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-5212 on 20 January 2023, taking any amendments into account?",
+     "gold": "325000",
+     "answer": "325000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-23-100p",
+     "family": "comparison",
+     "question": "On 1 December 2024, which contract had the higher value: CN-2898 or CN-5212?",
+     "gold": "CN-2898",
+     "answer": "CN-2898",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-24-100p",
+     "family": "comparison",
+     "question": "On 2023-07-10, which contract had the higher value: CN-5035 or CN-5013?",
+     "gold": "CN-5035",
+     "answer": "CN-5035",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-25-100p",
+     "family": "comparison",
+     "question": "On 30 December 2024, which contract had the higher value: CN-2898 or CN-3699?",
+     "gold": "CN-2898",
+     "answer": "CN-2898",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-26-100p",
+     "family": "comparison",
+     "question": "On 21 September 2023, which contract had the higher value: CN-4632 or CN-5083?",
+     "gold": "CN-4632",
+     "answer": "CN-4632",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-27-100p",
+     "family": "comparison",
+     "question": "On 14 February 2025, which contract had the higher value: CN-8873 or CN-9285?",
+     "gold": "CN-9285",
+     "answer": "CN-9285",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-aggregate-28-100p",
+     "family": "aggregate",
+     "question": "How many safety incidents occurred at a site whose operating supplier did not hold a valid ISO 9001 certificate on the day of the incident?",
+     "gold": "5",
+     "answer": "5",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-aggregate-29-100p",
+     "family": "aggregate",
+     "question": "How many safety incidents occurred at a site whose operating supplier did not hold a valid ISO/IEC 27001 certificate on the day of the incident?",
+     "gold": "9",
+     "answer": "9",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-aggregate-30-100p",
+     "family": "aggregate",
+     "question": "How many safety incidents were recorded at sites operated by Tamarind Catering Pty Ltd?",
+     "gold": "4",
+     "answer": "4",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-aggregate-31-100p",
+     "family": "aggregate",
+     "question": "How many safety incidents were recorded at sites operated by Nettlefield Freight Pty Ltd?",
+     "gold": "1",
+     "answer": "1",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-absence-32-100p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO 9001 certificate on 25 March 2024?",
+     "gold": "Tamarind Catering Pty Ltd; Sablewood Catering Pty Ltd",
+     "answer": "sablewood catering pty ltd; tamarind catering pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-absence-33-100p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2025-04-09?",
+     "gold": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd; greyfield systems pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-absence-34-100p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 25 February 2025?",
+     "gold": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd; greyfield systems pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-35-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-8873 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-36-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-5035 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-37-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-6506 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-38-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-9285 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-39-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-3699 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-40-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-4632 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-41-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-2898 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-42-100p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-5083 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-unanswerable-43-100p",
+     "family": "unanswerable",
+     "question": "Who was the Chief Financial Officer of Ferrous Pacific on 11 January 2019?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-unanswerable-44-100p",
+     "family": "unanswerable",
+     "question": "What was the value of contract CN-3298 at signing?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-unanswerable-45-100p",
+     "family": "unanswerable",
+     "question": "Who was the General Counsel of Ferrous Pacific on 2019-06-17?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-unanswerable-46-100p",
+     "family": "unanswerable",
+     "question": "What was the value of contract CN-5463 at signing?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    }
+   ]
+  },
+  {
+   "tier": "500p",
+   "world": 101,
+   "pages": 500,
+   "extraction": {
+    "kept": 131,
+    "dropped": 0,
+    "repaired": 4,
+    "rejectedByTypeCheck": [
+     "appointed(chief operating officer|chief operating officer|20230320)"
+    ],
+    "truth": 129,
+    "truePositives": 129,
+    "falseFacts": [
+     "appointed(kofi whitcombe|chair|20220601)",
+     "appointed(signe fairbairn|head of safety|20240514)"
+    ],
+    "missedFacts": [],
+    "droppedSample": []
+   },
+   "outcomes": [
+    {
+     "id": "w101-needle-1-500p",
+     "family": "needle",
+     "question": "What was the value of contract CN-9103 at signing?",
+     "gold": "715000",
+     "answer": "715000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-2-500p",
+     "family": "needle",
+     "question": "What was the value of contract CN-4275 at signing?",
+     "gold": "260000",
+     "answer": "260000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-3-500p",
+     "family": "needle",
+     "question": "What was the value of contract CN-5003 at signing?",
+     "gold": "170000",
+     "answer": "170000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-4-500p",
+     "family": "needle",
+     "question": "What was the value of contract CN-8765 at signing?",
+     "gold": "765000",
+     "answer": "765000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-5-500p",
+     "family": "needle",
+     "question": "What was the value of contract CN-6441 at signing?",
+     "gold": "640000",
+     "answer": "640000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-6-500p",
+     "family": "needle",
+     "question": "What was the value of contract CN-5822 at signing?",
+     "gold": "110000",
+     "answer": "110000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-7-500p",
+     "family": "validity",
+     "question": "Who was the Chief Operating Officer of Carrow Group on 15 March 2022?",
+     "gold": "Kofi Whitcombe",
+     "answer": "kofi whitcombe",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-8-500p",
+     "family": "validity",
+     "question": "Who was the Head of Safety of Carrow Group on 23 February 2023?",
+     "gold": "Signe Fairbairn",
+     "answer": "signe fairbairn",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-9-500p",
+     "family": "validity",
+     "question": "Who was the Head of Safety of Carrow Group on 29 January 2022?",
+     "gold": "Aiko Sorensen",
+     "answer": "aiko sorensen",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-10-500p",
+     "family": "validity",
+     "question": "Who was the Chief Risk Officer of Carrow Group on 2022-03-29?",
+     "gold": "Ingrid Halloran",
+     "answer": "ingrid halloran",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-11-500p",
+     "family": "validity",
+     "question": "Who was the Chief Operating Officer of Carrow Group on 31 January 2025?",
+     "gold": "Vera Andrade",
+     "answer": "vera andrade",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-12-500p",
+     "family": "validity",
+     "question": "Who was the Head of Procurement of Carrow Group on 14 November 2023?",
+     "gold": "Declan Lundgren",
+     "answer": "declan lundgren",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-13-500p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-4480?",
+     "gold": "Declan Lundgren",
+     "answer": "declan lundgren",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-14-500p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-8765?",
+     "gold": "Kofi Whitcombe",
+     "answer": "kofi whitcombe",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-15-500p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-2157?",
+     "gold": "Matteo Tremblay",
+     "answer": "matteo tremblay",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-16-500p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-4275?",
+     "gold": "Oskar Szabo",
+     "answer": "oskar szabo",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-17-500p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-6425?",
+     "gold": "Viktor Dubois",
+     "answer": "viktor dubois",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-18-500p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-7898 on 16 August 2023, taking any amendments into account?",
+     "gold": "160000",
+     "answer": "160000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-19-500p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-2157 on 21 March 2023, taking any amendments into account?",
+     "gold": "495000",
+     "answer": "495000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-20-500p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-5822 on 2025-01-11, taking any amendments into account?",
+     "gold": "100000",
+     "answer": "100000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-21-500p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-6441 on 4 November 2023, taking any amendments into account?",
+     "gold": "800000",
+     "answer": "800000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-22-500p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-2482 on 21 April 2025, taking any amendments into account?",
+     "gold": "500000",
+     "answer": "500000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-23-500p",
+     "family": "comparison",
+     "question": "On 6 August 2026, which contract had the higher value: CN-2482 or CN-4275?",
+     "gold": "CN-2482",
+     "answer": "CN-2482",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-24-500p",
+     "family": "comparison",
+     "question": "On 19 March 2026, which contract had the higher value: CN-4480 or CN-4275?",
+     "gold": "CN-4275",
+     "answer": "CN-4275",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-25-500p",
+     "family": "comparison",
+     "question": "On 1 August 2024, which contract had the higher value: CN-8765 or CN-9560?",
+     "gold": "CN-8765",
+     "answer": "CN-8765",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-26-500p",
+     "family": "comparison",
+     "question": "On 2023-10-16, which contract had the higher value: CN-5598 or CN-5822?",
+     "gold": "CN-5598",
+     "answer": "CN-5598",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-27-500p",
+     "family": "comparison",
+     "question": "On 2025-11-10, which contract had the higher value: CN-6425 or CN-4275?",
+     "gold": "CN-6425",
+     "answer": "CN-6425",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-aggregate-28-500p",
+     "family": "aggregate",
+     "question": "How many safety incidents occurred at a site whose operating supplier did not hold a valid ISO 9001 certificate on the day of the incident?",
+     "gold": "2",
+     "answer": "2",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-aggregate-29-500p",
+     "family": "aggregate",
+     "question": "How many safety incidents occurred at a site whose operating supplier did not hold a valid ISO/IEC 27001 certificate on the day of the incident?",
+     "gold": "12",
+     "answer": "12",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-aggregate-30-500p",
+     "family": "aggregate",
+     "question": "How many safety incidents were recorded at sites operated by Oakhurst Data Services Pty Ltd?",
+     "gold": "1",
+     "answer": "1",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-aggregate-31-500p",
+     "family": "aggregate",
+     "question": "How many safety incidents were recorded at sites operated by Harrowgate Systems Pty Ltd?",
+     "gold": "2",
+     "answer": "2",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-absence-32-500p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 21 March 2022?",
+     "gold": "Nettlefield Facilities Pty Ltd; Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
+     "answer": "oakhurst data services pty ltd; emberton data services pty ltd; pennant data services pty ltd; nettlefield facilities pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-absence-33-500p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO 9001 certificate on 2022-03-08?",
+     "gold": "Kingsmead Data Services Pty Ltd",
+     "answer": "kingsmead data services pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-absence-34-500p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO 9001 certificate on 2025-02-13?",
+     "gold": "Kingsmead Data Services Pty Ltd",
+     "answer": "kingsmead data services pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-absence-35-500p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO 9001 certificate on 26 June 2024?",
+     "gold": "Kingsmead Data Services Pty Ltd",
+     "answer": "kingsmead data services pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-36-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-9103 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-37-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-5598 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-38-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-9560 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-39-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-7898 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-40-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-5003 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-41-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-4564 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-42-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-6441 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-43-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-6425 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-unanswerable-44-500p",
+     "family": "unanswerable",
+     "question": "Who was the Chief Operating Officer of Carrow Group on 27 March 2019?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-unanswerable-45-500p",
+     "family": "unanswerable",
+     "question": "What was the value of contract CN-1056 at signing?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-unanswerable-46-500p",
+     "family": "unanswerable",
+     "question": "Who was the Chief Risk Officer of Carrow Group on 5 October 2019?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-unanswerable-47-500p",
+     "family": "unanswerable",
+     "question": "What was the value of contract CN-5507 at signing?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    }
+   ]
+  },
+  {
+   "tier": "500p",
+   "world": 102,
+   "pages": 500,
+   "extraction": {
+    "kept": 124,
+    "dropped": 0,
+    "repaired": 0,
+    "rejectedByTypeCheck": [
+     "appointed(chief financial officer|chief financial officer|20231001)",
+     "appointed(head of procurement|head of procurement|20240124)"
+    ],
+    "truth": 124,
+    "truePositives": 124,
+    "falseFacts": [],
+    "missedFacts": [],
+    "droppedSample": []
+   },
+   "outcomes": [
+    {
+     "id": "w102-needle-1-500p",
+     "family": "needle",
+     "question": "What was the value of contract CN-5035 at signing?",
+     "gold": "730000",
+     "answer": "730000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-2-500p",
+     "family": "needle",
+     "question": "What was the value of contract CN-3941 at signing?",
+     "gold": "230000",
+     "answer": "230000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-3-500p",
+     "family": "needle",
+     "question": "What was the value of contract CN-8873 at signing?",
+     "gold": "450000",
+     "answer": "450000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-4-500p",
+     "family": "needle",
+     "question": "What was the value of contract CN-2924 at signing?",
+     "gold": "360000",
+     "answer": "360000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-5-500p",
+     "family": "needle",
+     "question": "What was the value of contract CN-7335 at signing?",
+     "gold": "265000",
+     "answer": "265000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-6-500p",
+     "family": "needle",
+     "question": "What was the value of contract CN-2898 at signing?",
+     "gold": "765000",
+     "answer": "765000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-7-500p",
+     "family": "validity",
+     "question": "Who was the Chief Risk Officer of Ferrous Pacific on 2026-03-19?",
+     "gold": "Oskar Okonkwo",
+     "answer": "oskar okonkwo",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-8-500p",
+     "family": "validity",
+     "question": "Who was the Head of Procurement of Ferrous Pacific on 2022-05-29?",
+     "gold": "Lorcan Moreau",
+     "answer": "lorcan moreau",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-9-500p",
+     "family": "validity",
+     "question": "Who was the Head of Safety of Ferrous Pacific on 2023-03-12?",
+     "gold": "Ayesha Solberg",
+     "answer": "ayesha solberg",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-10-500p",
+     "family": "validity",
+     "question": "Who was the Chief Risk Officer of Ferrous Pacific on 2022-06-28?",
+     "gold": "Clara Novak",
+     "answer": "clara novak",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-11-500p",
+     "family": "validity",
+     "question": "Who was the Chief Financial Officer of Ferrous Pacific on 2021-09-18?",
+     "gold": "Oskar Halloran",
+     "answer": "oskar halloran",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-12-500p",
+     "family": "validity",
+     "question": "Who was the Chief Operating Officer of Ferrous Pacific on 22 May 2026?",
+     "gold": "Noor Sorensen",
+     "answer": "noor sorensen",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-13-500p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-5013?",
+     "gold": "Vera Rautio",
+     "answer": "vera rautio",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-14-500p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-5083?",
+     "gold": "Oskar Halloran",
+     "answer": "oskar halloran",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-15-500p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-3699?",
+     "gold": "Noor Sorensen",
+     "answer": "noor sorensen",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-16-500p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-5212?",
+     "gold": "Clara Novak",
+     "answer": "clara novak",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-17-500p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-2898?",
+     "gold": "Declan Lundgren",
+     "answer": "declan lundgren",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-18-500p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-6822 on 6 September 2023, taking any amendments into account?",
+     "gold": "225000",
+     "answer": "225000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-19-500p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-5083 on 9 June 2023, taking any amendments into account?",
+     "gold": "400000",
+     "answer": "400000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-20-500p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-3699 on 21 August 2025, taking any amendments into account?",
+     "gold": "645000",
+     "answer": "645000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-21-500p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-2924 on 10 January 2026, taking any amendments into account?",
+     "gold": "505000",
+     "answer": "505000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-22-500p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-5212 on 20 January 2023, taking any amendments into account?",
+     "gold": "325000",
+     "answer": "325000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-23-500p",
+     "family": "comparison",
+     "question": "On 1 December 2024, which contract had the higher value: CN-2898 or CN-5212?",
+     "gold": "CN-2898",
+     "answer": "CN-2898",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-24-500p",
+     "family": "comparison",
+     "question": "On 2023-07-10, which contract had the higher value: CN-5035 or CN-5013?",
+     "gold": "CN-5035",
+     "answer": "CN-5035",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-25-500p",
+     "family": "comparison",
+     "question": "On 30 December 2024, which contract had the higher value: CN-2898 or CN-3699?",
+     "gold": "CN-2898",
+     "answer": "CN-2898",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-26-500p",
+     "family": "comparison",
+     "question": "On 21 September 2023, which contract had the higher value: CN-4632 or CN-5083?",
+     "gold": "CN-4632",
+     "answer": "CN-4632",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-27-500p",
+     "family": "comparison",
+     "question": "On 14 February 2025, which contract had the higher value: CN-8873 or CN-9285?",
+     "gold": "CN-9285",
+     "answer": "CN-9285",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-aggregate-28-500p",
+     "family": "aggregate",
+     "question": "How many safety incidents occurred at a site whose operating supplier did not hold a valid ISO 9001 certificate on the day of the incident?",
+     "gold": "5",
+     "answer": "5",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-aggregate-29-500p",
+     "family": "aggregate",
+     "question": "How many safety incidents occurred at a site whose operating supplier did not hold a valid ISO/IEC 27001 certificate on the day of the incident?",
+     "gold": "9",
+     "answer": "9",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-aggregate-30-500p",
+     "family": "aggregate",
+     "question": "How many safety incidents were recorded at sites operated by Tamarind Catering Pty Ltd?",
+     "gold": "4",
+     "answer": "4",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-aggregate-31-500p",
+     "family": "aggregate",
+     "question": "How many safety incidents were recorded at sites operated by Nettlefield Freight Pty Ltd?",
+     "gold": "1",
+     "answer": "1",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-absence-32-500p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO 9001 certificate on 25 March 2024?",
+     "gold": "Tamarind Catering Pty Ltd; Sablewood Catering Pty Ltd",
+     "answer": "sablewood catering pty ltd; tamarind catering pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-absence-33-500p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2025-04-09?",
+     "gold": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd; greyfield systems pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-absence-34-500p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 25 February 2025?",
+     "gold": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd; greyfield systems pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-35-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-8873 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-36-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-5035 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-37-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-6506 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-38-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-9285 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-39-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-3699 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-40-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-4632 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-41-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-2898 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-42-500p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-5083 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-unanswerable-43-500p",
+     "family": "unanswerable",
+     "question": "Who was the Chief Financial Officer of Ferrous Pacific on 11 January 2019?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-unanswerable-44-500p",
+     "family": "unanswerable",
+     "question": "What was the value of contract CN-3298 at signing?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-unanswerable-45-500p",
+     "family": "unanswerable",
+     "question": "Who was the General Counsel of Ferrous Pacific on 2019-06-17?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-unanswerable-46-500p",
+     "family": "unanswerable",
+     "question": "What was the value of contract CN-5463 at signing?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    }
+   ]
+  },
+  {
+   "tier": "1000p",
+   "world": 101,
+   "pages": 1000,
+   "extraction": {
+    "kept": 131,
+    "dropped": 0,
+    "repaired": 4,
+    "rejectedByTypeCheck": [
+     "appointed(chief operating officer|chief operating officer|20230320)"
+    ],
+    "truth": 129,
+    "truePositives": 129,
+    "falseFacts": [
+     "appointed(kofi whitcombe|chair|20220601)",
+     "appointed(signe fairbairn|head of safety|20240514)"
+    ],
+    "missedFacts": [],
+    "droppedSample": []
+   },
+   "outcomes": [
+    {
+     "id": "w101-needle-1-1000p",
+     "family": "needle",
+     "question": "What was the value of contract CN-9103 at signing?",
+     "gold": "715000",
+     "answer": "715000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-2-1000p",
+     "family": "needle",
+     "question": "What was the value of contract CN-4275 at signing?",
+     "gold": "260000",
+     "answer": "260000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-3-1000p",
+     "family": "needle",
+     "question": "What was the value of contract CN-5003 at signing?",
+     "gold": "170000",
+     "answer": "170000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-4-1000p",
+     "family": "needle",
+     "question": "What was the value of contract CN-8765 at signing?",
+     "gold": "765000",
+     "answer": "765000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-5-1000p",
+     "family": "needle",
+     "question": "What was the value of contract CN-6441 at signing?",
+     "gold": "640000",
+     "answer": "640000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-needle-6-1000p",
+     "family": "needle",
+     "question": "What was the value of contract CN-5822 at signing?",
+     "gold": "110000",
+     "answer": "110000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-7-1000p",
+     "family": "validity",
+     "question": "Who was the Chief Operating Officer of Carrow Group on 15 March 2022?",
+     "gold": "Kofi Whitcombe",
+     "answer": "kofi whitcombe",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-8-1000p",
+     "family": "validity",
+     "question": "Who was the Head of Safety of Carrow Group on 23 February 2023?",
+     "gold": "Signe Fairbairn",
+     "answer": "signe fairbairn",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-9-1000p",
+     "family": "validity",
+     "question": "Who was the Head of Safety of Carrow Group on 29 January 2022?",
+     "gold": "Aiko Sorensen",
+     "answer": "aiko sorensen",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-10-1000p",
+     "family": "validity",
+     "question": "Who was the Chief Risk Officer of Carrow Group on 2022-03-29?",
+     "gold": "Ingrid Halloran",
+     "answer": "ingrid halloran",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-11-1000p",
+     "family": "validity",
+     "question": "Who was the Chief Operating Officer of Carrow Group on 31 January 2025?",
+     "gold": "Vera Andrade",
+     "answer": "vera andrade",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-validity-12-1000p",
+     "family": "validity",
+     "question": "Who was the Head of Procurement of Carrow Group on 14 November 2023?",
+     "gold": "Declan Lundgren",
+     "answer": "declan lundgren",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-13-1000p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-4480?",
+     "gold": "Declan Lundgren",
+     "answer": "declan lundgren",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-14-1000p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-8765?",
+     "gold": "Kofi Whitcombe",
+     "answer": "kofi whitcombe",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-15-1000p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-2157?",
+     "gold": "Matteo Tremblay",
+     "answer": "matteo tremblay",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-16-1000p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-4275?",
+     "gold": "Oskar Szabo",
+     "answer": "oskar szabo",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-identity-17-1000p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-6425?",
+     "gold": "Viktor Dubois",
+     "answer": "viktor dubois",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-18-1000p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-7898 on 16 August 2023, taking any amendments into account?",
+     "gold": "160000",
+     "answer": "160000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-19-1000p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-2157 on 21 March 2023, taking any amendments into account?",
+     "gold": "495000",
+     "answer": "495000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-20-1000p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-5822 on 2025-01-11, taking any amendments into account?",
+     "gold": "100000",
+     "answer": "100000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-21-1000p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-6441 on 4 November 2023, taking any amendments into account?",
+     "gold": "800000",
+     "answer": "800000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-supersession-22-1000p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-2482 on 21 April 2025, taking any amendments into account?",
+     "gold": "500000",
+     "answer": "500000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-23-1000p",
+     "family": "comparison",
+     "question": "On 6 August 2026, which contract had the higher value: CN-2482 or CN-4275?",
+     "gold": "CN-2482",
+     "answer": "CN-2482",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-24-1000p",
+     "family": "comparison",
+     "question": "On 19 March 2026, which contract had the higher value: CN-4480 or CN-4275?",
+     "gold": "CN-4275",
+     "answer": "CN-4275",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-25-1000p",
+     "family": "comparison",
+     "question": "On 1 August 2024, which contract had the higher value: CN-8765 or CN-9560?",
+     "gold": "CN-8765",
+     "answer": "CN-8765",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-26-1000p",
+     "family": "comparison",
+     "question": "On 2023-10-16, which contract had the higher value: CN-5598 or CN-5822?",
+     "gold": "CN-5598",
+     "answer": "CN-5598",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-comparison-27-1000p",
+     "family": "comparison",
+     "question": "On 2025-11-10, which contract had the higher value: CN-6425 or CN-4275?",
+     "gold": "CN-6425",
+     "answer": "CN-6425",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-aggregate-28-1000p",
+     "family": "aggregate",
+     "question": "How many safety incidents occurred at a site whose operating supplier did not hold a valid ISO 9001 certificate on the day of the incident?",
+     "gold": "2",
+     "answer": "2",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-aggregate-29-1000p",
+     "family": "aggregate",
+     "question": "How many safety incidents occurred at a site whose operating supplier did not hold a valid ISO/IEC 27001 certificate on the day of the incident?",
+     "gold": "12",
+     "answer": "12",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-aggregate-30-1000p",
+     "family": "aggregate",
+     "question": "How many safety incidents were recorded at sites operated by Oakhurst Data Services Pty Ltd?",
+     "gold": "1",
+     "answer": "1",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-aggregate-31-1000p",
+     "family": "aggregate",
+     "question": "How many safety incidents were recorded at sites operated by Harrowgate Systems Pty Ltd?",
+     "gold": "2",
+     "answer": "2",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-absence-32-1000p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 21 March 2022?",
+     "gold": "Nettlefield Facilities Pty Ltd; Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
+     "answer": "oakhurst data services pty ltd; emberton data services pty ltd; pennant data services pty ltd; nettlefield facilities pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-absence-33-1000p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO 9001 certificate on 2022-03-08?",
+     "gold": "Kingsmead Data Services Pty Ltd",
+     "answer": "kingsmead data services pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-absence-34-1000p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO 9001 certificate on 2025-02-13?",
+     "gold": "Kingsmead Data Services Pty Ltd",
+     "answer": "kingsmead data services pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-absence-35-1000p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO 9001 certificate on 26 June 2024?",
+     "gold": "Kingsmead Data Services Pty Ltd",
+     "answer": "kingsmead data services pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-36-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-9103 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-37-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-5598 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-38-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-9560 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-39-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-7898 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-40-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-5003 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-41-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-4564 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-42-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-6441 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-authority-43-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-6425 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-unanswerable-44-1000p",
+     "family": "unanswerable",
+     "question": "Who was the Chief Operating Officer of Carrow Group on 27 March 2019?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-unanswerable-45-1000p",
+     "family": "unanswerable",
+     "question": "What was the value of contract CN-1056 at signing?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-unanswerable-46-1000p",
+     "family": "unanswerable",
+     "question": "Who was the Chief Risk Officer of Carrow Group on 5 October 2019?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w101-unanswerable-47-1000p",
+     "family": "unanswerable",
+     "question": "What was the value of contract CN-5507 at signing?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    }
+   ]
+  },
+  {
+   "tier": "1000p",
+   "world": 102,
+   "pages": 1000,
+   "extraction": {
+    "kept": 124,
+    "dropped": 0,
+    "repaired": 0,
+    "rejectedByTypeCheck": [
+     "appointed(chief financial officer|chief financial officer|20231001)",
+     "appointed(head of procurement|head of procurement|20240124)"
+    ],
+    "truth": 124,
+    "truePositives": 124,
+    "falseFacts": [],
+    "missedFacts": [],
+    "droppedSample": []
+   },
+   "outcomes": [
+    {
+     "id": "w102-needle-1-1000p",
+     "family": "needle",
+     "question": "What was the value of contract CN-5035 at signing?",
+     "gold": "730000",
+     "answer": "730000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-2-1000p",
+     "family": "needle",
+     "question": "What was the value of contract CN-3941 at signing?",
+     "gold": "230000",
+     "answer": "230000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-3-1000p",
+     "family": "needle",
+     "question": "What was the value of contract CN-8873 at signing?",
+     "gold": "450000",
+     "answer": "450000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-4-1000p",
+     "family": "needle",
+     "question": "What was the value of contract CN-2924 at signing?",
+     "gold": "360000",
+     "answer": "360000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-5-1000p",
+     "family": "needle",
+     "question": "What was the value of contract CN-7335 at signing?",
+     "gold": "265000",
+     "answer": "265000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-needle-6-1000p",
+     "family": "needle",
+     "question": "What was the value of contract CN-2898 at signing?",
+     "gold": "765000",
+     "answer": "765000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-7-1000p",
+     "family": "validity",
+     "question": "Who was the Chief Risk Officer of Ferrous Pacific on 2026-03-19?",
+     "gold": "Oskar Okonkwo",
+     "answer": "oskar okonkwo",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-8-1000p",
+     "family": "validity",
+     "question": "Who was the Head of Procurement of Ferrous Pacific on 2022-05-29?",
+     "gold": "Lorcan Moreau",
+     "answer": "lorcan moreau",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-9-1000p",
+     "family": "validity",
+     "question": "Who was the Head of Safety of Ferrous Pacific on 2023-03-12?",
+     "gold": "Ayesha Solberg",
+     "answer": "ayesha solberg",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-10-1000p",
+     "family": "validity",
+     "question": "Who was the Chief Risk Officer of Ferrous Pacific on 2022-06-28?",
+     "gold": "Clara Novak",
+     "answer": "clara novak",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-11-1000p",
+     "family": "validity",
+     "question": "Who was the Chief Financial Officer of Ferrous Pacific on 2021-09-18?",
+     "gold": "Oskar Halloran",
+     "answer": "oskar halloran",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-validity-12-1000p",
+     "family": "validity",
+     "question": "Who was the Chief Operating Officer of Ferrous Pacific on 22 May 2026?",
+     "gold": "Noor Sorensen",
+     "answer": "noor sorensen",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-13-1000p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-5013?",
+     "gold": "Vera Rautio",
+     "answer": "vera rautio",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-14-1000p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-5083?",
+     "gold": "Oskar Halloran",
+     "answer": "oskar halloran",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-15-1000p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-3699?",
+     "gold": "Noor Sorensen",
+     "answer": "noor sorensen",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-16-1000p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-5212?",
+     "gold": "Clara Novak",
+     "answer": "clara novak",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-identity-17-1000p",
+     "family": "identity",
+     "question": "What is the full name of the person who approved contract CN-2898?",
+     "gold": "Declan Lundgren",
+     "answer": "declan lundgren",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-18-1000p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-6822 on 6 September 2023, taking any amendments into account?",
+     "gold": "225000",
+     "answer": "225000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-19-1000p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-5083 on 9 June 2023, taking any amendments into account?",
+     "gold": "400000",
+     "answer": "400000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-20-1000p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-3699 on 21 August 2025, taking any amendments into account?",
+     "gold": "645000",
+     "answer": "645000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-21-1000p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-2924 on 10 January 2026, taking any amendments into account?",
+     "gold": "505000",
+     "answer": "505000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-supersession-22-1000p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-5212 on 20 January 2023, taking any amendments into account?",
+     "gold": "325000",
+     "answer": "325000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-23-1000p",
+     "family": "comparison",
+     "question": "On 1 December 2024, which contract had the higher value: CN-2898 or CN-5212?",
+     "gold": "CN-2898",
+     "answer": "CN-2898",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-24-1000p",
+     "family": "comparison",
+     "question": "On 2023-07-10, which contract had the higher value: CN-5035 or CN-5013?",
+     "gold": "CN-5035",
+     "answer": "CN-5035",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-25-1000p",
+     "family": "comparison",
+     "question": "On 30 December 2024, which contract had the higher value: CN-2898 or CN-3699?",
+     "gold": "CN-2898",
+     "answer": "CN-2898",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-26-1000p",
+     "family": "comparison",
+     "question": "On 21 September 2023, which contract had the higher value: CN-4632 or CN-5083?",
+     "gold": "CN-4632",
+     "answer": "CN-4632",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-comparison-27-1000p",
+     "family": "comparison",
+     "question": "On 14 February 2025, which contract had the higher value: CN-8873 or CN-9285?",
+     "gold": "CN-9285",
+     "answer": "CN-9285",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-aggregate-28-1000p",
+     "family": "aggregate",
+     "question": "How many safety incidents occurred at a site whose operating supplier did not hold a valid ISO 9001 certificate on the day of the incident?",
+     "gold": "5",
+     "answer": "5",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-aggregate-29-1000p",
+     "family": "aggregate",
+     "question": "How many safety incidents occurred at a site whose operating supplier did not hold a valid ISO/IEC 27001 certificate on the day of the incident?",
+     "gold": "9",
+     "answer": "9",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-aggregate-30-1000p",
+     "family": "aggregate",
+     "question": "How many safety incidents were recorded at sites operated by Tamarind Catering Pty Ltd?",
+     "gold": "4",
+     "answer": "4",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-aggregate-31-1000p",
+     "family": "aggregate",
+     "question": "How many safety incidents were recorded at sites operated by Nettlefield Freight Pty Ltd?",
+     "gold": "1",
+     "answer": "1",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-absence-32-1000p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO 9001 certificate on 25 March 2024?",
+     "gold": "Tamarind Catering Pty Ltd; Sablewood Catering Pty Ltd",
+     "answer": "sablewood catering pty ltd; tamarind catering pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-absence-33-1000p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2025-04-09?",
+     "gold": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd; greyfield systems pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-absence-34-1000p",
+     "family": "absence",
+     "question": "Which contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 25 February 2025?",
+     "gold": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd; greyfield systems pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-35-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-8873 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-36-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-5035 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-37-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-6506 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "yes",
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-38-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-9285 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-39-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-3699 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-40-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-4632 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-41-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-2898 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-authority-42-1000p",
+     "family": "authority",
+     "question": "Was the approval of contract CN-5083 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "gold": "no",
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-unanswerable-43-1000p",
+     "family": "unanswerable",
+     "question": "Who was the Chief Financial Officer of Ferrous Pacific on 11 January 2019?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-unanswerable-44-1000p",
+     "family": "unanswerable",
+     "question": "What was the value of contract CN-3298 at signing?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-unanswerable-45-1000p",
+     "family": "unanswerable",
+     "question": "Who was the General Counsel of Ferrous Pacific on 2019-06-17?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w102-unanswerable-46-1000p",
+     "family": "unanswerable",
+     "question": "What was the value of contract CN-5463 at signing?",
+     "gold": "unknown",
+     "answer": "unknown",
+     "outcome": "correct"
+    }
+   ]
+  }
+ ]
+}
