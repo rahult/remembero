@@ -31,6 +31,8 @@ value_on(O, C, V, D) :- value_entry(O, C, V, E), when(D), E <= D, \\+ later_valu
 limit_on(O, P, L, D) :- holds(O, P, R, D), authority(O, R, L, F, T), F <= D, D < T.
 within_authority(O, C) :- approved(O, C, _, D), approver(O, C, P), limit_on(O, P, L, D), value_on(O, C, V, D), V <= L.
 decidable(O, C) :- approved(O, C, _, D), approver(O, C, P), holds(O, P, _, D), value_on(O, C, _, D).
+has_previous(O, C, N) :- amendment(O, C, N, _, _), amendment(O, C, M, _, _), M = N - 1.
+amendment_gap(O, C) :- amendment(O, C, N, _, _), N > 1, \\+ has_previous(O, C, N).
 cert_valid_on(O, S, Std, D) :- certificate(O, S, Std, I, X), cday(D), I <= D, D < X.
 has_operator(O, Site) :- site_operator(O, Site, _).
 orphan_incident(O, I) :- incident(O, I, _, Site, _), \\+ has_operator(O, Site).
@@ -128,8 +130,11 @@ export class EngineAnswerer {
       case 'identity':
         return one(this.column(`approver(${org}, ${c('contract')}, P)`, 'P'));
       case 'supersession':
+        // a numbered amendment with its predecessor missing: the record is provably incomplete
+        if (this.holds(`amendment_gap(${org}, ${c('contract')})`)) return 'unknown';
         return one(this.column(`value_on(${org}, ${c('contract')}, V, ${date})`, 'V'));
       case 'comparison': {
+        if (this.holds(`amendment_gap(${org}, ${c('contractA')})`) || this.holds(`amendment_gap(${org}, ${c('contractB')})`)) return 'unknown';
         const a = this.column(`value_on(${org}, ${c('contractA')}, V, ${date})`, 'V');
         const b = this.column(`value_on(${org}, ${c('contractB')}, V, ${date})`, 'V');
         if (a.length !== 1 || b.length !== 1 || a[0] === b[0]) return 'unknown';
@@ -154,6 +159,7 @@ export class EngineAnswerer {
       }
       case 'authority': {
         const contract = c('contract');
+        if (this.holds(`amendment_gap(${org}, ${contract})`)) return 'unknown';
         if (this.holds(`within_authority(${org}, ${contract})`)) return 'yes';
         return this.holds(`decidable(${org}, ${contract})`) ? 'no' : 'unknown';
       }

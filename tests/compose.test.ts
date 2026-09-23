@@ -157,3 +157,43 @@ describe('scoreCompose', () => {
     expect(declines('Unknown.')).toBe(true);
   });
 });
+
+describe('EngineAnswerer certainty guards', () => {
+  it('answers Unknown about a contract whose amendment numbering has a gap', async () => {
+    const { EngineAnswerer } = await import('../src/compose/engine-answer.js');
+    const org = 'Carrow Group';
+    const base = [
+      { predicate: 'contract', args: [org, 'CN-1111', 'Halstead Logistics Pty Ltd', 20220101, 20250101, 100000] },
+      { predicate: 'amendment', args: [org, 'CN-1111', 2, 20230601, 180000] },
+    ];
+    const gapped = new EngineAnswerer(base, [20240101]);
+    expect(gapped.answer('supersession', { contract: 'CN-1111', date: 20240101 })).toBe('unknown');
+    const complete = new EngineAnswerer([...base, { predicate: 'amendment', args: [org, 'CN-1111', 1, 20220901, 120000] }], [20240101]);
+    expect(complete.answer('supersession', { contract: 'CN-1111', date: 20240101 })).toBe('180000');
+  });
+
+  it('answers Unknown when two people appear to hold the same office on a date', async () => {
+    const { EngineAnswerer } = await import('../src/compose/engine-answer.js');
+    const org = 'Carrow Group';
+    const engine = new EngineAnswerer(
+      [
+        { predicate: 'appointed', args: [org, 'Amara Osei', 'Chief Risk Officer', 20220101] },
+        { predicate: 'appointed', args: [org, 'Tobias Brennan', 'Chief Risk Officer', 20230101] },
+      ],
+      [20240101],
+    );
+    expect(engine.answer('validity', { role: 'Chief Risk Officer', date: 20240101, organisation: org })).toBe('unknown');
+  });
+
+  it('keeps organisations apart', async () => {
+    const { EngineAnswerer } = await import('../src/compose/engine-answer.js');
+    const engine = new EngineAnswerer(
+      [
+        { predicate: 'appointed', args: ['Carrow Group', 'Amara Osei', 'Chief Risk Officer', 20220101] },
+        { predicate: 'appointed', args: ['Lumen Utilities', 'Tobias Brennan', 'Chief Risk Officer', 20220101] },
+      ],
+      [20240101],
+    );
+    expect(engine.answer('validity', { role: 'Chief Risk Officer', date: 20240101, organisation: 'Carrow Group' })).toBe('amara osei');
+  });
+});
