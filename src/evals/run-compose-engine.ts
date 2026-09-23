@@ -67,6 +67,7 @@ async function main() {
   const planner = flag('--planner', 'oracle');
   // extraction passes over record-like pages: 1 (single call) or 2 (second independent pass, merged)
   const passes = Number(flag('--passes', '2'));
+  const onlyTiers = argv.includes('--tiers') ? new Set(flag('--tiers', '').split(',')) : undefined;
   const plannerModel = flag('--planner-model', 'deepseek-chat');
   const plannerClient = new OpenRouterClient({
     model: plannerModel,
@@ -100,6 +101,7 @@ async function main() {
   const report: unknown[] = [];
   console.log('tier  | world | pages | kept facts | ungrounded | fact precision | fact recall | right | WRONG | part | decl');
   for (const tier of spec.tiers) {
+    if (onlyTiers !== undefined && !onlyTiers.has(tier.name)) continue;
     for (const documentId of tier.documents) {
       const source = spec.sources.find((s) => s.id === documentId)!;
       const seed = Number(/-w(\d+)-/.exec(documentId)![1]);

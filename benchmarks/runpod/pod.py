@@ -370,7 +370,7 @@ def build_pod_payload(*, run: str, served_name: str, api_key: str, volume_id: st
                       gpu: str = "NVIDIA GeForce RTX 5090", datacenter: str = "EUR-NO-1",
                       public_key: str | None = None, image: str = IMAGE, min_ram_gb: int = 48,
                       cloud_type: str = "COMMUNITY", second: tuple[str, str] | None = None,
-                      max_hours: float = SERVE_MAX_HOURS, idle_minutes: float = SERVE_IDLE_MINUTES) -> dict:
+                      max_hours: float = SERVE_MAX_HOURS, idle_minutes: float = SERVE_IDLE_MINUTES, base_model: str | None = None) -> dict:
     """PodCreateInput for the serving pod. Pure: everything it sends is in its arguments.
     `second=(run, served_name)` adds a second reader on port 8001 (serve_command); `max_hours` and
     `idle_minutes` are the two watchdogs that stop the pod from inside."""
@@ -400,7 +400,8 @@ def build_pod_payload(*, run: str, served_name: str, api_key: str, volume_id: st
         "imageName": image,
         "dockerEntrypoint": ["bash", "-lc"],
         "dockerStartCmd": [serve_command(run, served_name, second=second, max_hours=max_hours,
-                                        idle_minutes=idle_minutes)],
+                                        idle_minutes=idle_minutes,
+                                        **({} if base_model is None else {"base_model": base_model}))],
     }
 
 
@@ -517,7 +518,8 @@ def create_serve(a, env: dict[str, str], key: str) -> None:
     second = (a.run[1], a.served_name[1]) if len(a.run) == 2 else None
     payload = build_pod_payload(run=a.run[0], served_name=a.served_name[0], api_key=api_key, volume_id=volume,
                                 gpu=a.gpu, datacenter=a.datacenter, public_key=public_key, cloud_type=a.cloud,
-                                second=second, max_hours=a.max_hours, idle_minutes=a.idle_minutes)
+                                second=second, max_hours=a.max_hours, idle_minutes=a.idle_minutes,
+                                base_model=getattr(a, "base_model", None))
     pod = api("POST", "/pods", key, payload)
     pod_id = pod["id"]
     # the pod bills from here: its id reaches stdout before anything else can fail
@@ -632,6 +634,7 @@ def main(argv: list[str] | None = None) -> None:
     # the pod stops itself: after --max-hours whatever it is doing, or --idle-minutes with no request
     create.add_argument("--max-hours", type=float, default=SERVE_MAX_HOURS)
     create.add_argument("--idle-minutes", type=float, default=SERVE_IDLE_MINUTES)
+    create.add_argument("--base-model", default=None, help="Hugging Face id of the base the adapter was trained on")
     training = sub.add_parser("create-train")
     training.add_argument("--run", required=True)
     training.add_argument("--gpu", default=TRAIN_GPU); training.add_argument("--datacenter", default=TRAIN_DATACENTER)
