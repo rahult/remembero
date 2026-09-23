@@ -147,7 +147,9 @@ export function renderWorld(world: World, seed = world.seed): Section[] {
         ? personName(p)
         : approval.namedAs === 'initial'
           ? `${p.first[0]}. ${p.last}`
-          : `the ${roleName(world, heldRole.role)}`;
+          : approval.namedAs === 'surname'
+            ? `${p.title} ${p.last}`
+            : `the ${roleName(world, heldRole.role)}`;
     items.push({
       on: approval.on,
       line: {
@@ -157,7 +159,22 @@ export function renderWorld(world: World, seed = world.seed): Section[] {
         ]),
         // a role-named approval also needs the appointment that says who held the role that day
         keys: [keys.approval(c.id), ...(approval.namedAs === 'role' ? [keys.roleStart(heldRole.role, p.id)] : [])],
-        facts: [{ predicate: 'approved', args: [org, c.ref, who.replace(/^the /, ''), approval.on] }],
+        facts: [{ predicate: 'approved', args: [org, c.ref, approval.namedAs === 'surname' ? p.last : who.replace(/^the /, ''), approval.on] }],
+      },
+    });
+  }
+  for (const deferral of world.deferrals ?? []) {
+    const c = contract.get(deferral.contract)!;
+    items.push({
+      on: deferral.on,
+      line: {
+        text: rng.pick([
+          `Contract ${c.ref} with ${supplier.get(c.supplier)!.name} was tabled for approval on ${date(deferral.on)}; the decision was deferred.`,
+          `The Board considered contract ${c.ref} (${supplier.get(c.supplier)!.name}) on ${date(deferral.on)} and deferred its approval.`,
+        ]),
+        // states no approval: nothing to extract
+        keys: [],
+        facts: [],
       },
     });
   }

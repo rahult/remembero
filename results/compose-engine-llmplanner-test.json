@@ -4,7 +4,7 @@
  "planner": "llm",
  "plannerModel": "deepseek-chat",
  "spec": "benchmarks/compose/test/spec.json",
- "ranAt": "2026-09-23T15:14:57.803Z",
+ "ranAt": "2026-09-23T17:02:00.164Z",
  "costUsd": 0,
  "runs": [
   {
@@ -541,7 +541,7 @@
      "id": "w101-absence-32-100p",
      "family": "absence",
      "question": "Which of Carrow Group's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 21 March 2022?",
-     "gold": "Nettlefield Facilities Pty Ltd; Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
+     "gold": "Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
      "plan": {
       "family": "absence",
       "params": {
@@ -550,7 +550,7 @@
        "organisation": "Carrow Group"
       }
      },
-     "answer": "oakhurst data services pty ltd; emberton data services pty ltd; pennant data services pty ltd; nettlefield facilities pty ltd",
+     "answer": "oakhurst data services pty ltd; emberton data services pty ltd; pennant data services pty ltd",
      "outcome": "correct"
     },
     {
@@ -1290,7 +1290,7 @@
      "id": "w102-absence-33-100p",
      "family": "absence",
      "question": "Which of Ferrous Pacific's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2025-04-09?",
-     "gold": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "gold": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
      "plan": {
       "family": "absence",
       "params": {
@@ -1299,14 +1299,14 @@
        "organisation": "Ferrous Pacific"
       }
      },
-     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd; greyfield systems pty ltd",
+     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd",
      "outcome": "correct"
     },
     {
      "id": "w102-absence-34-100p",
      "family": "absence",
      "question": "Which of Ferrous Pacific's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 25 February 2025?",
-     "gold": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "gold": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
      "plan": {
       "family": "absence",
       "params": {
@@ -1315,7 +1315,7 @@
        "organisation": "Ferrous Pacific"
       }
      },
-     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd; greyfield systems pty ltd",
+     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd",
      "outcome": "correct"
     },
     {
@@ -2026,7 +2026,7 @@
      "id": "w101-absence-32-500p",
      "family": "absence",
      "question": "Which of Carrow Group's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 21 March 2022?",
-     "gold": "Nettlefield Facilities Pty Ltd; Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
+     "gold": "Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
      "plan": {
       "family": "absence",
       "params": {
@@ -2035,7 +2035,7 @@
        "organisation": "Carrow Group"
       }
      },
-     "answer": "oakhurst data services pty ltd; emberton data services pty ltd; pennant data services pty ltd; nettlefield facilities pty ltd",
+     "answer": "oakhurst data services pty ltd; emberton data services pty ltd; pennant data services pty ltd",
      "outcome": "correct"
     },
     {
@@ -2775,7 +2775,7 @@
      "id": "w102-absence-33-500p",
      "family": "absence",
      "question": "Which of Ferrous Pacific's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2025-04-09?",
-     "gold": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "gold": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
      "plan": {
       "family": "absence",
       "params": {
@@ -2784,14 +2784,14 @@
        "organisation": "Ferrous Pacific"
       }
      },
-     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd; greyfield systems pty ltd",
+     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd",
      "outcome": "correct"
     },
     {
      "id": "w102-absence-34-500p",
      "family": "absence",
      "question": "Which of Ferrous Pacific's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 25 February 2025?",
-     "gold": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "gold": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
      "plan": {
       "family": "absence",
       "params": {
@@ -2800,7 +2800,7 @@
        "organisation": "Ferrous Pacific"
       }
      },
-     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd; greyfield systems pty ltd",
+     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd",
      "outcome": "correct"
     },
     {
@@ -3511,7 +3511,7 @@
      "id": "w101-absence-32-1000p",
      "family": "absence",
      "question": "Which of Carrow Group's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 21 March 2022?",
-     "gold": "Nettlefield Facilities Pty Ltd; Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
+     "gold": "Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
      "plan": {
       "family": "absence",
       "params": {
@@ -3520,7 +3520,7 @@
        "organisation": "Carrow Group"
       }
      },
-     "answer": "oakhurst data services pty ltd; emberton data services pty ltd; pennant data services pty ltd; nettlefield facilities pty ltd",
+     "answer": "oakhurst data services pty ltd; emberton data services pty ltd; pennant data services pty ltd",
      "outcome": "correct"
     },
     {
@@ -4260,7 +4260,7 @@
      "id": "w102-absence-33-1000p",
      "family": "absence",
      "question": "Which of Ferrous Pacific's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2025-04-09?",
-     "gold": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "gold": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
      "plan": {
       "family": "absence",
       "params": {
@@ -4269,14 +4269,14 @@
        "organisation": "Ferrous Pacific"
       }
      },
-     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd; greyfield systems pty ltd",
+     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd",
      "outcome": "correct"
     },
     {
      "id": "w102-absence-34-1000p",
      "family": "absence",
      "question": "Which of Ferrous Pacific's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 25 February 2025?",
-     "gold": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "gold": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
      "plan": {
       "family": "absence",
       "params": {
@@ -4285,7 +4285,7 @@
        "organisation": "Ferrous Pacific"
       }
      },
-     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd; greyfield systems pty ltd",
+     "answer": "pennant engineering pty ltd; nettlefield freight pty ltd",
      "outcome": "correct"
     },
     {

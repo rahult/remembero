@@ -38,13 +38,14 @@ const V1_SISTERS = 2;
 
 async function main() {
   const split = (process.argv[2] ?? 'test') as Split;
-  const v2 = process.argv.includes('--v2');
+  const v3 = process.argv.includes('--v3');
+  const v2 = v3 || process.argv.includes('--v2');
   const v1 = v2 || process.argv.includes('--v1');
   // --seeds 103,104 --name holdout-v1: fresh worlds, generated after the pipeline was last changed
   const seedsAt = process.argv.indexOf('--seeds');
   const nameAt = process.argv.indexOf('--name');
   const seeds = seedsAt >= 0 ? process.argv[seedsAt + 1]!.split(',').map(Number) : SEEDS[split];
-  const outDir = `benchmarks/compose/${nameAt >= 0 ? process.argv[nameAt + 1] : `${split}${v2 ? '-v2' : v1 ? '-v1' : ''}`}`;
+  const outDir = `benchmarks/compose/${nameAt >= 0 ? process.argv[nameAt + 1] : `${split}${v3 ? '-v3' : v2 ? '-v2' : v1 ? '-v1' : ''}`}`;
   const lineCachePath = '.cache/compose/line-paraphrase.deepseek.json';
   const lineCache: Record<string, string> = existsSync(lineCachePath) ? JSON.parse(readFileSync(lineCachePath, 'utf8')) : {};
   let linesKept = 0;
@@ -106,7 +107,7 @@ async function main() {
   const sources: unknown[] = [];
   const tiers = TIERS.map((pages) => ({ name: `${pages}p`, documents: [] as string[] }));
   for (const [index, seed] of seeds.entries()) {
-    const world = generateWorld(seed, split);
+    const world = generateWorld(seed, split, v3 ? { adversarial: true } : {});
     const mainPages = paginate(await reword(renderWorld(world)));
     const questions = generateQuestions(world);
 
@@ -165,7 +166,7 @@ async function main() {
 
     for (const [t, total] of TIERS.entries()) {
       const hay = buildHaystack(worldPages, filler, total, depths);
-      const id = `compose-${split}${v2 ? 'v2' : v1 ? 'v1' : ''}-w${seed}-${total}p`;
+      const id = `compose-${split}${v3 ? 'v3' : v2 ? 'v2' : v1 ? 'v1' : ''}-w${seed}-${total}p`;
       const textPath = `${cacheDir}/${id}.pages.txt`;
       writeFileSync(textPath, hay.pages.join('\f'));
       tiers[t]!.documents.push(id);
@@ -197,7 +198,7 @@ async function main() {
   if (v2) console.log(`reworded lines: ${linesKept} kept, ${linesRejected} rejected (original line used)`);
   writeFileSync(
     `${outDir}/spec.json`,
-    `${JSON.stringify({ name: `compose-${split}${v2 ? '-v2' : v1 ? '-v1' : ''}`, labels: 'Compose: generated worlds, gold computed by the Datalog engine', tiers, sources }, null, 1)}\n`,
+    `${JSON.stringify({ name: `compose-${split}${v3 ? '-v3' : v2 ? '-v2' : v1 ? '-v1' : ''}`, labels: 'Compose: generated worlds, gold computed by the Datalog engine', tiers, sources }, null, 1)}\n`,
   );
   console.log(`wrote ${outDir}/spec.json`);
 }

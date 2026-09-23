@@ -6130,7 +6130,7 @@
     {
      "id": "w104-absence-32-100p",
      "question": "As of 23 May 2023, which suppliers under contract with Marlin Health lacked a valid ISO/IEC 27001 certificate?",
-     "answer": "Tamarind Engineering Pty Ltd; Zephyrine Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Kingsmead Logistics Pty Ltd; Harrowgate Facilities Pty Ltd",
+     "answer": "Zephyrine Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd",
      "evidencePages": [
       95
      ],
@@ -6140,11 +6140,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Tamarind Engineering Pty Ltd",
-        "Tamarind Engineering",
-        "Tamarind"
-       ],
        [
         "Zephyrine Engineering Pty Ltd",
         "Zephyrine Engineering",
@@ -6159,16 +6154,6 @@
         "Pennant Engineering Pty Ltd",
         "Pennant Engineering",
         "Pennant"
-       ],
-       [
-        "Kingsmead Logistics Pty Ltd",
-        "Kingsmead Logistics",
-        "Kingsmead"
-       ],
-       [
-        "Harrowgate Facilities Pty Ltd",
-        "Harrowgate Facilities",
-        "Harrowgate"
        ]
       ],
       "distractors": [
@@ -6176,7 +6161,7 @@
        "Vantage Engineering"
       ],
       "distractorNumbers": [],
-      "display": "Tamarind Engineering Pty Ltd; Zephyrine Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Kingsmead Logistics Pty Ltd; Harrowgate Facilities Pty Ltd"
+      "display": "Zephyrine Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -6187,7 +6172,7 @@
     {
      "id": "w104-absence-33-100p",
      "question": "As of 14/04/2025, which suppliers under contract with Marlin Health lacked a valid ISO/IEC 27001 certificate?",
-     "answer": "Tamarind Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Kingsmead Logistics Pty Ltd; Harrowgate Facilities Pty Ltd; Vantage Engineering Pty Ltd",
+     "answer": "Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Vantage Engineering Pty Ltd",
      "evidencePages": [
       95
      ],
@@ -6198,11 +6183,6 @@
       "kind": "set",
       "items": [
        [
-        "Tamarind Engineering Pty Ltd",
-        "Tamarind Engineering",
-        "Tamarind"
-       ],
-       [
         "Oakhurst Facilities Pty Ltd",
         "Oakhurst Facilities",
         "Oakhurst"
@@ -6211,16 +6191,6 @@
         "Pennant Engineering Pty Ltd",
         "Pennant Engineering",
         "Pennant"
-       ],
-       [
-        "Kingsmead Logistics Pty Ltd",
-        "Kingsmead Logistics",
-        "Kingsmead"
-       ],
-       [
-        "Harrowgate Facilities Pty Ltd",
-        "Harrowgate Facilities",
-        "Harrowgate"
        ],
        [
         "Vantage Engineering Pty Ltd",
@@ -6233,7 +6203,7 @@
        "Emberton Facilities"
       ],
       "distractorNumbers": [],
-      "display": "Tamarind Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Kingsmead Logistics Pty Ltd; Harrowgate Facilities Pty Ltd; Vantage Engineering Pty Ltd"
+      "display": "Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Vantage Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -6244,7 +6214,7 @@
     {
      "id": "w104-absence-34-100p",
      "question": "As of 8 May 2024, which of Marlin Health's contracted suppliers lacked a valid ISO 9001 certificate?",
-     "answer": "Tamarind Engineering Pty Ltd; Zephyrine Engineering Pty Ltd; Kingsmead Logistics Pty Ltd",
+     "answer": "Zephyrine Engineering Pty Ltd",
      "evidencePages": [
       95
      ],
@@ -6255,30 +6225,19 @@
       "kind": "set",
       "items": [
        [
-        "Tamarind Engineering Pty Ltd",
-        "Tamarind Engineering",
-        "Tamarind"
-       ],
-       [
         "Zephyrine Engineering Pty Ltd",
         "Zephyrine Engineering",
         "Zephyrine"
-       ],
-       [
-        "Kingsmead Logistics Pty Ltd",
-        "Kingsmead Logistics",
-        "Kingsmead"
        ]
       ],
       "distractors": [
        "Emberton Facilities",
        "Oakhurst Facilities",
        "Pennant Engineering",
-       "Harrowgate Facilities",
        "Vantage Engineering"
       ],
       "distractorNumbers": [],
-      "display": "Tamarind Engineering Pty Ltd; Zephyrine Engineering Pty Ltd; Kingsmead Logistics Pty Ltd"
+      "display": "Zephyrine Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO 9001",
@@ -7783,7 +7742,7 @@
     {
      "id": "w104-absence-32-500p",
      "question": "As of 23 May 2023, which suppliers under contract with Marlin Health lacked a valid ISO/IEC 27001 certificate?",
-     "answer": "Tamarind Engineering Pty Ltd; Zephyrine Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Kingsmead Logistics Pty Ltd; Harrowgate Facilities Pty Ltd",
+     "answer": "Zephyrine Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd",
      "evidencePages": [
       472
      ],
@@ -7793,11 +7752,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Tamarind Engineering Pty Ltd",
-        "Tamarind Engineering",
-        "Tamarind"
-       ],
        [
         "Zephyrine Engineering Pty Ltd",
         "Zephyrine Engineering",
@@ -7812,16 +7766,6 @@
         "Pennant Engineering Pty Ltd",
         "Pennant Engineering",
         "Pennant"
-       ],
-       [
-        "Kingsmead Logistics Pty Ltd",
-        "Kingsmead Logistics",
-        "Kingsmead"
-       ],
-       [
-        "Harrowgate Facilities Pty Ltd",
-        "Harrowgate Facilities",
-        "Harrowgate"
        ]
       ],
       "distractors": [
@@ -7829,7 +7773,7 @@
        "Vantage Engineering"
       ],
       "distractorNumbers": [],
-      "display": "Tamarind Engineering Pty Ltd; Zephyrine Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Kingsmead Logistics Pty Ltd; Harrowgate Facilities Pty Ltd"
+      "display": "Zephyrine Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -7840,7 +7784,7 @@
     {
      "id": "w104-absence-33-500p",
      "question": "As of 14/04/2025, which suppliers under contract with Marlin Health lacked a valid ISO/IEC 27001 certificate?",
-     "answer": "Tamarind Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Kingsmead Logistics Pty Ltd; Harrowgate Facilities Pty Ltd; Vantage Engineering Pty Ltd",
+     "answer": "Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Vantage Engineering Pty Ltd",
      "evidencePages": [
       472
      ],
@@ -7851,11 +7795,6 @@
       "kind": "set",
       "items": [
        [
-        "Tamarind Engineering Pty Ltd",
-        "Tamarind Engineering",
-        "Tamarind"
-       ],
-       [
         "Oakhurst Facilities Pty Ltd",
         "Oakhurst Facilities",
         "Oakhurst"
@@ -7864,16 +7803,6 @@
         "Pennant Engineering Pty Ltd",
         "Pennant Engineering",
         "Pennant"
-       ],
-       [
-        "Kingsmead Logistics Pty Ltd",
-        "Kingsmead Logistics",
-        "Kingsmead"
-       ],
-       [
-        "Harrowgate Facilities Pty Ltd",
-        "Harrowgate Facilities",
-        "Harrowgate"
        ],
        [
         "Vantage Engineering Pty Ltd",
@@ -7886,7 +7815,7 @@
        "Emberton Facilities"
       ],
       "distractorNumbers": [],
-      "display": "Tamarind Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Kingsmead Logistics Pty Ltd; Harrowgate Facilities Pty Ltd; Vantage Engineering Pty Ltd"
+      "display": "Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Vantage Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -7897,7 +7826,7 @@
     {
      "id": "w104-absence-34-500p",
      "question": "As of 8 May 2024, which of Marlin Health's contracted suppliers lacked a valid ISO 9001 certificate?",
-     "answer": "Tamarind Engineering Pty Ltd; Zephyrine Engineering Pty Ltd; Kingsmead Logistics Pty Ltd",
+     "answer": "Zephyrine Engineering Pty Ltd",
      "evidencePages": [
       472
      ],
@@ -7908,30 +7837,19 @@
       "kind": "set",
       "items": [
        [
-        "Tamarind Engineering Pty Ltd",
-        "Tamarind Engineering",
-        "Tamarind"
-       ],
-       [
         "Zephyrine Engineering Pty Ltd",
         "Zephyrine Engineering",
         "Zephyrine"
-       ],
-       [
-        "Kingsmead Logistics Pty Ltd",
-        "Kingsmead Logistics",
-        "Kingsmead"
        ]
       ],
       "distractors": [
        "Emberton Facilities",
        "Oakhurst Facilities",
        "Pennant Engineering",
-       "Harrowgate Facilities",
        "Vantage Engineering"
       ],
       "distractorNumbers": [],
-      "display": "Tamarind Engineering Pty Ltd; Zephyrine Engineering Pty Ltd; Kingsmead Logistics Pty Ltd"
+      "display": "Zephyrine Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO 9001",
@@ -9436,7 +9354,7 @@
     {
      "id": "w104-absence-32-1000p",
      "question": "As of 23 May 2023, which suppliers under contract with Marlin Health lacked a valid ISO/IEC 27001 certificate?",
-     "answer": "Tamarind Engineering Pty Ltd; Zephyrine Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Kingsmead Logistics Pty Ltd; Harrowgate Facilities Pty Ltd",
+     "answer": "Zephyrine Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd",
      "evidencePages": [
       944
      ],
@@ -9446,11 +9364,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Tamarind Engineering Pty Ltd",
-        "Tamarind Engineering",
-        "Tamarind"
-       ],
        [
         "Zephyrine Engineering Pty Ltd",
         "Zephyrine Engineering",
@@ -9465,16 +9378,6 @@
         "Pennant Engineering Pty Ltd",
         "Pennant Engineering",
         "Pennant"
-       ],
-       [
-        "Kingsmead Logistics Pty Ltd",
-        "Kingsmead Logistics",
-        "Kingsmead"
-       ],
-       [
-        "Harrowgate Facilities Pty Ltd",
-        "Harrowgate Facilities",
-        "Harrowgate"
        ]
       ],
       "distractors": [
@@ -9482,7 +9385,7 @@
        "Vantage Engineering"
       ],
       "distractorNumbers": [],
-      "display": "Tamarind Engineering Pty Ltd; Zephyrine Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Kingsmead Logistics Pty Ltd; Harrowgate Facilities Pty Ltd"
+      "display": "Zephyrine Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -9493,7 +9396,7 @@
     {
      "id": "w104-absence-33-1000p",
      "question": "As of 14/04/2025, which suppliers under contract with Marlin Health lacked a valid ISO/IEC 27001 certificate?",
-     "answer": "Tamarind Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Kingsmead Logistics Pty Ltd; Harrowgate Facilities Pty Ltd; Vantage Engineering Pty Ltd",
+     "answer": "Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Vantage Engineering Pty Ltd",
      "evidencePages": [
       944
      ],
@@ -9504,11 +9407,6 @@
       "kind": "set",
       "items": [
        [
-        "Tamarind Engineering Pty Ltd",
-        "Tamarind Engineering",
-        "Tamarind"
-       ],
-       [
         "Oakhurst Facilities Pty Ltd",
         "Oakhurst Facilities",
         "Oakhurst"
@@ -9517,16 +9415,6 @@
         "Pennant Engineering Pty Ltd",
         "Pennant Engineering",
         "Pennant"
-       ],
-       [
-        "Kingsmead Logistics Pty Ltd",
-        "Kingsmead Logistics",
-        "Kingsmead"
-       ],
-       [
-        "Harrowgate Facilities Pty Ltd",
-        "Harrowgate Facilities",
-        "Harrowgate"
        ],
        [
         "Vantage Engineering Pty Ltd",
@@ -9539,7 +9427,7 @@
        "Emberton Facilities"
       ],
       "distractorNumbers": [],
-      "display": "Tamarind Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Kingsmead Logistics Pty Ltd; Harrowgate Facilities Pty Ltd; Vantage Engineering Pty Ltd"
+      "display": "Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Vantage Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -9550,7 +9438,7 @@
     {
      "id": "w104-absence-34-1000p",
      "question": "As of 8 May 2024, which of Marlin Health's contracted suppliers lacked a valid ISO 9001 certificate?",
-     "answer": "Tamarind Engineering Pty Ltd; Zephyrine Engineering Pty Ltd; Kingsmead Logistics Pty Ltd",
+     "answer": "Zephyrine Engineering Pty Ltd",
      "evidencePages": [
       944
      ],
@@ -9561,30 +9449,19 @@
       "kind": "set",
       "items": [
        [
-        "Tamarind Engineering Pty Ltd",
-        "Tamarind Engineering",
-        "Tamarind"
-       ],
-       [
         "Zephyrine Engineering Pty Ltd",
         "Zephyrine Engineering",
         "Zephyrine"
-       ],
-       [
-        "Kingsmead Logistics Pty Ltd",
-        "Kingsmead Logistics",
-        "Kingsmead"
        ]
       ],
       "distractors": [
        "Emberton Facilities",
        "Oakhurst Facilities",
        "Pennant Engineering",
-       "Harrowgate Facilities",
        "Vantage Engineering"
       ],
       "distractorNumbers": [],
-      "display": "Tamarind Engineering Pty Ltd; Zephyrine Engineering Pty Ltd; Kingsmead Logistics Pty Ltd"
+      "display": "Zephyrine Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO 9001",

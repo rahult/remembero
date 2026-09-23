@@ -1225,7 +1225,6 @@
       ],
       "distractors": [
        "Brightwater Data Services",
-       "Corvid Data Services",
        "Meridian Logistics",
        "Glenrock Facilities",
        "Aldercroft Data Services",
@@ -1277,7 +1276,6 @@
       ],
       "distractors": [
        "Brightwater Data Services",
-       "Corvid Data Services",
        "Juniper Bay Facilities",
        "Glenrock Facilities"
       ],
@@ -1331,7 +1329,6 @@
       ],
       "distractors": [
        "Brightwater Data Services",
-       "Corvid Data Services",
        "Juniper Bay Facilities"
       ],
       "distractorNumbers": [],
@@ -2829,7 +2826,6 @@
       ],
       "distractors": [
        "Brightwater Data Services",
-       "Corvid Data Services",
        "Meridian Logistics",
        "Glenrock Facilities",
        "Aldercroft Data Services",
@@ -2881,7 +2877,6 @@
       ],
       "distractors": [
        "Brightwater Data Services",
-       "Corvid Data Services",
        "Juniper Bay Facilities",
        "Glenrock Facilities"
       ],
@@ -2935,7 +2930,6 @@
       ],
       "distractors": [
        "Brightwater Data Services",
-       "Corvid Data Services",
        "Juniper Bay Facilities"
       ],
       "distractorNumbers": [],
@@ -4433,7 +4427,6 @@
       ],
       "distractors": [
        "Brightwater Data Services",
-       "Corvid Data Services",
        "Meridian Logistics",
        "Glenrock Facilities",
        "Aldercroft Data Services",
@@ -4485,7 +4478,6 @@
       ],
       "distractors": [
        "Brightwater Data Services",
-       "Corvid Data Services",
        "Juniper Bay Facilities",
        "Glenrock Facilities"
       ],
@@ -4539,7 +4531,6 @@
       ],
       "distractors": [
        "Brightwater Data Services",
-       "Corvid Data Services",
        "Juniper Bay Facilities"
       ],
       "distractorNumbers": [],
@@ -6050,7 +6041,7 @@
     {
      "id": "w202-absence-32-100p",
      "question": "As of 29/10/2023, which suppliers contracted by Carrow Group were without a valid ISO/IEC 27001 certificate?",
-     "answer": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd",
+     "answer": "Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd",
      "evidencePages": [
       94
      ],
@@ -6060,11 +6051,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Brightwater Freight Pty Ltd",
-        "Brightwater Freight",
-        "Brightwater"
-       ],
        [
         "Umberly Catering Pty Ltd",
         "Umberly Catering",
@@ -6100,7 +6086,7 @@
        "Blackmoor Logistics"
       ],
       "distractorNumbers": [],
-      "display": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd"
+      "display": "Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -6128,7 +6114,6 @@
        ]
       ],
       "distractors": [
-       "Brightwater Freight",
        "Umberly Catering",
        "Yarrowby Security",
        "Driftwood Freight",
@@ -6148,7 +6133,7 @@
     {
      "id": "w202-absence-34-100p",
      "question": "As of 31/07/2022, which of the suppliers contracted by Carrow Group were without a valid ISO/IEC 27001 certificate?",
-     "answer": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd",
+     "answer": "Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd",
      "evidencePages": [
       94
      ],
@@ -6158,11 +6143,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Brightwater Freight Pty Ltd",
-        "Brightwater Freight",
-        "Brightwater"
-       ],
        [
         "Umberly Catering Pty Ltd",
         "Umberly Catering",
@@ -6194,7 +6174,7 @@
        "Redfern Freight"
       ],
       "distractorNumbers": [],
-      "display": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd"
+      "display": "Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -7705,7 +7685,7 @@
     {
      "id": "w202-absence-32-500p",
      "question": "As of 29/10/2023, which suppliers contracted by Carrow Group were without a valid ISO/IEC 27001 certificate?",
-     "answer": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd",
+     "answer": "Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd",
      "evidencePages": [
       458
      ],
@@ -7715,11 +7695,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Brightwater Freight Pty Ltd",
-        "Brightwater Freight",
-        "Brightwater"
-       ],
        [
         "Umberly Catering Pty Ltd",
         "Umberly Catering",
@@ -7755,7 +7730,7 @@
        "Blackmoor Logistics"
       ],
       "distractorNumbers": [],
-      "display": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd"
+      "display": "Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -7783,7 +7758,6 @@
        ]
       ],
       "distractors": [
-       "Brightwater Freight",
        "Umberly Catering",
        "Yarrowby Security",
        "Driftwood Freight",
@@ -7803,7 +7777,7 @@
     {
      "id": "w202-absence-34-500p",
      "question": "As of 31/07/2022, which of the suppliers contracted by Carrow Group were without a valid ISO/IEC 27001 certificate?",
-     "answer": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd",
+     "answer": "Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd",
      "evidencePages": [
       458
      ],
@@ -7813,11 +7787,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Brightwater Freight Pty Ltd",
-        "Brightwater Freight",
-        "Brightwater"
-       ],
        [
         "Umberly Catering Pty Ltd",
         "Umberly Catering",
@@ -7849,7 +7818,7 @@
        "Redfern Freight"
       ],
       "distractorNumbers": [],
-      "display": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd"
+      "display": "Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -9360,7 +9329,7 @@
     {
      "id": "w202-absence-32-1000p",
      "question": "As of 29/10/2023, which suppliers contracted by Carrow Group were without a valid ISO/IEC 27001 certificate?",
-     "answer": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd",
+     "answer": "Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd",
      "evidencePages": [
       916
      ],
@@ -9370,11 +9339,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Brightwater Freight Pty Ltd",
-        "Brightwater Freight",
-        "Brightwater"
-       ],
        [
         "Umberly Catering Pty Ltd",
         "Umberly Catering",
@@ -9410,7 +9374,7 @@
        "Blackmoor Logistics"
       ],
       "distractorNumbers": [],
-      "display": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd"
+      "display": "Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -9438,7 +9402,6 @@
        ]
       ],
       "distractors": [
-       "Brightwater Freight",
        "Umberly Catering",
        "Yarrowby Security",
        "Driftwood Freight",
@@ -9458,7 +9421,7 @@
     {
      "id": "w202-absence-34-1000p",
      "question": "As of 31/07/2022, which of the suppliers contracted by Carrow Group were without a valid ISO/IEC 27001 certificate?",
-     "answer": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd",
+     "answer": "Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd",
      "evidencePages": [
       916
      ],
@@ -9468,11 +9431,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Brightwater Freight Pty Ltd",
-        "Brightwater Freight",
-        "Brightwater"
-       ],
        [
         "Umberly Catering Pty Ltd",
         "Umberly Catering",
@@ -9504,7 +9462,7 @@
        "Redfern Freight"
       ],
       "distractorNumbers": [],
-      "display": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd"
+      "display": "Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",

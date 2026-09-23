@@ -350,3 +350,33 @@ What the numbers say:
   answers.
 - **A malformed output is not an answer.** The model emitted an impossible date (month 13) on one
   page; that fact is now rejected as unsupported instead of crashing the run.
+
+## v3: questions the documents cannot settle (2026-09-24)
+
+v3 adds cases where the only correct answer is Unknown: two people in one organisation share a
+surname and some approvals name the approver only as "Mr Rautio"; some contracts are tabled and
+their approval deferred, so "was the approval within authority?" has no approval to judge. Built
+on fresh worlds 107 and 108, on top of v2 (reworded documents, paraphrased questions, sister
+organisations). 101 questions.
+
+| 1000 pages | right | confidently wrong |
+| --- | --- | --- |
+| deepseek-chat reading 12 retrieved pages | 65% | 14% |
+| deepseek-chat handed the gold pages | 80% | 7% |
+| **engine (deepseek extraction and planner)** | **100%, 94%** | **0%** |
+
+The reader declined every deferral correctly and answered the namesake questions with the bare
+surname ("Mr Galloway") — scored partial, not wrong, since it names no one in full. The engine's
+Unknowns in world 108 trace to one missed resignation: without it two people could hold the same
+office, so the engine declines rather than choose.
+
+Three refinements made on the way, each checked against every earlier run (all still 0%
+confidently wrong, question ids unchanged):
+- **Role-scoped names.** "Rautio stepped down as Chief Risk Officer" is ambiguous across the
+  organisation but not within the office — only one Rautio held it — so resignations resolve by
+  name within the role when the organisation-wide alias is ambiguous.
+- **"Contracted" means holding a contract.** An absence question's gold had counted a supplier
+  known only from the certificate register; gold and engine now both mean suppliers with a
+  contract (3–9 absence labels per set changed; readers' saved answers are rescored from the spec).
+- **Repeating an ambiguous surname is partial**, not confidently wrong, on an unanswerable
+  identity question; naming either namesake in full is wrong.

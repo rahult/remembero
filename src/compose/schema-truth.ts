@@ -5,8 +5,17 @@
  */
 
 import { OPEN_END } from './dates.js';
+import { paginate, renderWorld } from './render.js';
 import type { Fact } from './extract.js';
 import { personName, roleName, STANDARD_NAMES, type World } from './world.js';
+
+/**
+ * The truth as the documents state it: the renderer's own per-line facts, so a resignation written
+ * with the full name is recorded with the full name and one written "Mx Brennan" with the surname.
+ */
+export function renderedSchemaFacts(world: World): Fact[] {
+  return paginate(renderWorld(world)).flatMap((page) => page.facts);
+}
 
 export function worldAsSchemaFacts(world: World): Fact[] {
   const org = world.organisation;
@@ -24,7 +33,8 @@ export function worldAsSchemaFacts(world: World): Fact[] {
   for (const a of world.approvals) {
     const p = person.get(a.person)!;
     const term = world.roleTerms.find((t) => t.person === p.id && t.from <= a.on && a.on < t.to)!;
-    const written = a.namedAs === 'name' ? personName(p) : a.namedAs === 'initial' ? `${p.first[0]}. ${p.last}` : roleName(world, term.role);
+    const written =
+      a.namedAs === 'name' ? personName(p) : a.namedAs === 'initial' ? `${p.first[0]}. ${p.last}` : a.namedAs === 'surname' ? p.last : roleName(world, term.role);
     facts.push({ predicate: 'approved', args: [contract.get(a.contract)!.ref, written, a.on] });
   }
   for (const c of world.contracts) {

@@ -1,10 +1,10 @@
 {
- "model": "deepseek-chat",
+ "model": "compose-engine-e2b",
  "passes": 2,
  "planner": "llm",
- "plannerModel": "deepseek-chat",
+ "plannerModel": "compose-engine-e2b",
  "spec": "benchmarks/compose/holdout-v2/spec.json",
- "ranAt": "2026-09-23T17:04:45.316Z",
+ "ranAt": "2026-09-23T17:06:16.711Z",
  "costUsd": 0,
  "runs": [
   {
@@ -12,21 +12,23 @@
    "world": 105,
    "pages": 100,
    "extraction": {
-    "kept": 392,
-    "dropped": 8,
+    "kept": 391,
+    "dropped": 5,
     "repaired": 0,
     "rejectedByTypeCheck": [
-     "appointed(carrow group|chief financial officer|chief financial officer|20230915)"
+     "approved(marlin health|bruno moreau|board|20220625)"
     ],
     "truth": 134,
-    "truePositives": 134,
+    "truePositives": 133,
     "falseFacts": [
+     "approved(carrow group|cn-9167|chief financial officer (westmere systems pty ltd)|20210418)",
      "ceased(carrow group|marchetti|chief financial officer|20220415)",
      "approved(carrow group|cn-2145|e. achterberg|20220520)",
      "approved(carrow group|cn-5279|k. ivanova|20220706)",
      "ceased(carrow group|tanaka|head of safety|20220911)",
      "approved(carrow group|cn-1822|d. sandoval|20221127)",
      "approved(carrow group|cn-8131|k. ivanova|20230117)",
+     "approved(carrow group|cn-2317|chief financial officer (larkspur freight pty ltd)|20230816)",
      "ceased(carrow group|raghavan|chief risk officer|20240219)",
      "approved(estuary holdings|cn-5411|b. balogun|20220302)",
      "approved(estuary holdings|cn-7204|d. raghavan|20220610)",
@@ -34,50 +36,37 @@
      "approved(estuary holdings|cn-8704|b. balogun|20221023)",
      "ceased(estuary holdings|osei|head of procurement|20230218)",
      "approved(estuary holdings|cn-7907|a. sandoval|20240526)",
-     "ceased(estuary holdings|delacroix|general counsel|20241118)",
      "approved(estuary holdings|cn-9639|l. haddad|20241104)",
+     "ceased(estuary holdings|delacroix|general counsel|20241118)",
      "ceased(estuary holdings|yilmaz|head of safety|20250126)"
     ],
-    "missedFacts": [],
+    "missedFacts": [
+     "appointed(marlin health|bruno moreau|chief risk officer|20220625)"
+    ],
     "droppedSample": [
      {
-      "page": 13,
-      "fact": "appointed(marlin health|v. weatherby|chair|20220201)",
+      "page": 18,
+      "fact": "approved(marlin health|minutes of the last meeting|board|20220801)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 13,
-      "fact": "ceased(marlin health|viktor whitcombe|general counsel|20250225)",
-      "reason": "date 20250225 is not on the page"
-     },
-     {
-      "page": 59,
-      "fact": "appointed(estuary holdings|b. balogun|chair|20220301)",
+      "page": 49,
+      "fact": "approved(marlin health|minutes of the last meeting|chair and directors|20231101)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 60,
-      "fact": "appointed(estuary holdings|d. raghavan|chair|20220601)",
+      "page": 72,
+      "fact": "approved(estuary holdings|minutes of the last meeting|board|20220901)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 65,
-      "fact": "appointed(estuary holdings|chair|chair|20220701)",
+      "page": 73,
+      "fact": "approved(estuary holdings|minutes of the last meeting|board|20221001)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 74,
-      "fact": "appointed(marlin health|kofi andrade|chair|20250601)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 91,
-      "fact": "appointed(estuary holdings|anders sandoval|chair|20240601)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 91,
-      "fact": "appointed(estuary holdings|elif ostrowski|director|20240601)",
+      "page": 76,
+      "fact": "approved(estuary holdings|minutes of the last meeting|chair and directors|20221201)",
       "reason": "not stated on any single line"
      }
     ]
@@ -587,8 +576,8 @@
        "contract": "CN-9545"
       }
      },
-     "answer": "no",
-     "outcome": "correct"
+     "answer": "unknown",
+     "outcome": "declined"
     },
     {
      "id": "w105-authority-35-100p",
@@ -741,12 +730,17 @@
    "world": 106,
    "pages": 100,
    "extraction": {
-    "kept": 375,
-    "dropped": 12,
+    "kept": 372,
+    "dropped": 2,
     "repaired": 0,
-    "rejectedByTypeCheck": [],
+    "rejectedByTypeCheck": [
+     "approved(estuary holdings|aiko andrade|chief operating officer|20210101)",
+     "approved(estuary holdings|noor novak|general counsel|20210101)",
+     "approved(estuary holdings|leilani sorensen|head of safety|20210101)",
+     "approved(lumen utilities|amara osei|amara osei|20221124)"
+    ],
     "truth": 128,
-    "truePositives": 128,
+    "truePositives": 125,
     "falseFacts": [
      "ceased(ferrous pacific|achterberg|chief operating officer|20220814)",
      "ceased(ferrous pacific|engstrom|head of safety|20221009)",
@@ -754,9 +748,9 @@
      "approved(ferrous pacific|cn-7113|r. okafor|20230226)",
      "ceased(ferrous pacific|okafor|chief risk officer|20240512)",
      "ceased(ferrous pacific|haddad|chief operating officer|20240519)",
-     "appointed(ferrous pacific|rafael ostrowski|head of safety|20240602)",
      "approved(ferrous pacific|cn-6942|p. yilmaz|20241125)",
      "approved(lumen utilities|cn-3961|a. adeyemi|20210427)",
+     "approved(lumen utilities|cn-2606|chief risk officer (cobalt ridge freight pty ltd)|20211216)",
      "approved(lumen utilities|cn-5826|l. thorsen|20220308)",
      "ceased(lumen utilities|okafor|head of safety|20220529)",
      "ceased(lumen utilities|tanaka|general counsel|20220915)",
@@ -771,67 +765,21 @@
      "ceased(lumen utilities|brennan|chief financial officer|20250301)",
      "approved(lumen utilities|cn-3134|p. balogun|20250508)"
     ],
-    "missedFacts": [],
+    "missedFacts": [
+     "appointed(estuary holdings|aiko andrade|chief operating officer|20210101)",
+     "appointed(estuary holdings|noor novak|general counsel|20210101)",
+     "appointed(estuary holdings|leilani sorensen|head of safety|20210101)"
+    ],
     "droppedSample": [
      {
-      "page": 4,
-      "fact": "appointed(ferrous pacific|emil delacroix|chair|20210401)",
+      "page": 25,
+      "fact": "approved(ferrous pacific|minutes of the last meeting|chair and directors|20230901)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 8,
-      "fact": "appointed(ferrous pacific|pieter adeyemi|chair|20210701)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 21,
-      "fact": "appointed(ferrous pacific|rafael okafor|chair|20230401)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 21,
-      "fact": "appointed(ferrous pacific|freya osei|director|20230401)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 32,
-      "fact": "appointed(ferrous pacific|p. yilmaz|chair|20241101)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 34,
-      "fact": "appointed(estuary holdings|s. solberg|chair|20221006)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 39,
-      "fact": "appointed(ferrous pacific|chair|chair|20250401)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 54,
-      "fact": "appointed(lumen utilities|anders adeyemi|chief risk officer|20211216)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 56,
-      "fact": "appointed(lumen utilities|l. thorsen|chair|20220301)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 68,
-      "fact": "appointed(lumen utilities|a. osei|chair|20240101)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 71,
-      "fact": "appointed(lumen utilities|bastian brennan|director|20240301)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 72,
-      "fact": "appointed(lumen utilities|pieter balogun|general counsel|20240418)",
-      "reason": "not stated on any single line"
+      "page": 58,
+      "fact": "approved(lumen utilities|n/a|board|20220601)",
+      "reason": "\"N/A\" is not on the page"
      }
     ]
    },
@@ -949,8 +897,8 @@
        "organisation": "Estuary Holdings"
       }
      },
-     "answer": "leilani sorensen",
-     "outcome": "correct"
+     "answer": "unknown",
+     "outcome": "declined"
     },
     {
      "id": "w106-validity-9-100p",
@@ -1542,21 +1490,23 @@
    "world": 105,
    "pages": 500,
    "extraction": {
-    "kept": 392,
-    "dropped": 8,
+    "kept": 391,
+    "dropped": 5,
     "repaired": 0,
     "rejectedByTypeCheck": [
-     "appointed(carrow group|chief financial officer|chief financial officer|20230915)"
+     "approved(marlin health|bruno moreau|board|20220625)"
     ],
     "truth": 134,
-    "truePositives": 134,
+    "truePositives": 133,
     "falseFacts": [
+     "approved(carrow group|cn-9167|chief financial officer (westmere systems pty ltd)|20210418)",
      "ceased(carrow group|marchetti|chief financial officer|20220415)",
      "approved(carrow group|cn-2145|e. achterberg|20220520)",
      "approved(carrow group|cn-5279|k. ivanova|20220706)",
      "ceased(carrow group|tanaka|head of safety|20220911)",
      "approved(carrow group|cn-1822|d. sandoval|20221127)",
      "approved(carrow group|cn-8131|k. ivanova|20230117)",
+     "approved(carrow group|cn-2317|chief financial officer (larkspur freight pty ltd)|20230816)",
      "ceased(carrow group|raghavan|chief risk officer|20240219)",
      "approved(estuary holdings|cn-5411|b. balogun|20220302)",
      "approved(estuary holdings|cn-7204|d. raghavan|20220610)",
@@ -1564,50 +1514,37 @@
      "approved(estuary holdings|cn-8704|b. balogun|20221023)",
      "ceased(estuary holdings|osei|head of procurement|20230218)",
      "approved(estuary holdings|cn-7907|a. sandoval|20240526)",
-     "ceased(estuary holdings|delacroix|general counsel|20241118)",
      "approved(estuary holdings|cn-9639|l. haddad|20241104)",
+     "ceased(estuary holdings|delacroix|general counsel|20241118)",
      "ceased(estuary holdings|yilmaz|head of safety|20250126)"
     ],
-    "missedFacts": [],
+    "missedFacts": [
+     "appointed(marlin health|bruno moreau|chief risk officer|20220625)"
+    ],
     "droppedSample": [
      {
-      "page": 64,
-      "fact": "appointed(marlin health|v. weatherby|chair|20220201)",
+      "page": 85,
+      "fact": "approved(marlin health|minutes of the last meeting|board|20220801)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 64,
-      "fact": "ceased(marlin health|viktor whitcombe|general counsel|20250225)",
-      "reason": "date 20250225 is not on the page"
-     },
-     {
-      "page": 291,
-      "fact": "appointed(estuary holdings|b. balogun|chair|20220301)",
+      "page": 245,
+      "fact": "approved(marlin health|minutes of the last meeting|chair and directors|20231101)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 297,
-      "fact": "appointed(estuary holdings|d. raghavan|chair|20220601)",
+      "page": 346,
+      "fact": "approved(estuary holdings|minutes of the last meeting|board|20220901)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 322,
-      "fact": "appointed(estuary holdings|chair|chair|20220701)",
+      "page": 351,
+      "fact": "approved(estuary holdings|minutes of the last meeting|board|20221001)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 367,
-      "fact": "appointed(marlin health|kofi andrade|chair|20250601)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 439,
-      "fact": "appointed(estuary holdings|anders sandoval|chair|20240601)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 439,
-      "fact": "appointed(estuary holdings|elif ostrowski|director|20240601)",
+      "page": 362,
+      "fact": "approved(estuary holdings|minutes of the last meeting|chair and directors|20221201)",
       "reason": "not stated on any single line"
      }
     ]
@@ -2117,8 +2054,8 @@
        "contract": "CN-9545"
       }
      },
-     "answer": "no",
-     "outcome": "correct"
+     "answer": "unknown",
+     "outcome": "declined"
     },
     {
      "id": "w105-authority-35-500p",
@@ -2271,12 +2208,17 @@
    "world": 106,
    "pages": 500,
    "extraction": {
-    "kept": 375,
-    "dropped": 12,
+    "kept": 372,
+    "dropped": 24,
     "repaired": 0,
-    "rejectedByTypeCheck": [],
+    "rejectedByTypeCheck": [
+     "approved(estuary holdings|aiko andrade|chief operating officer|20210101)",
+     "approved(estuary holdings|noor novak|general counsel|20210101)",
+     "approved(estuary holdings|leilani sorensen|head of safety|20210101)",
+     "approved(lumen utilities|amara osei|amara osei|20221124)"
+    ],
     "truth": 128,
-    "truePositives": 128,
+    "truePositives": 125,
     "falseFacts": [
      "ceased(ferrous pacific|achterberg|chief operating officer|20220814)",
      "ceased(ferrous pacific|engstrom|head of safety|20221009)",
@@ -2284,9 +2226,9 @@
      "approved(ferrous pacific|cn-7113|r. okafor|20230226)",
      "ceased(ferrous pacific|okafor|chief risk officer|20240512)",
      "ceased(ferrous pacific|haddad|chief operating officer|20240519)",
-     "appointed(ferrous pacific|rafael ostrowski|head of safety|20240602)",
      "approved(ferrous pacific|cn-6942|p. yilmaz|20241125)",
      "approved(lumen utilities|cn-3961|a. adeyemi|20210427)",
+     "approved(lumen utilities|cn-2606|chief risk officer (cobalt ridge freight pty ltd)|20211216)",
      "approved(lumen utilities|cn-5826|l. thorsen|20220308)",
      "ceased(lumen utilities|okafor|head of safety|20220529)",
      "ceased(lumen utilities|tanaka|general counsel|20220915)",
@@ -2301,67 +2243,131 @@
      "ceased(lumen utilities|brennan|chief financial officer|20250301)",
      "approved(lumen utilities|cn-3134|p. balogun|20250508)"
     ],
-    "missedFacts": [],
+    "missedFacts": [
+     "appointed(estuary holdings|aiko andrade|chief operating officer|20210101)",
+     "appointed(estuary holdings|noor novak|general counsel|20210101)",
+     "appointed(estuary holdings|leilani sorensen|head of safety|20210101)"
+    ],
     "droppedSample": [
      {
-      "page": 9,
-      "fact": "appointed(ferrous pacific|emil delacroix|chair|20210401)",
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|emmanuel d. kitcher|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|francis kwamin|department of oral pathology-oral medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|james e. mensah|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|f. amah nkansah|department of pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|angela l. ofori-atta|department of psychiatry|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|sammy ohene|department of psychiatry|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|charlotte osafo|department of medicine and therapeutics|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|isaac owusu|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|lorna renner|department of child health|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|michael segbefia|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|raymond tetteh|department of pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|lilly wu|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|ruby awittor|ghs, ashaiman|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|dorcas poku boateng|cardio-thoracic pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|priscilla ekpale|child health pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|obedia seaneke|child health pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|ama vortia|family physician|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|kwame adu-bonsaffoh|department of obstetrics and gynaecology|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|edith a. annan|world health organisation country office for ghana|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|brian a. asare|gndp, moh|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|kwodwo nkromah|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 17,
+      "fact": "appointed(standard treatment guidelines|yaw ofori-adjei|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 76,
+      "fact": "approved(ferrous pacific|minutes of the last meeting|chair and directors|20230901)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 11,
-      "fact": "appointed(ferrous pacific|pieter adeyemi|chair|20210701)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 61,
-      "fact": "appointed(ferrous pacific|rafael okafor|chair|20230401)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 61,
-      "fact": "appointed(ferrous pacific|freya osei|director|20230401)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 135,
-      "fact": "appointed(ferrous pacific|p. yilmaz|chair|20241101)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 169,
-      "fact": "appointed(estuary holdings|s. solberg|chair|20221006)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 175,
-      "fact": "appointed(ferrous pacific|chair|chair|20250401)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 262,
-      "fact": "appointed(lumen utilities|anders adeyemi|chief risk officer|20211216)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 273,
-      "fact": "appointed(lumen utilities|l. thorsen|chair|20220301)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 328,
-      "fact": "appointed(lumen utilities|a. osei|chair|20240101)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 334,
-      "fact": "appointed(lumen utilities|bastian brennan|director|20240301)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 336,
-      "fact": "appointed(lumen utilities|pieter balogun|general counsel|20240418)",
-      "reason": "not stated on any single line"
+      "page": 276,
+      "fact": "approved(lumen utilities|n/a|board|20220601)",
+      "reason": "\"N/A\" is not on the page"
      }
     ]
    },
@@ -2479,8 +2485,8 @@
        "organisation": "Estuary Holdings"
       }
      },
-     "answer": "leilani sorensen",
-     "outcome": "correct"
+     "answer": "unknown",
+     "outcome": "declined"
     },
     {
      "id": "w106-validity-9-500p",
@@ -3072,21 +3078,23 @@
    "world": 105,
    "pages": 1000,
    "extraction": {
-    "kept": 392,
-    "dropped": 8,
+    "kept": 391,
+    "dropped": 68,
     "repaired": 0,
     "rejectedByTypeCheck": [
-     "appointed(carrow group|chief financial officer|chief financial officer|20230915)"
+     "approved(marlin health|bruno moreau|board|20220625)"
     ],
     "truth": 134,
-    "truePositives": 134,
+    "truePositives": 133,
     "falseFacts": [
+     "approved(carrow group|cn-9167|chief financial officer (westmere systems pty ltd)|20210418)",
      "ceased(carrow group|marchetti|chief financial officer|20220415)",
      "approved(carrow group|cn-2145|e. achterberg|20220520)",
      "approved(carrow group|cn-5279|k. ivanova|20220706)",
      "ceased(carrow group|tanaka|head of safety|20220911)",
      "approved(carrow group|cn-1822|d. sandoval|20221127)",
      "approved(carrow group|cn-8131|k. ivanova|20230117)",
+     "approved(carrow group|cn-2317|chief financial officer (larkspur freight pty ltd)|20230816)",
      "ceased(carrow group|raghavan|chief risk officer|20240219)",
      "approved(estuary holdings|cn-5411|b. balogun|20220302)",
      "approved(estuary holdings|cn-7204|d. raghavan|20220610)",
@@ -3094,51 +3102,213 @@
      "approved(estuary holdings|cn-8704|b. balogun|20221023)",
      "ceased(estuary holdings|osei|head of procurement|20230218)",
      "approved(estuary holdings|cn-7907|a. sandoval|20240526)",
-     "ceased(estuary holdings|delacroix|general counsel|20241118)",
      "approved(estuary holdings|cn-9639|l. haddad|20241104)",
+     "ceased(estuary holdings|delacroix|general counsel|20241118)",
      "ceased(estuary holdings|yilmaz|head of safety|20250126)"
     ],
-    "missedFacts": [],
+    "missedFacts": [
+     "appointed(marlin health|bruno moreau|chief risk officer|20220625)"
+    ],
     "droppedSample": [
      {
-      "page": 127,
-      "fact": "appointed(marlin health|v. weatherby|chair|20220201)",
+      "page": 169,
+      "fact": "approved(marlin health|minutes of the last meeting|board|20220801)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 127,
-      "fact": "ceased(marlin health|viktor whitcombe|general counsel|20250225)",
-      "reason": "date 20250225 is not on the page"
-     },
-     {
-      "page": 582,
-      "fact": "appointed(estuary holdings|b. balogun|chair|20220301)",
+      "page": 490,
+      "fact": "approved(marlin health|minutes of the last meeting|chair and directors|20231101)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 593,
-      "fact": "appointed(estuary holdings|d. raghavan|chair|20220601)",
+      "page": 693,
+      "fact": "approved(estuary holdings|minutes of the last meeting|board|20220901)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 643,
-      "fact": "appointed(estuary holdings|chair|chair|20220701)",
+      "page": 701,
+      "fact": "approved(estuary holdings|minutes of the last meeting|board|20221001)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 734,
-      "fact": "appointed(marlin health|kofi andrade|chair|20250601)",
+      "page": 724,
+      "fact": "approved(estuary holdings|minutes of the last meeting|chair and directors|20221201)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 877,
-      "fact": "appointed(estuary holdings|anders sandoval|chair|20240601)",
-      "reason": "not stated on any single line"
+      "page": 898,
+      "fact": "appointed(argentina|m. nuñez|ciudad universitaria|0)",
+      "reason": "0 is not a valid date"
      },
      {
-      "page": 877,
-      "fact": "appointed(estuary holdings|elif ostrowski|director|20240601)",
-      "reason": "not stated on any single line"
+      "page": 898,
+      "fact": "appointed(australia|k. abel|australian greenhouse office|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|g. ayers|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|s. barrell|bureau of meteorology|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|p. bate|bureau of meteorology|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|b. bates|csiro division of land and water|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|t. beer|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|r. boers|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|w. budd|university of tasmania|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|i. carruthers|australian greenhouse office|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|s. charles|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|j. church|csiro division of marine research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|d. collins|bureau of meteorology|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|r. colman|bureau of meteorology research centre|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|d. cosgrove|bureau of transport economics|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|s. crimp|department of natural resources|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|b. curran|bureau of meteorology|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|m. davison|australian industry greenhouse network|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|m. dix|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|b. dixon|bureau of meteorology|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|m. england|university of new south wales|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|i. enting|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|d. etheridge|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|g. farquhar|australian national university|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|p. forster|monash university|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|r. francey|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|p. fraser|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|r. gifford|csiro division of plant industry|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|i. goodwin|university of tasmania|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|j. gras|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|g. hassall|australian greenhouse office|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 898,
+      "fact": "appointed(australia|a. henderson-sellers|australian nuclear science and technology organisation|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 906,
+      "fact": "appointed(sudan|n. awad|higher council for environment & natural resources|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 906,
+      "fact": "appointed(sudan|i. elgizouli|higher council for environment & natural resources|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 906,
+      "fact": "appointed(sudan|n. goutbi|higher council for environment & natural resources|0)",
+      "reason": "0 is not a valid date"
      }
     ]
    },
@@ -3647,8 +3817,8 @@
        "contract": "CN-9545"
       }
      },
-     "answer": "no",
-     "outcome": "correct"
+     "answer": "unknown",
+     "outcome": "declined"
     },
     {
      "id": "w105-authority-35-1000p",
@@ -3801,12 +3971,17 @@
    "world": 106,
    "pages": 1000,
    "extraction": {
-    "kept": 375,
-    "dropped": 12,
+    "kept": 372,
+    "dropped": 24,
     "repaired": 0,
-    "rejectedByTypeCheck": [],
+    "rejectedByTypeCheck": [
+     "approved(estuary holdings|aiko andrade|chief operating officer|20210101)",
+     "approved(estuary holdings|noor novak|general counsel|20210101)",
+     "approved(estuary holdings|leilani sorensen|head of safety|20210101)",
+     "approved(lumen utilities|amara osei|amara osei|20221124)"
+    ],
     "truth": 128,
-    "truePositives": 128,
+    "truePositives": 125,
     "falseFacts": [
      "ceased(ferrous pacific|achterberg|chief operating officer|20220814)",
      "ceased(ferrous pacific|engstrom|head of safety|20221009)",
@@ -3814,9 +3989,9 @@
      "approved(ferrous pacific|cn-7113|r. okafor|20230226)",
      "ceased(ferrous pacific|okafor|chief risk officer|20240512)",
      "ceased(ferrous pacific|haddad|chief operating officer|20240519)",
-     "appointed(ferrous pacific|rafael ostrowski|head of safety|20240602)",
      "approved(ferrous pacific|cn-6942|p. yilmaz|20241125)",
      "approved(lumen utilities|cn-3961|a. adeyemi|20210427)",
+     "approved(lumen utilities|cn-2606|chief risk officer (cobalt ridge freight pty ltd)|20211216)",
      "approved(lumen utilities|cn-5826|l. thorsen|20220308)",
      "ceased(lumen utilities|okafor|head of safety|20220529)",
      "ceased(lumen utilities|tanaka|general counsel|20220915)",
@@ -3831,67 +4006,131 @@
      "ceased(lumen utilities|brennan|chief financial officer|20250301)",
      "approved(lumen utilities|cn-3134|p. balogun|20250508)"
     ],
-    "missedFacts": [],
+    "missedFacts": [
+     "appointed(estuary holdings|aiko andrade|chief operating officer|20210101)",
+     "appointed(estuary holdings|noor novak|general counsel|20210101)",
+     "appointed(estuary holdings|leilani sorensen|head of safety|20210101)"
+    ],
     "droppedSample": [
      {
-      "page": 17,
-      "fact": "appointed(ferrous pacific|emil delacroix|chair|20210401)",
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|emmanuel d. kitcher|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|francis kwamin|department of oral pathology-oral medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|james e. mensah|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|f. amah nkansah|department of pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|angela l. ofori-atta|department of psychiatry|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|sammy ohene|department of psychiatry|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|charlotte osafo|department of medicine and therapeutics|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|isaac owusu|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|lorna renner|department of child health|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|michael segbefia|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|raymond tetteh|department of pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|lilly wu|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|ruby awittor|ghs, ashaiman|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|dorcas poku boateng|cardio-thoracic pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|priscilla ekpale|child health pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|obedia seaneke|child health pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|ama vortia|family physician|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|kwame adu-bonsaffoh|department of obstetrics and gynaecology|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|edith a. annan|world health organisation country office for ghana|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|brian a. asare|gndp, moh|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|kwodwo nkromah|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|yaw ofori-adjei|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 152,
+      "fact": "approved(ferrous pacific|minutes of the last meeting|chair and directors|20230901)",
       "reason": "not stated on any single line"
      },
      {
-      "page": 20,
-      "fact": "appointed(ferrous pacific|pieter adeyemi|chair|20210701)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 120,
-      "fact": "appointed(ferrous pacific|rafael okafor|chair|20230401)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 120,
-      "fact": "appointed(ferrous pacific|freya osei|director|20230401)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 269,
-      "fact": "appointed(ferrous pacific|p. yilmaz|chair|20241101)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 338,
-      "fact": "appointed(estuary holdings|s. solberg|chair|20221006)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 348,
-      "fact": "appointed(ferrous pacific|chair|chair|20250401)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 523,
-      "fact": "appointed(lumen utilities|anders adeyemi|chief risk officer|20211216)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 545,
-      "fact": "appointed(lumen utilities|l. thorsen|chair|20220301)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 655,
-      "fact": "appointed(lumen utilities|a. osei|chair|20240101)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 668,
-      "fact": "appointed(lumen utilities|bastian brennan|director|20240301)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 672,
-      "fact": "appointed(lumen utilities|pieter balogun|general counsel|20240418)",
-      "reason": "not stated on any single line"
+      "page": 550,
+      "fact": "approved(lumen utilities|n/a|board|20220601)",
+      "reason": "\"N/A\" is not on the page"
      }
     ]
    },
@@ -4009,8 +4248,8 @@
        "organisation": "Estuary Holdings"
       }
      },
-     "answer": "leilani sorensen",
-     "outcome": "correct"
+     "answer": "unknown",
+     "outcome": "declined"
     },
     {
      "id": "w106-validity-9-1000p",

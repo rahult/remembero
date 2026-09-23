@@ -1,10 +1,10 @@
 {
- "model": "deepseek-chat",
+ "model": "compose-engine-e2b",
  "passes": 2,
  "planner": "llm",
- "plannerModel": "deepseek-chat",
+ "plannerModel": "compose-engine-e2b",
  "spec": "benchmarks/compose/holdout-v1/spec.json",
- "ranAt": "2026-09-23T17:03:58.777Z",
+ "ranAt": "2026-09-23T17:05:36.861Z",
  "costUsd": 0,
  "runs": [
   {
@@ -13,7 +13,7 @@
    "pages": 100,
    "extraction": {
     "kept": 374,
-    "dropped": 4,
+    "dropped": 0,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 118,
@@ -41,28 +41,7 @@
      "approved(tidewater transit|cn-1348|l. brennan|20250725)"
     ],
     "missedFacts": [],
-    "droppedSample": [
-     {
-      "page": 5,
-      "fact": "appointed(lumen utilities|l. thorsen|chair|20210801)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 7,
-      "fact": "appointed(marlin health|declan solberg|chair|20211101)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 24,
-      "fact": "appointed(lumen utilities|o. yilmaz|chief risk officer|20240708)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 75,
-      "fact": "appointed(marlin health|viktor lachance|chair|20241101)",
-      "reason": "not stated on any single line"
-     }
-    ]
+    "droppedSample": []
    },
    "outcomes": [
     {
@@ -756,7 +735,7 @@
    "pages": 100,
    "extraction": {
     "kept": 353,
-    "dropped": 13,
+    "dropped": 22,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 114,
@@ -784,69 +763,114 @@
     "missedFacts": [],
     "droppedSample": [
      {
-      "page": 23,
-      "fact": "appointed(tidewater transit|chief operating officer|chief operating officer|20230301)",
-      "reason": "not stated on any single line"
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|emmanuel d. kitcher|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 28,
-      "fact": "appointed(tidewater transit|n. thorsen|chief operating officer|20230909)",
-      "reason": "not stated on any single line"
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|francis kwamin|department of oral pathology-oral medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 50,
-      "fact": "appointed(marlin health|noor beaumont|chair|20230501)",
-      "reason": "not stated on any single line"
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|james e. mensah|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 50,
-      "fact": "appointed(marlin health|noor beaumont|director|20230501)",
-      "reason": "not stated on any single line"
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|f. amah nkansah|department of pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 51,
-      "fact": "appointed(carrow group|e. ivanova|chair|20210301)",
-      "reason": "not stated on any single line"
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|angela l. ofori-atta|department of psychiatry|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 52,
-      "fact": "appointed(carrow group|emil brennan|chief financial officer|20210701)",
-      "reason": "not stated on any single line"
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|sammy ohene|department of psychiatry|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 68,
-      "fact": "appointed(carrow group|arjun balogun|chair|20230101)",
-      "reason": "not stated on any single line"
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|charlotte osafo|department of medicine and therapeutics|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 75,
-      "fact": "appointed(carrow group|i. okafor|chair|20230601)",
-      "reason": "not stated on any single line"
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|isaac owusu|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 76,
-      "fact": "appointed(carrow group|tariq ekberg|chief operating officer|20230813)",
-      "reason": "not stated on any single line"
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|lorna renner|department of child health|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 76,
-      "fact": "appointed(carrow group|tariq ekberg|chair|20230801)",
-      "reason": "not stated on any single line"
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|michael segbefia|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 76,
-      "fact": "appointed(carrow group|tariq ekberg|director|20230801)",
-      "reason": "not stated on any single line"
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|raymond tetteh|department of pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 76,
-      "fact": "appointed(carrow group|okafor|chief operating officer|20230801)",
-      "reason": "not stated on any single line"
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|lilly wu|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 82,
-      "fact": "appointed(marlin health|viktor andrade|chair|20241101)",
-      "reason": "not stated on any single line"
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|ruby awittor|ghs, ashaiman|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|dorcas poku boateng|cardio-thoracic pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|priscilla ekpale|child health pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|obedia seaneke|child health pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|ama vortia|family physician|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|kwame adu-bonsaffoh|department of obstetrics and gynaecology|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|edith a. annan|world health organisation country office for ghana|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|brian a. asare|gndp, moh|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|kwodwo nkromah|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|yaw ofori-adjei|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
      }
     ]
    },
@@ -1542,7 +1566,7 @@
    "pages": 500,
    "extraction": {
     "kept": 374,
-    "dropped": 4,
+    "dropped": 0,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 118,
@@ -1570,28 +1594,7 @@
      "approved(tidewater transit|cn-1348|l. brennan|20250725)"
     ],
     "missedFacts": [],
-    "droppedSample": [
-     {
-      "page": 17,
-      "fact": "appointed(lumen utilities|l. thorsen|chair|20210801)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 28,
-      "fact": "appointed(marlin health|declan solberg|chair|20211101)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 117,
-      "fact": "appointed(lumen utilities|o. yilmaz|chief risk officer|20240708)",
-      "reason": "not stated on any single line"
-     },
-     {
-      "page": 374,
-      "fact": "appointed(marlin health|viktor lachance|chair|20241101)",
-      "reason": "not stated on any single line"
-     }
-    ]
+    "droppedSample": []
    },
    "outcomes": [
     {
@@ -2285,7 +2288,7 @@
    "pages": 500,
    "extraction": {
     "kept": 353,
-    "dropped": 13,
+    "dropped": 22,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 114,
@@ -2313,69 +2316,114 @@
     "missedFacts": [],
     "droppedSample": [
      {
-      "page": 85,
-      "fact": "appointed(tidewater transit|chief operating officer|chief operating officer|20230301)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|emmanuel d. kitcher|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 101,
-      "fact": "appointed(tidewater transit|n. thorsen|chief operating officer|20230909)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|francis kwamin|department of oral pathology-oral medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 248,
-      "fact": "appointed(carrow group|e. ivanova|chair|20210301)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|james e. mensah|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 249,
-      "fact": "appointed(marlin health|noor beaumont|chair|20230501)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|f. amah nkansah|department of pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 249,
-      "fact": "appointed(marlin health|noor beaumont|director|20230501)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|angela l. ofori-atta|department of psychiatry|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 253,
-      "fact": "appointed(carrow group|emil brennan|chief financial officer|20210701)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|sammy ohene|department of psychiatry|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 339,
-      "fact": "appointed(carrow group|arjun balogun|chair|20230101)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|charlotte osafo|department of medicine and therapeutics|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 367,
-      "fact": "appointed(carrow group|i. okafor|chair|20230601)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|isaac owusu|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 373,
-      "fact": "appointed(carrow group|tariq ekberg|chief operating officer|20230813)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|lorna renner|department of child health|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 373,
-      "fact": "appointed(carrow group|tariq ekberg|chair|20230801)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|michael segbefia|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 373,
-      "fact": "appointed(carrow group|tariq ekberg|director|20230801)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|raymond tetteh|department of pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 373,
-      "fact": "appointed(carrow group|okafor|chief operating officer|20230801)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|lilly wu|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 407,
-      "fact": "appointed(marlin health|viktor andrade|chair|20241101)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|ruby awittor|ghs, ashaiman|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|dorcas poku boateng|cardio-thoracic pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|priscilla ekpale|child health pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|obedia seaneke|child health pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|ama vortia|family physician|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|kwame adu-bonsaffoh|department of obstetrics and gynaecology|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|edith a. annan|world health organisation country office for ghana|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|brian a. asare|gndp, moh|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|kwodwo nkromah|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|yaw ofori-adjei|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
      }
     ]
    },
@@ -3071,7 +3119,7 @@
    "pages": 1000,
    "extraction": {
     "kept": 374,
-    "dropped": 4,
+    "dropped": 63,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 118,
@@ -3101,24 +3149,204 @@
     "missedFacts": [],
     "droppedSample": [
      {
-      "page": 33,
-      "fact": "appointed(lumen utilities|l. thorsen|chair|20210801)",
-      "reason": "not stated on any single line"
+      "page": 889,
+      "fact": "appointed(argentina|m. nuñez|ciudad universitaria|0)",
+      "reason": "0 is not a valid date"
      },
      {
-      "page": 55,
-      "fact": "appointed(marlin health|declan solberg|chair|20211101)",
-      "reason": "not stated on any single line"
+      "page": 889,
+      "fact": "appointed(australia|k. abel|australian greenhouse office|0)",
+      "reason": "0 is not a valid date"
      },
      {
-      "page": 233,
-      "fact": "appointed(lumen utilities|o. yilmaz|chief risk officer|20240708)",
-      "reason": "not stated on any single line"
+      "page": 889,
+      "fact": "appointed(australia|g. ayers|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
      },
      {
-      "page": 748,
-      "fact": "appointed(marlin health|viktor lachance|chair|20241101)",
-      "reason": "not stated on any single line"
+      "page": 889,
+      "fact": "appointed(australia|s. barrell|bureau of meteorology|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|p. bate|bureau of meteorology|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|b. bates|csiro division of land and water|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|t. beer|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|r. boers|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|w. budd|university of tasmania|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|i. carruthers|australian greenhouse office|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|s. charles|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|j. church|csiro division of marine research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|d. collins|bureau of meteorology|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|r. colman|bureau of meteorology research centre|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|d. cosgrove|bureau of transport economics|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|s. crimp|department of natural resources|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|b. curran|bureau of meteorology|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|m. davison|australian industry greenhouse network|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|m. dix|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|b. dixon|bureau of meteorology|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|m. england|university of new south wales|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|i. enting|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|d. etheridge|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|g. farquhar|australian national university|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|p. forster|monash university|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|r. francey|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|p. fraser|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|r. gifford|csiro division of plant industry|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|i. goodwin|university of tasmania|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|j. gras|csiro division of atmospheric research|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|g. hassall|australian greenhouse office|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 889,
+      "fact": "appointed(australia|a. henderson-sellers|australian nuclear science and technology organisation|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 897,
+      "fact": "appointed(sudan|n. awad|higher council for environment & natural resources|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 897,
+      "fact": "appointed(sudan|i. elgizouli|higher council for environment & natural resources|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 897,
+      "fact": "appointed(sudan|n. goutbi|higher council for environment & natural resources|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 897,
+      "fact": "appointed(sweden|r. charlson|stockholm university|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 897,
+      "fact": "appointed(sweden|e. källén|stockholm university|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 897,
+      "fact": "appointed(sweden|a. moberg|stockholm university|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 897,
+      "fact": "appointed(sweden|n. morner|stockholm university|0)",
+      "reason": "0 is not a valid date"
+     },
+     {
+      "page": 897,
+      "fact": "appointed(sweden|j. raisanen|swedish meteorological and hydrological institute|0)",
+      "reason": "0 is not a valid date"
      }
     ]
    },
@@ -3814,7 +4042,7 @@
    "pages": 1000,
    "extraction": {
     "kept": 353,
-    "dropped": 13,
+    "dropped": 22,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 114,
@@ -3842,69 +4070,114 @@
     "missedFacts": [],
     "droppedSample": [
      {
-      "page": 169,
-      "fact": "appointed(tidewater transit|chief operating officer|chief operating officer|20230301)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|emmanuel d. kitcher|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 201,
-      "fact": "appointed(tidewater transit|n. thorsen|chief operating officer|20230909)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|francis kwamin|department of oral pathology-oral medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 496,
-      "fact": "appointed(carrow group|e. ivanova|chair|20210301)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|james e. mensah|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 498,
-      "fact": "appointed(marlin health|noor beaumont|chair|20230501)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|f. amah nkansah|department of pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 498,
-      "fact": "appointed(marlin health|noor beaumont|director|20230501)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|angela l. ofori-atta|department of psychiatry|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 505,
-      "fact": "appointed(carrow group|emil brennan|chief financial officer|20210701)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|sammy ohene|department of psychiatry|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 678,
-      "fact": "appointed(carrow group|arjun balogun|chair|20230101)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|charlotte osafo|department of medicine and therapeutics|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 734,
-      "fact": "appointed(carrow group|i. okafor|chair|20230601)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|isaac owusu|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 746,
-      "fact": "appointed(carrow group|tariq ekberg|chief operating officer|20230813)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|lorna renner|department of child health|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 746,
-      "fact": "appointed(carrow group|tariq ekberg|chair|20230801)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|michael segbefia|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 746,
-      "fact": "appointed(carrow group|tariq ekberg|director|20230801)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|raymond tetteh|department of pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 746,
-      "fact": "appointed(carrow group|okafor|chief operating officer|20230801)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|lilly wu|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
      },
      {
-      "page": 814,
-      "fact": "appointed(marlin health|viktor andrade|chair|20241101)",
-      "reason": "not stated on any single line"
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|ruby awittor|ghs, ashaiman|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|dorcas poku boateng|cardio-thoracic pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|priscilla ekpale|child health pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|obedia seaneke|child health pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|ama vortia|family physician|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|kwame adu-bonsaffoh|department of obstetrics and gynaecology|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|edith a. annan|world health organisation country office for ghana|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|brian a. asare|gndp, moh|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|kwodwo nkromah|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 13,
+      "fact": "appointed(standard treatment guidelines|yaw ofori-adjei|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
      }
     ]
    },

@@ -21,6 +21,7 @@ export function paraphraseProblem(question: ComposeQuestion, paraphrase: string)
   const text = squash(paraphrase);
   if (text.trim().length < 10) return 'empty';
   for (const [name, value] of Object.entries(question.params)) {
+    if (name === 'shape') continue;
     if (name === 'date') {
       if (!dateSpellings(Number(value)).some((s) => text.includes(squash(s)))) return `date ${value} lost`;
     } else if (!text.includes(squash(String(value)))) {

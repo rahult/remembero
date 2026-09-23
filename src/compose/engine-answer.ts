@@ -18,6 +18,7 @@ cday(D) :- qday(D).
 cday(D) :- incident(_, _, D, _, _).
 term(O, P, R, F) :- appointed(O, N, R, F), alias(O, N, P).
 stop(O, P, R, E) :- ceased(O, M, R, E), alias(O, M, P).
+stop(O, P, R, E) :- ceased(O, M, R, E), role_alias(O, M, R, P).
 ended(O, P, R, F, D) :- term(O, P, R, F), stop(O, P, R, E), when(D), F <= E, E <= D.
 holds(O, P, R, D) :- term(O, P, R, F), when(D), F <= D, \\+ ended(O, P, R, F, D).
 approver(O, C, P) :- approved(O, C, A, _), alias(O, A, P).
@@ -38,7 +39,6 @@ has_operator(O, Site) :- site_operator(O, Site, _).
 orphan_incident(O, I) :- incident(O, I, _, Site, _), \\+ has_operator(O, Site).
 uncertified_incident(O, I, Std) :- incident(O, I, D, Site, _), site_operator(O, Site, S), standard(Std), \\+ cert_valid_on(O, S, Std, D).
 supplier(O, S) :- contract(O, _, S, _, _, _).
-supplier(O, S) :- site_operator(O, _, S).
 `;
 
 function quote(text: string): string {
@@ -70,6 +70,25 @@ export function aliasFacts(facts: readonly Fact[]): string[] {
     }
     for (const [alias, names] of byAlias) {
       if (names.size === 1) out.push(`alias(${quote(org)}, ${quote(alias)}, ${quote([...names][0]!)}).`);
+    }
+    // within one role a surname is often unique even when the organisation has two of it:
+    // "Rautio stepped down as Chief Risk Officer" names the Rautio who held that office
+    const roles = new Set(facts.filter((f) => f.predicate === 'appointed' && f.args[0] === org).map((f) => String(f.args[2])));
+    for (const role of roles) {
+      const holders = [...new Set(facts.filter((f) => f.predicate === 'appointed' && f.args[0] === org && f.args[2] === role).map((f) => String(f.args[1])))];
+      const byRoleAlias = new Map<string, Set<string>>();
+      for (const name of holders) {
+        const parts = name.split(' ');
+        const last = parts[parts.length - 1]!;
+        for (const alias of [name, last, ...(parts.length > 1 ? [`${parts[0]![0]}. ${last}`] : [])]) {
+          byRoleAlias.set(alias, new Set([...(byRoleAlias.get(alias) ?? []), name]));
+        }
+      }
+      for (const [alias, names] of byRoleAlias) {
+        if (names.size === 1 && byAlias.get(alias)?.size !== 1) {
+          out.push(`role_alias(${quote(org)}, ${quote(alias)}, ${quote(role)}, ${quote([...names][0]!)}).`);
+        }
+      }
     }
   }
   return out;
@@ -164,6 +183,8 @@ export class EngineAnswerer {
         return this.holds(`decidable(${org}, ${contract})`) ? 'no' : 'unknown';
       }
       case 'unanswerable':
+        if (params.shape === 'identity') return this.answer('identity', params);
+        if (params.shape === 'authority') return this.answer('authority', params);
         return params.role !== undefined
           ? one(this.column(`holds(${org}, P, ${c('role')}, ${date})`, 'P'))
           : one(this.column(`contract(${org}, ${c('contract')}, _, _, _, V)`, 'V'));

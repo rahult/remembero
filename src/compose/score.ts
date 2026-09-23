@@ -103,7 +103,12 @@ function firstIndex(answer: string, phrases: readonly string[]): number {
 const CONTRAST = /\b(while|whereas|by contrast|however|in contrast|all other|the other suppliers|the remaining|other suppliers|did hold|held valid|had valid|held a valid)\b/;
 
 export function scoreCompose(answer: string, gold: ComposeGold): ComposeOutcome {
-  if (gold.kind === 'unknown') return declines(answer) ? 'correct' : 'wrong';
+  if (gold.kind === 'unknown') {
+    if (declines(answer)) return 'correct';
+    // repeating an ambiguous surname without claiming who it is: not a confident misidentification
+    if ((gold.partial ?? []).some((p) => mentions(answer, p)) && !gold.distractors.some((d) => mentions(answer, d))) return 'partial';
+    return 'wrong';
+  }
 
   switch (gold.kind) {
     case 'entity': {

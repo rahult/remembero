@@ -1234,7 +1234,7 @@
     {
      "id": "w101-absence-32-100p",
      "question": "As of 21/03/2022, which suppliers contracted by the Carrow Group were without a valid ISO/IEC 27001 certificate?",
-     "answer": "Nettlefield Facilities Pty Ltd; Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
+     "answer": "Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
      "evidencePages": [
       88
      ],
@@ -1244,11 +1244,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Nettlefield Facilities Pty Ltd",
-        "Nettlefield Facilities",
-        "Nettlefield"
-       ],
        [
         "Emberton Data Services Pty Ltd",
         "Emberton Data Services",
@@ -1268,11 +1263,10 @@
       "distractors": [
        "Kingsmead Data Services",
        "Zephyrine Data Services",
-       "Kestrel Systems",
        "Harrowgate Systems"
       ],
       "distractorNumbers": [],
-      "display": "Nettlefield Facilities Pty Ltd; Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd"
+      "display": "Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -1300,12 +1294,10 @@
        ]
       ],
       "distractors": [
-       "Nettlefield Facilities",
        "Emberton Data Services",
        "Zephyrine Data Services",
        "Oakhurst Data Services",
        "Pennant Data Services",
-       "Kestrel Systems",
        "Harrowgate Systems"
       ],
       "distractorNumbers": [],
@@ -1337,12 +1329,10 @@
        ]
       ],
       "distractors": [
-       "Nettlefield Facilities",
        "Emberton Data Services",
        "Zephyrine Data Services",
        "Oakhurst Data Services",
        "Pennant Data Services",
-       "Kestrel Systems",
        "Harrowgate Systems"
       ],
       "distractorNumbers": [],
@@ -1374,12 +1364,10 @@
        ]
       ],
       "distractors": [
-       "Nettlefield Facilities",
        "Emberton Data Services",
        "Zephyrine Data Services",
        "Oakhurst Data Services",
        "Pennant Data Services",
-       "Kestrel Systems",
        "Harrowgate Systems"
       ],
       "distractorNumbers": [],
@@ -2887,7 +2875,7 @@
     {
      "id": "w101-absence-32-500p",
      "question": "As of 21/03/2022, which suppliers contracted by the Carrow Group were without a valid ISO/IEC 27001 certificate?",
-     "answer": "Nettlefield Facilities Pty Ltd; Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
+     "answer": "Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
      "evidencePages": [
       442
      ],
@@ -2897,11 +2885,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Nettlefield Facilities Pty Ltd",
-        "Nettlefield Facilities",
-        "Nettlefield"
-       ],
        [
         "Emberton Data Services Pty Ltd",
         "Emberton Data Services",
@@ -2921,11 +2904,10 @@
       "distractors": [
        "Kingsmead Data Services",
        "Zephyrine Data Services",
-       "Kestrel Systems",
        "Harrowgate Systems"
       ],
       "distractorNumbers": [],
-      "display": "Nettlefield Facilities Pty Ltd; Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd"
+      "display": "Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -2953,12 +2935,10 @@
        ]
       ],
       "distractors": [
-       "Nettlefield Facilities",
        "Emberton Data Services",
        "Zephyrine Data Services",
        "Oakhurst Data Services",
        "Pennant Data Services",
-       "Kestrel Systems",
        "Harrowgate Systems"
       ],
       "distractorNumbers": [],
@@ -2990,12 +2970,10 @@
        ]
       ],
       "distractors": [
-       "Nettlefield Facilities",
        "Emberton Data Services",
        "Zephyrine Data Services",
        "Oakhurst Data Services",
        "Pennant Data Services",
-       "Kestrel Systems",
        "Harrowgate Systems"
       ],
       "distractorNumbers": [],
@@ -3027,12 +3005,10 @@
        ]
       ],
       "distractors": [
-       "Nettlefield Facilities",
        "Emberton Data Services",
        "Zephyrine Data Services",
        "Oakhurst Data Services",
        "Pennant Data Services",
-       "Kestrel Systems",
        "Harrowgate Systems"
       ],
       "distractorNumbers": [],
@@ -4540,7 +4516,7 @@
     {
      "id": "w101-absence-32-1000p",
      "question": "As of 21/03/2022, which suppliers contracted by the Carrow Group were without a valid ISO/IEC 27001 certificate?",
-     "answer": "Nettlefield Facilities Pty Ltd; Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
+     "answer": "Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd",
      "evidencePages": [
       884
      ],
@@ -4550,11 +4526,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Nettlefield Facilities Pty Ltd",
-        "Nettlefield Facilities",
-        "Nettlefield"
-       ],
        [
         "Emberton Data Services Pty Ltd",
         "Emberton Data Services",
@@ -4574,11 +4545,10 @@
       "distractors": [
        "Kingsmead Data Services",
        "Zephyrine Data Services",
-       "Kestrel Systems",
        "Harrowgate Systems"
       ],
       "distractorNumbers": [],
-      "display": "Nettlefield Facilities Pty Ltd; Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd"
+      "display": "Emberton Data Services Pty Ltd; Oakhurst Data Services Pty Ltd; Pennant Data Services Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -4606,12 +4576,10 @@
        ]
       ],
       "distractors": [
-       "Nettlefield Facilities",
        "Emberton Data Services",
        "Zephyrine Data Services",
        "Oakhurst Data Services",
        "Pennant Data Services",
-       "Kestrel Systems",
        "Harrowgate Systems"
       ],
       "distractorNumbers": [],
@@ -4643,12 +4611,10 @@
        ]
       ],
       "distractors": [
-       "Nettlefield Facilities",
        "Emberton Data Services",
        "Zephyrine Data Services",
        "Oakhurst Data Services",
        "Pennant Data Services",
-       "Kestrel Systems",
        "Harrowgate Systems"
       ],
       "distractorNumbers": [],
@@ -4680,12 +4646,10 @@
        ]
       ],
       "distractors": [
-       "Nettlefield Facilities",
        "Emberton Data Services",
        "Zephyrine Data Services",
        "Oakhurst Data Services",
        "Pennant Data Services",
-       "Kestrel Systems",
        "Harrowgate Systems"
       ],
       "distractorNumbers": [],
@@ -6217,7 +6181,6 @@
        ]
       ],
       "distractors": [
-       "Greyfield Systems",
        "Nettlefield Freight",
        "Pennant Engineering",
        "Kestrel Catering",
@@ -6236,7 +6199,7 @@
     {
      "id": "w102-absence-33-100p",
      "question": "Identify any contracted suppliers of Ferrous Pacific that, as of 09/04/2025, did not maintain a valid ISO/IEC 27001 certificate.",
-     "answer": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "answer": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
      "evidencePages": [
       98
      ],
@@ -6246,11 +6209,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Greyfield Systems Pty Ltd",
-        "Greyfield Systems",
-        "Greyfield"
-       ],
        [
         "Nettlefield Freight Pty Ltd",
         "Nettlefield Freight",
@@ -6270,7 +6228,7 @@
        "Kingsmead Catering"
       ],
       "distractorNumbers": [],
-      "display": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd"
+      "display": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -6281,7 +6239,7 @@
     {
      "id": "w102-absence-34-100p",
      "question": "As of 25/02/2025, which suppliers contracted by Ferrous Pacific were without a valid ISO/IEC 27001 certificate?",
-     "answer": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "answer": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
      "evidencePages": [
       98
      ],
@@ -6291,11 +6249,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Greyfield Systems Pty Ltd",
-        "Greyfield Systems",
-        "Greyfield"
-       ],
        [
         "Nettlefield Freight Pty Ltd",
         "Nettlefield Freight",
@@ -6315,7 +6268,7 @@
        "Kingsmead Catering"
       ],
       "distractorNumbers": [],
-      "display": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd"
+      "display": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -7843,7 +7796,6 @@
        ]
       ],
       "distractors": [
-       "Greyfield Systems",
        "Nettlefield Freight",
        "Pennant Engineering",
        "Kestrel Catering",
@@ -7862,7 +7814,7 @@
     {
      "id": "w102-absence-33-500p",
      "question": "Identify any contracted suppliers of Ferrous Pacific that, as of 09/04/2025, did not maintain a valid ISO/IEC 27001 certificate.",
-     "answer": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "answer": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
      "evidencePages": [
       490
      ],
@@ -7872,11 +7824,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Greyfield Systems Pty Ltd",
-        "Greyfield Systems",
-        "Greyfield"
-       ],
        [
         "Nettlefield Freight Pty Ltd",
         "Nettlefield Freight",
@@ -7896,7 +7843,7 @@
        "Kingsmead Catering"
       ],
       "distractorNumbers": [],
-      "display": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd"
+      "display": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -7907,7 +7854,7 @@
     {
      "id": "w102-absence-34-500p",
      "question": "As of 25/02/2025, which suppliers contracted by Ferrous Pacific were without a valid ISO/IEC 27001 certificate?",
-     "answer": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "answer": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
      "evidencePages": [
       490
      ],
@@ -7917,11 +7864,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Greyfield Systems Pty Ltd",
-        "Greyfield Systems",
-        "Greyfield"
-       ],
        [
         "Nettlefield Freight Pty Ltd",
         "Nettlefield Freight",
@@ -7941,7 +7883,7 @@
        "Kingsmead Catering"
       ],
       "distractorNumbers": [],
-      "display": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd"
+      "display": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -9469,7 +9411,6 @@
        ]
       ],
       "distractors": [
-       "Greyfield Systems",
        "Nettlefield Freight",
        "Pennant Engineering",
        "Kestrel Catering",
@@ -9488,7 +9429,7 @@
     {
      "id": "w102-absence-33-1000p",
      "question": "Identify any contracted suppliers of Ferrous Pacific that, as of 09/04/2025, did not maintain a valid ISO/IEC 27001 certificate.",
-     "answer": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "answer": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
      "evidencePages": [
       980
      ],
@@ -9498,11 +9439,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Greyfield Systems Pty Ltd",
-        "Greyfield Systems",
-        "Greyfield"
-       ],
        [
         "Nettlefield Freight Pty Ltd",
         "Nettlefield Freight",
@@ -9522,7 +9458,7 @@
        "Kingsmead Catering"
       ],
       "distractorNumbers": [],
-      "display": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd"
+      "display": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",
@@ -9533,7 +9469,7 @@
     {
      "id": "w102-absence-34-1000p",
      "question": "As of 25/02/2025, which suppliers contracted by Ferrous Pacific were without a valid ISO/IEC 27001 certificate?",
-     "answer": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
+     "answer": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd",
      "evidencePages": [
       980
      ],
@@ -9543,11 +9479,6 @@
      "compose": {
       "kind": "set",
       "items": [
-       [
-        "Greyfield Systems Pty Ltd",
-        "Greyfield Systems",
-        "Greyfield"
-       ],
        [
         "Nettlefield Freight Pty Ltd",
         "Nettlefield Freight",
@@ -9567,7 +9498,7 @@
        "Kingsmead Catering"
       ],
       "distractorNumbers": [],
-      "display": "Greyfield Systems Pty Ltd; Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd"
+      "display": "Nettlefield Freight Pty Ltd; Pennant Engineering Pty Ltd"
      },
      "params": {
       "standard": "ISO/IEC 27001",

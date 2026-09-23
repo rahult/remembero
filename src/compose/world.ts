@@ -69,8 +69,11 @@ export interface Approval {
   contract: string;
   person: string;
   on: Ymd;
-  /** How the minutes name the approver: by name, by initials, or by the role held that day. */
-  namedAs: 'name' | 'initial' | 'role';
+  /**
+   * How the minutes name the approver: by name, by initials, by the role held that day, or (v3,
+   * adversarial) by title and a surname two people share — which no reader can resolve.
+   */
+  namedAs: 'name' | 'initial' | 'role' | 'surname';
 }
 
 export interface Certificate {
@@ -95,6 +98,12 @@ export interface Proposal {
   on: Ymd;
 }
 
+/** A contract tabled for approval and deferred: it has a value but no approval (v3). */
+export interface Deferral {
+  contract: string;
+  on: Ymd;
+}
+
 export interface World {
   seed: number;
   split: Split;
@@ -111,6 +120,9 @@ export interface World {
   certificates: Certificate[];
   incidents: Incident[];
   proposals: Proposal[];
+  /** v3: contracts whose approval was deferred, and the people who share a surname. */
+  deferrals: Deferral[];
+  surnameTwins: string[];
 }
 
 export const STANDARD_NAMES: Record<Certificate['standard'], string> = {
@@ -180,6 +192,12 @@ export interface WorldOptions {
   organisation?: string;
   /** Contract references already used elsewhere in the same haystack. */
   avoidRefs?: ReadonlySet<string>;
+  /**
+   * v3: questions the documents cannot settle. Two people share a surname and some approvals name
+   * the approver only by title and that surname; some contracts are tabled and deferred, never
+   * approved. Applied after every other draw, so a world's other facts are unchanged by it.
+   */
+  adversarial?: boolean;
   people?: number;
   suppliers?: number;
   contracts?: number;
@@ -323,10 +341,36 @@ export function generateWorld(seed: number, split: Split, options: WorldOptions 
     });
   }
 
+  const organisation = options.organisation ?? rng.pick(ORGANISATIONS);
+  const deferrals: Deferral[] = [];
+  const surnameTwins: string[] = [];
+  if (options.adversarial === true) {
+    // two approvers become namesakes: the second takes the first's surname (a different initial)
+    const approvers = [...new Set(approvals.map((a) => a.person))];
+    const [first, second] = rng.sample(approvers, Math.min(2, approvers.length));
+    if (first !== undefined && second !== undefined) {
+      const a = people.find((p) => p.id === first)!;
+      const b = people.find((p) => p.id === second)!;
+      b.last = a.last;
+      if (b.first[0] === a.first[0]) b.first = firstPool.find((f) => f[0] !== a.first[0]) ?? b.first;
+      surnameTwins.push(a.id, b.id);
+      // one approval of each twin names them only by title and surname
+      for (const twin of [a.id, b.id]) {
+        const theirs = approvals.filter((x) => x.person === twin);
+        if (theirs.length > 0) rng.pick(theirs).namedAs = 'surname';
+      }
+    }
+    // two approvals are replaced by a deferral
+    for (const approval of rng.sample(approvals.filter((x) => x.namedAs !== 'surname'), Math.min(2, approvals.length))) {
+      approvals.splice(approvals.indexOf(approval), 1);
+      deferrals.push({ contract: approval.contract, on: approval.on });
+    }
+  }
+
   return {
     seed,
     split,
-    organisation: options.organisation ?? rng.pick(ORGANISATIONS),
+    organisation,
     people,
     roles: ROLES,
     roleTerms,
@@ -339,6 +383,8 @@ export function generateWorld(seed: number, split: Split, options: WorldOptions 
     certificates,
     incidents,
     proposals,
+    deferrals,
+    surnameTwins,
   };
 }
 

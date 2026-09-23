@@ -50,6 +50,8 @@ export function goldPlan(q: ComposeQuestion): { shape: string; params: Record<st
     case 'absence': return { shape: 'suppliers_without_certificate_on_date', params: { standard: p.standard!, date: p.date!, organisation: p.organisation! } };
     case 'authority': return { shape: 'approval_within_authority', params: { contract: p.contract! } };
     case 'unanswerable':
+      if (p.shape === 'identity') return { shape: 'approver_of_contract', params: { contract: p.contract! } };
+      if (p.shape === 'authority') return { shape: 'approval_within_authority', params: { contract: p.contract! } };
       return p.role !== undefined
         ? { shape: 'role_holder_on_date', params: { role: p.role, date: p.date!, organisation: p.organisation! } }
         : { shape: 'value_at_signing', params: { contract: p.contract! } };

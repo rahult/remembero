@@ -1,0 +1,3839 @@
+{
+  "corpus": "compose-test-v3",
+  "labels": "Compose: generated worlds, gold computed by the Datalog engine",
+  "ranAt": "2026-09-23T17:09:14.367Z",
+  "reader": "deepseek-chat",
+  "judge": null,
+  "settings": {
+    "oraclePages": false,
+    "ranker": "product",
+    "read": "pages",
+    "dated": false,
+    "price": {
+      "inputPerMillion": 0.15,
+      "outputPerMillion": 0.6
+    },
+    "topK": 12,
+    "contextBytes": 49152,
+    "pagesPerWindow": 1,
+    "windowBytes": 12288
+  },
+  "tiers": [
+    {
+      "tier": "1000p",
+      "assembled": false,
+      "summary": {
+        "tier": "1000p",
+        "pages": 2000,
+        "windows": 2000,
+        "questions": 101,
+        "answerable": 85,
+        "unanswerable": 16,
+        "accuracy": 0.6534653465346535,
+        "answerableAccuracy": 0.6235294117647059,
+        "localeAccuracy": 0.6534653465346535,
+        "evidenceHitRate": 0.8941176470588236,
+        "meanPageRecall": 0.7470588235294119,
+        "meanWindowPrecision": 0.12745098039215683,
+        "falseAnswerRate": 0.1875,
+        "meanLatencyMs": 1797.6423667821782,
+        "meanContextBytes": 17635.188118811882,
+        "confidentWrongRate": 0.16831683168316833,
+        "declinedRate": 0.24752475247524752,
+        "meanRetrievalMs": 143.43496245544557,
+        "meanReaderMs": 1653.3756031089108,
+        "p50LatencyMs": 1742.642584000001,
+        "p95LatencyMs": 3144.689542,
+        "meanPromptTokens": 4055.6039603960394,
+        "meanCompletionTokens": 151.84158415841586,
+        "meanReasoningTokens": 0,
+        "totalCostUsd": 0.07064400000000001,
+        "costPerAnswerUsd": 0.0006994455445544556,
+        "costPerCorrectUsd": 0.0010703636363636367,
+        "meanTokenF1": 0.1788515535012577,
+        "meanAnls": 0.13347338935574227,
+        "judgedQuestions": 0
+      },
+      "documents": [
+        {
+          "document": "compose-testv3-w107-1000p",
+          "title": "Carrow Group records (Compose world 107) in 1000 pages",
+          "sourceUrl": "generated",
+          "pages": 1000,
+          "summary": {
+            "tier": "1000p/compose-testv3-w107-1000p",
+            "pages": 1000,
+            "windows": 1000,
+            "questions": 51,
+            "answerable": 43,
+            "unanswerable": 8,
+            "accuracy": 0.6666666666666666,
+            "answerableAccuracy": 0.6511627906976745,
+            "localeAccuracy": 0.6666666666666666,
+            "evidenceHitRate": 0.9302325581395349,
+            "meanPageRecall": 0.7771317829457367,
+            "meanWindowPrecision": 0.12868217054263562,
+            "falseAnswerRate": 0.25,
+            "meanLatencyMs": 1848.3931119803926,
+            "meanContextBytes": 15212.509803921568,
+            "confidentWrongRate": 0.1568627450980392,
+            "declinedRate": 0.23529411764705882,
+            "meanRetrievalMs": 184.9264559019609,
+            "meanReaderMs": 1662.7060709999998,
+            "p50LatencyMs": 1822.2464580000014,
+            "p95LatencyMs": 3175.668749999999,
+            "meanPromptTokens": 3854.607843137255,
+            "meanCompletionTokens": 163.94117647058823,
+            "meanReasoningTokens": 0,
+            "totalCostUsd": 0.03450434999999999,
+            "costPerAnswerUsd": 0.0006765558823529409,
+            "costPerCorrectUsd": 0.0010148338235294115,
+            "meanTokenF1": 0.179537526960165,
+            "meanAnls": 0.12677438840229538,
+            "judgedQuestions": 0
+          }
+        },
+        {
+          "document": "compose-testv3-w108-1000p",
+          "title": "Ferrous Pacific records (Compose world 108) in 1000 pages",
+          "sourceUrl": "generated",
+          "pages": 1000,
+          "summary": {
+            "tier": "1000p/compose-testv3-w108-1000p",
+            "pages": 1000,
+            "windows": 1000,
+            "questions": 50,
+            "answerable": 42,
+            "unanswerable": 8,
+            "accuracy": 0.64,
+            "answerableAccuracy": 0.5952380952380952,
+            "localeAccuracy": 0.64,
+            "evidenceHitRate": 0.8571428571428571,
+            "meanPageRecall": 0.7162698412698413,
+            "meanWindowPrecision": 0.12619047619047613,
+            "falseAnswerRate": 0.125,
+            "meanLatencyMs": 1745.87660668,
+            "meanContextBytes": 20106.32,
+            "confidentWrongRate": 0.18,
+            "declinedRate": 0.26,
+            "meanRetrievalMs": 101.11363913999995,
+            "meanReaderMs": 1643.8585258599999,
+            "p50LatencyMs": 1738.935583999999,
+            "p95LatencyMs": 3141.0267920000006,
+            "meanPromptTokens": 4260.62,
+            "meanCompletionTokens": 139.5,
+            "meanReasoningTokens": 0,
+            "totalCostUsd": 0.03613965000000001,
+            "costPerAnswerUsd": 0.0007227930000000002,
+            "costPerCorrectUsd": 0.0011293640625000003,
+            "meanTokenF1": 0.17814924734094784,
+            "meanAnls": 0.14033189033189034,
+            "judgedQuestions": 0
+          }
+        }
+      ],
+      "errors": [],
+      "outcomes": [
+        {
+          "id": "w107-needle-1-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What was the contract value of CN-5926 as of the date it was signed?",
+          "gold": "365000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            641
+          ],
+          "answer": "AUD 365,000",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "needle",
+          "hops": 1,
+          "tokenF1": 0.667,
+          "anls": 0.545,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 2068,
+          "contextBytes": 11739,
+          "readerTokens": {
+            "prompt": 3632,
+            "completion": 6,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0005484,
+          "retrievalMs": 852,
+          "readerMs": 1215
+        },
+        {
+          "id": "w107-needle-2-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What was the contract value of CN-3459 as of the date it was signed?",
+          "gold": "340000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            583
+          ],
+          "answer": "AUD 340,000",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "needle",
+          "hops": 1,
+          "tokenF1": 0.667,
+          "anls": 0.545,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 2187,
+          "contextBytes": 12031,
+          "readerTokens": {
+            "prompt": 3704,
+            "completion": 6,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0005592,
+          "retrievalMs": 699,
+          "readerMs": 1488
+        },
+        {
+          "id": "w107-needle-3-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What was the contract value of CN-6572 at the time of signing?",
+          "gold": "555000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            583
+          ],
+          "answer": "AUD 555,000",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "needle",
+          "hops": 1,
+          "tokenF1": 0.667,
+          "anls": 0.545,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 2337,
+          "contextBytes": 28845,
+          "readerTokens": {
+            "prompt": 6031,
+            "completion": 6,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00090825,
+          "retrievalMs": 561,
+          "readerMs": 1775
+        },
+        {
+          "id": "w107-needle-4-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What was the contract value for CN-4201 when it was signed?",
+          "gold": "405000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            583
+          ],
+          "answer": "AUD 405,000",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "needle",
+          "hops": 1,
+          "tokenF1": 0.667,
+          "anls": 0.545,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1475,
+          "contextBytes": 8086,
+          "readerTokens": {
+            "prompt": 2875,
+            "completion": 6,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00043485,
+          "retrievalMs": 426,
+          "readerMs": 1048
+        },
+        {
+          "id": "w107-needle-5-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What was the contract value of CN-3565 at the time of signing?",
+          "gold": "695000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            641
+          ],
+          "answer": "AUD 695,000",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "needle",
+          "hops": 1,
+          "tokenF1": 0.667,
+          "anls": 0.545,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1914,
+          "contextBytes": 28845,
+          "readerTokens": {
+            "prompt": 6031,
+            "completion": 6,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00090825,
+          "retrievalMs": 286,
+          "readerMs": 1626
+        },
+        {
+          "id": "w107-needle-6-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What was the contract value of CN-6702 at the time of signing?",
+          "gold": "275000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            641
+          ],
+          "answer": "AUD 275,000",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "needle",
+          "hops": 1,
+          "tokenF1": 0.667,
+          "anls": 0.545,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1493,
+          "contextBytes": 25726,
+          "readerTokens": {
+            "prompt": 5589,
+            "completion": 6,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0008419500000000001,
+          "retrievalMs": 150,
+          "readerMs": 1342
+        },
+        {
+          "id": "w107-validity-7-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 28 July 2023, who held the position of Chief Risk Officer at Carrow Group?",
+          "gold": "Clara Galloway",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            95,
+            316,
+            439
+          ],
+          "answer": "As of 28 July 2023, Clara Galloway held the position of Chief Risk Officer at Carrow Group, because she took up the role on 18/09/2022 and did not resign until 05/08/2024.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "validity",
+          "hops": 2,
+          "tokenF1": 0.133,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.3,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 2027,
+          "contextBytes": 7550,
+          "readerTokens": {
+            "prompt": 2014,
+            "completion": 229,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0004395,
+          "retrievalMs": 151,
+          "readerMs": 1876
+        },
+        {
+          "id": "w107-validity-8-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 25 November 2021, which individual held the role of Head of Safety at Carrow Group?",
+          "gold": "Declan Beaumont",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            17,
+            176
+          ],
+          "answer": "Declan Beaumont held the role of Head of Safety at Carrow Group as of 25 November 2021, because the appointment took effect on 01/01/2021 and the role was not noted as ending until 08/12/2022.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "validity",
+          "hops": 2,
+          "tokenF1": 0.138,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1711,
+          "contextBytes": 6616,
+          "readerTokens": {
+            "prompt": 1960,
+            "completion": 154,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00038639999999999996,
+          "retrievalMs": 141,
+          "readerMs": 1570
+        },
+        {
+          "id": "w107-validity-9-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 8 April 2025, who held the position of Chief Risk Officer at Carrow Group?",
+          "gold": "Declan Galloway",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            439
+          ],
+          "answer": "As of 8 April 2025, the Chief Risk Officer at Carrow Group was Mx Declan Galloway, whose appointment took effect on 19/08/2024 and who had not been recorded as resigning or replaced in the excerpts.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "validity",
+          "hops": 2,
+          "tokenF1": 0.118,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.1,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 2020,
+          "contextBytes": 5614,
+          "readerTokens": {
+            "prompt": 1515,
+            "completion": 204,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00034964999999999996,
+          "retrievalMs": 141,
+          "readerMs": 1879
+        },
+        {
+          "id": "w107-validity-10-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 06/01/2021, who held the role of Head of Procurement at Carrow Group?",
+          "gold": "Matteo Tremblay",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            17,
+            27
+          ],
+          "answer": "As of 06/01/2021, the Head of Procurement at Carrow Group was Prof Matteo Tremblay, whose appointment took effect on 01/01/2021 and who did not resign until 21/03/2022.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "validity",
+          "hops": 2,
+          "tokenF1": 0.148,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1734,
+          "contextBytes": 9113,
+          "readerTokens": {
+            "prompt": 2790,
+            "completion": 164,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0005168999999999999,
+          "retrievalMs": 139,
+          "readerMs": 1595
+        },
+        {
+          "id": "w107-validity-11-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 21/06/2022, who held the position of Chief Financial Officer at Carrow Group?",
+          "gold": "Saoirse Whitcombe",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            17,
+            152
+          ],
+          "answer": "As of 21/06/2022, the Chief Financial Officer at Carrow Group was Saoirse Whitcombe, since she took up the role on 01/01/2021 and her tenure ended on 15/11/2022, with Vera Andrade succeeding her only from 15/11/2022.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "validity",
+          "hops": 2,
+          "tokenF1": 0.121,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1880,
+          "contextBytes": 7876,
+          "readerTokens": {
+            "prompt": 2102,
+            "completion": 166,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0004149,
+          "retrievalMs": 146,
+          "readerMs": 1734
+        },
+        {
+          "id": "w107-validity-12-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 18/01/2025, who held the position of Head of Procurement at Carrow Group?",
+          "gold": "Aiko Novak",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            429
+          ],
+          "answer": "As of 18/01/2025, Aiko Novak held the position of Head of Procurement at Carrow Group, because Aiko Novak took up the role effective 31/05/2024 and no subsequent change is recorded.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "validity",
+          "hops": 2,
+          "tokenF1": 0.154,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.1,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1890,
+          "contextBytes": 7363,
+          "readerTokens": {
+            "prompt": 2078,
+            "completion": 243,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0004575,
+          "retrievalMs": 139,
+          "readerMs": 1752
+        },
+        {
+          "id": "w107-unanswerable-13-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "State the full name of the individual who granted approval for contract CN-9544.",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "Mr Galloway",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "unanswerable",
+          "hops": 2,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1250,
+          "contextBytes": 4863,
+          "readerTokens": {
+            "prompt": 1284,
+            "completion": 3,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0001944,
+          "retrievalMs": 143,
+          "readerMs": 1107
+        },
+        {
+          "id": "w107-unanswerable-14-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What is the complete name of the individual who granted approval for contract CN-6572?",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "Mx Galloway",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "unanswerable",
+          "hops": 2,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1251,
+          "contextBytes": 5149,
+          "readerTokens": {
+            "prompt": 1357,
+            "completion": 4,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00020595,
+          "retrievalMs": 138,
+          "readerMs": 1113
+        },
+        {
+          "id": "w107-unanswerable-15-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "Did the approver possess delegated authority to approve contract CN-6702 on the date approval was granted? Yes or no.",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "I do not know. The excerpts show that the Board reviewed contract CN-6702 on 2 Mar 2025 and postponed its approval, but they do not state that approval was granted or by whom.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "unanswerable",
+          "hops": 1,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1305,
+          "contextBytes": 11959,
+          "readerTokens": {
+            "prompt": 2956,
+            "completion": 42,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00046859999999999995,
+          "retrievalMs": 142,
+          "readerMs": 1163
+        },
+        {
+          "id": "w107-unanswerable-16-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "Did contract CN-9802 receive approval on the date of approval from an approver acting within their delegated authority? Yes or no.",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "I do not know. The excerpts show that contract CN-9802 was presented for approval on 28/01/2025 and the decision was postponed, but they do not show that it received approval or identify an approver’s delegated authority on that date.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "unanswerable",
+          "hops": 1,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1478,
+          "contextBytes": 15520,
+          "readerTokens": {
+            "prompt": 3507,
+            "completion": 54,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0005584499999999999,
+          "retrievalMs": 141,
+          "readerMs": 1336
+        },
+        {
+          "id": "w107-identity-17-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "Identify the complete name of the individual who granted approval for contract CN-3565.",
+          "gold": "Emeka Lundgren",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            316,
+            480
+          ],
+          "answer": "E. Lundgren",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "identity",
+          "hops": 2,
+          "tokenF1": 0.5,
+          "anls": 0.714,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.16666666666666666,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1193,
+          "contextBytes": 8666,
+          "readerTokens": {
+            "prompt": 2074,
+            "completion": 4,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0003134999999999999,
+          "retrievalMs": 155,
+          "readerMs": 1037
+        },
+        {
+          "id": "w107-identity-18-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "Identify the full name of the individual who provided approval for contract CN-3459.",
+          "gold": "Clara Sorensen",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            93,
+            95,
+            431
+          ],
+          "answer": "I do not know. The supplied excerpts do not mention contract CN-3459.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "identity",
+          "hops": 3,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1330,
+          "contextBytes": 12452,
+          "readerTokens": {
+            "prompt": 3053,
+            "completion": 17,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00046814999999999997,
+          "retrievalMs": 141,
+          "readerMs": 1188
+        },
+        {
+          "id": "w107-identity-19-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "Identify the complete name of the individual by whom contract CN-7904 was approved.",
+          "gold": "Emeka Lundgren",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            316,
+            480
+          ],
+          "answer": "The Chief Financial Officer.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "identity",
+          "hops": 3,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.16666666666666666,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1097,
+          "contextBytes": 8816,
+          "readerTokens": {
+            "prompt": 2122,
+            "completion": 5,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0003213,
+          "retrievalMs": 149,
+          "readerMs": 948
+        },
+        {
+          "id": "w107-identity-20-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "Identify the complete name of the individual who granted approval for contract CN-1071.",
+          "gold": "Clara Sorensen",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            93,
+            95,
+            316,
+            431
+          ],
+          "answer": "C. Sorensen",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "identity",
+          "hops": 2,
+          "tokenF1": 0.5,
+          "anls": 0.714,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.25,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1130,
+          "contextBytes": 8666,
+          "readerTokens": {
+            "prompt": 2074,
+            "completion": 6,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0003147,
+          "retrievalMs": 139,
+          "readerMs": 990
+        },
+        {
+          "id": "w107-identity-21-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "Identify the complete name of the individual who granted approval for contract CN-8407.",
+          "gold": "Saoirse Whitcombe",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            17,
+            95,
+            152
+          ],
+          "answer": "I do not know. The supplied excerpts do not mention contract CN-8407.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "identity",
+          "hops": 2,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1221,
+          "contextBytes": 8666,
+          "readerTokens": {
+            "prompt": 2074,
+            "completion": 17,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00032129999999999995,
+          "retrievalMs": 143,
+          "readerMs": 1078
+        },
+        {
+          "id": "w107-supersession-22-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What was the value of contract CN-3459 as of 12/01/2024, including any amendments?",
+          "gold": "305000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            583,
+            655
+          ],
+          "answer": "AUD 305,000 — the value at signing was AUD 340,000, Variation 1 set it to A$375,000 as of 07/04/2023, and Amendment 2 (dated 29/10/2023) updated it to AUD 305,000; no later change is recorded, so as of 12/01/2024 the value was AUD 305,000.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "supersession",
+          "hops": 3,
+          "tokenF1": 0.065,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 2000,
+          "contextBytes": 20400,
+          "readerTokens": {
+            "prompt": 5130,
+            "completion": 222,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0009027000000000001,
+          "retrievalMs": 137,
+          "readerMs": 1861
+        },
+        {
+          "id": "w107-supersession-23-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What was the value, including any amendments, of contract CN-4201 as of 2022-09-16?",
+          "gold": "365000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            583,
+            655
+          ],
+          "answer": "AUD 365,000. The only amendment affecting CN-4201 is Variation 1, which set the contract value at AUD 365,000 as of 17/04/2022; since no later change to CN-4201 is listed, that value still applied as of 2022-09-16.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "supersession",
+          "hops": 2,
+          "tokenF1": 0.069,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1704,
+          "contextBytes": 20401,
+          "readerTokens": {
+            "prompt": 5390,
+            "completion": 161,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0009051,
+          "retrievalMs": 152,
+          "readerMs": 1551
+        },
+        {
+          "id": "w107-supersession-24-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "Taking into account any amendments, what was the value of contract CN-9802 as of 07/03/2026?",
+          "gold": "200000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            641,
+            655
+          ],
+          "answer": "AUD 200,000. The value at signing was AUD 220,000; Amendment 1 (effective 07/06/2025) changed it to AUD 200,000, and Variation 2 confirms the value as at 30/01/2026 is AUD 200,000, so as of 07/03/2026 the value is AUD 200,000.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "supersession",
+          "hops": 3,
+          "tokenF1": 0.077,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1882,
+          "contextBytes": 15854,
+          "readerTokens": {
+            "prompt": 4300,
+            "completion": 189,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0007584,
+          "retrievalMs": 137,
+          "readerMs": 1744
+        },
+        {
+          "id": "w107-supersession-25-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 25/09/2024, what was the value of contract CN-1071, after accounting for any amendments?",
+          "gold": "620000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            583,
+            655
+          ],
+          "answer": "As of 25/09/2024, the value of CN-1071 was A$620,000, because Change order 1 effective 16/06/2024 changed the contract price from AUD 565,000 to A$620,000, and no later amendment is listed.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "supersession",
+          "hops": 2,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1742,
+          "contextBytes": 11496,
+          "readerTokens": {
+            "prompt": 3512,
+            "completion": 187,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.000639,
+          "retrievalMs": 139,
+          "readerMs": 1602
+        },
+        {
+          "id": "w107-supersession-26-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "In relation to contract CN-6702, what was its value as of 03/10/2025, after accounting for any amendments?",
+          "gold": "250000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            641,
+            655
+          ],
+          "answer": "As of 03/10/2025, the value of CN-6702 was AUD 250,000, because the only applicable variation is Variation 1 dated 11/09/2025, which changed the contract amount from AUD 275,000 to AUD 250,000.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "supersession",
+          "hops": 2,
+          "tokenF1": 0.08,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 2389,
+          "contextBytes": 11798,
+          "readerTokens": {
+            "prompt": 3594,
+            "completion": 217,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0006693,
+          "retrievalMs": 140,
+          "readerMs": 2248
+        },
+        {
+          "id": "w107-comparison-27-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 23/10/2026, which of the contracts CN-4166 and CN-9544 had the greater value?",
+          "gold": "CN-9544",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            583
+          ],
+          "answer": "CN-9544 had the greater value: AUD 775,000 versus AUD 175,000 for CN-4166 (775,000 > 175,000).",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "comparison",
+          "hops": 2,
+          "tokenF1": 0.167,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.1,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1902,
+          "contextBytes": 15397,
+          "readerTokens": {
+            "prompt": 4272,
+            "completion": 220,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0007727999999999999,
+          "retrievalMs": 137,
+          "readerMs": 1764
+        },
+        {
+          "id": "w107-comparison-28-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 9 June 2026, which contract, CN-3565 or CN-9480, had the higher value?",
+          "gold": "CN-3565",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            641
+          ],
+          "answer": "CN-3565 had the higher value: AUD 695,000 versus AUD 135,000 for CN-9480 (no variations affecting either contract appear in the excerpts).",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "comparison",
+          "hops": 2,
+          "tokenF1": 0.105,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.1,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1649,
+          "contextBytes": 16185,
+          "readerTokens": {
+            "prompt": 4415,
+            "completion": 149,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00075165,
+          "retrievalMs": 153,
+          "readerMs": 1495
+        },
+        {
+          "id": "w107-comparison-29-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 22/08/2025, which of the two contracts, CN-9802 or CN-9544, carried the higher value?",
+          "gold": "CN-9544",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            583,
+            641,
+            655
+          ],
+          "answer": "As of 22/08/2025, CN-9544 carried the higher value: CN-9544 = AUD 775,000 (no variation listed), versus CN-9802 = AUD 200,000 (per Amendment 1 effective 07/06/2025).",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "comparison",
+          "hops": 3,
+          "tokenF1": 0.095,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.25,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 2194,
+          "contextBytes": 26101,
+          "readerTokens": {
+            "prompt": 6704,
+            "completion": 215,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0011346,
+          "retrievalMs": 138,
+          "readerMs": 2055
+        },
+        {
+          "id": "w107-comparison-30-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 29 July 2025, which of the following contracts carried the greater value: CN-6572 or CN-8407?",
+          "gold": "CN-6572",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            583,
+            641,
+            655
+          ],
+          "answer": "CN-6572 carried the greater value. As of 29 July 2025, CN-6572 stood at AUD 555,000 (no variation recorded), while CN-8407's last recorded value was AUD 340,000 (Amendment 2, effective 21/08/2023) and its term had already ended on 01/10/2024. AUD 555,000 > AUD 340,000, so CN-6572 is greater.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "comparison",
+          "hops": 4,
+          "tokenF1": 0.053,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.3,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 2307,
+          "contextBytes": 15885,
+          "readerTokens": {
+            "prompt": 4231,
+            "completion": 350,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00084465,
+          "retrievalMs": 142,
+          "readerMs": 2164
+        },
+        {
+          "id": "w107-comparison-31-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 31 January 2025, which contract, CN-3459 or CN-1071, had the higher value?",
+          "gold": "CN-1071",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            583,
+            655
+          ],
+          "answer": "As of 31 January 2025, CN-1071 had the higher value: CN-1071 was AUD 620,000 (per change order 1 effective 16/06/2024), while CN-3459 was AUD 305,000 (per Amendment 2 dated 29/10/2023).",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "comparison",
+          "hops": 5,
+          "tokenF1": 0.077,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 2021,
+          "contextBytes": 7472,
+          "readerTokens": {
+            "prompt": 2793,
+            "completion": 269,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00058035,
+          "retrievalMs": 135,
+          "readerMs": 1886
+        },
+        {
+          "id": "w107-aggregate-32-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What is the count of safety incidents recorded in the Carrow Group incident log that took place at a site where the operating supplier did not possess a valid ISO 9001 certificate on the incident date?",
+          "gold": "3",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            840,
+            984
+          ],
+          "answer": "I do not know. The supplied excerpts do not provide enough information to determine this: the Carrow Group safety incident log (excerpt 2) lists sites, and the supplier operating sites list (excerpt 10) maps some sites to suppliers, but the incident log includes sites (e.g., Warrnambool yard, Kalgoorlie data centre, Albury data centre, Geelong yard, Wagga depot, Cessnock warehouse, Nowra yard, Rockhampton yard, Yeppoon yard) and the certification register (excerpt 11) does not cover all suppliers consistently, nor is it clear that every incident site maps to a listed supplier.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "aggregate",
+          "hops": 3,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.16666666666666666,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 2292,
+          "contextBytes": 24576,
+          "readerTokens": {
+            "prompt": 6430,
+            "completion": 138,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0010473,
+          "retrievalMs": 151,
+          "readerMs": 2139
+        },
+        {
+          "id": "w107-aggregate-33-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What is the number of safety incidents recorded in the Carrow Group incident log that took place at a site where the operating supplier did not possess a valid ISO/IEC 27001 certificate on the incident date?",
+          "gold": "10",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            840,
+            984
+          ],
+          "answer": "I do not know. The excerpts do not link any incident site to a supplier, so it cannot be determined which incidents occurred at sites whose operating supplier lacked a valid ISO/IEC 27001 certificate on the incident date.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "aggregate",
+          "hops": 3,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 3145,
+          "contextBytes": 37883,
+          "readerTokens": {
+            "prompt": 8306,
+            "completion": 436,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0015074999999999997,
+          "retrievalMs": 145,
+          "readerMs": 2996
+        },
+        {
+          "id": "w107-aggregate-34-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What is the number of safety incidents documented at sites operated by Oakhurst Systems Pty Ltd?",
+          "gold": "1",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            840,
+            984
+          ],
+          "answer": "I do not know. The excerpts do not document any safety incidents, so no number can be derived.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "aggregate",
+          "hops": 2,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1899,
+          "contextBytes": 25061,
+          "readerTokens": {
+            "prompt": 5874,
+            "completion": 97,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0009393000000000001,
+          "retrievalMs": 139,
+          "readerMs": 1758
+        },
+        {
+          "id": "w107-aggregate-35-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What is the number of safety incidents documented at sites operated by Zephyrine Freight Pty Ltd?",
+          "gold": "3",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            840,
+            984
+          ],
+          "answer": "I do not know. The supplied excerpts do not document any safety incidents at sites operated by Zephyrine Freight Pty Ltd; the incident log provided is for Lumen Utilities and contains no entries for Zephyrine Freight's sites (Kalgoorlie or Albury data centres).",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "aggregate",
+          "hops": 2,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1945,
+          "contextBytes": 18717,
+          "readerTokens": {
+            "prompt": 4784,
+            "completion": 220,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0008496,
+          "retrievalMs": 143,
+          "readerMs": 1801
+        },
+        {
+          "id": "w107-absence-36-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 17 August 2025, which of the Carrow Group's contracted suppliers lacked a valid ISO 9001 certificate?",
+          "gold": "Pennant Security Pty Ltd; Kestrel Data Services Pty Ltd",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            863
+          ],
+          "answer": "As of 17 August 2025, the Carrow Group contracted suppliers lacking a valid ISO 9001 certificate were Kestrel Data Services Pty Ltd (ISO 9001 expired 18/05/2022) and Pennant Security Pty Ltd (ISO 9001 expired 03/02/2023).",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "absence",
+          "hops": 8,
+          "tokenF1": 0.424,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.1,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 2476,
+          "contextBytes": 10794,
+          "readerTokens": {
+            "prompt": 4068,
+            "completion": 506,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0009138,
+          "retrievalMs": 139,
+          "readerMs": 2336
+        },
+        {
+          "id": "w107-absence-37-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 10 January 2026, which suppliers contracted by Carrow Group were not in possession of a valid ISO/IEC 27001 certificate?",
+          "gold": "Kingsmead Systems Pty Ltd; Pennant Security Pty Ltd; Vantage Freight Pty Ltd",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            863
+          ],
+          "answer": "Notes:\n- Carrow Group contract register part 1: CN-4166 | Kestrel Data Services Pty Ltd | 22/05/2025 | 21/05/2028 | AUD 175,000\n- Carrow Group contract register part 1: CN-1071 | Harrowgate Facilities Pty Ltd | 10/03/2024 | 10/03/2025 | AUD 565,000\n- Carrow Group contract register part 1: CN-3459 | Harrowgate Facilities Pty Ltd | 17/09/2022 | 16/09/2025 | AUD 340,000\n- Carrow Group contract register part 1: CN-9544 | Kestrel Data Services Pty Ltd | 02/05/2024 | 02/05/2025 | AUD 775,000\n- Carrow Group contract register part 1: CN-7904 | Harrowgate Facilities Pty Ltd | 21/03/2025 | 21/03/2026 | AUD 315,000\n- Carrow Group contract register part 1: CN-4201 | Kingsmead Systems Pty Ltd | 03/12/2021 | 03/12/2023 | AUD 405,000\n- Carrow Group contract register part 1: CN-6572 | Kingsmead Systems Pty Ltd | 15/01/2025 | 15/01/2026 | AUD 555,000\n- Carrow Group contract register part 2: CN-9802 | Harrowgate Facilities Pty Ltd | 12/02/2025 | 12/02/2028 | AUD 220,000\n- Carrow Group contract register part 2: CN-6702 | Vantage Freight Pty Ltd | 18/03/2025 | 17/03/2028 | AUD 275,000\n- Carrow Group contract register part 2: CN-3565 | Nettlefield Security Pty Ltd | 25/03/2025 | 25/03/2026 | AUD 695,000\n- Carrow Group contract register part 2: CN-9480 | Pennant Security Pty Ltd | 28/02/2024 | 27/02/2027 | AUD 135,000\n- Carrow Group contract register part 2: CN-7568 | Nettlefield Security Pty Ltd | 12/06/2022 | 12/06/2023 | AUD 370,000\n- Carrow Group contract register part 2: CN-5926 | Vantage Freight Pty Ltd | 14/08/2025 | 13/08/2028 | AUD 365,000\n- Carrow Group contract register part 2: CN-8407 | Harrowgate Facilities Pty Ltd | 02/10/2022 | 01/10/2024 | AUD 380,000\n- Carrow Group supplier certification register (page 863): Kestrel Data Services Pty Ltd | ISO/IEC 27001 | 19/11/2023 | 18/11/2026\n- Carrow Group supplier certification register (page 863): Harrowgate Facilities Pty Ltd | ISO/IEC 27001 | 11/06/2025 | 10/06/2028\n- Carrow Group supplier certification register (page 863): Kingsmead Systems Pty Ltd | ISO 9001 | 31/07/2021 | 30/07/2024\n- Carrow Group supplier certification register (page 863): Kingsmead Systems Pty Ltd | ISO 9001 | 30/07/2024 | 30/07/2027\n- Carrow Group supplier certification register (page 863): Vantage Freight Pty Ltd | ISO/IEC 27001 | 13/04/2022 | 12/04/2025\n- Carrow Group supplier certification register (page 863): Nettlefield Security Pty Ltd | ISO/IEC 27001 | 02/02/2024 | 01/02/2027\n- Carrow Group supplier certification register (page 863): Pennant Security Pty Ltd | ISO 9001 | 03/02/2021 | 03/02/2023\n- Carrow Group supplier certification register (page 863): no ISO/IEC 27001 entry for Pennant Security Pty Ltd\n- Carrow Group supplier certification register (page 863): no ISO/IEC 27001 entry for Kingsmead Systems Pty Ltd\n- Carrow Group supplier certification register (page 863): no ISO/IEC 27001 entry for Kestrel Data Services Pty Ltd after 18/11/2026, but valid on 10/01/2026\n- Carrow Group supplier certification register (page 863): no ISO",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "absence",
+          "hops": 8,
+          "tokenF1": 0.137,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.1,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 3919,
+          "contextBytes": 20085,
+          "readerTokens": {
+            "prompt": 6042,
+            "completion": 1024,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0015206999999999998,
+          "retrievalMs": 154,
+          "readerMs": 3764
+        },
+        {
+          "id": "w107-absence-38-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 3 December 2022, which of the Carrow Group's contracted suppliers lacked a valid ISO 9001 certificate?",
+          "gold": "Kestrel Data Services Pty Ltd",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            863
+          ],
+          "answer": "Notes:\n- Contract register part 1: CN-4166 Kestrel Data Services Pty Ltd, start 22/05/2025, end 21/05/2028, AUD 175,000\n- Contract register part 1: CN-1071 Harrowgate Facilities Pty Ltd, start 10/03/2024, end 10/03/2025, AUD 565,000\n- Contract register part 1: CN-3459 Harrowgate Facilities Pty Ltd, start 17/09/2022, end 16/09/2025, AUD 340,000\n- Contract register part 1: CN-9544 Kestrel Data Services Pty Ltd, start 02/05/2024, end 02/05/2025, AUD 775,000\n- Contract register part 1: CN-7904 Harrowgate Facilities Pty Ltd, start 21/03/2025, end 21/03/2026, AUD 315,000\n- Contract register part 1: CN-4201 Kingsmead Systems Pty Ltd, start 03/12/2021, end 03/12/2023, AUD 405,000\n- Contract register part 1: CN-6572 Kingsmead Systems Pty Ltd, start 15/01/2025, end 15/01/2026, AUD 555,000\n- Contract register part 2: CN-9802 Harrowgate Facilities Pty Ltd, start 12/02/2025, end 12/02/2028, AUD 220,000\n- Contract register part 2: CN-6702 Vantage Freight Pty Ltd, start 18/03/2025, end 17/03/2028, AUD 275,000\n- Contract register part 2: CN-3565 Nettlefield Security Pty Ltd, start 25/03/2025, end 25/03/2026, AUD 695,000\n- Contract register part 2: CN-9480 Pennant Security Pty Ltd, start 28/02/2024, end 27/02/2027, AUD 135,000\n- Contract register part 2: CN-7568 Nettlefield Security Pty Ltd, start 12/06/2022, end 12/06/2023, AUD 370,000\n- Contract register part 2: CN-5926 Vantage Freight Pty Ltd, start 14/08/2025, end 13/08/2028, AUD 365,000\n- Contract register part 2: CN-8407 Harrowgate Facilities Pty Ltd, start 02/10/2022, end 01/10/2024, AUD 380,000\n- Certification register: Oakhurst Systems Pty Ltd ISO 9001 issued 19/01/2020, expires 18/01/2023\n- Certification register: Oakhurst Systems Pty Ltd ISO 9001 issued 24/06/2023, expires 23/06/2025\n- Certification register: Oakhurst Systems Pty Ltd ISO 9001 issued 23/06/2025, expires 23/06/2027\n- Certification register: Kingsmead Systems Pty Ltd ISO 9001 issued 31/07/2021, expires 30/07/2024\n- Certification register: Kingsmead Systems Pty Ltd ISO 9001 issued 30/07/2024, expires 30/07/2027\n- Certification register: Pennant Security Pty Ltd ISO 9001 issued 03/02/2021, expires 03/02/2023\n- Certification register: Harrowgate Facilities Pty Ltd ISO 9001 issued 18/06/2020, expires 18/06/2023\n- Certification register: Harrowgate Facilities Pty Ltd ISO 9001 issued 18/06/2023, expires 17/06/2025\n- Certification register: Harrowgate Facilities Pty Ltd ISO 9001 issued 17/06/2025, expires 16/06/2028\n- Certification register: Vantage Freight Pty Ltd ISO 9001 issued 27/02/2020, expires 26/02/2022\n- Certification register: Vantage Freight Pty Ltd ISO 9001 issued 26/02/2022, expires 25/02/2025\n- Certification register: Vantage Freight Pty Ltd ISO 9001 issued 25/02/2025, expires 25/02/2027\n- Certification register: Zephyrine Freight Pty Ltd ISO 9001 issued 02/06/2020, expires 02/06/2023\n- Certification register: Zephyrine Freight Pty Ltd ISO 9001",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "absence",
+          "hops": 8,
+          "tokenF1": 0.089,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.1,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 3489,
+          "contextBytes": 11945,
+          "readerTokens": {
+            "prompt": 3528,
+            "completion": 1024,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0011435999999999998,
+          "retrievalMs": 149,
+          "readerMs": 3339
+        },
+        {
+          "id": "w107-absence-39-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 01/10/2025, which suppliers contracted by the Carrow Group were without a valid ISO/IEC 27001 certificate?",
+          "gold": "Kingsmead Systems Pty Ltd; Pennant Security Pty Ltd; Vantage Freight Pty Ltd",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            863
+          ],
+          "answer": "As of 01/10/2025, the Carrow Group suppliers without a valid ISO/IEC 27001 certificate were Vantage Freight Pty Ltd (ISO/IEC 27001 expired 12/04/2025), Kingsmead Systems Pty Ltd (no ISO/IEC 27001 certificate listed), and Pennant Security Pty Ltd (no ISO/IEC 27001 certificate listed).",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "absence",
+          "hops": 8,
+          "tokenF1": 0.471,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.1,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 3176,
+          "contextBytes": 10969,
+          "readerTokens": {
+            "prompt": 4122,
+            "completion": 683,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0010280999999999999,
+          "retrievalMs": 138,
+          "readerMs": 3037
+        },
+        {
+          "id": "w107-authority-40-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "Did contract CN-9480 receive approval from an individual acting within their delegated authority as of the approval date? Yes or no.",
+          "gold": "yes",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            17,
+            95,
+            316,
+            641
+          ],
+          "answer": "Yes.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0.75,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.16666666666666666,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1722,
+          "contextBytes": 29225,
+          "readerTokens": {
+            "prompt": 5978,
+            "completion": 2,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0008979,
+          "retrievalMs": 148,
+          "readerMs": 1572
+        },
+        {
+          "id": "w107-authority-41-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "Did the approver possess the delegated authority to approve contract CN-7568 on the date that approval was granted? Yes or no.",
+          "gold": "no",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            17,
+            93,
+            641
+          ],
+          "answer": "Yes. The Board authorised the Chief Financial Officer (S. Whitcombe) to approve contracts up to AUD 150,000 from 01/01/2021 to 15 Aug 2023, and the approval was given on 26/05/2022.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.6666666666666666,
+            "windowPrecision": 0.16666666666666666,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1371,
+          "contextBytes": 11844,
+          "readerTokens": {
+            "prompt": 2929,
+            "completion": 55,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00047234999999999996,
+          "retrievalMs": 138,
+          "readerMs": 1233
+        },
+        {
+          "id": "w107-authority-42-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "Did the approver possess the delegated authority to approve contract CN-1071 on the date of its approval? Yes or no.",
+          "gold": "no",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            93,
+            95,
+            316,
+            583
+          ],
+          "answer": "Yes.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.25,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1194,
+          "contextBytes": 8131,
+          "readerTokens": {
+            "prompt": 2071,
+            "completion": 2,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00031184999999999996,
+          "retrievalMs": 143,
+          "readerMs": 1051
+        },
+        {
+          "id": "w107-authority-43-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "On the date contract CN-3459 received approval, did that approval fall within the delegated authority held by the approver? Yes or no.",
+          "gold": "yes",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            17,
+            93,
+            95,
+            583
+          ],
+          "answer": "I do not know. The supplied excerpts do not mention contract CN-3459 or its approval date.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.25,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1408,
+          "contextBytes": 8155,
+          "readerTokens": {
+            "prompt": 2098,
+            "completion": 21,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0003273,
+          "retrievalMs": 143,
+          "readerMs": 1264
+        },
+        {
+          "id": "w107-authority-44-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "Did contract CN-3565 receive approval from an individual whose delegated authority, on the date the approval was granted, permitted such approval? Respond yes or no.",
+          "gold": "no",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            316,
+            480,
+            641
+          ],
+          "answer": "I do not know. The supplied excerpts do not mention contract CN-3565 or the date it was approved.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1889,
+          "contextBytes": 43762,
+          "readerTokens": {
+            "prompt": 8909,
+            "completion": 23,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0013501499999999998,
+          "retrievalMs": 151,
+          "readerMs": 1735
+        },
+        {
+          "id": "w107-authority-45-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "Did contract CN-7904 fall within the approver's delegated authority on the date the approval was granted? Yes or no.",
+          "gold": "no",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            316,
+            480,
+            583
+          ],
+          "answer": "Yes.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1285,
+          "contextBytes": 23002,
+          "readerTokens": {
+            "prompt": 4979,
+            "completion": 2,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0007480500000000001,
+          "retrievalMs": 143,
+          "readerMs": 1141
+        },
+        {
+          "id": "w107-authority-46-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "On the date contract CN-4201 was approved, did that approval fall within the approver's delegated authority? Respond yes or no.",
+          "gold": "no",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            17,
+            20,
+            583
+          ],
+          "answer": "I do not know. The supplied excerpts do not mention contract CN-4201 or its approval.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1202,
+          "contextBytes": 12361,
+          "readerTokens": {
+            "prompt": 2859,
+            "completion": 20,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00044084999999999996,
+          "retrievalMs": 156,
+          "readerMs": 1046
+        },
+        {
+          "id": "w107-authority-47-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "Did contract CN-8407 receive approval from an individual acting within their delegated authority as of the approval date? Respond yes or no.",
+          "gold": "no",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            17,
+            95,
+            641
+          ],
+          "answer": "I do not know. The supplied excerpts mention contract CN-6755 approved by D. Brennan, but do not mention contract CN-8407.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1784,
+          "contextBytes": 36467,
+          "readerTokens": {
+            "prompt": 7348,
+            "completion": 30,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0011202,
+          "retrievalMs": 158,
+          "readerMs": 1623
+        },
+        {
+          "id": "w107-unanswerable-48-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 25 May 2020, who held the position of Chief Financial Officer at Carrow Group?",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "I do not know. The excerpts only show Carrow Group CFO appointments from 01/01/2021 onward (Saoirse Whitcombe effective 01/01/2021), with no information about the CFO as of 25 May 2020.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "unanswerable",
+          "hops": 1,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 2063,
+          "contextBytes": 6665,
+          "readerTokens": {
+            "prompt": 1794,
+            "completion": 250,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00041909999999999994,
+          "retrievalMs": 141,
+          "readerMs": 1922
+        },
+        {
+          "id": "w107-unanswerable-49-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What was the contract value of CN-6666 as of the date it was signed?",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "I do not know. The supplied excerpts do not mention contract CN-6666.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "unanswerable",
+          "hops": 1,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1188,
+          "contextBytes": 11888,
+          "readerTokens": {
+            "prompt": 3675,
+            "completion": 17,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00056145,
+          "retrievalMs": 138,
+          "readerMs": 1050
+        },
+        {
+          "id": "w107-unanswerable-50-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "As of 01/12/2019, who held the position of Head of Procurement at Carrow Group?",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "I do not know. The excerpts do not state who held the position of Head of Procurement at Carrow Group as of 01/12/2019; the earliest Carrow Group Head of Procurement detail is Matteo Tremblay's appointment effective 01/01/2021.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "unanswerable",
+          "hops": 1,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1822,
+          "contextBytes": 7270,
+          "readerTokens": {
+            "prompt": 1953,
+            "completion": 267,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00045315,
+          "retrievalMs": 142,
+          "readerMs": 1680
+        },
+        {
+          "id": "w107-unanswerable-51-1000p",
+          "document": "compose-testv3-w107-1000p",
+          "question": "What was the contract value of CN-8129 as of the date it was signed?",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "I do not know. The supplied excerpts do not mention contract CN-8129.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "unanswerable",
+          "hops": 1,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1218,
+          "contextBytes": 11888,
+          "readerTokens": {
+            "prompt": 3675,
+            "completion": 17,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00056145,
+          "retrievalMs": 138,
+          "readerMs": 1080
+        },
+        {
+          "id": "w108-needle-1-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "What was the value of contract CN-2349 at the time of signing?",
+          "gold": "60000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            807
+          ],
+          "answer": "AUD 60,000",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "needle",
+          "hops": 1,
+          "tokenF1": 0.667,
+          "anls": 0.5,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 2051,
+          "contextBytes": 19141,
+          "readerTokens": {
+            "prompt": 4574,
+            "completion": 6,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0006897,
+          "retrievalMs": 431,
+          "readerMs": 1619
+        },
+        {
+          "id": "w108-needle-2-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "What was the contract value of CN-4627 at the time it was signed?",
+          "gold": "540000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            865
+          ],
+          "answer": "AUD 540,000",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "needle",
+          "hops": 1,
+          "tokenF1": 0.667,
+          "anls": 0.545,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1888,
+          "contextBytes": 19483,
+          "readerTokens": {
+            "prompt": 4652,
+            "completion": 6,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0007014,
+          "retrievalMs": 355,
+          "readerMs": 1532
+        },
+        {
+          "id": "w108-needle-3-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "What was the value of contract CN-2587 when it was signed?",
+          "gold": "545000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            865
+          ],
+          "answer": "AUD 545,000",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "needle",
+          "hops": 1,
+          "tokenF1": 0.667,
+          "anls": 0.545,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1476,
+          "contextBytes": 19129,
+          "readerTokens": {
+            "prompt": 4614,
+            "completion": 6,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0006957,
+          "retrievalMs": 284,
+          "readerMs": 1192
+        },
+        {
+          "id": "w108-needle-4-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "What was the contract value of CN-6426 as of the date it was signed?",
+          "gold": "670000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            807
+          ],
+          "answer": "AUD 670,000",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "needle",
+          "hops": 1,
+          "tokenF1": 0.667,
+          "anls": 0.545,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1314,
+          "contextBytes": 19239,
+          "readerTokens": {
+            "prompt": 4743,
+            "completion": 6,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00071505,
+          "retrievalMs": 214,
+          "readerMs": 1099
+        },
+        {
+          "id": "w108-needle-5-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "What was the contract value at the time of signing for CN-4219?",
+          "gold": "235000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            865
+          ],
+          "answer": "AUD 235,000",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "needle",
+          "hops": 1,
+          "tokenF1": 0.667,
+          "anls": 0.545,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1912,
+          "contextBytes": 19139,
+          "readerTokens": {
+            "prompt": 4570,
+            "completion": 6,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0006891,
+          "retrievalMs": 145,
+          "readerMs": 1767
+        },
+        {
+          "id": "w108-needle-6-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "What was the contract value of CN-9212 when it was signed?",
+          "gold": "290000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            865
+          ],
+          "answer": "AUD 290,000",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "needle",
+          "hops": 1,
+          "tokenF1": 0.667,
+          "anls": 0.545,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1764,
+          "contextBytes": 19127,
+          "readerTokens": {
+            "prompt": 4613,
+            "completion": 6,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00069555,
+          "retrievalMs": 74,
+          "readerMs": 1690
+        },
+        {
+          "id": "w108-validity-7-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 3 April 2026, who held the position of Chief Risk Officer at Ferrous Pacific?",
+          "gold": "Viktor Weatherby",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            732
+          ],
+          "answer": "As of 3 April 2026, the Chief Risk Officer was Mx Viktor Weatherby, who was named to the role effective 26/11/2024 and whose tenure is not superseded by any later excerpt.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "validity",
+          "hops": 2,
+          "tokenF1": 0.133,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.1,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1739,
+          "contextBytes": 5622,
+          "readerTokens": {
+            "prompt": 1484,
+            "completion": 178,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0003294,
+          "retrievalMs": 90,
+          "readerMs": 1649
+        },
+        {
+          "id": "w108-validity-8-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 09/06/2026, who held the position of Head of Procurement at Ferrous Pacific?",
+          "gold": "Declan Halloran",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            492
+          ],
+          "answer": "As of 09/06/2026, the Head of Procurement at Ferrous Pacific was Ms Declan Halloran, appointed effective 02/05/2024 with no subsequent change recorded in the excerpts.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "validity",
+          "hops": 2,
+          "tokenF1": 0.167,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.1,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1844,
+          "contextBytes": 7567,
+          "readerTokens": {
+            "prompt": 2359,
+            "completion": 228,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00049065,
+          "retrievalMs": 90,
+          "readerMs": 1754
+        },
+        {
+          "id": "w108-validity-9-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 24 July 2024, who held the position of Chief Risk Officer at Ferrous Pacific?",
+          "gold": "Bruno Rautio",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            389,
+            414,
+            732
+          ],
+          "answer": "As of 24 July 2024, the Chief Risk Officer at Ferrous Pacific was Bruno Rautio, because he was appointed effective 16/11/2022 and did not resign until 26/11/2024.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "validity",
+          "hops": 2,
+          "tokenF1": 0.148,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.3,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1406,
+          "contextBytes": 6621,
+          "readerTokens": {
+            "prompt": 1749,
+            "completion": 206,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0003859499999999999,
+          "retrievalMs": 84,
+          "readerMs": 1322
+        },
+        {
+          "id": "w108-validity-10-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 14 January 2021, who held the role of Head of Safety at Ferrous Pacific?",
+          "gold": "Kofi Beaumont",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            68,
+            201
+          ],
+          "answer": "Kofi Beaumont held the role of Head of Safety at Ferrous Pacific as of 14 January 2021, because the Board recorded that he took up the position effective 01/01/2021 and his resignation did not occur until 28/05/2022.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "validity",
+          "hops": 2,
+          "tokenF1": 0.118,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1496,
+          "contextBytes": 7421,
+          "readerTokens": {
+            "prompt": 2143,
+            "completion": 124,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00039584999999999995,
+          "retrievalMs": 73,
+          "readerMs": 1423
+        },
+        {
+          "id": "w108-validity-11-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 26 October 2021, who held the role of Head of Procurement at Ferrous Pacific?",
+          "gold": "Aiko Rautio",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            68,
+            422
+          ],
+          "answer": "As of 26 October 2021, Aiko Rautio held the role of Head of Procurement at Ferrous Pacific, because Aiko Rautio took up the position effective 01/01/2021 and did not resign until 14/02/2023.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "validity",
+          "hops": 2,
+          "tokenF1": 0.143,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1758,
+          "contextBytes": 6033,
+          "readerTokens": {
+            "prompt": 1630,
+            "completion": 237,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00038669999999999997,
+          "retrievalMs": 76,
+          "readerMs": 1683
+        },
+        {
+          "id": "w108-validity-12-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 04/03/2022, who held the position of Chief Financial Officer at Ferrous Pacific?",
+          "gold": "Signe Lachance",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            68,
+            307
+          ],
+          "answer": "As of 04/03/2022, the Chief Financial Officer at Ferrous Pacific was Signe Lachance, since she took up the position effective 01/01/2021 and did not resign until 30/09/2022.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "validity",
+          "hops": 2,
+          "tokenF1": 0.148,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1772,
+          "contextBytes": 6888,
+          "readerTokens": {
+            "prompt": 1815,
+            "completion": 228,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00040904999999999994,
+          "retrievalMs": 74,
+          "readerMs": 1697
+        },
+        {
+          "id": "w108-unanswerable-13-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "State the complete name of the individual by whom contract CN-2587 was approved.",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "Mr Rautio.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "unanswerable",
+          "hops": 2,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1425,
+          "contextBytes": 25049,
+          "readerTokens": {
+            "prompt": 4498,
+            "completion": 5,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0006776999999999999,
+          "retrievalMs": 77,
+          "readerMs": 1346
+        },
+        {
+          "id": "w108-unanswerable-14-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "State the full name of the individual who granted approval for contract CN-4219.",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "I do not know. The supplied document excerpts do not mention contract CN-4219 or identify any individual who approved it.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "unanswerable",
+          "hops": 2,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1887,
+          "contextBytes": 47761,
+          "readerTokens": {
+            "prompt": 8082,
+            "completion": 25,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0012273,
+          "retrievalMs": 90,
+          "readerMs": 1795
+        },
+        {
+          "id": "w108-unanswerable-15-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "Did the approver possess the delegated authority to approve contract CN-2969 on the date the approval was granted? Yes or no.",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "I do not know. The excerpts state that contract CN-2969 was presented for approval on 27/04/2025 and that a decision was postponed; they do not show that approval was granted or identify an approver.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "unanswerable",
+          "hops": 1,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1337,
+          "contextBytes": 15598,
+          "readerTokens": {
+            "prompt": 3232,
+            "completion": 47,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.000513,
+          "retrievalMs": 76,
+          "readerMs": 1261
+        },
+        {
+          "id": "w108-unanswerable-16-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "Did the approver possess the delegated authority to approve contract CN-8220 on the date of approval? Yes or no.",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "I do not know. The excerpts state that a decision on contract CN-8220 was postponed on 01/10/2021, but they do not identify an approver or approval date for that contract.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "unanswerable",
+          "hops": 1,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1357,
+          "contextBytes": 22801,
+          "readerTokens": {
+            "prompt": 4163,
+            "completion": 43,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0006502499999999999,
+          "retrievalMs": 76,
+          "readerMs": 1279
+        },
+        {
+          "id": "w108-identity-17-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "State the full name of the individual who granted approval for contract CN-2432.",
+          "gold": "Viktor Weatherby",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            732,
+            733
+          ],
+          "answer": "V. Weatherby",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "identity",
+          "hops": 2,
+          "tokenF1": 0.5,
+          "anls": 0.688,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1745,
+          "contextBytes": 44065,
+          "readerTokens": {
+            "prompt": 7485,
+            "completion": 4,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00112515,
+          "retrievalMs": 85,
+          "readerMs": 1658
+        },
+        {
+          "id": "w108-identity-18-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "State the full name of the individual who granted approval for contract CN-5633.",
+          "gold": "Matteo Whitcombe",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            307,
+            389,
+            491
+          ],
+          "answer": "M. Whitcombe.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "identity",
+          "hops": 2,
+          "tokenF1": 0,
+          "anls": 0.625,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1743,
+          "contextBytes": 44187,
+          "readerTokens": {
+            "prompt": 7511,
+            "completion": 5,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0011296499999999998,
+          "retrievalMs": 74,
+          "readerMs": 1667
+        },
+        {
+          "id": "w108-identity-19-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "State the complete name of the individual who granted approval for contract CN-8547.",
+          "gold": "Viktor Weatherby",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            732,
+            758
+          ],
+          "answer": "V. Weatherby",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "identity",
+          "hops": 2,
+          "tokenF1": 0.5,
+          "anls": 0.688,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1687,
+          "contextBytes": 41697,
+          "readerTokens": {
+            "prompt": 7260,
+            "completion": 4,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0010914000000000002,
+          "retrievalMs": 87,
+          "readerMs": 1598
+        },
+        {
+          "id": "w108-identity-20-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "State the full name of the individual who granted approval for contract CN-4627.",
+          "gold": "Bruno Rautio",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            389,
+            414,
+            732
+          ],
+          "answer": "I do not know. The supplied document excerpts do not mention contract CN-4627 or identify any individual who approved it.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "identity",
+          "hops": 3,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1445,
+          "contextBytes": 47761,
+          "readerTokens": {
+            "prompt": 8082,
+            "completion": 25,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0012273,
+          "retrievalMs": 75,
+          "readerMs": 1368
+        },
+        {
+          "id": "w108-identity-21-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "Identify the full name of the individual who granted approval for contract CN-2696.",
+          "gold": "Matteo Whitcombe",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            307,
+            379,
+            491
+          ],
+          "answer": "I do not know. The supplied excerpts do not mention contract CN-2696.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "identity",
+          "hops": 2,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1263,
+          "contextBytes": 28874,
+          "readerTokens": {
+            "prompt": 4979,
+            "completion": 17,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0007570500000000001,
+          "retrievalMs": 75,
+          "readerMs": 1186
+        },
+        {
+          "id": "w108-supersession-22-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 18/10/2023, what was the value of contract CN-4627, including any amendments?",
+          "gold": "675000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            865,
+            871
+          ],
+          "answer": "AUD 675,000 (the value at signing of AUD 540,000 was changed to AUD 675,000 by Variation 1 effective 14 June 2023, which was in effect as of 18/10/2023).",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "supersession",
+          "hops": 2,
+          "tokenF1": 0.087,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1777,
+          "contextBytes": 20612,
+          "readerTokens": {
+            "prompt": 4772,
+            "completion": 166,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0008154,
+          "retrievalMs": 83,
+          "readerMs": 1693
+        },
+        {
+          "id": "w108-supersession-23-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "What was the value of contract CN-2696 as of 25 July 2023, including any amendments?",
+          "gold": "230000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            865,
+            871
+          ],
+          "answer": "AUD 230,000, based on Change Order CN-2696, Amendment 1, dated 07/04/2023, which adjusted the contract sum to AUD 230,000; no later amendment to CN-2696 is listed, so that value still applied as of 25 July 2023.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "supersession",
+          "hops": 2,
+          "tokenF1": 0.065,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1608,
+          "contextBytes": 20749,
+          "readerTokens": {
+            "prompt": 4729,
+            "completion": 154,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00080175,
+          "retrievalMs": 82,
+          "readerMs": 1525
+        },
+        {
+          "id": "w108-supersession-24-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "What was the value of contract CN-4219 as of 20/07/2024, including any amendments?",
+          "gold": "260000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            865,
+            871
+          ],
+          "answer": "AUD 260,000, since the only amendment to CN-4219 (Amendment 1, effective 15/04/2024) set the contract value to AUD 260,000, and no later change is listed before 20/07/2024.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "supersession",
+          "hops": 2,
+          "tokenF1": 0.091,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 2037,
+          "contextBytes": 20746,
+          "readerTokens": {
+            "prompt": 4759,
+            "completion": 144,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00080025,
+          "retrievalMs": 70,
+          "readerMs": 1966
+        },
+        {
+          "id": "w108-supersession-25-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "What was the value of contract CN-9212 as of 2025-01-09, after accounting for any amendments?",
+          "gold": "320000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            865,
+            871
+          ],
+          "answer": "AUD 320,000, based on the only amendment shown for CN-9212 (Amendment 1, dated 18/10/2024, updating the contract amount to AUD 320,000), which was effective before 2025-01-09.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "supersession",
+          "hops": 2,
+          "tokenF1": 0.091,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1670,
+          "contextBytes": 16528,
+          "readerTokens": {
+            "prompt": 4149,
+            "completion": 145,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00070935,
+          "retrievalMs": 82,
+          "readerMs": 1587
+        },
+        {
+          "id": "w108-supersession-26-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "Taking into account any amendments, what was the value of contract CN-1289 as of 23/01/2022?",
+          "gold": "215000",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            865,
+            871
+          ],
+          "answer": "As of 23/01/2022, the value of CN-1289 was AUD 215,000, because Change Order 2 dated 08/01/2022 updated the contract sum to AUD 215,000, which is the latest change before 23/01/2022.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "supersession",
+          "hops": 3,
+          "tokenF1": 0.083,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.2,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1757,
+          "contextBytes": 20750,
+          "readerTokens": {
+            "prompt": 4760,
+            "completion": 173,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0008177999999999999,
+          "retrievalMs": 74,
+          "readerMs": 1683
+        },
+        {
+          "id": "w108-comparison-27-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 08/09/2024, which contract, CN-1289 or CN-2349, carried the greater value?",
+          "gold": "CN-1289",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            807,
+            865,
+            871
+          ],
+          "answer": "As of 08/09/2024, CN-1289 carried the greater value: AUD 215,000 (latest change, Change Order 2 dated 08/01/2022) versus CN-2349 at AUD 65,000 (Amendment 2 effective 25/05/2024).",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "comparison",
+          "hops": 6,
+          "tokenF1": 0.087,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.3,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 2063,
+          "contextBytes": 11810,
+          "readerTokens": {
+            "prompt": 3452,
+            "completion": 317,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.000708,
+          "retrievalMs": 73,
+          "readerMs": 1990
+        },
+        {
+          "id": "w108-comparison-28-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 15 June 2024, which of CN-1289 or CN-2349 was the contract with the greater value?",
+          "gold": "CN-1289",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            807,
+            865,
+            871
+          ],
+          "answer": "CN-1289 had the greater value: AUD 215,000 versus AUD 65,000 for CN-2349.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "comparison",
+          "hops": 6,
+          "tokenF1": 0.182,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.3,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1946,
+          "contextBytes": 11785,
+          "readerTokens": {
+            "prompt": 3414,
+            "completion": 258,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0006669,
+          "retrievalMs": 85,
+          "readerMs": 1860
+        },
+        {
+          "id": "w108-comparison-29-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 22/11/2024, which of the two contracts, CN-9212 or CN-2696, carried the higher value?",
+          "gold": "CN-9212",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            865,
+            871
+          ],
+          "answer": "As of 22/11/2024, CN-9212 carried the higher value: AUD 320,000 (after its 18/10/2024 amendment) versus CN-2696 at AUD 230,000 (after its 07/04/2023 amendment).",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "comparison",
+          "hops": 4,
+          "tokenF1": 0.1,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.16666666666666666,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1901,
+          "contextBytes": 19006,
+          "readerTokens": {
+            "prompt": 4572,
+            "completion": 272,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.000849,
+          "retrievalMs": 74,
+          "readerMs": 1826
+        },
+        {
+          "id": "w108-comparison-30-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 16 November 2026, which of the two contracts, CN-6365 or CN-6426, carried the greater value?",
+          "gold": "CN-6426",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            807,
+            871
+          ],
+          "answer": "I do not know. The excerpts show CN-6426 at AUD 840,000 (effective 11/11/2025) versus CN-6365 at AUD 180,000, but both contracts had end dates before 16 November 2026 (CN-6365 ended 2023-07-30; CN-6426 ended 2026-04-08), so the excerpts do not establish that either contract \"carried\" a value as of that date.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "comparison",
+          "hops": 3,
+          "tokenF1": 0.051,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.16666666666666666,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 2241,
+          "contextBytes": 15753,
+          "readerTokens": {
+            "prompt": 4088,
+            "completion": 301,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0007938,
+          "retrievalMs": 83,
+          "readerMs": 2157
+        },
+        {
+          "id": "w108-comparison-31-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 21 January 2024, which of these contracts — CN-2587 or CN-2349 — was valued higher?",
+          "gold": "CN-2587",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            807,
+            865,
+            871
+          ],
+          "answer": "CN-2587 was valued higher as of 21 January 2024: AUD 490,000 versus AUD 65,000 for CN-2349.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "comparison",
+          "hops": 4,
+          "tokenF1": 0.125,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.3,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1987,
+          "contextBytes": 7903,
+          "readerTokens": {
+            "prompt": 2625,
+            "completion": 298,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0005725499999999999,
+          "retrievalMs": 74,
+          "readerMs": 1912
+        },
+        {
+          "id": "w108-aggregate-32-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "What is the count of safety incidents recorded in Ferrous Pacific's incident log that took place at a site where the operating supplier did not possess a valid ISO/IEC 27001 certificate on the date of the incident?",
+          "gold": "10",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            961,
+            976
+          ],
+          "answer": "I do not know. The supplied excerpts do not identify which supplier operated each Ferrous Pacific incident site, so I cannot determine whether the operating supplier held a valid ISO/IEC 27001 certificate on the incident date.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "aggregate",
+          "hops": 3,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1907,
+          "contextBytes": 35767,
+          "readerTokens": {
+            "prompt": 7252,
+            "completion": 44,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0011142,
+          "retrievalMs": 82,
+          "readerMs": 1822
+        },
+        {
+          "id": "w108-aggregate-33-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "What is the count of safety incidents recorded in Ferrous Pacific's incident log that took place at a site where the operating supplier did not possess a valid ISO 9001 certificate on the date of the incident?",
+          "gold": "7",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            961,
+            976
+          ],
+          "answer": "I do not know. The supplied excerpts do not include any information about ISO 9001 certification for Ferrous Pacific’s sites or suppliers.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "aggregate",
+          "hops": 3,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1603,
+          "contextBytes": 37722,
+          "readerTokens": {
+            "prompt": 6949,
+            "completion": 29,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00105975,
+          "retrievalMs": 91,
+          "readerMs": 1509
+        },
+        {
+          "id": "w108-aggregate-34-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "What is the number of safety incidents that have been recorded at sites operated by Harrowgate Freight Pty Ltd?",
+          "gold": "0",
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "I do not know — the excerpts do not identify any site operated by Harrowgate Freight Pty Ltd, so no safety incidents can be counted for it.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "aggregate",
+          "hops": 2,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1667,
+          "contextBytes": 13406,
+          "readerTokens": {
+            "prompt": 3450,
+            "completion": 183,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0006272999999999999,
+          "retrievalMs": 74,
+          "readerMs": 1592
+        },
+        {
+          "id": "w108-aggregate-35-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "What is the number of safety incidents documented at sites operated by Zephyrine Logistics Pty Ltd?",
+          "gold": "5",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            961,
+            976
+          ],
+          "answer": "I do not know. The excerpts contain no information about safety incidents at sites operated by Zephyrine Logistics Pty Ltd.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": false,
+          "family": "aggregate",
+          "hops": 2,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.5,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1899,
+          "contextBytes": 19838,
+          "readerTokens": {
+            "prompt": 4256,
+            "completion": 193,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0007541999999999999,
+          "retrievalMs": 75,
+          "readerMs": 1823
+        },
+        {
+          "id": "w108-absence-36-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 2 July 2023, which suppliers under contract with Ferrous Pacific were without a valid ISO 9001 certificate?",
+          "gold": "Pennant Data Services Pty Ltd",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            962
+          ],
+          "answer": "Pennant Data Services Pty Ltd was the only supplier under contract with Ferrous Pacific without a valid ISO 9001 certificate as of 2 July 2023, because its only listed ISO 9001 certificate expired 15/02/2023, while Kestrel Logistics, Zephyrine Logistics, Oakhurst Data Services, Kingsmead Facilities, and Emberton Security each had an ISO 9001 certificate covering 2 July 2023.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "absence",
+          "hops": 8,
+          "tokenF1": 0.213,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.1,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 3141,
+          "contextBytes": 7745,
+          "readerTokens": {
+            "prompt": 2913,
+            "completion": 655,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0008299500000000001,
+          "retrievalMs": 87,
+          "readerMs": 3054
+        },
+        {
+          "id": "w108-absence-37-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 18 October 2023, which of Ferrous Pacific's contracted suppliers lacked a valid ISO 9001 certificate?",
+          "gold": "Pennant Data Services Pty Ltd",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            962
+          ],
+          "answer": "As of 18 October 2023, the contracted supplier lacking a valid ISO 9001 certificate was Pennant Data Services Pty Ltd, whose ISO 9001 certificate expired on 15/02/2023 with no later certificate listed.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "absence",
+          "hops": 8,
+          "tokenF1": 0.323,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.1,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 3272,
+          "contextBytes": 7360,
+          "readerTokens": {
+            "prompt": 2604,
+            "completion": 803,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0008723999999999998,
+          "retrievalMs": 77,
+          "readerMs": 3195
+        },
+        {
+          "id": "w108-absence-38-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 26/01/2026, which suppliers contracted by Ferrous Pacific were without a valid ISO 9001 certificate?",
+          "gold": "Kestrel Logistics Pty Ltd; Pennant Data Services Pty Ltd",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            962
+          ],
+          "answer": "Notes:\n- Ferrous Pacific contract register part 1: CN-6365 Kestrel Logistics Pty Ltd, 2021-07-30 to 2023-07-30, AUD 180,000\n- Ferrous Pacific contract register part 1: CN-2432 Emberton Security Pty Ltd, 2025-03-12 to 2028-03-11, AUD 645,000\n- Ferrous Pacific contract register part 1: CN-2969 Emberton Security Pty Ltd, 2025-05-12 to 2026-05-12, AUD 275,000\n- Ferrous Pacific contract register part 1: CN-2349 Zephyrine Logistics Pty Ltd, 2023-05-15 to 2025-05-14, AUD 60,000\n- Ferrous Pacific contract register part 1: CN-6426 Oakhurst Data Services Pty Ltd, 2025-04-08 to 2026-04-08, AUD 670,000\n- Ferrous Pacific contract register part 1: CN-5633 Kingsmead Facilities Pty Ltd, 2022-11-16 to 2024-11-15, AUD 685,000\n- Ferrous Pacific contract register part 1: CN-8220 Kestrel Logistics Pty Ltd, 2021-10-05 to 2022-10-05, AUD 750,000\n- Ferrous Pacific contract register part 2: CN-2587 Pennant Data Services Pty Ltd, 2022-07-29 to 2024-07-28, AUD 545,000\n- Ferrous Pacific contract register part 2: CN-4627 Pennant Data Services Pty Ltd, 2023-01-06 to 2025-01-05, AUD 540,000\n- Ferrous Pacific contract register part 2: CN-2696 Kingsmead Facilities Pty Ltd, 2022-10-28 to 2025-10-27, AUD 165,000\n- Ferrous Pacific contract register part 2: CN-4219 Pennant Data Services Pty Ltd, 2023-12-02 to 2024-12-01, AUD 235,000\n- Ferrous Pacific contract register part 2: CN-8547 Emberton Security Pty Ltd, 2025-05-23 to 2026-05-23, AUD 730,000\n- Ferrous Pacific contract register part 2: CN-9212 Kestrel Logistics Pty Ltd, 2024-01-27 to 2025-01-26, AUD 290,000\n- Ferrous Pacific contract register part 2: CN-1289 Emberton Security Pty Ltd, 2021-06-16 to 2024-06-15, AUD 170,000\n- Ferrous Pacific supplier certification register: Kestrel Logistics Pty Ltd ISO 9001 14/12/2019–13/12/2021; 13/12/2021–13/12/2023; 13/12/2023–12/12/2025\n- Ferrous Pacific supplier certification register: Zephyrine Logistics Pty Ltd ISO 9001 25/05/2021–25/05/2023; 25/05/2023–24/05/2025; 24/05/2025–24/05/2027\n- Ferrous Pacific supplier certification register: Oakhurst Data Services Pty Ltd ISO 9001 27/07/2020–27/07/2022; 28/11/2022–27/11/2024; 03/04/2025–02/04/2028\n- Ferrous Pacific supplier certification register: Emberton Security Pty Ltd ISO 9001 30/05/2021–30/05/2023; 30/05/2023–29/05/2025; 07/07/2025–06/07/2028\n- Ferrous Pacific supplier certification register: Kingsmead Facilities Pty Ltd ISO 9001 28/08/2020–28/08/2023; 28/08/2023–27/08/2025; 27/08/2025–26/08/2028\n- Ferrous Pacific supplier certification register: Pennant Data Services Pty Ltd ISO 9001 16/02/2020–15/02/2023\n- Ferrous Pacific contract register part 1: CN-8220 Kestrel Logistics Pty Ltd start 2021-10-05, end 2022-10-05\n- Ferrous Pacific contract register part 2: CN-9212 Kestrel Logistics Pty Ltd start 2024-01-27, end",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "absence",
+          "hops": 8,
+          "tokenF1": 0.128,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 1,
+            "windowPrecision": 0.1,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 3703,
+          "contextBytes": 11383,
+          "readerTokens": {
+            "prompt": 4327,
+            "completion": 1024,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0012634499999999997,
+          "retrievalMs": 76,
+          "readerMs": 3627
+        },
+        {
+          "id": "w108-authority-39-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "Did contract CN-9212 receive approval from a person whose delegated authority, on the date of approval, covered such approval? Yes or no.",
+          "gold": "yes",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            306,
+            433,
+            473,
+            865
+          ],
+          "answer": "I do not know. The excerpts mention approval of contract CN-1854 by A. Haddad, but do not mention contract CN-9212.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1600,
+          "contextBytes": 45696,
+          "readerTokens": {
+            "prompt": 7467,
+            "completion": 31,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00113865,
+          "retrievalMs": 77,
+          "readerMs": 1521
+        },
+        {
+          "id": "w108-authority-40-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "Did the approver possess delegated authority to approve contract CN-2432 on the date approval was granted? Yes or no.",
+          "gold": "no",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            414,
+            732,
+            733,
+            807
+          ],
+          "answer": "Yes.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.25,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1099,
+          "contextBytes": 11895,
+          "readerTokens": {
+            "prompt": 2588,
+            "completion": 2,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0003894,
+          "retrievalMs": 89,
+          "readerMs": 1010
+        },
+        {
+          "id": "w108-authority-41-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "Did the approver possess delegated authority to approve contract CN-2696 on the date approval was granted? Yes or no.",
+          "gold": "yes",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            307,
+            379,
+            865
+          ],
+          "answer": "I do not know. The supplied excerpts do not mention contract CN-2696 or its approval.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1243,
+          "contextBytes": 15590,
+          "readerTokens": {
+            "prompt": 3230,
+            "completion": 20,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0004965,
+          "retrievalMs": 88,
+          "readerMs": 1154
+        },
+        {
+          "id": "w108-authority-42-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "On the date of approval, did the approver hold delegated authority to approve contract CN-4627? Respond yes or no.",
+          "gold": "no",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            68,
+            389,
+            414,
+            865
+          ],
+          "answer": "Yes.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.75,
+            "windowPrecision": 0.25,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1159,
+          "contextBytes": 16076,
+          "readerTokens": {
+            "prompt": 3352,
+            "completion": 2,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0005039999999999999,
+          "retrievalMs": 80,
+          "readerMs": 1079
+        },
+        {
+          "id": "w108-authority-43-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "Did contract CN-2349 receive approval from an individual acting within their delegated authority as of the approval date? Yes or no.",
+          "gold": "yes",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            389,
+            414,
+            430,
+            807
+          ],
+          "answer": "I do not know. The excerpts mention contract CN-1854 approved by A. Haddad, but do not mention contract CN-2349.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1822,
+          "contextBytes": 45690,
+          "readerTokens": {
+            "prompt": 7425,
+            "completion": 30,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00113175,
+          "retrievalMs": 77,
+          "readerMs": 1742
+        },
+        {
+          "id": "w108-authority-44-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "Did the approver possess the delegated authority to approve contract CN-8547 on the date approval was granted? Yes or no.",
+          "gold": "no",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            414,
+            732,
+            758,
+            865
+          ],
+          "answer": "Yes.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.25,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1213,
+          "contextBytes": 11803,
+          "readerTokens": {
+            "prompt": 2561,
+            "completion": 2,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00038534999999999996,
+          "retrievalMs": 87,
+          "readerMs": 1126
+        },
+        {
+          "id": "w108-authority-45-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "Did the approver possess the delegated authority to approve contract CN-6365 on the date approval was granted? Yes or no.",
+          "gold": "no",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            68,
+            127,
+            807
+          ],
+          "answer": "No.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0.667,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.6666666666666666,
+            "windowPrecision": 0.16666666666666666,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1194,
+          "contextBytes": 11827,
+          "readerTokens": {
+            "prompt": 2560,
+            "completion": 2,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0003852,
+          "retrievalMs": 80,
+          "readerMs": 1114
+        },
+        {
+          "id": "w108-authority-46-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "Did the approver possess the delegated authority to approve contract CN-5633 on the date that approval was granted? Yes or no.",
+          "gold": "yes",
+          "answerFormat": "Compose",
+          "evidencePages": [
+            307,
+            389,
+            807
+          ],
+          "answer": "No.",
+          "correct": false,
+          "correctLocale": false,
+          "confidentWrong": true,
+          "family": "authority",
+          "hops": 4,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": false,
+          "retrieval": {
+            "evidenceHit": true,
+            "pageRecall": 0.3333333333333333,
+            "windowPrecision": 0.08333333333333333,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1093,
+          "contextBytes": 12026,
+          "readerTokens": {
+            "prompt": 2616,
+            "completion": 2,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00039359999999999997,
+          "retrievalMs": 96,
+          "readerMs": 996
+        },
+        {
+          "id": "w108-unanswerable-47-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 31 May 2020, who held the role of Head of Procurement at Ferrous Pacific?",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "I do not know. The excerpts do not state who held the Head of Procurement role as of 31 May 2020; the earliest relevant record is Aiko Rautio taking up the position effective 01/01/2021.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "unanswerable",
+          "hops": 1,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1505,
+          "contextBytes": 5452,
+          "readerTokens": {
+            "prompt": 1461,
+            "completion": 116,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00028875,
+          "retrievalMs": 104,
+          "readerMs": 1401
+        },
+        {
+          "id": "w108-unanswerable-48-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "What was the contract value at the time of signing for CN-5536?",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "I do not know. The supplied excerpts do not include a contract with reference CN-5536.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "unanswerable",
+          "hops": 1,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1649,
+          "contextBytes": 25845,
+          "readerTokens": {
+            "prompt": 5517,
+            "completion": 20,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00083955,
+          "retrievalMs": 76,
+          "readerMs": 1572
+        },
+        {
+          "id": "w108-unanswerable-49-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "As of 22/05/2020, who held the position of Head of Safety at Ferrous Pacific?",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "I do not know. The excerpts only show Kofi Beaumont becoming Head of Safety at Ferrous Pacific effective 01/01/2021 and resigning on 28/05/2022; they provide no information about the position as of 22/05/2020.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "unanswerable",
+          "hops": 1,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 10,
+            "windowsShown": 10
+          },
+          "latencyMs": 1555,
+          "contextBytes": 5494,
+          "readerTokens": {
+            "prompt": 1485,
+            "completion": 160,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.00031875,
+          "retrievalMs": 79,
+          "readerMs": 1476
+        },
+        {
+          "id": "w108-unanswerable-50-1000p",
+          "document": "compose-testv3-w108-1000p",
+          "question": "Please state the value of contract CN-9283 as of the date it was signed.",
+          "gold": null,
+          "answerFormat": "Compose",
+          "evidencePages": [],
+          "answer": "I do not know. The supplied excerpts do not include contract CN-9283.",
+          "correct": true,
+          "correctLocale": true,
+          "confidentWrong": false,
+          "family": "unanswerable",
+          "hops": 1,
+          "tokenF1": 0,
+          "anls": 0,
+          "abstained": true,
+          "retrieval": {
+            "evidenceHit": false,
+            "pageRecall": 0,
+            "windowPrecision": 0,
+            "pagesShown": 12,
+            "windowsShown": 12
+          },
+          "latencyMs": 1674,
+          "contextBytes": 25856,
+          "readerTokens": {
+            "prompt": 5460,
+            "completion": 17,
+            "reasoning": 0
+          },
+          "readerCostUsd": 0.0008292000000000001,
+          "retrievalMs": 77,
+          "readerMs": 1596
+        }
+      ]
+    }
+  ]
+}

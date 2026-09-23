@@ -215,3 +215,12 @@ describe('invalid dates from a writer', () => {
     expect(unsupportedReason({ predicate: 'incident', args: ['Carrow Group', 'INC-123A', 2025, 'Tamworth depot', 3] }, page)).toMatch(/not a valid date/);
   });
 });
+
+describe('scoring an unanswerable identity', () => {
+  it('calls a repeated ambiguous surname partial and a named namesake wrong', () => {
+    const gold = { kind: 'unknown' as const, items: [], distractors: ['Aiko Rautio', 'Bruno Rautio'], partial: ['Rautio'], distractorNumbers: [], display: 'unknown' };
+    expect(scoreCompose('Mr Rautio.', gold)).toBe('partial');
+    expect(scoreCompose('Bruno Rautio', gold)).toBe('wrong');
+    expect(scoreCompose('The minutes name only "Mr Rautio", and two people share that surname, so this cannot be determined.', gold)).toBe('correct');
+  });
+});

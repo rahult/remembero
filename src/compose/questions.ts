@@ -65,8 +65,9 @@ export interface ComposeQuestion {
   params: Record<string, string | number>;
 }
 
-function personSpellings(p: Person): string[] {
-  return [personName(p), `${p.title} ${p.last}`, `${p.first[0]}. ${p.last}`, p.last];
+function personSpellings(p: Person, shared: ReadonlySet<string> = new Set()): string[] {
+  // a surname two people share names neither of them
+  return shared.has(p.last) ? [personName(p), `${p.first[0]}. ${p.last}`] : [personName(p), `${p.title} ${p.last}`, `${p.first[0]}. ${p.last}`, p.last];
 }
 
 function supplierSpellings(name: string): string[] {
@@ -80,7 +81,11 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
   const supplier = new Map(world.suppliers.map((s) => [s.id, s]));
   const contract = new Map(world.contracts.map((c) => [c.id, c]));
   const questions: ComposeQuestion[] = [];
-  const everyoneBut = (who: Person) => world.people.filter((p) => p.id !== who.id).flatMap((p) => [personName(p), p.last]);
+  const lastCounts = new Map<string, number>();
+  for (const p of world.people) lastCounts.set(p.last, (lastCounts.get(p.last) ?? 0) + 1);
+  const shared = new Set([...lastCounts].filter(([, n]) => n > 1).map(([last]) => last));
+  const everyoneBut = (who: Person) =>
+    world.people.filter((p) => p.id !== who.id).flatMap((p) => (shared.has(p.last) ? [personName(p)] : [personName(p), p.last]));
   const count = (family: Family, fallback: number) => perFamily[family] ?? fallback;
   const say = (d: Ymd) => formatDate(d, rng.pick(['long', 'long', 'iso'] as const));
 
@@ -127,7 +132,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         family: 'validity',
         hops: 2,
         question: `Who was the ${roleName(world, term.role)} of ${world.organisation} on ${say(on)}?`,
-        gold: { kind: 'entity', items: [personSpellings(holder)], distractors: everyoneBut(holder), distractorNumbers: [], display: personName(holder) },
+        gold: { kind: 'entity', items: [personSpellings(holder, shared)], distractors: everyoneBut(holder), distractorNumbers: [], display: personName(holder) },
         evidence: [keys.roleStart(held.role, holder.id), ...(held.to === OPEN_END ? [] : [keys.roleEnd(held.role, holder.id)])],
         datalog: `holds_role_on(${term.role}, P, ${on})`,
         params: { role: roleName(world, term.role), date: on, organisation: world.organisation },
@@ -136,7 +141,40 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
   }
 
   // --- identity: the minutes name the approver by initial or only by role ---
-  const indirect = world.approvals.filter((a) => a.namedAs !== 'name');
+  // v3: an approver named only by a shared surname cannot be identified from the documents
+  for (const approval of world.approvals.filter((a) => a.namedAs === 'surname')) {
+    plans.push(() => {
+      const c = contract.get(approval.contract)!;
+      const twins = world.people.filter((p) => world.surnameTwins.includes(p.id));
+      return {
+        id: id('unanswerable'),
+        family: 'unanswerable',
+        hops: 2,
+        question: `What is the full name of the person who approved contract ${c.ref}?`,
+        gold: { kind: 'unknown', items: [], distractors: twins.map(personName), partial: [...new Set(twins.map((t) => t.last))], distractorNumbers: [], display: 'unknown (two people share the surname)' },
+        evidence: [],
+        datalog: `approved(${c.id}, P, _)  % the minutes name a surname two people share`,
+        params: { contract: c.ref, shape: 'identity' },
+      };
+    });
+  }
+  // v3: a deferred contract has no approver and no approval to judge
+  for (const deferral of world.deferrals) {
+    plans.push(() => {
+      const c = contract.get(deferral.contract)!;
+      return {
+        id: id('unanswerable'),
+        family: 'unanswerable',
+        hops: 1,
+        question: `Was the approval of contract ${c.ref} within the approver's delegated authority on the day it was approved? Answer yes or no.`,
+        gold: { kind: 'unknown', items: [], distractors: [], distractorNumbers: [], display: 'unknown (approval was deferred)' },
+        evidence: [],
+        datalog: `approved(${c.id}, _, _)  % no row: the approval was deferred`,
+        params: { contract: c.ref, shape: 'authority' },
+      };
+    });
+  }
+  const indirect = world.approvals.filter((a) => a.namedAs === 'initial' || a.namedAs === 'role');
   for (const approval of rng.sample(indirect, Math.min(count('identity', 5), indirect.length))) {
     plans.push((program) => {
       const c = contract.get(approval.contract)!;
@@ -246,8 +284,10 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
     const on = pickDay(ymd(2022, 1, 1), ymd(2026, 3, 1));
     plans.push((program) => {
       const valid = new Set(program.column(`cert_valid_on(S, ${standard}, ${on})`, 'S').map(String));
-      const lacking = world.suppliers.filter((s) => !valid.has(s.id));
-      if (lacking.length === 0 || lacking.length === world.suppliers.length) return undefined;
+      // "contracted" suppliers: those holding at least one contract
+      const contracted = world.suppliers.filter((s) => world.contracts.some((c) => c.supplier === s.id));
+      const lacking = contracted.filter((s) => !valid.has(s.id));
+      if (lacking.length === 0 || lacking.length === contracted.length) return undefined;
       return {
         id: id('absence'),
         family: 'absence',
@@ -256,19 +296,20 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         gold: {
           kind: 'set',
           items: lacking.map((s) => supplierSpellings(s.name)),
-          distractors: world.suppliers.filter((s) => valid.has(s.id)).map((s) => s.name.replace(/ Pty Ltd$/, '')),
+          distractors: contracted.filter((s) => valid.has(s.id)).map((s) => s.name.replace(/ Pty Ltd$/, '')),
           distractorNumbers: [],
           display: lacking.map((s) => s.name).join('; '),
         },
         evidence: world.certificates.filter((c) => c.standard === standard).map((c) => keys.cert(c.supplier, c.standard, c.issued)),
-        datalog: `supplier_name(S, _), \\+ cert_valid_on(S, ${standard}, ${on})`,
+        datalog: `contract(_, S, _, _), \\+ cert_valid_on(S, ${standard}, ${on})`,
         params: { standard: STANDARD_NAMES[standard], date: on, organisation: world.organisation },
       };
     });
   }
 
   // --- authority: was an approval within the approver's delegated limit? ---
-  for (const approval of rng.sample(world.approvals, Math.min(count('authority', 8), world.approvals.length))) {
+  const decidable = world.approvals.filter((a) => a.namedAs !== 'surname');
+  for (const approval of rng.sample(decidable, Math.min(count('authority', 8), decidable.length))) {
     plans.push((program) => {
       const c = contract.get(approval.contract)!;
       const allowed = program.holds(`may_approve(${approval.person}, ${c.id}, ${approval.on})`);

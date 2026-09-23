@@ -44,9 +44,9 @@ function canonicalKey(fact: Fact, people: Map<string, string>): string {
   return key({ predicate: fact.predicate, args: fact.args.map(resolve) });
 }
 
-function peopleIndex(seed: number, split: 'train' | 'dev' | 'test'): Map<string, string> {
+function peopleIndex(seed: number, split: 'train' | 'dev' | 'test', adversarial = false): Map<string, string> {
   const index = new Map<string, string>();
-  for (const p of generateWorld(seed, split).people) {
+  for (const p of generateWorld(seed, split, adversarial ? { adversarial: true } : {}).people) {
     const full = normaliseName(`${p.first} ${p.last}`);
     for (const alias of [full, normaliseName(p.last), normaliseName(`${p.first[0]}. ${p.last}`)]) index.set(alias, full);
   }
@@ -105,7 +105,7 @@ async function main() {
     for (const documentId of tier.documents) {
       const source = spec.sources.find((s) => s.id === documentId)!;
       const seed = Number(/-w(\d+)-/.exec(documentId)![1]);
-      const split = (/^compose-(train|dev|test)(?:v[12])?-/.exec(documentId)?.[1] ?? 'test') as 'train' | 'dev' | 'test';
+      const split = (/^compose-(train|dev|test)(?:v[123])?-/.exec(documentId)?.[1] ?? 'test') as 'train' | 'dev' | 'test';
       const pages = pagesFromTextFile(source.text);
 
       // a page dense with dates is likely a record page: it gets a second, independent pass,
@@ -171,11 +171,12 @@ async function main() {
       }
       const { kept, repaired, rejected } = repairFacts(grounded);
 
-      const people = peopleIndex(seed, split);
-      const truth = new Set(worldAsSchemaFacts(generateWorld(seed, split)).map((f) => canonicalKey(f, people)));
+      const people = peopleIndex(seed, split, /v3-/.test(documentId));
+      const adversarial = /v3-/.test(documentId);
+      const truth = new Set(worldAsSchemaFacts(generateWorld(seed, split, adversarial ? { adversarial: true } : {})).map((f) => canonicalKey(f, people)));
       // facts of the sister organisations are true too: count them for precision, not for recall
       const sisterTruth = new Set<string>();
-      if (/v[12]-/.test(documentId)) {
+      if (/v[123]-/.test(documentId)) {
         const sisterPool = split === 'train' ? 'dev' : 'train';
         const main = generateWorld(seed, split);
         const refs = new Set(main.contracts.map((c) => c.ref));
