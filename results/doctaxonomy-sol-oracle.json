@@ -1,0 +1,246 @@
+{
+ "arm": "results/docrecall-sol-oracle.json",
+ "oracle": null,
+ "misses": [
+  {
+   "id": "adubench_single_000304",
+   "tier": "100p",
+   "cause": "declined_despite_evidence",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000306",
+   "tier": "100p",
+   "cause": "misread_value",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000309",
+   "tier": "100p",
+   "cause": "wrong_passage",
+   "shape": "comparison"
+  },
+  {
+   "id": "adubench_single_000993",
+   "tier": "100p",
+   "cause": "wrong_passage",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000497",
+   "tier": "100p",
+   "cause": "correct_but_phrased_differently",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001165",
+   "tier": "100p",
+   "cause": "declined_despite_evidence",
+   "shape": "comparison"
+  },
+  {
+   "id": "adubench_single_000296",
+   "tier": "100p",
+   "cause": "declined_despite_evidence",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000972",
+   "tier": "100p",
+   "cause": "computation_error",
+   "shape": "arithmetic"
+  },
+  {
+   "id": "adubench_single_000973",
+   "tier": "100p",
+   "cause": "wrong_passage",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000975",
+   "tier": "100p",
+   "cause": "declined_despite_evidence",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000646",
+   "tier": "100p",
+   "cause": "misread_value",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000649",
+   "tier": "100p",
+   "cause": "misread_value",
+   "shape": "arithmetic"
+  },
+  {
+   "id": "adubench_single_000650",
+   "tier": "100p",
+   "cause": "declined_despite_evidence",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001304",
+   "tier": "100p",
+   "cause": "misread_value",
+   "shape": "lookup"
+  },
+  {
+   "id": "adubench_single_000442",
+   "tier": "100p",
+   "cause": "wrong_passage",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_001105",
+   "tier": "100p",
+   "cause": "declined_despite_evidence",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001106",
+   "tier": "100p",
+   "cause": "declined_despite_evidence",
+   "shape": "comparison"
+  },
+  {
+   "id": "adubench_single_000342",
+   "tier": "500p",
+   "cause": "declined_despite_evidence",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000343",
+   "tier": "500p",
+   "cause": "declined_despite_evidence",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_001021",
+   "tier": "500p",
+   "cause": "declined_despite_evidence",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_001023",
+   "tier": "500p",
+   "cause": "declined_despite_evidence",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000059",
+   "tier": "500p",
+   "cause": "misread_value",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000754",
+   "tier": "500p",
+   "cause": "computation_error",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000996",
+   "tier": "500p",
+   "cause": "declined_despite_evidence",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000052",
+   "tier": "500p",
+   "cause": "declined_despite_evidence",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000053",
+   "tier": "500p",
+   "cause": "incomplete_multi_part",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000055",
+   "tier": "500p",
+   "cause": "gold_questionable",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000746",
+   "tier": "500p",
+   "cause": "misread_value",
+   "shape": "arithmetic"
+  },
+  {
+   "id": "adubench_single_000381",
+   "tier": "500p",
+   "cause": "computation_error",
+   "shape": "arithmetic"
+  },
+  {
+   "id": "adubench_single_001049",
+   "tier": "500p",
+   "cause": "gold_questionable",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001054",
+   "tier": "500p",
+   "cause": "gold_questionable",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000232",
+   "tier": "1000p",
+   "cause": "misread_value",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000915",
+   "tier": "1000p",
+   "cause": "answered_unanswerable",
+   "shape": "lookup"
+  },
+  {
+   "id": "adubench_single_000916",
+   "tier": "1000p",
+   "cause": "computation_error",
+   "shape": "arithmetic"
+  },
+  {
+   "id": "adubench_single_000424",
+   "tier": "1000p",
+   "cause": "declined_despite_evidence",
+   "shape": "comparison"
+  },
+  {
+   "id": "adubench_single_000426",
+   "tier": "1000p",
+   "cause": "wrong_passage",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_001091",
+   "tier": "1000p",
+   "cause": "declined_despite_evidence",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000533",
+   "tier": "1000p",
+   "cause": "misread_value",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001205",
+   "tier": "1000p",
+   "cause": "declined_despite_evidence",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001207",
+   "tier": "1000p",
+   "cause": "declined_despite_evidence",
+   "shape": "multi_hop"
+  }
+ ]
+}

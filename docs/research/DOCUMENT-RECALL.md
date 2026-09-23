@@ -331,3 +331,35 @@ extraction pays for itself after about 350 questions.
 **So the design is facts as an index into the document, not a replacement for it**: extract at
 ingest with a document prompt, keep the page on every fact, search facts and pages together, and
 hand the reader the pages.
+
+## Result 7: where the misses are (2026-09-23)
+
+`src/evals/run-document-taxonomy.ts` gives every judged-wrong answer a cause — from the page labels
+first, then from the same reader's oracle run, then from a deepseek label over the benchmark's
+verbatim evidence quotes — and every question a reasoning shape.
+
+**Sol, depth 12, hybrid ranking — 56 misses of 118.** Would the gold pages alone have fixed it?
+
+| cause | misses | fixed by the gold pages |
+| --- | --- | --- |
+| partly found (some gold pages missing) | 20 | 11 |
+| not found | 16 | 6 |
+| retrieval order (gold pages shown among distractors) | 7 | 7 |
+| gold questionable | 4 | 0 |
+| wrong passage / misread value / computation | 8 | 0 |
+| answered an unanswerable question | 1 | 1 |
+
+So about 25 misses (~21 points) are retrieval's and ~31 (~26 points) survive perfect retrieval.
+An earlier summary called reading the bigger half on documents; it is closer to an even split.
+
+**Sol with only the gold pages — 40 misses of 122** (pure reading failures):
+declined despite the evidence 17 (43%), misread value 8 (20%), wrong passage 5 (13%),
+computation 4 (10%), gold questionable 3 (8%), other 3.
+
+**Accuracy by shape with the gold pages** (Sol oracle): multi-hop lookups 77%, comparison 60%,
+arithmetic 55%, set difference 45% — the shapes a Datalog engine computes exactly are the ones a
+frontier reader fails most with perfect evidence. (Shapes are a deepseek label; comparison,
+arithmetic and lookup have 4–11 questions each.)
+
+Deepseek's single biggest cause is also declining with the evidence present (28 of 83 misses);
+the local reader's misses are 75% retrieval at depth 4.

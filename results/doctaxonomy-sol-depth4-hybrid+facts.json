@@ -1,0 +1,420 @@
+{
+ "arm": "results/docrecall-sol-depth4-hybrid+facts.json",
+ "oracle": "results/docrecall-sol-oracle.json",
+ "misses": [
+  {
+   "id": "adubench_single_000303",
+   "tier": "100p",
+   "cause": "partly_found",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000304",
+   "tier": "100p",
+   "cause": "not_found",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000307",
+   "tier": "100p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000309",
+   "tier": "100p",
+   "cause": "not_found",
+   "shape": "comparison"
+  },
+  {
+   "id": "adubench_single_000993",
+   "tier": "100p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000496",
+   "tier": "100p",
+   "cause": "not_found",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000497",
+   "tier": "100p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000499",
+   "tier": "100p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001164",
+   "tier": "100p",
+   "cause": "partly_found",
+   "shape": "arithmetic"
+  },
+  {
+   "id": "adubench_single_001165",
+   "tier": "100p",
+   "cause": "partly_found",
+   "shape": "comparison"
+  },
+  {
+   "id": "adubench_single_001168",
+   "tier": "100p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000295",
+   "tier": "100p",
+   "cause": "partly_found",
+   "shape": "arithmetic"
+  },
+  {
+   "id": "adubench_single_000296",
+   "tier": "100p",
+   "cause": "not_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000298",
+   "tier": "100p",
+   "cause": "retrieval_order",
+   "shape": "arithmetic"
+  },
+  {
+   "id": "adubench_single_000972",
+   "tier": "100p",
+   "cause": "computation_error",
+   "shape": "arithmetic"
+  },
+  {
+   "id": "adubench_single_000973",
+   "tier": "100p",
+   "cause": "wrong_passage",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000974",
+   "tier": "100p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000975",
+   "tier": "100p",
+   "cause": "not_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000646",
+   "tier": "100p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000647",
+   "tier": "100p",
+   "cause": "not_found",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000649",
+   "tier": "100p",
+   "cause": "misread_value",
+   "shape": "arithmetic"
+  },
+  {
+   "id": "adubench_single_000650",
+   "tier": "100p",
+   "cause": "not_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000442",
+   "tier": "100p",
+   "cause": "partly_found",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000443",
+   "tier": "100p",
+   "cause": "not_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000445",
+   "tier": "100p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001105",
+   "tier": "100p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000339",
+   "tier": "500p",
+   "cause": "partly_found",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000340",
+   "tier": "500p",
+   "cause": "partly_found",
+   "shape": "comparison"
+  },
+  {
+   "id": "adubench_single_000341",
+   "tier": "500p",
+   "cause": "retrieval_order",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000342",
+   "tier": "500p",
+   "cause": "not_found",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000343",
+   "tier": "500p",
+   "cause": "not_found",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000344",
+   "tier": "500p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000345",
+   "tier": "500p",
+   "cause": "not_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001020",
+   "tier": "500p",
+   "cause": "not_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001021",
+   "tier": "500p",
+   "cause": "declined_despite_evidence",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_001023",
+   "tier": "500p",
+   "cause": "partly_found",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000058",
+   "tier": "500p",
+   "cause": "partly_found",
+   "shape": "comparison"
+  },
+  {
+   "id": "adubench_single_000062",
+   "tier": "500p",
+   "cause": "not_found",
+   "shape": "lookup"
+  },
+  {
+   "id": "adubench_single_000063",
+   "tier": "500p",
+   "cause": "partly_found",
+   "shape": "arithmetic"
+  },
+  {
+   "id": "adubench_single_000751",
+   "tier": "500p",
+   "cause": "partly_found",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000754",
+   "tier": "500p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000315",
+   "tier": "500p",
+   "cause": "not_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000316",
+   "tier": "500p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000996",
+   "tier": "500p",
+   "cause": "not_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000998",
+   "tier": "500p",
+   "cause": "not_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000999",
+   "tier": "500p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000052",
+   "tier": "500p",
+   "cause": "misread_value",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000053",
+   "tier": "500p",
+   "cause": "partly_found",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000055",
+   "tier": "500p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000746",
+   "tier": "500p",
+   "cause": "partly_found",
+   "shape": "arithmetic"
+  },
+  {
+   "id": "adubench_single_000383",
+   "tier": "500p",
+   "cause": "retrieval_order",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001049",
+   "tier": "500p",
+   "cause": "gold_questionable",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001050",
+   "tier": "500p",
+   "cause": "not_found",
+   "shape": "arithmetic"
+  },
+  {
+   "id": "adubench_single_001051",
+   "tier": "500p",
+   "cause": "answered_unanswerable",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001054",
+   "tier": "500p",
+   "cause": "gold_questionable",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000230",
+   "tier": "1000p",
+   "cause": "not_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000231",
+   "tier": "1000p",
+   "cause": "retrieval_order",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000232",
+   "tier": "1000p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000916",
+   "tier": "1000p",
+   "cause": "not_found",
+   "shape": "arithmetic"
+  },
+  {
+   "id": "adubench_single_000426",
+   "tier": "1000p",
+   "cause": "partly_found",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_001089",
+   "tier": "1000p",
+   "cause": "not_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001090",
+   "tier": "1000p",
+   "cause": "partly_found",
+   "shape": "set_difference"
+  },
+  {
+   "id": "adubench_single_000533",
+   "tier": "1000p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000534",
+   "tier": "1000p",
+   "cause": "not_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001205",
+   "tier": "1000p",
+   "cause": "not_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001207",
+   "tier": "1000p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000361",
+   "tier": "1000p",
+   "cause": "not_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_000363",
+   "tier": "1000p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  },
+  {
+   "id": "adubench_single_001031",
+   "tier": "1000p",
+   "cause": "partly_found",
+   "shape": "multi_hop"
+  }
+ ]
+}
