@@ -4,30 +4,27 @@
  "planner": "llm",
  "plannerModel": "deepseek-chat",
  "spec": "benchmarks/compose/holdout-v1/spec.json",
- "ranAt": "2026-09-23T14:37:48.215Z",
- "costUsd": 0.04947089999999999,
+ "ranAt": "2026-09-23T15:13:32.712Z",
+ "costUsd": 0,
  "runs": [
   {
    "tier": "100p",
    "world": 103,
    "pages": 100,
    "extraction": {
-    "kept": 378,
-    "dropped": 0,
+    "kept": 374,
+    "dropped": 4,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 118,
     "truePositives": 118,
     "falseFacts": [
-     "appointed(lumen utilities|l. thorsen|chair|20210801)",
      "approved(lumen utilities|cn-7396|l. thorsen|20210828)",
-     "appointed(marlin health|declan solberg|chair|20211101)",
      "approved(lumen utilities|cn-4284|e. ferreira|20220927)",
      "ceased(lumen utilities|kaczmarek|chief financial officer|20221231)",
      "approved(lumen utilities|cn-4929|d. achterberg|20230118)",
      "ceased(lumen utilities|achterberg|chief risk officer|20230121)",
      "ceased(lumen utilities|haddad|head of safety|20230227)",
-     "appointed(lumen utilities|o. yilmaz|chief risk officer|20240708)",
      "approved(lumen utilities|cn-4195|o. yilmaz|20240705)",
      "ceased(lumen utilities|tanaka|chief operating officer|20240925)",
      "ceased(lumen utilities|ivanova|head of safety|20241110)",
@@ -38,14 +35,34 @@
      "ceased(tidewater transit|okafor|chief operating officer|20221211)",
      "ceased(tidewater transit|marchetti|chief risk officer|20230315)",
      "approved(tidewater transit|cn-8619|a. achterberg|20230627)",
-     "appointed(marlin health|viktor lachance|chair|20241101)",
      "approved(tidewater transit|cn-5322|p. thorsen|20240331)",
      "ceased(tidewater transit|ostrowski|general counsel|20250102)",
      "ceased(tidewater transit|delacroix|chief risk officer|20250506)",
      "approved(tidewater transit|cn-1348|l. brennan|20250725)"
     ],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 5,
+      "fact": "appointed(lumen utilities|l. thorsen|chair|20210801)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 7,
+      "fact": "appointed(marlin health|declan solberg|chair|20211101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 24,
+      "fact": "appointed(lumen utilities|o. yilmaz|chief risk officer|20240708)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 75,
+      "fact": "appointed(marlin health|viktor lachance|chair|20241101)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -738,12 +755,10 @@
    "world": 104,
    "pages": 100,
    "extraction": {
-    "kept": 365,
-    "dropped": 0,
+    "kept": 353,
+    "dropped": 13,
     "repaired": 0,
-    "rejectedByTypeCheck": [
-     "appointed(tidewater transit|chief operating officer|chief operating officer|20230301)"
-    ],
+    "rejectedByTypeCheck": [],
     "truth": 114,
     "truePositives": 114,
     "falseFacts": [
@@ -755,31 +770,85 @@
      "ceased(tidewater transit|delacroix|chief operating officer|20230401)",
      "approved(tidewater transit|cn-1497|n. thorsen|20230812)",
      "approved(tidewater transit|cn-2735|n. thorsen|20230906)",
-     "appointed(tidewater transit|n. thorsen|chief operating officer|20230909)",
      "ceased(tidewater transit|adeyemi|chief financial officer|20240303)",
      "approved(tidewater transit|cn-5142|r. haddad|20250118)",
-     "appointed(marlin health|noor beaumont|chair|20230501)",
-     "appointed(marlin health|noor beaumont|director|20230501)",
-     "appointed(carrow group|e. ivanova|chair|20210301)",
      "approved(carrow group|cn-7950|e. ivanova|20210307)",
-     "appointed(carrow group|emil brennan|chief financial officer|20210701)",
      "approved(carrow group|cn-9653|a. sandoval|20220917)",
      "ceased(carrow group|kaczmarek|head of safety|20221011)",
-     "appointed(carrow group|arjun balogun|chair|20230101)",
-     "appointed(carrow group|i. okafor|chair|20230601)",
      "approved(carrow group|cn-2441|i. okafor|20230610)",
-     "appointed(carrow group|tariq ekberg|chief operating officer|20230813)",
      "ceased(carrow group|okafor|chief operating officer|20230813)",
      "approved(carrow group|cn-6908|t. ekberg|20230819)",
-     "appointed(carrow group|tariq ekberg|chair|20230801)",
-     "appointed(carrow group|tariq ekberg|director|20230801)",
-     "appointed(carrow group|okafor|chief operating officer|20230801)",
-     "appointed(marlin health|viktor andrade|chair|20241101)",
      "ceased(carrow group|balogun|chief financial officer|20231130)",
      "approved(carrow group|cn-2076|e. achterberg|20240409)"
     ],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 23,
+      "fact": "appointed(tidewater transit|chief operating officer|chief operating officer|20230301)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 28,
+      "fact": "appointed(tidewater transit|n. thorsen|chief operating officer|20230909)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 50,
+      "fact": "appointed(marlin health|noor beaumont|chair|20230501)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 50,
+      "fact": "appointed(marlin health|noor beaumont|director|20230501)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 51,
+      "fact": "appointed(carrow group|e. ivanova|chair|20210301)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 52,
+      "fact": "appointed(carrow group|emil brennan|chief financial officer|20210701)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 68,
+      "fact": "appointed(carrow group|arjun balogun|chair|20230101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 75,
+      "fact": "appointed(carrow group|i. okafor|chair|20230601)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 76,
+      "fact": "appointed(carrow group|tariq ekberg|chief operating officer|20230813)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 76,
+      "fact": "appointed(carrow group|tariq ekberg|chair|20230801)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 76,
+      "fact": "appointed(carrow group|tariq ekberg|director|20230801)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 76,
+      "fact": "appointed(carrow group|okafor|chief operating officer|20230801)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 82,
+      "fact": "appointed(marlin health|viktor andrade|chair|20241101)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -1472,22 +1541,19 @@
    "world": 103,
    "pages": 500,
    "extraction": {
-    "kept": 378,
-    "dropped": 0,
+    "kept": 374,
+    "dropped": 4,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 118,
     "truePositives": 118,
     "falseFacts": [
-     "appointed(lumen utilities|l. thorsen|chair|20210801)",
      "approved(lumen utilities|cn-7396|l. thorsen|20210828)",
-     "appointed(marlin health|declan solberg|chair|20211101)",
      "approved(lumen utilities|cn-4284|e. ferreira|20220927)",
      "ceased(lumen utilities|kaczmarek|chief financial officer|20221231)",
      "approved(lumen utilities|cn-4929|d. achterberg|20230118)",
      "ceased(lumen utilities|achterberg|chief risk officer|20230121)",
      "ceased(lumen utilities|haddad|head of safety|20230227)",
-     "appointed(lumen utilities|o. yilmaz|chief risk officer|20240708)",
      "approved(lumen utilities|cn-4195|o. yilmaz|20240705)",
      "ceased(lumen utilities|tanaka|chief operating officer|20240925)",
      "ceased(lumen utilities|ivanova|head of safety|20241110)",
@@ -1498,14 +1564,34 @@
      "ceased(tidewater transit|okafor|chief operating officer|20221211)",
      "ceased(tidewater transit|marchetti|chief risk officer|20230315)",
      "approved(tidewater transit|cn-8619|a. achterberg|20230627)",
-     "appointed(marlin health|viktor lachance|chair|20241101)",
      "approved(tidewater transit|cn-5322|p. thorsen|20240331)",
      "ceased(tidewater transit|ostrowski|general counsel|20250102)",
      "ceased(tidewater transit|delacroix|chief risk officer|20250506)",
      "approved(tidewater transit|cn-1348|l. brennan|20250725)"
     ],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 17,
+      "fact": "appointed(lumen utilities|l. thorsen|chair|20210801)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 28,
+      "fact": "appointed(marlin health|declan solberg|chair|20211101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 117,
+      "fact": "appointed(lumen utilities|o. yilmaz|chief risk officer|20240708)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 374,
+      "fact": "appointed(marlin health|viktor lachance|chair|20241101)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -2198,12 +2284,10 @@
    "world": 104,
    "pages": 500,
    "extraction": {
-    "kept": 365,
-    "dropped": 0,
+    "kept": 353,
+    "dropped": 13,
     "repaired": 0,
-    "rejectedByTypeCheck": [
-     "appointed(tidewater transit|chief operating officer|chief operating officer|20230301)"
-    ],
+    "rejectedByTypeCheck": [],
     "truth": 114,
     "truePositives": 114,
     "falseFacts": [
@@ -2215,31 +2299,85 @@
      "ceased(tidewater transit|delacroix|chief operating officer|20230401)",
      "approved(tidewater transit|cn-1497|n. thorsen|20230812)",
      "approved(tidewater transit|cn-2735|n. thorsen|20230906)",
-     "appointed(tidewater transit|n. thorsen|chief operating officer|20230909)",
      "ceased(tidewater transit|adeyemi|chief financial officer|20240303)",
      "approved(tidewater transit|cn-5142|r. haddad|20250118)",
-     "appointed(carrow group|e. ivanova|chair|20210301)",
      "approved(carrow group|cn-7950|e. ivanova|20210307)",
-     "appointed(marlin health|noor beaumont|chair|20230501)",
-     "appointed(marlin health|noor beaumont|director|20230501)",
-     "appointed(carrow group|emil brennan|chief financial officer|20210701)",
      "approved(carrow group|cn-9653|a. sandoval|20220917)",
      "ceased(carrow group|kaczmarek|head of safety|20221011)",
-     "appointed(carrow group|arjun balogun|chair|20230101)",
-     "appointed(carrow group|i. okafor|chair|20230601)",
      "approved(carrow group|cn-2441|i. okafor|20230610)",
-     "appointed(carrow group|tariq ekberg|chief operating officer|20230813)",
      "ceased(carrow group|okafor|chief operating officer|20230813)",
      "approved(carrow group|cn-6908|t. ekberg|20230819)",
-     "appointed(carrow group|tariq ekberg|chair|20230801)",
-     "appointed(carrow group|tariq ekberg|director|20230801)",
-     "appointed(carrow group|okafor|chief operating officer|20230801)",
      "ceased(carrow group|balogun|chief financial officer|20231130)",
-     "appointed(marlin health|viktor andrade|chair|20241101)",
      "approved(carrow group|cn-2076|e. achterberg|20240409)"
     ],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 85,
+      "fact": "appointed(tidewater transit|chief operating officer|chief operating officer|20230301)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 101,
+      "fact": "appointed(tidewater transit|n. thorsen|chief operating officer|20230909)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 248,
+      "fact": "appointed(carrow group|e. ivanova|chair|20210301)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 249,
+      "fact": "appointed(marlin health|noor beaumont|chair|20230501)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 249,
+      "fact": "appointed(marlin health|noor beaumont|director|20230501)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 253,
+      "fact": "appointed(carrow group|emil brennan|chief financial officer|20210701)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 339,
+      "fact": "appointed(carrow group|arjun balogun|chair|20230101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 367,
+      "fact": "appointed(carrow group|i. okafor|chair|20230601)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 373,
+      "fact": "appointed(carrow group|tariq ekberg|chief operating officer|20230813)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 373,
+      "fact": "appointed(carrow group|tariq ekberg|chair|20230801)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 373,
+      "fact": "appointed(carrow group|tariq ekberg|director|20230801)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 373,
+      "fact": "appointed(carrow group|okafor|chief operating officer|20230801)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 407,
+      "fact": "appointed(marlin health|viktor andrade|chair|20241101)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -2932,22 +3070,19 @@
    "world": 103,
    "pages": 1000,
    "extraction": {
-    "kept": 378,
-    "dropped": 0,
+    "kept": 374,
+    "dropped": 4,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 118,
     "truePositives": 118,
     "falseFacts": [
-     "appointed(lumen utilities|l. thorsen|chair|20210801)",
      "approved(lumen utilities|cn-7396|l. thorsen|20210828)",
-     "appointed(marlin health|declan solberg|chair|20211101)",
      "approved(lumen utilities|cn-4284|e. ferreira|20220927)",
      "ceased(lumen utilities|kaczmarek|chief financial officer|20221231)",
      "approved(lumen utilities|cn-4929|d. achterberg|20230118)",
      "ceased(lumen utilities|achterberg|chief risk officer|20230121)",
      "ceased(lumen utilities|haddad|head of safety|20230227)",
-     "appointed(lumen utilities|o. yilmaz|chief risk officer|20240708)",
      "approved(lumen utilities|cn-4195|o. yilmaz|20240705)",
      "ceased(lumen utilities|tanaka|chief operating officer|20240925)",
      "ceased(lumen utilities|ivanova|head of safety|20241110)",
@@ -2958,14 +3093,34 @@
      "ceased(tidewater transit|okafor|chief operating officer|20221211)",
      "ceased(tidewater transit|marchetti|chief risk officer|20230315)",
      "approved(tidewater transit|cn-8619|a. achterberg|20230627)",
-     "appointed(marlin health|viktor lachance|chair|20241101)",
      "approved(tidewater transit|cn-5322|p. thorsen|20240331)",
      "ceased(tidewater transit|ostrowski|general counsel|20250102)",
      "ceased(tidewater transit|delacroix|chief risk officer|20250506)",
      "approved(tidewater transit|cn-1348|l. brennan|20250725)"
     ],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 33,
+      "fact": "appointed(lumen utilities|l. thorsen|chair|20210801)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 55,
+      "fact": "appointed(marlin health|declan solberg|chair|20211101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 233,
+      "fact": "appointed(lumen utilities|o. yilmaz|chief risk officer|20240708)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 748,
+      "fact": "appointed(marlin health|viktor lachance|chair|20241101)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -3658,12 +3813,10 @@
    "world": 104,
    "pages": 1000,
    "extraction": {
-    "kept": 365,
-    "dropped": 0,
+    "kept": 353,
+    "dropped": 13,
     "repaired": 0,
-    "rejectedByTypeCheck": [
-     "appointed(tidewater transit|chief operating officer|chief operating officer|20230301)"
-    ],
+    "rejectedByTypeCheck": [],
     "truth": 114,
     "truePositives": 114,
     "falseFacts": [
@@ -3675,31 +3828,85 @@
      "ceased(tidewater transit|delacroix|chief operating officer|20230401)",
      "approved(tidewater transit|cn-1497|n. thorsen|20230812)",
      "approved(tidewater transit|cn-2735|n. thorsen|20230906)",
-     "appointed(tidewater transit|n. thorsen|chief operating officer|20230909)",
      "ceased(tidewater transit|adeyemi|chief financial officer|20240303)",
      "approved(tidewater transit|cn-5142|r. haddad|20250118)",
-     "appointed(carrow group|e. ivanova|chair|20210301)",
      "approved(carrow group|cn-7950|e. ivanova|20210307)",
-     "appointed(marlin health|noor beaumont|chair|20230501)",
-     "appointed(marlin health|noor beaumont|director|20230501)",
-     "appointed(carrow group|emil brennan|chief financial officer|20210701)",
      "approved(carrow group|cn-9653|a. sandoval|20220917)",
      "ceased(carrow group|kaczmarek|head of safety|20221011)",
-     "appointed(carrow group|arjun balogun|chair|20230101)",
-     "appointed(carrow group|i. okafor|chair|20230601)",
      "approved(carrow group|cn-2441|i. okafor|20230610)",
-     "appointed(carrow group|tariq ekberg|chief operating officer|20230813)",
      "ceased(carrow group|okafor|chief operating officer|20230813)",
      "approved(carrow group|cn-6908|t. ekberg|20230819)",
-     "appointed(carrow group|tariq ekberg|chair|20230801)",
-     "appointed(carrow group|tariq ekberg|director|20230801)",
-     "appointed(carrow group|okafor|chief operating officer|20230801)",
      "ceased(carrow group|balogun|chief financial officer|20231130)",
-     "appointed(marlin health|viktor andrade|chair|20241101)",
      "approved(carrow group|cn-2076|e. achterberg|20240409)"
     ],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 169,
+      "fact": "appointed(tidewater transit|chief operating officer|chief operating officer|20230301)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 201,
+      "fact": "appointed(tidewater transit|n. thorsen|chief operating officer|20230909)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 496,
+      "fact": "appointed(carrow group|e. ivanova|chair|20210301)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 498,
+      "fact": "appointed(marlin health|noor beaumont|chair|20230501)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 498,
+      "fact": "appointed(marlin health|noor beaumont|director|20230501)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 505,
+      "fact": "appointed(carrow group|emil brennan|chief financial officer|20210701)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 678,
+      "fact": "appointed(carrow group|arjun balogun|chair|20230101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 734,
+      "fact": "appointed(carrow group|i. okafor|chair|20230601)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 746,
+      "fact": "appointed(carrow group|tariq ekberg|chief operating officer|20230813)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 746,
+      "fact": "appointed(carrow group|tariq ekberg|chair|20230801)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 746,
+      "fact": "appointed(carrow group|tariq ekberg|director|20230801)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 746,
+      "fact": "appointed(carrow group|okafor|chief operating officer|20230801)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 814,
+      "fact": "appointed(marlin health|viktor andrade|chair|20241101)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {

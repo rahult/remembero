@@ -4,26 +4,34 @@
  "planner": "llm",
  "plannerModel": "deepseek-chat",
  "spec": "benchmarks/compose/dev/spec.json",
- "ranAt": "2026-09-23T14:34:54.220Z",
- "costUsd": 0.043765649999999996,
+ "ranAt": "2026-09-23T15:15:04.231Z",
+ "costUsd": 0,
  "runs": [
   {
    "tier": "100p",
    "world": 201,
    "pages": 100,
    "extraction": {
-    "kept": 122,
-    "dropped": 0,
+    "kept": 120,
+    "dropped": 2,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 120,
     "truePositives": 120,
-    "falseFacts": [
-     "appointed(tidewater transit|callum castellanos|chair|20211101)",
-     "appointed(tidewater transit|callum castellanos|director|20211101)"
-    ],
+    "falseFacts": [],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 11,
+      "fact": "appointed(tidewater transit|callum castellanos|chair|20211101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 11,
+      "fact": "appointed(tidewater transit|callum castellanos|director|20211101)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -701,21 +709,36 @@
    "world": 202,
    "pages": 100,
    "extraction": {
-    "kept": 122,
-    "dropped": 0,
+    "kept": 119,
+    "dropped": 4,
     "repaired": 0,
-    "rejectedByTypeCheck": [
-     "appointed(carrow group|chief risk officer|chief risk officer|20241101)"
-    ],
+    "rejectedByTypeCheck": [],
     "truth": 119,
     "truePositives": 119,
-    "falseFacts": [
-     "appointed(carrow group|hana zielinski|chair|20210301)",
-     "appointed(carrow group|hana zielinski|chair|20220401)",
-     "appointed(carrow group|farah petrakis|chair|20240101)"
-    ],
+    "falseFacts": [],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 8,
+      "fact": "appointed(carrow group|hana zielinski|chair|20210301)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 25,
+      "fact": "appointed(carrow group|h. zielinski|chair|20220401)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 61,
+      "fact": "appointed(carrow group|farah petrakis|chair|20240101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 83,
+      "fact": "appointed(carrow group|chief risk officer|chief risk officer|20241101)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -1338,8 +1361,8 @@
        "contract": "CN-7250"
       }
      },
-     "answer": "unknown",
-     "outcome": "declined"
+     "answer": "no",
+     "outcome": "correct"
     },
     {
      "id": "w202-unanswerable-43-100p",
@@ -1408,18 +1431,26 @@
    "world": 201,
    "pages": 500,
    "extraction": {
-    "kept": 122,
-    "dropped": 0,
+    "kept": 120,
+    "dropped": 2,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 120,
     "truePositives": 120,
-    "falseFacts": [
-     "appointed(tidewater transit|callum castellanos|chair|20211101)",
-     "appointed(tidewater transit|callum castellanos|director|20211101)"
-    ],
+    "falseFacts": [],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 53,
+      "fact": "appointed(tidewater transit|callum castellanos|chair|20211101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 53,
+      "fact": "appointed(tidewater transit|callum castellanos|director|20211101)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -2097,21 +2128,36 @@
    "world": 202,
    "pages": 500,
    "extraction": {
-    "kept": 122,
-    "dropped": 0,
+    "kept": 119,
+    "dropped": 4,
     "repaired": 0,
-    "rejectedByTypeCheck": [
-     "appointed(carrow group|chief risk officer|chief risk officer|20241101)"
-    ],
+    "rejectedByTypeCheck": [],
     "truth": 119,
     "truePositives": 119,
-    "falseFacts": [
-     "appointed(carrow group|hana zielinski|chair|20210301)",
-     "appointed(carrow group|hana zielinski|chair|20220401)",
-     "appointed(carrow group|farah petrakis|chair|20240101)"
-    ],
+    "falseFacts": [],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 34,
+      "fact": "appointed(carrow group|hana zielinski|chair|20210301)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 120,
+      "fact": "appointed(carrow group|h. zielinski|chair|20220401)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 304,
+      "fact": "appointed(carrow group|farah petrakis|chair|20240101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 413,
+      "fact": "appointed(carrow group|chief risk officer|chief risk officer|20241101)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -2734,8 +2780,8 @@
        "contract": "CN-7250"
       }
      },
-     "answer": "unknown",
-     "outcome": "declined"
+     "answer": "no",
+     "outcome": "correct"
     },
     {
      "id": "w202-unanswerable-43-500p",
@@ -2804,18 +2850,26 @@
    "world": 201,
    "pages": 1000,
    "extraction": {
-    "kept": 122,
-    "dropped": 0,
+    "kept": 120,
+    "dropped": 2,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 120,
     "truePositives": 120,
-    "falseFacts": [
-     "appointed(tidewater transit|callum castellanos|chair|20211101)",
-     "appointed(tidewater transit|callum castellanos|director|20211101)"
-    ],
+    "falseFacts": [],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 105,
+      "fact": "appointed(tidewater transit|callum castellanos|chair|20211101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 105,
+      "fact": "appointed(tidewater transit|callum castellanos|director|20211101)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -3493,21 +3547,36 @@
    "world": 202,
    "pages": 1000,
    "extraction": {
-    "kept": 122,
-    "dropped": 0,
+    "kept": 119,
+    "dropped": 4,
     "repaired": 0,
-    "rejectedByTypeCheck": [
-     "appointed(carrow group|chief risk officer|chief risk officer|20241101)"
-    ],
+    "rejectedByTypeCheck": [],
     "truth": 119,
     "truePositives": 119,
-    "falseFacts": [
-     "appointed(carrow group|hana zielinski|chair|20210301)",
-     "appointed(carrow group|hana zielinski|chair|20220401)",
-     "appointed(carrow group|farah petrakis|chair|20240101)"
-    ],
+    "falseFacts": [],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 66,
+      "fact": "appointed(carrow group|hana zielinski|chair|20210301)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 239,
+      "fact": "appointed(carrow group|h. zielinski|chair|20220401)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 608,
+      "fact": "appointed(carrow group|farah petrakis|chair|20240101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 825,
+      "fact": "appointed(carrow group|chief risk officer|chief risk officer|20241101)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -4130,8 +4199,8 @@
        "contract": "CN-7250"
       }
      },
-     "answer": "unknown",
-     "outcome": "declined"
+     "answer": "no",
+     "outcome": "correct"
     },
     {
      "id": "w202-unanswerable-43-1000p",

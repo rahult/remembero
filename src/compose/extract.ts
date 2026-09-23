@@ -116,9 +116,20 @@ function squash(text: string): string {
  * Returns the reason it is not, or undefined when it is.
  */
 export function unsupportedReason(fact: Fact, page: string): string | undefined {
-  const text = squash(page);
+  const pageReason = supportedOn(fact, squash(page), 0);
+  if (pageReason !== undefined) return pageReason;
+  // every argument after the organisation must be stated by one line: a name, a role and a date
+  // scattered over a page ("Present: the Chair and directors" above "V. Dubois approved…") are not
+  // an appointment. The organisation may come from the heading.
+  const lines = page.split(/\n/).map(squash).filter((line) => line.trim() !== '');
+  if (!lines.some((line) => supportedOn(fact, line, 1) === undefined)) return 'not stated on any single line';
+  return undefined;
+}
+
+function supportedOn(fact: Fact, text: string, fromArgument: number): string | undefined {
   const shape = SHAPE[fact.predicate]!;
   for (const [i, kind] of shape.entries()) {
+    if (i < fromArgument) continue;
     const value = fact.args[i]!;
     if (kind === 'date') {
       if (typeof value !== 'number') return `argument ${i + 1} is not a date`;

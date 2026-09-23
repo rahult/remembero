@@ -197,3 +197,12 @@ describe('EngineAnswerer certainty guards', () => {
     expect(engine.answer('validity', { role: 'Chief Risk Officer', date: 20240101, organisation: 'Carrow Group' })).toBe('amara osei');
   });
 });
+
+describe('same-line grounding', () => {
+  it('rejects a fact assembled from words scattered across a page', async () => {
+    const { unsupportedReason } = await import('../src/compose/extract.js');
+    const page = 'Carrow Group — Minutes of the Board meeting held 1 May 2021\n\nPresent: the Chair and directors.\nV. Dubois approved contract CN-6425 on 16 May 2021.\n';
+    expect(unsupportedReason({ predicate: 'appointed', args: ['Carrow Group', 'V. Dubois', 'Chair', 20210501] }, page)).toBe('not stated on any single line');
+    expect(unsupportedReason({ predicate: 'approved', args: ['Carrow Group', 'CN-6425', 'V. Dubois', 20210516] }, page)).toBeUndefined();
+  });
+});

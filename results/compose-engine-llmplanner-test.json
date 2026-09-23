@@ -4,35 +4,74 @@
  "planner": "llm",
  "plannerModel": "deepseek-chat",
  "spec": "benchmarks/compose/test/spec.json",
- "ranAt": "2026-09-23T14:34:26.912Z",
- "costUsd": 0.21628425,
+ "ranAt": "2026-09-23T15:14:57.803Z",
+ "costUsd": 0,
  "runs": [
   {
    "tier": "100p",
    "world": 101,
    "pages": 100,
    "extraction": {
-    "kept": 137,
-    "dropped": 0,
+    "kept": 129,
+    "dropped": 10,
     "repaired": 0,
-    "rejectedByTypeCheck": [
-     "appointed(carrow group|chair|chair|20230901)",
-     "appointed(carrow group|chief risk officer|chief risk officer|20250701)"
-    ],
+    "rejectedByTypeCheck": [],
     "truth": 129,
     "truePositives": 129,
-    "falseFacts": [
-     "appointed(carrow group|viktor dubois|chair|20210501)",
-     "appointed(carrow group|ingrid halloran|director|20210501)",
-     "appointed(carrow group|kofi whitcombe|chair|20220601)",
-     "appointed(carrow group|ingrid weatherby|chair|20230201)",
-     "appointed(carrow group|matteo tremblay|chair|20230701)",
-     "appointed(carrow group|lucia moreau|chair|20231001)",
-     "appointed(carrow group|matteo tremblay|chair|20240101)",
-     "appointed(carrow group|matteo tremblay|chair|20240401)"
-    ],
+    "falseFacts": [],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 11,
+      "fact": "appointed(carrow group|v. dubois|chair|20210501)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 11,
+      "fact": "appointed(carrow group|ingrid halloran|director|20210501)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 21,
+      "fact": "appointed(carrow group|kofi whitcombe|chair|20220601)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 39,
+      "fact": "appointed(carrow group|ingrid weatherby|chair|20230201)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 42,
+      "fact": "appointed(carrow group|m. tremblay|chair|20230701)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 54,
+      "fact": "appointed(carrow group|chair|chair|20230901)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 55,
+      "fact": "appointed(carrow group|lucia moreau|chair|20231001)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(carrow group|m. tremblay|chair|20240101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 70,
+      "fact": "appointed(carrow group|matteo tremblay|chair|20240401)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 81,
+      "fact": "appointed(carrow group|chief risk officer|chief risk officer|20250701)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -282,8 +321,8 @@
        "contract": "CN-6425"
       }
      },
-     "answer": "unknown",
-     "outcome": "declined"
+     "answer": "viktor dubois",
+     "outcome": "correct"
     },
     {
      "id": "w101-supersession-18-100p",
@@ -573,8 +612,8 @@
        "contract": "CN-9103"
       }
      },
-     "answer": "unknown",
-     "outcome": "declined"
+     "answer": "yes",
+     "outcome": "correct"
     },
     {
      "id": "w101-authority-37-100p",
@@ -671,8 +710,8 @@
        "contract": "CN-6425"
       }
      },
-     "answer": "unknown",
-     "outcome": "declined"
+     "answer": "no",
+     "outcome": "correct"
     },
     {
      "id": "w101-unanswerable-44-100p",
@@ -741,19 +780,31 @@
    "world": 102,
    "pages": 100,
    "extraction": {
-    "kept": 127,
-    "dropped": 0,
+    "kept": 124,
+    "dropped": 3,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 124,
     "truePositives": 124,
-    "falseFacts": [
-     "appointed(ferrous pacific|lorcan moreau|chair|20210601)",
-     "appointed(ferrous pacific|oskar halloran|director|20210601)",
-     "appointed(ferrous pacific|lucia dubois|chair|20211201)"
-    ],
+    "falseFacts": [],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 26,
+      "fact": "appointed(ferrous pacific|lorcan moreau|chair|20210601)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 26,
+      "fact": "appointed(ferrous pacific|oskar halloran|director|20210601)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 32,
+      "fact": "appointed(ferrous pacific|lucia dubois|chair|20211201)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -1446,27 +1497,66 @@
    "world": 101,
    "pages": 500,
    "extraction": {
-    "kept": 137,
-    "dropped": 0,
+    "kept": 129,
+    "dropped": 10,
     "repaired": 0,
-    "rejectedByTypeCheck": [
-     "appointed(carrow group|chair|chair|20230901)",
-     "appointed(carrow group|chief risk officer|chief risk officer|20250701)"
-    ],
+    "rejectedByTypeCheck": [],
     "truth": 129,
     "truePositives": 129,
-    "falseFacts": [
-     "appointed(carrow group|viktor dubois|chair|20210501)",
-     "appointed(carrow group|ingrid halloran|director|20210501)",
-     "appointed(carrow group|kofi whitcombe|chair|20220601)",
-     "appointed(carrow group|ingrid weatherby|chair|20230201)",
-     "appointed(carrow group|matteo tremblay|chair|20230701)",
-     "appointed(carrow group|lucia moreau|chair|20231001)",
-     "appointed(carrow group|matteo tremblay|chair|20240101)",
-     "appointed(carrow group|matteo tremblay|chair|20240401)"
-    ],
+    "falseFacts": [],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 46,
+      "fact": "appointed(carrow group|v. dubois|chair|20210501)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 46,
+      "fact": "appointed(carrow group|ingrid halloran|director|20210501)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 102,
+      "fact": "appointed(carrow group|kofi whitcombe|chair|20220601)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 192,
+      "fact": "appointed(carrow group|ingrid weatherby|chair|20230201)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 208,
+      "fact": "appointed(carrow group|m. tremblay|chair|20230701)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 270,
+      "fact": "appointed(carrow group|chair|chair|20230901)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 274,
+      "fact": "appointed(carrow group|lucia moreau|chair|20231001)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 318,
+      "fact": "appointed(carrow group|m. tremblay|chair|20240101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 345,
+      "fact": "appointed(carrow group|matteo tremblay|chair|20240401)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 402,
+      "fact": "appointed(carrow group|chief risk officer|chief risk officer|20250701)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -1716,8 +1806,8 @@
        "contract": "CN-6425"
       }
      },
-     "answer": "unknown",
-     "outcome": "declined"
+     "answer": "viktor dubois",
+     "outcome": "correct"
     },
     {
      "id": "w101-supersession-18-500p",
@@ -2007,8 +2097,8 @@
        "contract": "CN-9103"
       }
      },
-     "answer": "unknown",
-     "outcome": "declined"
+     "answer": "yes",
+     "outcome": "correct"
     },
     {
      "id": "w101-authority-37-500p",
@@ -2105,8 +2195,8 @@
        "contract": "CN-6425"
       }
      },
-     "answer": "unknown",
-     "outcome": "declined"
+     "answer": "no",
+     "outcome": "correct"
     },
     {
      "id": "w101-unanswerable-44-500p",
@@ -2175,19 +2265,31 @@
    "world": 102,
    "pages": 500,
    "extraction": {
-    "kept": 127,
-    "dropped": 0,
+    "kept": 124,
+    "dropped": 3,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 124,
     "truePositives": 124,
-    "falseFacts": [
-     "appointed(ferrous pacific|lorcan moreau|chair|20210601)",
-     "appointed(ferrous pacific|oskar halloran|director|20210601)",
-     "appointed(ferrous pacific|lucia dubois|chair|20211201)"
-    ],
+    "falseFacts": [],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 128,
+      "fact": "appointed(ferrous pacific|lorcan moreau|chair|20210601)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 128,
+      "fact": "appointed(ferrous pacific|oskar halloran|director|20210601)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 156,
+      "fact": "appointed(ferrous pacific|lucia dubois|chair|20211201)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -2880,27 +2982,66 @@
    "world": 101,
    "pages": 1000,
    "extraction": {
-    "kept": 137,
-    "dropped": 0,
+    "kept": 129,
+    "dropped": 10,
     "repaired": 0,
-    "rejectedByTypeCheck": [
-     "appointed(carrow group|chair|chair|20230901)",
-     "appointed(carrow group|chief risk officer|chief risk officer|20250701)"
-    ],
+    "rejectedByTypeCheck": [],
     "truth": 129,
     "truePositives": 129,
-    "falseFacts": [
-     "appointed(carrow group|viktor dubois|chair|20210501)",
-     "appointed(carrow group|ingrid halloran|director|20210501)",
-     "appointed(carrow group|kofi whitcombe|chair|20220601)",
-     "appointed(carrow group|ingrid weatherby|chair|20230201)",
-     "appointed(carrow group|matteo tremblay|chair|20230701)",
-     "appointed(carrow group|lucia moreau|chair|20231001)",
-     "appointed(carrow group|matteo tremblay|chair|20240101)",
-     "appointed(carrow group|matteo tremblay|chair|20240401)"
-    ],
+    "falseFacts": [],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 91,
+      "fact": "appointed(carrow group|v. dubois|chair|20210501)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 91,
+      "fact": "appointed(carrow group|ingrid halloran|director|20210501)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 204,
+      "fact": "appointed(carrow group|kofi whitcombe|chair|20220601)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 384,
+      "fact": "appointed(carrow group|ingrid weatherby|chair|20230201)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 414,
+      "fact": "appointed(carrow group|m. tremblay|chair|20230701)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 540,
+      "fact": "appointed(carrow group|chair|chair|20230901)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 548,
+      "fact": "appointed(carrow group|lucia moreau|chair|20231001)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 635,
+      "fact": "appointed(carrow group|m. tremblay|chair|20240101)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 689,
+      "fact": "appointed(carrow group|matteo tremblay|chair|20240401)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 804,
+      "fact": "appointed(carrow group|chief risk officer|chief risk officer|20250701)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
@@ -3150,8 +3291,8 @@
        "contract": "CN-6425"
       }
      },
-     "answer": "unknown",
-     "outcome": "declined"
+     "answer": "viktor dubois",
+     "outcome": "correct"
     },
     {
      "id": "w101-supersession-18-1000p",
@@ -3441,8 +3582,8 @@
        "contract": "CN-9103"
       }
      },
-     "answer": "unknown",
-     "outcome": "declined"
+     "answer": "yes",
+     "outcome": "correct"
     },
     {
      "id": "w101-authority-37-1000p",
@@ -3539,8 +3680,8 @@
        "contract": "CN-6425"
       }
      },
-     "answer": "unknown",
-     "outcome": "declined"
+     "answer": "no",
+     "outcome": "correct"
     },
     {
      "id": "w101-unanswerable-44-1000p",
@@ -3609,19 +3750,31 @@
    "world": 102,
    "pages": 1000,
    "extraction": {
-    "kept": 127,
-    "dropped": 0,
+    "kept": 124,
+    "dropped": 3,
     "repaired": 0,
     "rejectedByTypeCheck": [],
     "truth": 124,
     "truePositives": 124,
-    "falseFacts": [
-     "appointed(ferrous pacific|lorcan moreau|chair|20210601)",
-     "appointed(ferrous pacific|oskar halloran|director|20210601)",
-     "appointed(ferrous pacific|lucia dubois|chair|20211201)"
-    ],
+    "falseFacts": [],
     "missedFacts": [],
-    "droppedSample": []
+    "droppedSample": [
+     {
+      "page": 256,
+      "fact": "appointed(ferrous pacific|lorcan moreau|chair|20210601)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 256,
+      "fact": "appointed(ferrous pacific|oskar halloran|director|20210601)",
+      "reason": "not stated on any single line"
+     },
+     {
+      "page": 311,
+      "fact": "appointed(ferrous pacific|lucia dubois|chair|20211201)",
+      "reason": "not stated on any single line"
+     }
+    ]
    },
    "outcomes": [
     {
