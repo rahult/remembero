@@ -1,0 +1,1564 @@
+{
+ "model": "compose-engine-e2b",
+ "passes": 2,
+ "planner": "llm",
+ "plannerModel": "compose-engine-e2b",
+ "spec": "benchmarks/compose/holdout-v1/spec.json",
+ "ranAt": "2026-09-23T16:23:30.806Z",
+ "costUsd": 0,
+ "runs": [
+  {
+   "tier": "100p",
+   "world": 103,
+   "pages": 100,
+   "extraction": {
+    "kept": 374,
+    "dropped": 0,
+    "repaired": 0,
+    "rejectedByTypeCheck": [],
+    "truth": 118,
+    "truePositives": 118,
+    "falseFacts": [
+     "approved(lumen utilities|cn-7396|l. thorsen|20210828)",
+     "approved(lumen utilities|cn-4284|e. ferreira|20220927)",
+     "ceased(lumen utilities|kaczmarek|chief financial officer|20221231)",
+     "approved(lumen utilities|cn-4929|d. achterberg|20230118)",
+     "ceased(lumen utilities|achterberg|chief risk officer|20230121)",
+     "ceased(lumen utilities|haddad|head of safety|20230227)",
+     "approved(lumen utilities|cn-4195|o. yilmaz|20240705)",
+     "ceased(lumen utilities|tanaka|chief operating officer|20240925)",
+     "ceased(lumen utilities|ivanova|head of safety|20241110)",
+     "approved(tidewater transit|cn-2875|e. haddad|20210902)",
+     "approved(tidewater transit|cn-6273|r. sandoval|20211123)",
+     "approved(tidewater transit|cn-1740|d. okafor|20220613)",
+     "ceased(tidewater transit|haddad|head of procurement|20220806)",
+     "ceased(tidewater transit|okafor|chief operating officer|20221211)",
+     "ceased(tidewater transit|marchetti|chief risk officer|20230315)",
+     "approved(tidewater transit|cn-8619|a. achterberg|20230627)",
+     "approved(tidewater transit|cn-5322|p. thorsen|20240331)",
+     "ceased(tidewater transit|ostrowski|general counsel|20250102)",
+     "ceased(tidewater transit|delacroix|chief risk officer|20250506)",
+     "approved(tidewater transit|cn-1348|l. brennan|20250725)"
+    ],
+    "missedFacts": [],
+    "droppedSample": []
+   },
+   "outcomes": [
+    {
+     "id": "w103-needle-1-100p",
+     "family": "needle",
+     "question": "What was the contract value at the time of signing for CN-4675?",
+     "gold": "560000",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-4675"
+      }
+     },
+     "answer": "560000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-needle-2-100p",
+     "family": "needle",
+     "question": "What was the contract value at the time of signing for CN-3166?",
+     "gold": "245000",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-3166"
+      }
+     },
+     "answer": "245000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-needle-3-100p",
+     "family": "needle",
+     "question": "What was the contract value of CN-7943 at the time of signing?",
+     "gold": "690000",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-7943"
+      }
+     },
+     "answer": "690000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-needle-4-100p",
+     "family": "needle",
+     "question": "What was the contract value of CN-2103 as of its execution date?",
+     "gold": "310000",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-2103"
+      }
+     },
+     "answer": "310000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-needle-5-100p",
+     "family": "needle",
+     "question": "What was the contract value of CN-7149 when it was signed?",
+     "gold": "400000",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-7149"
+      }
+     },
+     "answer": "400000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-needle-6-100p",
+     "family": "needle",
+     "question": "What was the contract value of CN-5407 at the time of signing?",
+     "gold": "110000",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-5407"
+      }
+     },
+     "answer": "110000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-validity-7-100p",
+     "family": "validity",
+     "question": "As of 13/07/2021, who held the position of Chief Operating Officer at Marlin Health?",
+     "gold": "Matteo Moreau",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "Chief Operating Officer",
+       "date": 20210713,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "matteo moreau",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-validity-8-100p",
+     "family": "validity",
+     "question": "As of 13/01/2024, who held the role of Head of Safety at Marlin Health?",
+     "gold": "Matteo Halloran",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "Head of Safety",
+       "date": 20240113,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "matteo halloran",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-validity-9-100p",
+     "family": "validity",
+     "question": "As of 21 October 2024, who held the position of General Counsel at Marlin Health?",
+     "gold": "Kofi Whitcombe",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "General Counsel",
+       "date": 20241021,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "kofi whitcombe",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-validity-10-100p",
+     "family": "validity",
+     "question": "As of 7 February 2022, who held the position of Chief Risk Officer at Marlin Health?",
+     "gold": "Hugo Fairbairn",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "Chief Risk Officer",
+       "date": 20220207,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "hugo fairbairn",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-validity-11-100p",
+     "family": "validity",
+     "question": "As of 12 November 2021, who held the position of General Counsel at Marlin Health?",
+     "gold": "Matteo Novak",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "General Counsel",
+       "date": 20211112,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "matteo novak",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-validity-12-100p",
+     "family": "validity",
+     "question": "Who held the position of Chief Risk Officer at Marlin Health as of 21/06/2025?",
+     "gold": "Lorcan Weatherby",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "Chief Risk Officer",
+       "date": 20250621,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "lorcan weatherby",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-identity-13-100p",
+     "family": "identity",
+     "question": "State the complete name of the individual who granted approval for contract CN-7471.",
+     "gold": "Hugo Dubois",
+     "plan": {
+      "family": "identity",
+      "params": {
+       "contract": "CN-7471"
+      }
+     },
+     "answer": "hugo dubois",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-identity-14-100p",
+     "family": "identity",
+     "question": "Identify the complete name of the individual who granted approval for contract CN-7929.",
+     "gold": "Viktor Lachance",
+     "plan": {
+      "family": "identity",
+      "params": {
+       "contract": "CN-7929"
+      }
+     },
+     "answer": "viktor lachance",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-identity-15-100p",
+     "family": "identity",
+     "question": "Identify the complete name of the individual who granted approval for contract CN-8118.",
+     "gold": "Signe Beaumont",
+     "plan": {
+      "family": "identity",
+      "params": {
+       "contract": "CN-8118"
+      }
+     },
+     "answer": "signe beaumont",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-identity-16-100p",
+     "family": "identity",
+     "question": "State the full name of the individual who granted approval for contract CN-7149.",
+     "gold": "Lorcan Weatherby",
+     "plan": {
+      "family": "identity",
+      "params": {
+       "contract": "CN-7149"
+      }
+     },
+     "answer": "lorcan weatherby",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-identity-17-100p",
+     "family": "identity",
+     "question": "Identify the full name of the individual who granted approval for contract CN-5179.",
+     "gold": "Hugo Dubois",
+     "plan": {
+      "family": "identity",
+      "params": {
+       "contract": "CN-5179"
+      }
+     },
+     "answer": "hugo dubois",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-supersession-18-100p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-3166 as of 18/11/2025, including any amendments?",
+     "gold": "305000",
+     "plan": {
+      "family": "supersession",
+      "params": {
+       "contract": "CN-3166",
+       "date": 20251118
+      }
+     },
+     "answer": "305000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-supersession-19-100p",
+     "family": "supersession",
+     "question": "Taking into account any amendments, what was the value of contract CN-4751 as of 24/12/2025?",
+     "gold": "205000",
+     "plan": {
+      "family": "supersession",
+      "params": {
+       "contract": "CN-4751",
+       "date": 20251224
+      }
+     },
+     "answer": "205000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-supersession-20-100p",
+     "family": "supersession",
+     "question": "As of 29/01/2024, what was the value of contract CN-1054, including any amendments?",
+     "gold": "605000",
+     "plan": {
+      "family": "supersession",
+      "params": {
+       "contract": "CN-1054",
+       "date": 20240129
+      }
+     },
+     "answer": "605000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-supersession-21-100p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-3056 as of November 10, 2025, including any amendments?",
+     "gold": "330000",
+     "plan": {
+      "family": "supersession",
+      "params": {
+       "contract": "CN-3056",
+       "date": 20251110
+      }
+     },
+     "answer": "330000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-supersession-22-100p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-5407 as of December 19, 2022, after accounting for any amendments?",
+     "gold": "155000",
+     "plan": {
+      "family": "supersession",
+      "params": {
+       "contract": "CN-5407",
+       "date": 20221219
+      }
+     },
+     "answer": "155000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-comparison-23-100p",
+     "family": "comparison",
+     "question": "Pursuant to 2 September 2025, which of the contracts CN-3166 or CN-5407 carried the greater value?",
+     "gold": "CN-3166",
+     "plan": {
+      "family": "comparison",
+      "params": {
+       "contractA": "CN-3166",
+       "contractB": "CN-5407",
+       "date": 20250902
+      }
+     },
+     "answer": "CN-3166",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-comparison-24-100p",
+     "family": "comparison",
+     "question": "Which contract, CN-7149 or CN-4751, carried the higher value as of 19/03/2026?",
+     "gold": "CN-7149",
+     "plan": {
+      "family": "comparison",
+      "params": {
+       "contractA": "CN-7149",
+       "contractB": "CN-4751",
+       "date": 20260319
+      }
+     },
+     "answer": "CN-7149",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-comparison-25-100p",
+     "family": "comparison",
+     "question": "As of 14/05/2024, which of the two contracts, CN-5407 or CN-3166, carried the higher value?",
+     "gold": "CN-3166",
+     "plan": {
+      "family": "comparison",
+      "params": {
+       "contractA": "CN-5407",
+       "contractB": "CN-3166",
+       "date": 20240514
+      }
+     },
+     "answer": "CN-3166",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-comparison-26-100p",
+     "family": "comparison",
+     "question": "As of 29/12/2025, which of the contracts CN-3056 and CN-4675 carried the greater value?",
+     "gold": "CN-4675",
+     "plan": {
+      "family": "comparison",
+      "params": {
+       "contractA": "CN-3056",
+       "contractB": "CN-4675",
+       "date": 20251229
+      }
+     },
+     "answer": "CN-4675",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-comparison-27-100p",
+     "family": "comparison",
+     "question": "As of 2 August 2025, which of the contracts CN-3056 and CN-5179 had the greater value?",
+     "gold": "CN-3056",
+     "plan": {
+      "family": "comparison",
+      "params": {
+       "contractA": "CN-3056",
+       "contractB": "CN-5179",
+       "date": 20250802
+      }
+     },
+     "answer": "CN-3056",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-aggregate-28-100p",
+     "family": "aggregate",
+     "question": "What is the count of safety incidents recorded in Marlin Health's incident log that took place at a site where the operating supplier did not possess a valid ISO 9001 certificate on the incident date?",
+     "gold": "4",
+     "plan": {
+      "family": "aggregate",
+      "params": {
+       "standard": "ISO 9001",
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "4",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-aggregate-29-100p",
+     "family": "aggregate",
+     "question": "What is the number of safety incidents recorded in Marlin Health's incident log that took place at a site where the operating supplier did not possess a valid ISO/IEC 27001 certificate on the date of the incident?",
+     "gold": "14",
+     "plan": {
+      "family": "aggregate",
+      "params": {
+       "standard": "ISO/IEC 27001",
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "14",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-aggregate-30-100p",
+     "family": "aggregate",
+     "question": "What is the number of safety incidents that have been recorded at sites operated by Tamarind Logistics Pty Ltd?",
+     "gold": "2",
+     "plan": {
+      "family": "aggregate",
+      "params": {
+       "supplier": "Tamarind Logistics Pty Ltd"
+      }
+     },
+     "answer": "2",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-aggregate-31-100p",
+     "family": "aggregate",
+     "question": "What is the number of safety incidents that have been recorded at sites operated by Kingsmead Engineering Pty Ltd?",
+     "gold": "4",
+     "plan": {
+      "family": "aggregate",
+      "params": {
+       "supplier": "Kingsmead Engineering Pty Ltd"
+      }
+     },
+     "answer": "4",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-absence-32-100p",
+     "family": "absence",
+     "question": "As of 19/03/2022, which suppliers contracted by Marlin Health lacked a valid ISO/IEC 27001 certificate?",
+     "gold": "Greyfield Catering Pty Ltd; Oakhurst Freight Pty Ltd",
+     "plan": {
+      "family": "absence",
+      "params": {
+       "standard": "ISO/IEC 27001",
+       "date": 20220319,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "greyfield catering pty ltd; oakhurst freight pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-absence-33-100p",
+     "family": "absence",
+     "question": "As of 12/09/2025, which suppliers contracted by Marlin Health were without a valid ISO 9001 certificate?",
+     "gold": "Greyfield Catering Pty Ltd; Tamarind Logistics Pty Ltd; Oakhurst Freight Pty Ltd",
+     "plan": {
+      "family": "absence",
+      "params": {
+       "standard": "ISO 9001",
+       "date": 20250912,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "tamarind logistics pty ltd; greyfield catering pty ltd; oakhurst freight pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-absence-34-100p",
+     "family": "absence",
+     "question": "As of 30/07/2025, which suppliers under contract with Marlin Health lacked a valid ISO/IEC 27001 certification?",
+     "gold": "Zephyrine Security Pty Ltd; Kingsmead Engineering Pty Ltd; Greyfield Catering Pty Ltd; Tamarind Logistics Pty Ltd; Oakhurst Freight Pty Ltd",
+     "plan": {
+      "family": "absence",
+      "params": {
+       "standard": "ISO/IEC 27001",
+       "date": 20250730,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "tamarind logistics pty ltd; greyfield catering pty ltd; oakhurst freight pty ltd; kingsmead engineering pty ltd; zephyrine security pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-authority-35-100p",
+     "family": "authority",
+     "question": "Did contract CN-7471 receive approval from an individual who, on the date of approval, held the delegated authority to grant such approval? Respond with yes or no.",
+     "gold": "no",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-7471"
+      }
+     },
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-authority-36-100p",
+     "family": "authority",
+     "question": "Did contract CN-4675 receive approval from an individual whose delegated authority permitted such approval on the date the approval was granted? Yes or no.",
+     "gold": "yes",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-4675"
+      }
+     },
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-authority-37-100p",
+     "family": "authority",
+     "question": "Did contract CN-5179 receive approval from an individual acting within their delegated authority as of the date of approval? Yes or no.",
+     "gold": "no",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-5179"
+      }
+     },
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-authority-38-100p",
+     "family": "authority",
+     "question": "Did contract CN-5407 receive approval from an individual whose delegated authority, on the date that approval was granted, permitted them to do so?",
+     "gold": "yes",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-5407"
+      }
+     },
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-authority-39-100p",
+     "family": "authority",
+     "question": "Did contract CN-2968 receive approval from an individual whose delegated authority, on the date of approval, permitted them to grant it? Respond with yes or no.",
+     "gold": "no",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-2968"
+      }
+     },
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-authority-40-100p",
+     "family": "authority",
+     "question": "Did the approver possess delegated authority to approve contract CN-4751 on the date approval was granted? Yes or no.",
+     "gold": "no",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-4751"
+      }
+     },
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-authority-41-100p",
+     "family": "authority",
+     "question": "Did the approver possess delegated authority to approve contract CN-1054 on the date approval was granted? Yes or no.",
+     "gold": "yes",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-1054"
+      }
+     },
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-authority-42-100p",
+     "family": "authority",
+     "question": "Did contract CN-8118 fall within the delegated authority of the approver on the date of approval? Yes or no.",
+     "gold": "yes",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-8118"
+      }
+     },
+     "answer": "yes",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-unanswerable-43-100p",
+     "family": "unanswerable",
+     "question": "As of 21 August 2019, who held the role of Head of Procurement at Marlin Health?",
+     "gold": "unknown",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "Head of Procurement",
+       "date": 20190821,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-unanswerable-44-100p",
+     "family": "unanswerable",
+     "question": "What was the contract value of CN-2382 when it was signed?",
+     "gold": "unknown",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-2382"
+      }
+     },
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-unanswerable-45-100p",
+     "family": "unanswerable",
+     "question": "As of 21/07/2018, who held the position of Chief Financial Officer at Marlin Health?",
+     "gold": "unknown",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "Chief Financial Officer",
+       "date": 20180721,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w103-unanswerable-46-100p",
+     "family": "unanswerable",
+     "question": "What was the value at signing of contract CN-7888?",
+     "gold": "unknown",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-7888"
+      }
+     },
+     "answer": "unknown",
+     "outcome": "correct"
+    }
+   ]
+  },
+  {
+   "tier": "100p",
+   "world": 104,
+   "pages": 100,
+   "extraction": {
+    "kept": 353,
+    "dropped": 22,
+    "repaired": 0,
+    "rejectedByTypeCheck": [],
+    "truth": 114,
+    "truePositives": 114,
+    "falseFacts": [
+     "approved(tidewater transit|cn-1568|e. yilmaz|20220108)",
+     "ceased(tidewater transit|osei|head of safety|20220409)",
+     "approved(tidewater transit|cn-5236|r. delacroix|20220813)",
+     "ceased(tidewater transit|ivanova|head of procurement|20220907)",
+     "approved(tidewater transit|cn-3360|r. delacroix|20230130)",
+     "ceased(tidewater transit|delacroix|chief operating officer|20230401)",
+     "approved(tidewater transit|cn-1497|n. thorsen|20230812)",
+     "approved(tidewater transit|cn-2735|n. thorsen|20230906)",
+     "ceased(tidewater transit|adeyemi|chief financial officer|20240303)",
+     "approved(tidewater transit|cn-5142|r. haddad|20250118)",
+     "approved(carrow group|cn-7950|e. ivanova|20210307)",
+     "approved(carrow group|cn-9653|a. sandoval|20220917)",
+     "ceased(carrow group|kaczmarek|head of safety|20221011)",
+     "approved(carrow group|cn-2441|i. okafor|20230610)",
+     "ceased(carrow group|okafor|chief operating officer|20230813)",
+     "approved(carrow group|cn-6908|t. ekberg|20230819)",
+     "ceased(carrow group|balogun|chief financial officer|20231130)",
+     "approved(carrow group|cn-2076|e. achterberg|20240409)"
+    ],
+    "missedFacts": [],
+    "droppedSample": [
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|emmanuel d. kitcher|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|francis kwamin|department of oral pathology-oral medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|james e. mensah|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|f. amah nkansah|department of pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|angela l. ofori-atta|department of psychiatry|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|sammy ohene|department of psychiatry|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|charlotte osafo|department of medicine and therapeutics|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|isaac owusu|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|lorna renner|department of child health|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|michael segbefia|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|raymond tetteh|department of pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|lilly wu|department of surgery|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|ruby awittor|ghs, ashaiman|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|dorcas poku boateng|cardio-thoracic pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|priscilla ekpale|child health pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|obedia seaneke|child health pharmacy|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|ama vortia|family physician|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|kwame adu-bonsaffoh|department of obstetrics and gynaecology|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|edith a. annan|world health organisation country office for ghana|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|brian a. asare|gndp, moh|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|kwodwo nkromah|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     },
+     {
+      "page": 64,
+      "fact": "appointed(standard treatment guidelines|yaw ofori-adjei|department of medicine|20170101)",
+      "reason": "date 20170101 is not on the page"
+     }
+    ]
+   },
+   "outcomes": [
+    {
+     "id": "w104-needle-1-100p",
+     "family": "needle",
+     "question": "What was the value of contract CN-7322 at the time it was signed?",
+     "gold": "630000",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-7322"
+      }
+     },
+     "answer": "630000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-needle-2-100p",
+     "family": "needle",
+     "question": "What was the contract value for CN-8674 at the time of signing?",
+     "gold": "245000",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-8674"
+      }
+     },
+     "answer": "245000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-needle-3-100p",
+     "family": "needle",
+     "question": "What was the contract value of CN-4418 when it was signed?",
+     "gold": "360000",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-4418"
+      }
+     },
+     "answer": "360000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-needle-4-100p",
+     "family": "needle",
+     "question": "Please state the contract value at the time of signing for contract CN-8793.",
+     "gold": "115000",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-8793"
+      }
+     },
+     "answer": "115000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-needle-5-100p",
+     "family": "needle",
+     "question": "What was the value of contract CN-9176 when it was signed?",
+     "gold": "75000",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-9176"
+      }
+     },
+     "answer": "75000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-needle-6-100p",
+     "family": "needle",
+     "question": "What was the contract value for CN-4296 at the time it was signed?",
+     "gold": "70000",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-4296"
+      }
+     },
+     "answer": "70000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-validity-7-100p",
+     "family": "validity",
+     "question": "As of 20 July 2021, who held the position of Head of Procurement at Marlin Health?",
+     "gold": "Ayesha Fairbairn",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "Head of Procurement",
+       "date": 20210720,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "ayesha fairbairn",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-validity-8-100p",
+     "family": "validity",
+     "question": "As of 01/04/2021, who held the position of Chief Financial Officer at Marlin Health?",
+     "gold": "Matteo Whitcombe",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "Chief Financial Officer",
+       "date": 20210401,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "matteo whitcombe",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-validity-9-100p",
+     "family": "validity",
+     "question": "As of 23 January 2025, who held the position of General Counsel at Marlin Health?",
+     "gold": "Noor Holmqvist",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "General Counsel",
+       "date": 20250123,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "noor holmqvist",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-validity-10-100p",
+     "family": "validity",
+     "question": "As of 15 January 2023, who held the position of General Counsel at Marlin Health?",
+     "gold": "Vera Moreau",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "General Counsel",
+       "date": 20230115,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "vera moreau",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-validity-11-100p",
+     "family": "validity",
+     "question": "As of 17 September 2021, who held the role of Head of Safety at Marlin Health?",
+     "gold": "Aiko Galloway",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "Head of Safety",
+       "date": 20210917,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "aiko galloway",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-validity-12-100p",
+     "family": "validity",
+     "question": "As of 29 November 2023, who held the position of Chief Risk Officer at Marlin Health?",
+     "gold": "Noor Beaumont",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "Chief Risk Officer",
+       "date": 20231129,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "noor beaumont",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-identity-13-100p",
+     "family": "identity",
+     "question": "Identify the full name of the individual who provided approval for contract CN-9173.",
+     "gold": "Kofi Lundgren",
+     "plan": {
+      "family": "identity",
+      "params": {
+       "contract": "CN-9173"
+      }
+     },
+     "answer": "kofi lundgren",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-identity-14-100p",
+     "family": "identity",
+     "question": "Identify the complete name of the individual who granted approval for contract CN-3755.",
+     "gold": "Lucia Okonkwo",
+     "plan": {
+      "family": "identity",
+      "params": {
+       "contract": "CN-3755"
+      }
+     },
+     "answer": "lucia okonkwo",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-identity-15-100p",
+     "family": "identity",
+     "question": "Identify the full name of the individual who granted approval for contract CN-3699.",
+     "gold": "Kofi Lundgren",
+     "plan": {
+      "family": "identity",
+      "params": {
+       "contract": "CN-3699"
+      }
+     },
+     "answer": "kofi lundgren",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-identity-16-100p",
+     "family": "identity",
+     "question": "Identify the full name of the individual who granted approval for contract CN-4296.",
+     "gold": "Noor Beaumont",
+     "plan": {
+      "family": "identity",
+      "params": {
+       "contract": "CN-4296"
+      }
+     },
+     "answer": "noor beaumont",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-identity-17-100p",
+     "family": "identity",
+     "question": "Identify the full name of the individual who granted approval for contract CN-7280.",
+     "gold": "Kofi Lundgren",
+     "plan": {
+      "family": "identity",
+      "params": {
+       "contract": "CN-7280"
+      }
+     },
+     "answer": "kofi lundgren",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-supersession-18-100p",
+     "family": "supersession",
+     "question": "As of 11/04/2024, what was the value of contract CN-3699, including any amendments?",
+     "gold": "165000",
+     "plan": {
+      "family": "supersession",
+      "params": {
+       "contract": "CN-3699",
+       "date": 20240411
+      }
+     },
+     "answer": "165000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-supersession-19-100p",
+     "family": "supersession",
+     "question": "What was the value of contract CN-3128 as of 23 September 2026, after accounting for any amendments?",
+     "gold": "635000",
+     "plan": {
+      "family": "supersession",
+      "params": {
+       "contract": "CN-3128",
+       "date": 20260923
+      }
+     },
+     "answer": "635000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-supersession-20-100p",
+     "family": "supersession",
+     "question": "What was the value, as of 2022-10-18, of contract CN-1610, after accounting for any amendments?",
+     "gold": "335000",
+     "plan": {
+      "family": "supersession",
+      "params": {
+       "contract": "CN-1610",
+       "date": 20221018
+      }
+     },
+     "answer": "335000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-supersession-21-100p",
+     "family": "supersession",
+     "question": "As of 19/10/2025, what was the value of contract CN-3755, including any amendments?",
+     "gold": "925000",
+     "plan": {
+      "family": "supersession",
+      "params": {
+       "contract": "CN-3755",
+       "date": 20251019
+      }
+     },
+     "answer": "925000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-supersession-22-100p",
+     "family": "supersession",
+     "question": "Taking into account any amendments, what was the value of contract CN-4296 as of 07/07/2023?",
+     "gold": "100000",
+     "plan": {
+      "family": "supersession",
+      "params": {
+       "contract": "CN-4296",
+       "date": 20230707
+      }
+     },
+     "answer": "100000",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-comparison-23-100p",
+     "family": "comparison",
+     "question": "As of 01/10/2024, which of the following contracts had the greater value: CN-7280 or CN-9173?",
+     "gold": "CN-7280",
+     "plan": {
+      "family": "comparison",
+      "params": {
+       "contractA": "CN-7280",
+       "contractB": "CN-9173",
+       "date": 20241001
+      }
+     },
+     "answer": "CN-7280",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-comparison-24-100p",
+     "family": "comparison",
+     "question": "As of 21 May 2025, which of CN-4418 or CN-7280 was the contract with the greater value?",
+     "gold": "CN-7280",
+     "plan": {
+      "family": "comparison",
+      "params": {
+       "contractA": "CN-4418",
+       "contractB": "CN-7280",
+       "date": 20250521
+      }
+     },
+     "answer": "CN-7280",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-comparison-25-100p",
+     "family": "comparison",
+     "question": "As of 6 October 2023, which contract, CN-9176 or CN-1610, had the higher value?",
+     "gold": "CN-1610",
+     "plan": {
+      "family": "comparison",
+      "params": {
+       "contractA": "CN-9176",
+       "contractB": "CN-1610",
+       "date": 20231006
+      }
+     },
+     "answer": "CN-1610",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-comparison-26-100p",
+     "family": "comparison",
+     "question": "As of 01/10/2022, which of the two contracts, CN-9176 or CN-7322, carried the higher value?",
+     "gold": "CN-7322",
+     "plan": {
+      "family": "comparison",
+      "params": {
+       "contractA": "CN-9176",
+       "contractB": "CN-7322",
+       "date": 20221001
+      }
+     },
+     "answer": "CN-7322",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-comparison-27-100p",
+     "family": "comparison",
+     "question": "As of 07/01/2024, which of the two contracts, CN-4296 or CN-9173, carried the greater value?",
+     "gold": "CN-9173",
+     "plan": {
+      "family": "comparison",
+      "params": {
+       "contractA": "CN-4296",
+       "contractB": "CN-9173",
+       "date": 20240107
+      }
+     },
+     "answer": "CN-9173",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-aggregate-28-100p",
+     "family": "aggregate",
+     "question": "What is the count of safety incidents recorded in Marlin Health's incident log that took place at a site where the operating supplier did not possess a valid ISO 9001 certificate on the incident date?",
+     "gold": "5",
+     "plan": {
+      "family": "aggregate",
+      "params": {
+       "standard": "ISO 9001",
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "5",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-aggregate-29-100p",
+     "family": "aggregate",
+     "question": "What is the number of safety incidents recorded in Marlin Health's incident log that took place at a site where the operating supplier did not possess a valid ISO/IEC 27001 certificate on the date of the incident?",
+     "gold": "13",
+     "plan": {
+      "family": "aggregate",
+      "params": {
+       "standard": "ISO/IEC 27001",
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "13",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-aggregate-30-100p",
+     "family": "aggregate",
+     "question": "What is the number of safety incidents that have been recorded at sites operated by Kingsmead Logistics Pty Ltd?",
+     "gold": "5",
+     "plan": {
+      "family": "aggregate",
+      "params": {
+       "supplier": "Kingsmead Logistics Pty Ltd"
+      }
+     },
+     "answer": "5",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-aggregate-31-100p",
+     "family": "aggregate",
+     "question": "What is the number of safety incidents documented at sites operated by Zephyrine Engineering Pty Ltd?",
+     "gold": "0",
+     "plan": {
+      "family": "aggregate",
+      "params": {
+       "supplier": "Zephyrine Engineering Pty Ltd"
+      }
+     },
+     "answer": "0",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-absence-32-100p",
+     "family": "absence",
+     "question": "As of 23 May 2023, which suppliers under contract with Marlin Health lacked a valid ISO/IEC 27001 certificate?",
+     "gold": "Tamarind Engineering Pty Ltd; Zephyrine Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Kingsmead Logistics Pty Ltd; Harrowgate Facilities Pty Ltd",
+     "plan": {
+      "family": "absence",
+      "params": {
+       "standard": "ISO/IEC 27001",
+       "date": 20230523,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "zephyrine engineering pty ltd; oakhurst facilities pty ltd; pennant engineering pty ltd; tamarind engineering pty ltd; kingsmead logistics pty ltd; harrowgate facilities pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-absence-33-100p",
+     "family": "absence",
+     "question": "As of 14/04/2025, which suppliers under contract with Marlin Health lacked a valid ISO/IEC 27001 certificate?",
+     "gold": "Tamarind Engineering Pty Ltd; Oakhurst Facilities Pty Ltd; Pennant Engineering Pty Ltd; Kingsmead Logistics Pty Ltd; Harrowgate Facilities Pty Ltd; Vantage Engineering Pty Ltd",
+     "plan": {
+      "family": "absence",
+      "params": {
+       "standard": "ISO/IEC 27001",
+       "date": 20250414,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "vantage engineering pty ltd; oakhurst facilities pty ltd; pennant engineering pty ltd; tamarind engineering pty ltd; kingsmead logistics pty ltd; harrowgate facilities pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-absence-34-100p",
+     "family": "absence",
+     "question": "As of 8 May 2024, which of Marlin Health's contracted suppliers lacked a valid ISO 9001 certificate?",
+     "gold": "Tamarind Engineering Pty Ltd; Zephyrine Engineering Pty Ltd; Kingsmead Logistics Pty Ltd",
+     "plan": {
+      "family": "absence",
+      "params": {
+       "standard": "ISO 9001",
+       "date": 20240508,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "zephyrine engineering pty ltd; tamarind engineering pty ltd; kingsmead logistics pty ltd",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-authority-35-100p",
+     "family": "authority",
+     "question": "Did the approver possess delegated authority to approve contract CN-4418 on the date the approval occurred? Yes or no.",
+     "gold": "no",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-4418"
+      }
+     },
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-authority-36-100p",
+     "family": "authority",
+     "question": "Did the individual with the role title of approver hold delegated authority to approve contract CN-7280 on the date approval was granted? Respond yes or no.",
+     "gold": "no",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-7280"
+      }
+     },
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-authority-37-100p",
+     "family": "authority",
+     "question": "Did contract CN-2365 fall within the approver's delegated authority on the date the approval was granted? Yes or no.",
+     "gold": "no",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-2365"
+      }
+     },
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-authority-38-100p",
+     "family": "authority",
+     "question": "Did the approver possess delegated authority to approve contract CN-8674 on the date the approval was granted? Yes or no.",
+     "gold": "no",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-8674"
+      }
+     },
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-authority-39-100p",
+     "family": "authority",
+     "question": "Did the approver possess the delegated authority to approve contract CN-3699 on the date approval was granted? Yes or no.",
+     "gold": "no",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-3699"
+      }
+     },
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-authority-40-100p",
+     "family": "authority",
+     "question": "Did the approver possess delegated authority to approve contract CN-9173 on the date approval was granted? Yes or no.",
+     "gold": "no",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-9173"
+      }
+     },
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-authority-41-100p",
+     "family": "authority",
+     "question": "Did contract CN-3755 fall within the delegated authority of the approver on the date of approval? Yes or no.",
+     "gold": "no",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-3755"
+      }
+     },
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-authority-42-100p",
+     "family": "authority",
+     "question": "On the date contract CN-3128 was approved, did that approval fall within the approver's delegated authority? Yes or no.",
+     "gold": "no",
+     "plan": {
+      "family": "authority",
+      "params": {
+       "contract": "CN-3128"
+      }
+     },
+     "answer": "no",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-unanswerable-43-100p",
+     "family": "unanswerable",
+     "question": "As of 13/12/2018, who held the position of Chief Financial Officer at Marlin Health?",
+     "gold": "unknown",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "Chief Financial Officer",
+       "date": 20181213,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-unanswerable-44-100p",
+     "family": "unanswerable",
+     "question": "What was the contract value of CN-5779 as of the date it was signed?",
+     "gold": "unknown",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-5779"
+      }
+     },
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-unanswerable-45-100p",
+     "family": "unanswerable",
+     "question": "As of December 5, 2018, who held the position of General Counsel at Marlin Health?",
+     "gold": "unknown",
+     "plan": {
+      "family": "validity",
+      "params": {
+       "role": "General Counsel",
+       "date": 20181205,
+       "organisation": "Marlin Health"
+      }
+     },
+     "answer": "unknown",
+     "outcome": "correct"
+    },
+    {
+     "id": "w104-unanswerable-46-100p",
+     "family": "unanswerable",
+     "question": "What was the contract value of CN-1173 as of the date it was signed?",
+     "gold": "unknown",
+     "plan": {
+      "family": "needle",
+      "params": {
+       "contract": "CN-1173"
+      }
+     },
+     "answer": "unknown",
+     "outcome": "correct"
+    }
+   ]
+  }
+ ]
+}
