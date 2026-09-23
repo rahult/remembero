@@ -28,6 +28,7 @@ import {
 } from './document-recall.js';
 import { mapConcurrent } from './map-concurrent.js';
 import { scoreAgainstXlDocBench, scoreWithLocaleTolerance, xlAnswerType } from './xl-docbench-score.js';
+import { scoreCompose } from '../compose/score.js';
 import type { LongMemEvalCompletionClient } from './longmemeval-answer.js';
 import type { DocumentRanker } from './document-rankers.js';
 
@@ -115,6 +116,12 @@ export interface DocumentRecallOptions {
    * same retrieval can be read two ways and the difference is the extraction alone.
    */
   readerView?: (session: RetrievableSession) => RetrievableSession;
+  /**
+   * Present pages as dated chat sessions, as every run before 2026-09-23 did. Off by default:
+   * documents carry no timestamps and a synthetic "current date" misleads a reader on dated
+   * content (see Compose). Kept so earlier XL-DocBench numbers stay reproducible.
+   */
+  dated?: boolean;
   /** Dollars per million tokens, for an endpoint that does not report its own cost. */
   price?: { inputPerMillion: number; outputPerMillion: number };
   concurrency: number;
@@ -183,6 +190,7 @@ export async function evaluateDocumentQuestion(
     contextBytes: options.contextBytes,
     dateDistances: false,
     computedNotes: false,
+    ...(options.dated === true ? {} : { undated: true }),
   };
   const started = performance.now();
   const chosenSessions =
@@ -230,16 +238,18 @@ export async function evaluateDocumentQuestion(
             ])
           ).content,
         );
+  const compose = question.compose === undefined ? undefined : scoreCompose(answer, question.compose);
   return {
     question,
     retrieval: scoreRetrieval(chosenSessions, question.evidencePages),
     answer,
-    correct: scored.accuracy === 1,
-    correctLocale: locale.localeAccuracy === 1,
+    correct: compose === undefined ? scored.accuracy === 1 : compose === 'correct',
+    correctLocale: compose === undefined ? locale.localeAccuracy === 1 : compose === 'correct',
+    ...(compose === undefined ? {} : { confidentWrong: compose === 'wrong' }),
     tokenF1: scored.tokenF1,
     anls: scored.anls,
     ...(judged === undefined ? {} : { judged }),
-    abstained: declinedToAnswer(answer),
+    abstained: compose === undefined ? declinedToAnswer(answer) : compose === 'declined' || (question.compose!.kind === 'unknown' && compose === 'correct'),
     latencyMs,
     contextBytes: Buffer.byteLength(prompt.user, 'utf8'),
     readerTokens: {

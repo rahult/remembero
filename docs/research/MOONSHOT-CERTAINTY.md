@@ -180,3 +180,31 @@ those are sampled); local runs are free. OpenRouter needs a top-up for anything 
   confidence; otherwise read. Measured per family in Phase 4, not assumed.
 - **When to train.** After the cause breakdown shows a stable largest cause (v8's lesson: training
   on guesses made it worse).
+
+## Phase 1 progress (2026-09-23)
+
+**Miss causes on XL-DocBench** (`DOCUMENT-RECALL.md` Result 7): for Sol at depth 12, 25 of 56
+misses are fixed by the gold pages alone and 31 are not; declining with the evidence present is
+the largest reading cause; set-difference, arithmetic and comparison are the weakest shapes even
+with perfect pages.
+
+**Compose v0 built** (`benchmarks/compose/`): 2 test worlds, 93 questions, 100/500/1000 pages,
+gold from the engine, deterministic scoring. First baselines (`deepseek-chat`, undated prompt):
+
+| arm | right | confidently wrong | partial | declined |
+| --- | --- | --- | --- | --- |
+| depth 12, product ranking (100 / 500 / 1000 pp) | 67 / 66 / 67% | 13 / 14 / 12% | 10–15% | 5–11% |
+| gold pages handed over | 82 / 82 / 82% | 5 / 4 / 3% | 4–9% | 5–9% |
+
+By family, with the gold pages: lookups, validity, supersession, comparison and unanswerable
+90–100%; **identity 10–30%, aggregate 50%, absence 71–86%, authority 81–88%**. With ordinary
+retrieval the same four are 0%, 0–25%, 0–29% and 50–63%. The engine's target families are
+exactly the ones a model fails even when it has every page.
+
+Document length barely moves v0 (retrieval finds world pages 82–98% of the time because they
+are lexically distinct from the filler) — the reasoning, not the haystack, is what is hard here.
+v1 adds same-domain distractor organisations to make length bite.
+
+Blocked: GPT-5.6 Sol runs stopped at the OpenRouter **key's** monthly limit (403 "Key limit
+exceeded") although the account has credit; the key's limit must be raised in the OpenRouter
+dashboard. The local reader run is in progress.

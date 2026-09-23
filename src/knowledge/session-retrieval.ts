@@ -73,6 +73,8 @@ export interface SessionRetrievalOptions {
   rerank?: { client: TypesafeNouls; pool?: number; sessionChars?: number };
   /** Sessions inside the range are read before those outside it. Only temporal questions get one. */
   timeRange?: { start: string; end: string };
+  /** Render as undated document excerpts (see ReadingPromptRequest.undated). */
+  undated?: boolean;
 }
 
 /** The depth this question's kind asks for. */
@@ -496,6 +498,13 @@ export interface ReadingPromptRequest {
   personalize?: boolean;
   /** Names this caller in the validation and safety messages (default "reading"). */
   label?: string;
+  /**
+   * Document excerpts rather than dated chats: no session dates and no "current date". A
+   * document's pages carry no timestamps of their own, and on date-heavy documents a synthetic
+   * "today" makes the reader reason about the wrong calendar ("the contract starts in 2023, so
+   * as of 2021 it was not yet signed").
+   */
+  undated?: boolean;
 }
 
 export interface ReadingPrompt {
@@ -617,8 +626,9 @@ export function renderReadingPrompt(
     if (abstractFor(rank))
       return { ...source, rank, section: abstracts.get(rank)! };
     const facts = factsLineFor(source.facts);
-    const dateLine = dateLineFor(source.ts);
-    const header = `### Retrieved session ${rank + 1}\n${dateLine}\n${facts}`;
+    const header = request.undated === true
+      ? `### Document excerpt ${rank + 1}\n${facts}`
+      : `### Retrieved session ${rank + 1}\n${dateLineFor(source.ts)}\n${facts}`;
     const body = sourceWindow(
       source.text!,
       question,
@@ -674,7 +684,9 @@ export function renderReadingPrompt(
         return block === '' ? '' : `${block}\n`;
       })()
     : '';
-  const user = `${evidenceBlock}History chats:\n\n${history || '[no safe relevant history retrieved]'}\n${remembered}${engineBlock}${computedBlock}Current date: ${questionDate}\nQuestion: ${question}\nAnswer:`;
+  const user = request.undated === true
+    ? `${evidenceBlock}Document excerpts:\n\n${history || '[no safe relevant excerpts retrieved]'}\n${remembered}${engineBlock}${computedBlock}Question: ${question}\nAnswer:`
+    : `${evidenceBlock}History chats:\n\n${history || '[no safe relevant history retrieved]'}\n${remembered}${engineBlock}${computedBlock}Current date: ${questionDate}\nQuestion: ${question}\nAnswer:`;
   assertSafeForExternalLlm(user, `${label} prompt`);
   const system =
     personalize
@@ -685,7 +697,10 @@ export function renderReadingPrompt(
           ? 'Answer only from the supplied history. Work in two steps. First, under "Notes:", list every relevant item the history states, one per line, each with its session date and the exact detail (a count, a name, a date, an amount). Then, on a final line starting with "Answer:", give the answer derived from those notes, concise and with the arithmetic or ordering made explicit when the question needs it. If the notes do not support an answer, the Answer line must say that you do not know. Do not invent details.'
           : 'Answer only from the supplied history. If it does not support an answer, say that you do not know. Be concise and do not invent details.';
   return {
-    system,
+    system:
+      request.undated === true
+        ? system.replace(/the supplied history/g, 'the supplied document excerpts').replace(/the history/g, 'the excerpts').replace(/its session date and /g, '')
+        : system,
     user,
     contextSessionIds: selected
       .sort((left, right) => left.rank - right.rank)
@@ -718,6 +733,7 @@ export function buildReadingPrompt(
     dateDistances: options.dateDistances,
     computedNotes: options.computedNotes,
     personalize: options.kind.preference,
+    ...(options.undated === true ? { undated: true } : {}),
   });
   return { system: prompt.system, user: prompt.user };
 }

@@ -252,3 +252,28 @@ describe('evaluateDocumentTier with a reader view', () => {
     expect(result.summary.accuracy).toBe(1);
   });
 });
+
+describe('undated document prompts', () => {
+  it('shows document excerpts with no session dates and no current date', async () => {
+    const pages = pagesWithFact(8, 2, 'The Kestrel programme remediation budget was 4.2 million pounds.');
+    let seen = '';
+    await evaluateDocumentTier(tierOf([question({ evidencePages: [2] })], pages.length), pages, {
+      reader: {
+        model: 'spy',
+        async completeWithUsage(messages) {
+          seen = messages.map((m) => m.content).join('\n');
+          return completion('Answer: 4.2 million pounds');
+        },
+      },
+      topK: 2,
+      contextBytes: 24 * 1024,
+      pagesPerWindow: 1,
+      windowBytes: 12 * 1024,
+      concurrency: 1,
+    });
+    expect(seen).toContain('Document excerpts:');
+    expect(seen).not.toContain('Session date');
+    expect(seen).not.toContain('Current date');
+    expect(seen).not.toContain('supplied history');
+  });
+});

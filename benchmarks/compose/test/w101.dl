@@ -1,0 +1,169 @@
+% Compose world 101 (test), Carrow Group
+person_name(p01, 'Matteo Tremblay').
+person_name(p02, 'Felix Strand').
+person_name(p03, 'Signe Fairbairn').
+person_name(p04, 'Kofi Whitcombe').
+person_name(p05, 'Aiko Sorensen').
+person_name(p06, 'Aiko Rautio').
+person_name(p07, 'Vera Andrade').
+person_name(p08, 'Declan Lundgren').
+person_name(p09, 'Lucia Novak').
+person_name(p10, 'Ingrid Halloran').
+person_name(p11, 'Lucia Moreau').
+person_name(p12, 'Ingrid Weatherby').
+person_name(p13, 'Aiko Holmqvist').
+person_name(p14, 'Viktor Dubois').
+person_name(p15, 'Viktor Beaumont').
+person_name(p16, 'Oskar Szabo').
+role_held(cro, p10, 20210101, 20220709).
+role_held(cro, p01, 20220709, 99991231).
+role_held(cfo, p14, 20210101, 20220403).
+role_held(cfo, p12, 20220420, 20230802).
+role_held(cfo, p16, 20230802, 99991231).
+role_held(coo, p04, 20210101, 20221020).
+role_held(coo, p11, 20221104, 20241001).
+role_held(coo, p07, 20241001, 99991231).
+role_held(hop, p02, 20210101, 20220512).
+role_held(hop, p08, 20220512, 20240604).
+role_held(hop, p15, 20240604, 99991231).
+role_held(gc, p06, 20210101, 20221006).
+role_held(gc, p13, 20221017, 20240629).
+role_held(gc, p09, 20240713, 99991231).
+role_held(hos, p05, 20210101, 20230117).
+role_held(hos, p03, 20230117, 20240514).
+authority(cro, 750000, 20210101, 20220715).
+authority(cro, 2250000, 20220715, 99991231).
+authority(cfo, 250000, 20210101, 20220810).
+authority(coo, 100000, 20210101, 20240503).
+authority(coo, 50000, 20240503, 99991231).
+authority(hop, 250000, 20210101, 20230325).
+authority(hop, 500000, 20230325, 99991231).
+supplier_name(s01, 'Nettlefield Facilities Pty Ltd').
+supplier_name(s02, 'Kingsmead Data Services Pty Ltd').
+supplier_name(s03, 'Emberton Data Services Pty Ltd').
+supplier_name(s04, 'Zephyrine Data Services Pty Ltd').
+supplier_name(s05, 'Oakhurst Data Services Pty Ltd').
+supplier_name(s06, 'Pennant Data Services Pty Ltd').
+supplier_name(s07, 'Kestrel Systems Pty Ltd').
+supplier_name(s08, 'Harrowgate Systems Pty Ltd').
+site(site1, s01).
+site(site2, s02).
+site(site3, s03).
+site(site4, s04).
+site(site5, s04).
+site(site6, s05).
+site(site7, s05).
+site(site8, s06).
+site(site9, s07).
+site(site10, s08).
+site(site11, s08).
+contract(c4480, s08, 20230930, 20260929).
+contract(c9103, s05, 20230726, 20240725).
+contract(c6425, s04, 20210526, 20220526).
+contract(c5598, s05, 20210611, 20240610).
+contract(c4275, s03, 20250724, 20260724).
+contract(c2482, s06, 20240202, 20250201).
+contract(c6441, s06, 20230301, 20260228).
+contract(c7898, s02, 20220710, 20230710).
+contract(c8765, s03, 20210404, 20240403).
+contract(c5003, s05, 20230408, 20240407).
+contract(c9560, s08, 20240428, 20270428).
+contract(c4564, s06, 20250716, 20260716).
+contract(c5822, s05, 20231014, 20241013).
+contract(c2157, s03, 20221102, 20251101).
+contract_value(c4480, 40000, 20230916).
+contract_value(c9103, 715000, 20230713).
+contract_value(c6425, 720000, 20210516).
+contract_value(c5598, 300000, 20210528).
+contract_value(c4275, 260000, 20250714).
+contract_value(c2482, 400000, 20240125).
+contract_value(c2482, 500000, 20241106).
+contract_value(c6441, 640000, 20230212).
+contract_value(c6441, 800000, 20230712).
+contract_value(c7898, 180000, 20220621).
+contract_value(c7898, 225000, 20221018).
+contract_value(c7898, 160000, 20230426).
+contract_value(c8765, 765000, 20210321).
+contract_value(c5003, 170000, 20230320).
+contract_value(c9560, 100000, 20240420).
+contract_value(c4564, 460000, 20250705).
+contract_value(c5822, 110000, 20231004).
+contract_value(c5822, 100000, 20240731).
+contract_value(c2157, 450000, 20221021).
+contract_value(c2157, 495000, 20230317).
+approved(c4480, p08, 20230916).
+approved(c9103, p01, 20230713).
+approved(c6425, p14, 20210516).
+approved(c5598, p10, 20210528).
+approved(c4275, p16, 20250714).
+approved(c2482, p01, 20240125).
+approved(c6441, p12, 20230212).
+approved(c7898, p04, 20220621).
+approved(c8765, p04, 20210321).
+approved(c5003, p11, 20230320).
+approved(c9560, p01, 20240420).
+approved(c4564, p01, 20250705).
+approved(c5822, p11, 20231004).
+approved(c2157, p01, 20221021).
+cert(s01, iso9001, 20210411, 20230411).
+cert(s01, iso9001, 20230411, 20250410).
+cert(s01, iso9001, 20250410, 20280409).
+cert(s01, iso27001, 20200121, 20220120).
+cert(s01, iso27001, 20220326, 20250325).
+cert(s01, iso27001, 20250325, 20270325).
+cert(s02, iso9001, 20200304, 20220304).
+cert(s02, iso9001, 20220521, 20240520).
+cert(s02, iso27001, 20211010, 20241009).
+cert(s02, iso27001, 20241124, 20261124).
+cert(s03, iso9001, 20200929, 20230929).
+cert(s03, iso9001, 20230929, 20250928).
+cert(s03, iso9001, 20260421, 20280420).
+cert(s04, iso9001, 20210715, 20230715).
+cert(s04, iso9001, 20230715, 20250714).
+cert(s04, iso9001, 20251113, 20281112).
+cert(s04, iso27001, 20210601, 20240531).
+cert(s04, iso27001, 20241219, 20271219).
+cert(s05, iso9001, 20201004, 20221004).
+cert(s05, iso9001, 20221108, 20251107).
+cert(s05, iso9001, 20260323, 20290322).
+cert(s06, iso9001, 20200322, 20230322).
+cert(s06, iso9001, 20230322, 20250321).
+cert(s06, iso9001, 20250321, 20270321).
+cert(s07, iso9001, 20210917, 20230917).
+cert(s07, iso9001, 20230917, 20250916).
+cert(s07, iso9001, 20250916, 20270916).
+cert(s07, iso27001, 20210829, 20230829).
+cert(s07, iso27001, 20230829, 20260828).
+cert(s08, iso9001, 20200229, 20220228).
+cert(s08, iso9001, 20220228, 20250227).
+cert(s08, iso27001, 20210705, 20240704).
+incident(inc1, site8, 20210416, 2).
+incident(inc2, site4, 20211119, 1).
+incident(inc3, site4, 20210301, 3).
+incident(inc4, site1, 20230811, 4).
+incident(inc5, site4, 20210409, 5).
+incident(inc6, site3, 20250225, 5).
+incident(inc7, site9, 20251019, 1).
+incident(inc8, site11, 20220509, 1).
+incident(inc9, site1, 20220304, 1).
+incident(inc10, site11, 20210221, 4).
+incident(inc11, site1, 20240504, 2).
+incident(inc12, site4, 20220722, 4).
+incident(inc13, site3, 20231218, 5).
+incident(inc14, site8, 20231019, 4).
+incident(inc15, site7, 20231009, 1).
+incident(inc16, site3, 20211130, 1).
+incident(inc17, site8, 20250926, 1).
+incident(inc18, site4, 20240723, 1).
+standard(iso9001).
+standard(iso27001).
+
+holds_role_on(R, P, D) :- role_held(R, P, F, T), day(D), F <= D, D < T.
+authority_on(R, L, D) :- authority(R, L, F, T), day(D), F <= D, D < T.
+limit_on(P, L, D) :- holds_role_on(R, P, D), authority_on(R, L, D).
+has_authority_on(P, D) :- limit_on(P, _, D).
+later_value(C, E, D) :- contract_value(C, _, E), contract_value(C, _, E2), day(D), E < E2, E2 <= D.
+value_on(C, V, D) :- contract_value(C, V, E), day(D), E <= D, \+ later_value(C, E, D).
+may_approve(P, C, D) :- limit_on(P, L, D), value_on(C, V, D), V <= L.
+cert_valid_on(S, Std, D) :- cert(S, Std, I, X), day(D), I <= D, D < X.
+incident_uncertified(I, Std) :- incident(I, Site, D, _), site(Site, S), standard(Std), \+ cert_valid_on(S, Std, D).

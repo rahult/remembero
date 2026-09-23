@@ -10,6 +10,7 @@
  */
 
 import type { PageWindow } from './document-corpus.js';
+import type { ComposeGold } from '../compose/questions.js';
 import { pageRangeFromId, windowHoldsPage } from './document-corpus.js';
 
 /** A labelled question over a document: gold answer plus the pages that justify it. */
@@ -30,6 +31,9 @@ export interface DocumentQuestion {
   verificationRule?: string;
   /** The document this question belongs to, when a tier holds several. */
   documentId?: string;
+  /** A Compose question's engine-computed gold; when present it is scored with no model at all. */
+  compose?: ComposeGold;
+  hops?: number;
 }
 
 /** One source document inside an assembled tier. */
@@ -104,6 +108,8 @@ export interface QuestionOutcome {
   correct: boolean;
   /** The same rule once a decimal comma is read as a decimal point (a diagnostic, not the number). */
   correctLocale: boolean;
+  /** Answered, and wrong: the number the certainty target drives to zero. */
+  confidentWrong?: boolean;
   /** Their two surface-form diagnostics, reported alongside accuracy. */
   tokenF1: number;
   anls: number;
@@ -149,6 +155,10 @@ export interface TierSummary {
   /** XL-DocBench's secondary diagnostics over the same answers. */
   meanTokenF1: number;
   meanAnls: number;
+  /** Wrong answers given without declining, over all questions. */
+  confidentWrongRate: number;
+  /** Declined answers, over all questions. */
+  declinedRate: number;
   /** The speed lens: time to rank pages versus time to read them, and the tail. */
   meanRetrievalMs: number;
   meanReaderMs: number;
@@ -203,6 +213,11 @@ export function summariseTier(
     falseAnswerRate: unanswerable.length === 0 ? 0 : unanswerable.filter((o) => !o.abstained).length / unanswerable.length,
     meanLatencyMs: mean(outcomes.map((o) => o.latencyMs)),
     meanContextBytes: mean(outcomes.map((o) => o.contextBytes)),
+    confidentWrongRate:
+      outcomes.length === 0
+        ? 0
+        : outcomes.filter((o) => o.confidentWrong ?? (!o.correct && !o.abstained)).length / outcomes.length,
+    declinedRate: outcomes.length === 0 ? 0 : outcomes.filter((o) => o.abstained).length / outcomes.length,
     meanRetrievalMs: mean(outcomes.map((o) => o.retrievalMs ?? 0)),
     meanReaderMs: mean(outcomes.map((o) => o.readerMs ?? 0)),
     p50LatencyMs: quantile(0.5),

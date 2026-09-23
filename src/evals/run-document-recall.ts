@@ -55,6 +55,8 @@ interface SpecSource {
     datasetKind?: string;
     answerFormat?: string;
     verificationRule?: string;
+    compose?: import('../compose/questions.js').ComposeGold;
+    hops?: number;
   }>;
 }
 
@@ -87,6 +89,7 @@ interface Args {
   oraclePages: boolean;
   ranker?: RankerName;
   read: 'pages' | 'facts';
+  dated: boolean;
   price?: { inputPerMillion: number; outputPerMillion: number };
   output?: string;
   predictions?: string;
@@ -103,6 +106,7 @@ function parseArgs(argv: string[]): Args {
     concurrency: 1,
     oraclePages: false,
     read: 'pages',
+    dated: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const flag = argv[index];
@@ -130,6 +134,7 @@ function parseArgs(argv: string[]): Args {
       case '--concurrency': args.concurrency = Number(value()); break;
       case '--limit-per-document': args.limitPerDocument = Number(value()); break;
       case '--oracle-pages': args.oraclePages = true; break;
+      case '--dated': args.dated = true; break;
       case '--read': {
         const mode = value();
         if (mode !== 'pages' && mode !== 'facts') throw new Error('--read is pages or facts');
@@ -344,6 +349,9 @@ async function main(): Promise<void> {
         answer: outcome.answer,
         correct: outcome.correct,
         correctLocale: outcome.correctLocale,
+        confidentWrong: outcome.confidentWrong,
+        family: outcome.question.datasetKind,
+        hops: outcome.question.hops,
         tokenF1: Number(outcome.tokenF1.toFixed(3)),
         anls: Number(outcome.anls.toFixed(3)),
         judged: outcome.judged,
@@ -360,7 +368,8 @@ async function main(): Promise<void> {
     console.log(
       `  ${tierSpec.name}: accuracy ${percent(summary.accuracy)} (locale-tolerant ${percent(summary.localeAccuracy)}` +
         `${summary.judgedAccuracy === undefined ? '' : `, judge ${percent(summary.judgedAccuracy)}`}) · ` +
-        `page hit ${percent(summary.evidenceHitRate)} · token F1 ${summary.meanTokenF1.toFixed(3)} · ${errors.length} errors\n`,
+        `page hit ${percent(summary.evidenceHitRate)} · confidently wrong ${percent(summary.confidentWrongRate)} · ` +
+        `declined ${percent(summary.declinedRate)} · ${errors.length} errors\n`,
     );
   }
 
@@ -395,6 +404,7 @@ async function main(): Promise<void> {
             oraclePages: args.oraclePages,
             ranker: args.ranker ?? 'product',
             read: args.read,
+            dated: args.dated,
             price: args.price ?? null,
             topK: args.topK,
             contextBytes: args.contextBytes,
@@ -452,6 +462,7 @@ async function runOne(
     concurrency: args.concurrency,
     ...(args.oraclePages ? { oraclePages: true } : {}),
     ...(args.price === undefined ? {} : { price: args.price }),
+    ...(args.dated ? { dated: true } : {}),
     ...(() => {
       if (args.read !== 'facts') return {};
       const documentId = tier.tier.split('/')[1] ?? tier.tier;
