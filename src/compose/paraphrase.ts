@@ -30,3 +30,5 @@ export function paraphraseProblem(question: ComposeQuestion, paraphrase: string)
   if (question.family === 'authority' && !/\b(yes|no|whether|did|was|were)\b/.test(text)) return 'no longer a yes/no question';
   return undefined;
 }
+
+export const LINE_PARAPHRASE_PROMPT = `Rewrite this one line from an organisation's board minutes or records in different words, the way a different minute-taker might write it. Keep every person's name, role title, contract reference, supplier name, site name and amount exactly as written; a date may be written in another common format (14 March 2025, 14/03/2025, 2025-03-14, 14 Mar 2025). Keep it to one line. Do not add facts. Reply with the rewritten line only.`;

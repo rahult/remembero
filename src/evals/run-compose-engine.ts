@@ -103,7 +103,7 @@ async function main() {
     for (const documentId of tier.documents) {
       const source = spec.sources.find((s) => s.id === documentId)!;
       const seed = Number(/-w(\d+)-/.exec(documentId)![1]);
-      const split = (/^compose-(train|dev|test)(?:v1)?-/.exec(documentId)?.[1] ?? 'test') as 'train' | 'dev' | 'test';
+      const split = (/^compose-(train|dev|test)(?:v[12])?-/.exec(documentId)?.[1] ?? 'test') as 'train' | 'dev' | 'test';
       const pages = pagesFromTextFile(source.text);
 
       // a page dense with dates is likely a record page: it gets a second, independent pass,
@@ -158,7 +158,7 @@ async function main() {
       const truth = new Set(worldAsSchemaFacts(generateWorld(seed, split)).map((f) => canonicalKey(f, people)));
       // facts of the sister organisations are true too: count them for precision, not for recall
       const sisterTruth = new Set<string>();
-      if (/v1-|-v1/.test(documentId) || /v1/.test(documentId)) {
+      if (/v[12]-/.test(documentId)) {
         const sisterPool = split === 'train' ? 'dev' : 'train';
         const main = generateWorld(seed, split);
         const refs = new Set(main.contracts.map((c) => c.ref));
