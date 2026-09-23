@@ -288,3 +288,38 @@ Three lessons, each learned by the benchmark catching a real failure:
 
 Cost of the whole engine path on this set: extraction ~$0.0002–0.0004 a page once (two passes on
 record pages), planning ~$0.0001 a question, answering free.
+
+## v2: reworded documents, and two more guards (2026-09-24)
+
+**v2** rewrites every prose line of the minutes, amendments and site list with a model, keeping a
+rewrite only if each fact the line states still passes the grounding check on that line alone
+(559 of 563 kept); registers stay tables. On two fresh worlds (105, 106) at 1000 pages the engine
+path — deepseek extraction, deepseek planner, Datalog — is **100% right, 0% confidently wrong,
+100% extraction recall**.
+
+Two guards added on the way, both general rather than benchmark-specific:
+
+- **A fact must be stated by one line.** The extractor had been turning "Present: the Chair and
+  directors" into appointments of whoever the minutes named next; the name, "Chair" and the
+  meeting date were all on the page, so the page-level check passed them, and the phantom person
+  made approvals unresolvable. Every argument except the organisation (which may come from the
+  heading) must now appear on a single line. v0 extraction precision went to 100%; world 101 from
+  93.6% to 100% right.
+- **A gap in numbered amendments means Unknown.** If amendment 2 of a contract was extracted and
+  amendment 1 was not, the record is provably incomplete, so value, comparison and authority
+  answers about that contract are Unknown. A lost *last* amendment is invisible to this check;
+  that is what the second extraction pass is for.
+
+**State of the engine path, all runs since these guards (1000 pages, deepseek extraction and planner):**
+
+| set | worlds | right | confidently wrong |
+| --- | --- | --- | --- |
+| v0 test / dev | 101, 102 / 201, 202 | 100, 100 / 97.8, 100% | 0% |
+| v1 test / dev | 101, 102 / 201, 202 | 100, 97.8 / 95.6, 100% | 0% |
+| v1 held out | 103, 104 | 100, 100% | 0% |
+| v2 held out (reworded documents) | 105, 106 | 100, 100% | 0% |
+
+Every miss is an Unknown. Readers on the same questions: 62–77% right and 9–21% confidently wrong.
+
+**In progress:** Gemma 4 E2B LoRA on RunPod (H200, 319 steps, ~$4) trained on 20,386 rows from
+250 train-split worlds — page → facts and question → plan — to run the whole engine path locally.
