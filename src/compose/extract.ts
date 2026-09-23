@@ -133,6 +133,11 @@ function supportedOn(fact: Fact, text: string, fromArgument: number): string | u
     const value = fact.args[i]!;
     if (kind === 'date') {
       if (typeof value !== 'number') return `argument ${i + 1} is not a date`;
+      const month = Math.floor(value / 100) % 100;
+      const day = value % 100;
+      if (value !== OPEN_END && (value < 19_000_101 || value > 21_001_231 || month < 1 || month > 12 || day < 1 || day > 31)) {
+        return `${value} is not a valid date`;
+      }
       if (value === OPEN_END) {
         if (!/until further notice|continuing/.test(text)) return 'open-ended authority the page does not state';
         continue;

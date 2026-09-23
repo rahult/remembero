@@ -119,8 +119,11 @@ async function main() {
           ...(passes >= 2 && dense(page.text) ? [{ page, key: `${hash}:2`, second: true }] : []),
         ];
       });
+      let failures = 0;
       await mapConcurrent(jobs.filter((job) => cache[job.key] === undefined), 24, async (job) => {
-        const reply = await client.completeWithUsage(
+        let reply;
+        try {
+          reply = await client.completeWithUsage(
           [
             { role: 'system', content: EXTRACTION_PROMPT },
             {
@@ -131,7 +134,18 @@ async function main() {
             },
           ],
           { maxTokens: 2_048 },
-        );
+          );
+        } catch (error) {
+          // a failed call is not cached, so the next run retries it; this run treats the page as
+          // unread, which the report counts and which can only lower recall, never add a fact
+          failures += 1;
+          if (failures <= 3) process.stderr.write(`extraction failed on ${job.key.slice(0, 12)}: ${error instanceof Error ? error.message.slice(0, 160) : error}\n`);
+          return;
+        }
+        if (typeof reply.content !== 'string') {
+          failures += 1;
+          return;
+        }
         promptTokens += reply.usage?.promptTokens ?? 0;
         completionTokens += reply.usage?.completionTokens ?? 0;
         calls += 1;
@@ -139,6 +153,7 @@ async function main() {
       });
       mkdirSync('.cache/compose', { recursive: true });
       writeFileSync(cachePath, JSON.stringify(cache));
+      if (failures > 0) process.stderr.write(`${documentId}: ${failures} extraction calls failed (retried next run)\n`);
 
       const grounded: Fact[] = [];
       const dropped: Array<{ page: number; fact: string; reason: string }> = [];
@@ -265,6 +280,6 @@ async function main() {
 }
 
 main().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : error);
+  console.error(error instanceof Error ? (process.env.DEBUG ? error.stack : error.message) : error);
   process.exitCode = 1;
 });

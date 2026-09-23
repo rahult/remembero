@@ -206,3 +206,12 @@ describe('same-line grounding', () => {
     expect(unsupportedReason({ predicate: 'approved', args: ['Carrow Group', 'CN-6425', 'V. Dubois', 20210516] }, page)).toBeUndefined();
   });
 });
+
+describe('invalid dates from a writer', () => {
+  it('treats an impossible date as unsupported rather than crashing', async () => {
+    const { unsupportedReason } = await import('../src/compose/extract.js');
+    const page = 'Carrow Group — Incident log\nINC-123A | 14 Mar 2025 | Tamworth depot | 3\n';
+    expect(unsupportedReason({ predicate: 'incident', args: ['Carrow Group', 'INC-123A', 20251300, 'Tamworth depot', 3] }, page)).toMatch(/not a valid date/);
+    expect(unsupportedReason({ predicate: 'incident', args: ['Carrow Group', 'INC-123A', 2025, 'Tamworth depot', 3] }, page)).toMatch(/not a valid date/);
+  });
+});

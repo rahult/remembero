@@ -323,3 +323,30 @@ Every miss is an Unknown. Readers on the same questions: 62–77% right and 9–
 
 **In progress:** Gemma 4 E2B LoRA on RunPod (H200, 319 steps, ~$4) trained on 20,386 rows from
 250 train-split worlds — page → facts and question → plan — to run the whole engine path locally.
+
+## The engine path on our own 2B model (2026-09-24)
+
+`compose-engine-e2b`: Gemma 4 E2B with a LoRA trained on 20,386 rows from 250 train-split worlds
+(page → schema facts, question → plan), 319 steps on an H200, 54 minutes, **$4.55**. One model does
+both jobs; Datalog answers. No model API in the loop.
+
+| held-out set, 1000 pages | world | right | confidently wrong | extraction recall | facts the page check dropped |
+| --- | --- | --- | --- | --- | --- |
+| v1 (paraphrased questions, sister organisations) | 103 | 100% | 0% | 100% | 63 |
+| | 104 | 100% | 0% | 100% | 22 |
+| v2 (documents reworded — never seen in training) | 105 | 97.7% | 0% | 99.3% | 68 |
+| | 106 | 97.9% | 0% | 97.7% | 24 |
+
+Identical at 100 and 500 pages. The 100-page runs were on the Mac (llama.cpp, Q8, ~10–20 s a page);
+the 500 and 1000-page pages were extracted by the same weights under vLLM on a rented H100 (about
+12 minutes, ~$1). Same questions through a reader: deepseek 72% right and 9% confidently wrong.
+
+What the numbers say:
+- **The small model invents facts on filler pages** — 22 to 68 per 1000-page haystack — and the
+  page check (every argument on one line of the page) drops every one. The certainty is carried by
+  the check, not by the model; that is what makes a 2B model usable at this scale.
+- **It generalises past its templates.** Trained only on template-rendered pages, it reads the
+  reworded v2 documents with 97.7–99.3% recall; the facts it misses become Unknowns, not wrong
+  answers.
+- **A malformed output is not an answer.** The model emitted an impossible date (month 13) on one
+  page; that fact is now rejected as unsupported instead of crashing the run.
