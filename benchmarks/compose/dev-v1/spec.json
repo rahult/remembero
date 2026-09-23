@@ -1,40 +1,40 @@
 {
- "name": "compose-dev",
+ "name": "compose-dev-v1",
  "labels": "Compose: generated worlds, gold computed by the Datalog engine",
  "tiers": [
   {
    "name": "100p",
    "documents": [
-    "compose-dev-w201-100p",
-    "compose-dev-w202-100p"
+    "compose-devv1-w201-100p",
+    "compose-devv1-w202-100p"
    ]
   },
   {
    "name": "500p",
    "documents": [
-    "compose-dev-w201-500p",
-    "compose-dev-w202-500p"
+    "compose-devv1-w201-500p",
+    "compose-devv1-w202-500p"
    ]
   },
   {
    "name": "1000p",
    "documents": [
-    "compose-dev-w201-1000p",
-    "compose-dev-w202-1000p"
+    "compose-devv1-w201-1000p",
+    "compose-devv1-w202-1000p"
    ]
   }
  ],
  "sources": [
   {
-   "id": "compose-dev-w201-100p",
+   "id": "compose-devv1-w201-100p",
    "title": "Tidewater Transit records (Compose world 201) in 100 pages",
    "sourceUrl": "generated",
-   "text": ".cache/compose/compose-dev-w201-100p.pages.txt",
+   "text": ".cache/compose/compose-devv1-w201-100p.pages.txt",
    "labelPages": 100,
    "questions": [
     {
      "id": "w201-needle-1-100p",
-     "question": "What was the value of contract CN-2954 at signing?",
+     "question": "Under contract CN-2954, what was the value at the time of signing?",
      "answer": "695000",
      "evidencePages": [
       94
@@ -56,7 +56,7 @@
     },
     {
      "id": "w201-needle-2-100p",
-     "question": "What was the value of contract CN-3046 at signing?",
+     "question": "What was the value of contract CN-3046 at the time it was signed?",
      "answer": "285000",
      "evidencePages": [
       94
@@ -78,7 +78,7 @@
     },
     {
      "id": "w201-needle-3-100p",
-     "question": "What was the value of contract CN-8303 at signing?",
+     "question": "What was the contract value of CN-8303 when it was signed?",
      "answer": "400000",
      "evidencePages": [
       94
@@ -102,7 +102,7 @@
     },
     {
      "id": "w201-needle-4-100p",
-     "question": "What was the value of contract CN-7502 at signing?",
+     "question": "What was the contract value of CN-7502 when it was signed?",
      "answer": "285000",
      "evidencePages": [
       93
@@ -124,7 +124,7 @@
     },
     {
      "id": "w201-needle-5-100p",
-     "question": "What was the value of contract CN-7711 at signing?",
+     "question": "What was the contract value of CN-7711 when it was signed?",
      "answer": "655000",
      "evidencePages": [
       93
@@ -146,7 +146,7 @@
     },
     {
      "id": "w201-needle-6-100p",
-     "question": "What was the value of contract CN-3056 at signing?",
+     "question": "What was the contract value of CN-3056 as of the date it was signed?",
      "answer": "95000",
      "evidencePages": [
       94
@@ -168,7 +168,7 @@
     },
     {
      "id": "w201-validity-7-100p",
-     "question": "Who was the Head of Safety of Tidewater Transit on 2021-07-16?",
+     "question": "Who held the role of Head of Safety at Tidewater Transit as of July 16, 2021?",
      "answer": "Callum Rinaldi",
      "evidencePages": [
       2,
@@ -230,7 +230,7 @@
     },
     {
      "id": "w201-validity-8-100p",
-     "question": "Who was the Chief Financial Officer of Tidewater Transit on 2023-12-22?",
+     "question": "Who held the position of Chief Financial Officer at Tidewater Transit as of December 22, 2023?",
      "answer": "Keira Pemberton",
      "evidencePages": [
       30,
@@ -293,7 +293,7 @@
     },
     {
      "id": "w201-validity-9-100p",
-     "question": "Who was the Head of Procurement of Tidewater Transit on 2021-10-01?",
+     "question": "As of 01/10/2021, who held the position of Head of Procurement at Tidewater Transit?",
      "answer": "Mei Vasquez",
      "evidencePages": [
       2,
@@ -355,7 +355,7 @@
     },
     {
      "id": "w201-validity-10-100p",
-     "question": "Who was the Chief Financial Officer of Tidewater Transit on 2021-11-24?",
+     "question": "As of 24 November 2021, who held the position of Chief Financial Officer at Tidewater Transit?",
      "answer": "Marco Varga",
      "evidencePages": [
       2,
@@ -417,7 +417,7 @@
     },
     {
      "id": "w201-validity-11-100p",
-     "question": "Who was the Chief Operating Officer of Tidewater Transit on 15 December 2022?",
+     "question": "As of 15 December 2022, who held the position of Chief Operating Officer at Tidewater Transit?",
      "answer": "Mei Obi",
      "evidencePages": [
       50,
@@ -479,7 +479,7 @@
     },
     {
      "id": "w201-validity-12-100p",
-     "question": "Who was the General Counsel of Tidewater Transit on 28 June 2021?",
+     "question": "As of 28 June 2021, who held the position of General Counsel at Tidewater Transit?",
      "answer": "Maeve Petrakis",
      "evidencePages": [
       2,
@@ -541,7 +541,7 @@
     },
     {
      "id": "w201-identity-13-100p",
-     "question": "What is the full name of the person who approved contract CN-4347?",
+     "question": "State the full name of the individual who granted approval for contract CN-4347.",
      "answer": "Callum Castellanos",
      "evidencePages": [
       2,
@@ -603,7 +603,7 @@
     },
     {
      "id": "w201-identity-14-100p",
-     "question": "What is the full name of the person who approved contract CN-3046?",
+     "question": "State the full name of the individual who granted approval for contract CN-3046.",
      "answer": "Astrid Zielinski",
      "evidencePages": [
       39,
@@ -664,7 +664,7 @@
     },
     {
      "id": "w201-identity-15-100p",
-     "question": "What is the full name of the person who approved contract CN-8303?",
+     "question": "Identify the full name of the individual who granted approval for contract CN-8303.",
      "answer": "Callum Castellanos",
      "evidencePages": [
       2,
@@ -726,7 +726,7 @@
     },
     {
      "id": "w201-identity-16-100p",
-     "question": "What is the full name of the person who approved contract CN-4250?",
+     "question": "Identify the full name of the individual who granted approval for contract CN-4250.",
      "answer": "Astrid Zielinski",
      "evidencePages": [
       39,
@@ -788,7 +788,7 @@
     },
     {
      "id": "w201-identity-17-100p",
-     "question": "What is the full name of the person who approved contract CN-7502?",
+     "question": "State the full name of the individual who granted approval for contract CN-7502.",
      "answer": "Mei Obi",
      "evidencePages": [
       50,
@@ -849,7 +849,7 @@
     },
     {
      "id": "w201-supersession-18-100p",
-     "question": "What was the value of contract CN-3472 on 11 February 2023, taking any amendments into account?",
+     "question": "Considering any amendments, what was the value of contract CN-3472 as of 11/02/2023?",
      "answer": "630000",
      "evidencePages": [
       93,
@@ -876,7 +876,7 @@
     },
     {
      "id": "w201-supersession-19-100p",
-     "question": "What was the value of contract CN-8303 on 2022-12-01, taking any amendments into account?",
+     "question": "What was the value of contract CN-8303 as of 01/12/2022, after accounting for any amendments?",
      "answer": "440000",
      "evidencePages": [
       94,
@@ -902,7 +902,7 @@
     },
     {
      "id": "w201-supersession-20-100p",
-     "question": "What was the value of contract CN-8954 on 2024-12-03, taking any amendments into account?",
+     "question": "What was the contract value for CN-8954 as of December 3, 2024, including any amendments?",
      "answer": "665000",
      "evidencePages": [
       93,
@@ -928,7 +928,7 @@
     },
     {
      "id": "w201-supersession-21-100p",
-     "question": "What was the value of contract CN-4347 on 28 June 2022, taking any amendments into account?",
+     "question": "What was the value of contract CN-4347 as of 28/06/2022, after accounting for any amendments?",
      "answer": "75000",
      "evidencePages": [
       94,
@@ -954,7 +954,7 @@
     },
     {
      "id": "w201-comparison-22-100p",
-     "question": "On 15 June 2024, which contract had the higher value: CN-2954 or CN-8861?",
+     "question": "As of 15/06/2024, which of the following contracts had the greater value: CN-2954 or CN-8861?",
      "answer": "CN-2954",
      "evidencePages": [
       93,
@@ -984,7 +984,7 @@
     },
     {
      "id": "w201-comparison-23-100p",
-     "question": "On 9 February 2025, which contract had the higher value: CN-3472 or CN-4250?",
+     "question": "Which contract, CN-3472 or CN-4250, had the higher value as of 2025-02-09?",
      "answer": "CN-3472",
      "evidencePages": [
       93,
@@ -1015,7 +1015,7 @@
     },
     {
      "id": "w201-comparison-24-100p",
-     "question": "On 2025-03-14, which contract had the higher value: CN-8954 or CN-7711?",
+     "question": "As of 14 March 2025, between contract CN-8954 and contract CN-7711, which one had the greater value?",
      "answer": "CN-8954",
      "evidencePages": [
       93,
@@ -1045,7 +1045,7 @@
     },
     {
      "id": "w201-comparison-25-100p",
-     "question": "On 9 December 2024, which contract had the higher value: CN-5089 or CN-3056?",
+     "question": "As of 09/12/2024, which of the contracts CN-5089 and CN-3056 had the greater value?",
      "answer": "CN-5089",
      "evidencePages": [
       93,
@@ -1075,7 +1075,7 @@
     },
     {
      "id": "w201-comparison-26-100p",
-     "question": "On 14 June 2024, which contract had the higher value: CN-4250 or CN-4347?",
+     "question": "As of 14/06/2024, which of the contracts CN-4250 and CN-4347 had the greater value?",
      "answer": "CN-4250",
      "evidencePages": [
       94,
@@ -1105,7 +1105,7 @@
     },
     {
      "id": "w201-aggregate-27-100p",
-     "question": "How many safety incidents in Tidewater Transit's incident log occurred at a site whose operating supplier did not hold a valid ISO 9001 certificate on the day of the incident?",
+     "question": "What is the count of safety incidents recorded in Tidewater Transit's incident log that took place at a site where the operating supplier did not possess a valid ISO 9001 certificate on the incident date?",
      "answer": "4",
      "evidencePages": [
       96,
@@ -1132,7 +1132,7 @@
     },
     {
      "id": "w201-aggregate-28-100p",
-     "question": "How many safety incidents in Tidewater Transit's incident log occurred at a site whose operating supplier did not hold a valid ISO/IEC 27001 certificate on the day of the incident?",
+     "question": "What is the number of safety incidents recorded in Tidewater Transit's incident log that took place at a site where the operating supplier did not possess a valid ISO/IEC 27001 certificate as of the incident date?",
      "answer": "10",
      "evidencePages": [
       96,
@@ -1159,7 +1159,7 @@
     },
     {
      "id": "w201-aggregate-29-100p",
-     "question": "How many safety incidents were recorded at sites operated by Umberly Engineering Pty Ltd?",
+     "question": "What is the number of safety incidents documented at sites operated by Umberly Engineering Pty Ltd?",
      "answer": "0",
      "evidencePages": [],
      "datasetKind": "aggregate",
@@ -1181,7 +1181,7 @@
     },
     {
      "id": "w201-aggregate-30-100p",
-     "question": "How many safety incidents were recorded at sites operated by Brightwater Data Services Pty Ltd?",
+     "question": "What is the number of safety incidents that have been recorded at sites operated by Brightwater Data Services Pty Ltd?",
      "answer": "4",
      "evidencePages": [
       96,
@@ -1206,7 +1206,7 @@
     },
     {
      "id": "w201-absence-31-100p",
-     "question": "Which of Tidewater Transit's contracted suppliers did not hold a valid ISO 9001 certificate on 8 September 2022?",
+     "question": "As of 8 September 2022, which suppliers contracted by Tidewater Transit lacked a valid ISO 9001 certificate?",
      "answer": "Juniper Bay Facilities Pty Ltd",
      "evidencePages": [
       97
@@ -1243,7 +1243,7 @@
     },
     {
      "id": "w201-absence-32-100p",
-     "question": "Which of Tidewater Transit's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2022-11-15?",
+     "question": "As of 15 November 2022, which suppliers under contract with Tidewater Transit lacked a valid ISO/IEC 27001 certificate?",
      "answer": "Meridian Logistics Pty Ltd; Aldercroft Data Services Pty Ltd; Umberly Engineering Pty Ltd; Marlowe Engineering Pty Ltd",
      "evidencePages": [
       97
@@ -1292,7 +1292,7 @@
     },
     {
      "id": "w201-absence-33-100p",
-     "question": "Which of Tidewater Transit's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2025-09-02?",
+     "question": "As of 02/09/2025, which suppliers contracted by Tidewater Transit were without a valid ISO/IEC 27001 certificate?",
      "answer": "Meridian Logistics Pty Ltd; Glenrock Facilities Pty Ltd; Aldercroft Data Services Pty Ltd; Umberly Engineering Pty Ltd; Marlowe Engineering Pty Ltd",
      "evidencePages": [
       97
@@ -1345,7 +1345,7 @@
     },
     {
      "id": "w201-authority-34-100p",
-     "question": "Was the approval of contract CN-4250 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-4250 fall within the approver's delegated authority on the date approval was granted? Yes or no.",
      "answer": "no",
      "evidencePages": [
       39,
@@ -1371,7 +1371,7 @@
     },
     {
      "id": "w201-authority-35-100p",
-     "question": "Was the approval of contract CN-8303 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-8303 fall within the approver's delegated authority on the date of approval? Yes or no.",
      "answer": "no",
      "evidencePages": [
       2,
@@ -1395,7 +1395,7 @@
     },
     {
      "id": "w201-authority-36-100p",
-     "question": "Was the approval of contract CN-7711 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess the delegated authority to approve contract CN-7711 on the date approval was granted? Yes or no.",
      "answer": "no",
      "evidencePages": [
       39,
@@ -1420,7 +1420,7 @@
     },
     {
      "id": "w201-authority-37-100p",
-     "question": "Was the approval of contract CN-3472 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-3472 receive approval from an individual who, on the date of approval, held the delegated authority to grant such approval? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       2,
@@ -1444,7 +1444,7 @@
     },
     {
      "id": "w201-authority-38-100p",
-     "question": "Was the approval of contract CN-3056 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess delegated authority to approve contract CN-3056 on the date the approval occurred? Yes or no.",
      "answer": "no",
      "evidencePages": [
       30,
@@ -1469,7 +1469,7 @@
     },
     {
      "id": "w201-authority-39-100p",
-     "question": "Was the approval of contract CN-2954 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess the delegated authority to approve contract CN-2954 on the date the approval was granted? Yes or no.",
      "answer": "yes",
      "evidencePages": [
       2,
@@ -1494,7 +1494,7 @@
     },
     {
      "id": "w201-authority-40-100p",
-     "question": "Was the approval of contract CN-4347 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess the delegated authority to approve contract CN-4347 on the date approval was granted? Yes or no.",
      "answer": "yes",
      "evidencePages": [
       2,
@@ -1518,7 +1518,7 @@
     },
     {
      "id": "w201-authority-41-100p",
-     "question": "Was the approval of contract CN-7502 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess delegated authority to approve contract CN-7502 on the date said contract was approved? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       50,
@@ -1542,7 +1542,7 @@
     },
     {
      "id": "w201-unanswerable-42-100p",
-     "question": "Who was the Chief Financial Officer of Tidewater Transit on 8 April 2019?",
+     "question": "As of 8 April 2019, who held the position of Chief Financial Officer at Tidewater Transit?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -1567,7 +1567,7 @@
     },
     {
      "id": "w201-unanswerable-43-100p",
-     "question": "What was the value of contract CN-3824 at signing?",
+     "question": "What was the contract value of CN-3824 at the time of signing?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -1586,7 +1586,7 @@
     },
     {
      "id": "w201-unanswerable-44-100p",
-     "question": "Who was the Chief Operating Officer of Tidewater Transit on 4 June 2019?",
+     "question": "As of 4 June 2019, who held the position of Chief Operating Officer at Tidewater Transit?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -1610,7 +1610,7 @@
     },
     {
      "id": "w201-unanswerable-45-100p",
-     "question": "What was the value of contract CN-6342 at signing?",
+     "question": "What was the value of contract CN-6342 when it was executed?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -1630,15 +1630,15 @@
    ]
   },
   {
-   "id": "compose-dev-w201-500p",
+   "id": "compose-devv1-w201-500p",
    "title": "Tidewater Transit records (Compose world 201) in 500 pages",
    "sourceUrl": "generated",
-   "text": ".cache/compose/compose-dev-w201-500p.pages.txt",
+   "text": ".cache/compose/compose-devv1-w201-500p.pages.txt",
    "labelPages": 500,
    "questions": [
     {
      "id": "w201-needle-1-500p",
-     "question": "What was the value of contract CN-2954 at signing?",
+     "question": "Under contract CN-2954, what was the value at the time of signing?",
      "answer": "695000",
      "evidencePages": [
       463
@@ -1660,7 +1660,7 @@
     },
     {
      "id": "w201-needle-2-500p",
-     "question": "What was the value of contract CN-3046 at signing?",
+     "question": "What was the value of contract CN-3046 at the time it was signed?",
      "answer": "285000",
      "evidencePages": [
       463
@@ -1682,7 +1682,7 @@
     },
     {
      "id": "w201-needle-3-500p",
-     "question": "What was the value of contract CN-8303 at signing?",
+     "question": "What was the contract value of CN-8303 when it was signed?",
      "answer": "400000",
      "evidencePages": [
       463
@@ -1706,7 +1706,7 @@
     },
     {
      "id": "w201-needle-4-500p",
-     "question": "What was the value of contract CN-7502 at signing?",
+     "question": "What was the contract value of CN-7502 when it was signed?",
      "answer": "285000",
      "evidencePages": [
       461
@@ -1728,7 +1728,7 @@
     },
     {
      "id": "w201-needle-5-500p",
-     "question": "What was the value of contract CN-7711 at signing?",
+     "question": "What was the contract value of CN-7711 when it was signed?",
      "answer": "655000",
      "evidencePages": [
       461
@@ -1750,7 +1750,7 @@
     },
     {
      "id": "w201-needle-6-500p",
-     "question": "What was the value of contract CN-3056 at signing?",
+     "question": "What was the contract value of CN-3056 as of the date it was signed?",
      "answer": "95000",
      "evidencePages": [
       463
@@ -1772,7 +1772,7 @@
     },
     {
      "id": "w201-validity-7-500p",
-     "question": "Who was the Head of Safety of Tidewater Transit on 2021-07-16?",
+     "question": "Who held the role of Head of Safety at Tidewater Transit as of July 16, 2021?",
      "answer": "Callum Rinaldi",
      "evidencePages": [
       6,
@@ -1834,7 +1834,7 @@
     },
     {
      "id": "w201-validity-8-500p",
-     "question": "Who was the Chief Financial Officer of Tidewater Transit on 2023-12-22?",
+     "question": "Who held the position of Chief Financial Officer at Tidewater Transit as of December 22, 2023?",
      "answer": "Keira Pemberton",
      "evidencePages": [
       146,
@@ -1897,7 +1897,7 @@
     },
     {
      "id": "w201-validity-9-500p",
-     "question": "Who was the Head of Procurement of Tidewater Transit on 2021-10-01?",
+     "question": "As of 01/10/2021, who held the position of Head of Procurement at Tidewater Transit?",
      "answer": "Mei Vasquez",
      "evidencePages": [
       6,
@@ -1959,7 +1959,7 @@
     },
     {
      "id": "w201-validity-10-500p",
-     "question": "Who was the Chief Financial Officer of Tidewater Transit on 2021-11-24?",
+     "question": "As of 24 November 2021, who held the position of Chief Financial Officer at Tidewater Transit?",
      "answer": "Marco Varga",
      "evidencePages": [
       6,
@@ -2021,7 +2021,7 @@
     },
     {
      "id": "w201-validity-11-500p",
-     "question": "Who was the Chief Operating Officer of Tidewater Transit on 15 December 2022?",
+     "question": "As of 15 December 2022, who held the position of Chief Operating Officer at Tidewater Transit?",
      "answer": "Mei Obi",
      "evidencePages": [
       250,
@@ -2083,7 +2083,7 @@
     },
     {
      "id": "w201-validity-12-500p",
-     "question": "Who was the General Counsel of Tidewater Transit on 28 June 2021?",
+     "question": "As of 28 June 2021, who held the position of General Counsel at Tidewater Transit?",
      "answer": "Maeve Petrakis",
      "evidencePages": [
       6,
@@ -2145,7 +2145,7 @@
     },
     {
      "id": "w201-identity-13-500p",
-     "question": "What is the full name of the person who approved contract CN-4347?",
+     "question": "State the full name of the individual who granted approval for contract CN-4347.",
      "answer": "Callum Castellanos",
      "evidencePages": [
       6,
@@ -2207,7 +2207,7 @@
     },
     {
      "id": "w201-identity-14-500p",
-     "question": "What is the full name of the person who approved contract CN-3046?",
+     "question": "State the full name of the individual who granted approval for contract CN-3046.",
      "answer": "Astrid Zielinski",
      "evidencePages": [
       192,
@@ -2268,7 +2268,7 @@
     },
     {
      "id": "w201-identity-15-500p",
-     "question": "What is the full name of the person who approved contract CN-8303?",
+     "question": "Identify the full name of the individual who granted approval for contract CN-8303.",
      "answer": "Callum Castellanos",
      "evidencePages": [
       6,
@@ -2330,7 +2330,7 @@
     },
     {
      "id": "w201-identity-16-500p",
-     "question": "What is the full name of the person who approved contract CN-4250?",
+     "question": "Identify the full name of the individual who granted approval for contract CN-4250.",
      "answer": "Astrid Zielinski",
      "evidencePages": [
       192,
@@ -2392,7 +2392,7 @@
     },
     {
      "id": "w201-identity-17-500p",
-     "question": "What is the full name of the person who approved contract CN-7502?",
+     "question": "State the full name of the individual who granted approval for contract CN-7502.",
      "answer": "Mei Obi",
      "evidencePages": [
       250,
@@ -2453,7 +2453,7 @@
     },
     {
      "id": "w201-supersession-18-500p",
-     "question": "What was the value of contract CN-3472 on 11 February 2023, taking any amendments into account?",
+     "question": "Considering any amendments, what was the value of contract CN-3472 as of 11/02/2023?",
      "answer": "630000",
      "evidencePages": [
       461,
@@ -2480,7 +2480,7 @@
     },
     {
      "id": "w201-supersession-19-500p",
-     "question": "What was the value of contract CN-8303 on 2022-12-01, taking any amendments into account?",
+     "question": "What was the value of contract CN-8303 as of 01/12/2022, after accounting for any amendments?",
      "answer": "440000",
      "evidencePages": [
       463,
@@ -2506,7 +2506,7 @@
     },
     {
      "id": "w201-supersession-20-500p",
-     "question": "What was the value of contract CN-8954 on 2024-12-03, taking any amendments into account?",
+     "question": "What was the contract value for CN-8954 as of December 3, 2024, including any amendments?",
      "answer": "665000",
      "evidencePages": [
       461,
@@ -2532,7 +2532,7 @@
     },
     {
      "id": "w201-supersession-21-500p",
-     "question": "What was the value of contract CN-4347 on 28 June 2022, taking any amendments into account?",
+     "question": "What was the value of contract CN-4347 as of 28/06/2022, after accounting for any amendments?",
      "answer": "75000",
      "evidencePages": [
       463,
@@ -2558,7 +2558,7 @@
     },
     {
      "id": "w201-comparison-22-500p",
-     "question": "On 15 June 2024, which contract had the higher value: CN-2954 or CN-8861?",
+     "question": "As of 15/06/2024, which of the following contracts had the greater value: CN-2954 or CN-8861?",
      "answer": "CN-2954",
      "evidencePages": [
       461,
@@ -2588,7 +2588,7 @@
     },
     {
      "id": "w201-comparison-23-500p",
-     "question": "On 9 February 2025, which contract had the higher value: CN-3472 or CN-4250?",
+     "question": "Which contract, CN-3472 or CN-4250, had the higher value as of 2025-02-09?",
      "answer": "CN-3472",
      "evidencePages": [
       461,
@@ -2619,7 +2619,7 @@
     },
     {
      "id": "w201-comparison-24-500p",
-     "question": "On 2025-03-14, which contract had the higher value: CN-8954 or CN-7711?",
+     "question": "As of 14 March 2025, between contract CN-8954 and contract CN-7711, which one had the greater value?",
      "answer": "CN-8954",
      "evidencePages": [
       461,
@@ -2649,7 +2649,7 @@
     },
     {
      "id": "w201-comparison-25-500p",
-     "question": "On 9 December 2024, which contract had the higher value: CN-5089 or CN-3056?",
+     "question": "As of 09/12/2024, which of the contracts CN-5089 and CN-3056 had the greater value?",
      "answer": "CN-5089",
      "evidencePages": [
       461,
@@ -2679,7 +2679,7 @@
     },
     {
      "id": "w201-comparison-26-500p",
-     "question": "On 14 June 2024, which contract had the higher value: CN-4250 or CN-4347?",
+     "question": "As of 14/06/2024, which of the contracts CN-4250 and CN-4347 had the greater value?",
      "answer": "CN-4250",
      "evidencePages": [
       463,
@@ -2709,7 +2709,7 @@
     },
     {
      "id": "w201-aggregate-27-500p",
-     "question": "How many safety incidents in Tidewater Transit's incident log occurred at a site whose operating supplier did not hold a valid ISO 9001 certificate on the day of the incident?",
+     "question": "What is the count of safety incidents recorded in Tidewater Transit's incident log that took place at a site where the operating supplier did not possess a valid ISO 9001 certificate on the incident date?",
      "answer": "4",
      "evidencePages": [
       474,
@@ -2736,7 +2736,7 @@
     },
     {
      "id": "w201-aggregate-28-500p",
-     "question": "How many safety incidents in Tidewater Transit's incident log occurred at a site whose operating supplier did not hold a valid ISO/IEC 27001 certificate on the day of the incident?",
+     "question": "What is the number of safety incidents recorded in Tidewater Transit's incident log that took place at a site where the operating supplier did not possess a valid ISO/IEC 27001 certificate as of the incident date?",
      "answer": "10",
      "evidencePages": [
       474,
@@ -2763,7 +2763,7 @@
     },
     {
      "id": "w201-aggregate-29-500p",
-     "question": "How many safety incidents were recorded at sites operated by Umberly Engineering Pty Ltd?",
+     "question": "What is the number of safety incidents documented at sites operated by Umberly Engineering Pty Ltd?",
      "answer": "0",
      "evidencePages": [],
      "datasetKind": "aggregate",
@@ -2785,7 +2785,7 @@
     },
     {
      "id": "w201-aggregate-30-500p",
-     "question": "How many safety incidents were recorded at sites operated by Brightwater Data Services Pty Ltd?",
+     "question": "What is the number of safety incidents that have been recorded at sites operated by Brightwater Data Services Pty Ltd?",
      "answer": "4",
      "evidencePages": [
       474,
@@ -2810,7 +2810,7 @@
     },
     {
      "id": "w201-absence-31-500p",
-     "question": "Which of Tidewater Transit's contracted suppliers did not hold a valid ISO 9001 certificate on 8 September 2022?",
+     "question": "As of 8 September 2022, which suppliers contracted by Tidewater Transit lacked a valid ISO 9001 certificate?",
      "answer": "Juniper Bay Facilities Pty Ltd",
      "evidencePages": [
       475
@@ -2847,7 +2847,7 @@
     },
     {
      "id": "w201-absence-32-500p",
-     "question": "Which of Tidewater Transit's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2022-11-15?",
+     "question": "As of 15 November 2022, which suppliers under contract with Tidewater Transit lacked a valid ISO/IEC 27001 certificate?",
      "answer": "Meridian Logistics Pty Ltd; Aldercroft Data Services Pty Ltd; Umberly Engineering Pty Ltd; Marlowe Engineering Pty Ltd",
      "evidencePages": [
       475
@@ -2896,7 +2896,7 @@
     },
     {
      "id": "w201-absence-33-500p",
-     "question": "Which of Tidewater Transit's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2025-09-02?",
+     "question": "As of 02/09/2025, which suppliers contracted by Tidewater Transit were without a valid ISO/IEC 27001 certificate?",
      "answer": "Meridian Logistics Pty Ltd; Glenrock Facilities Pty Ltd; Aldercroft Data Services Pty Ltd; Umberly Engineering Pty Ltd; Marlowe Engineering Pty Ltd",
      "evidencePages": [
       475
@@ -2949,7 +2949,7 @@
     },
     {
      "id": "w201-authority-34-500p",
-     "question": "Was the approval of contract CN-4250 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-4250 fall within the approver's delegated authority on the date approval was granted? Yes or no.",
      "answer": "no",
      "evidencePages": [
       192,
@@ -2975,7 +2975,7 @@
     },
     {
      "id": "w201-authority-35-500p",
-     "question": "Was the approval of contract CN-8303 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-8303 fall within the approver's delegated authority on the date of approval? Yes or no.",
      "answer": "no",
      "evidencePages": [
       6,
@@ -2999,7 +2999,7 @@
     },
     {
      "id": "w201-authority-36-500p",
-     "question": "Was the approval of contract CN-7711 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess the delegated authority to approve contract CN-7711 on the date approval was granted? Yes or no.",
      "answer": "no",
      "evidencePages": [
       192,
@@ -3024,7 +3024,7 @@
     },
     {
      "id": "w201-authority-37-500p",
-     "question": "Was the approval of contract CN-3472 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-3472 receive approval from an individual who, on the date of approval, held the delegated authority to grant such approval? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       6,
@@ -3048,7 +3048,7 @@
     },
     {
      "id": "w201-authority-38-500p",
-     "question": "Was the approval of contract CN-3056 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess delegated authority to approve contract CN-3056 on the date the approval occurred? Yes or no.",
      "answer": "no",
      "evidencePages": [
       146,
@@ -3073,7 +3073,7 @@
     },
     {
      "id": "w201-authority-39-500p",
-     "question": "Was the approval of contract CN-2954 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess the delegated authority to approve contract CN-2954 on the date the approval was granted? Yes or no.",
      "answer": "yes",
      "evidencePages": [
       6,
@@ -3098,7 +3098,7 @@
     },
     {
      "id": "w201-authority-40-500p",
-     "question": "Was the approval of contract CN-4347 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess the delegated authority to approve contract CN-4347 on the date approval was granted? Yes or no.",
      "answer": "yes",
      "evidencePages": [
       6,
@@ -3122,7 +3122,7 @@
     },
     {
      "id": "w201-authority-41-500p",
-     "question": "Was the approval of contract CN-7502 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess delegated authority to approve contract CN-7502 on the date said contract was approved? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       250,
@@ -3146,7 +3146,7 @@
     },
     {
      "id": "w201-unanswerable-42-500p",
-     "question": "Who was the Chief Financial Officer of Tidewater Transit on 8 April 2019?",
+     "question": "As of 8 April 2019, who held the position of Chief Financial Officer at Tidewater Transit?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -3171,7 +3171,7 @@
     },
     {
      "id": "w201-unanswerable-43-500p",
-     "question": "What was the value of contract CN-3824 at signing?",
+     "question": "What was the contract value of CN-3824 at the time of signing?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -3190,7 +3190,7 @@
     },
     {
      "id": "w201-unanswerable-44-500p",
-     "question": "Who was the Chief Operating Officer of Tidewater Transit on 4 June 2019?",
+     "question": "As of 4 June 2019, who held the position of Chief Operating Officer at Tidewater Transit?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -3214,7 +3214,7 @@
     },
     {
      "id": "w201-unanswerable-45-500p",
-     "question": "What was the value of contract CN-6342 at signing?",
+     "question": "What was the value of contract CN-6342 when it was executed?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -3234,15 +3234,15 @@
    ]
   },
   {
-   "id": "compose-dev-w201-1000p",
+   "id": "compose-devv1-w201-1000p",
    "title": "Tidewater Transit records (Compose world 201) in 1000 pages",
    "sourceUrl": "generated",
-   "text": ".cache/compose/compose-dev-w201-1000p.pages.txt",
+   "text": ".cache/compose/compose-devv1-w201-1000p.pages.txt",
    "labelPages": 1000,
    "questions": [
     {
      "id": "w201-needle-1-1000p",
-     "question": "What was the value of contract CN-2954 at signing?",
+     "question": "Under contract CN-2954, what was the value at the time of signing?",
      "answer": "695000",
      "evidencePages": [
       926
@@ -3264,7 +3264,7 @@
     },
     {
      "id": "w201-needle-2-1000p",
-     "question": "What was the value of contract CN-3046 at signing?",
+     "question": "What was the value of contract CN-3046 at the time it was signed?",
      "answer": "285000",
      "evidencePages": [
       926
@@ -3286,7 +3286,7 @@
     },
     {
      "id": "w201-needle-3-1000p",
-     "question": "What was the value of contract CN-8303 at signing?",
+     "question": "What was the contract value of CN-8303 when it was signed?",
      "answer": "400000",
      "evidencePages": [
       926
@@ -3310,7 +3310,7 @@
     },
     {
      "id": "w201-needle-4-1000p",
-     "question": "What was the value of contract CN-7502 at signing?",
+     "question": "What was the contract value of CN-7502 when it was signed?",
      "answer": "285000",
      "evidencePages": [
       923
@@ -3332,7 +3332,7 @@
     },
     {
      "id": "w201-needle-5-1000p",
-     "question": "What was the value of contract CN-7711 at signing?",
+     "question": "What was the contract value of CN-7711 when it was signed?",
      "answer": "655000",
      "evidencePages": [
       923
@@ -3354,7 +3354,7 @@
     },
     {
      "id": "w201-needle-6-1000p",
-     "question": "What was the value of contract CN-3056 at signing?",
+     "question": "What was the contract value of CN-3056 as of the date it was signed?",
      "answer": "95000",
      "evidencePages": [
       926
@@ -3376,7 +3376,7 @@
     },
     {
      "id": "w201-validity-7-1000p",
-     "question": "Who was the Head of Safety of Tidewater Transit on 2021-07-16?",
+     "question": "Who held the role of Head of Safety at Tidewater Transit as of July 16, 2021?",
      "answer": "Callum Rinaldi",
      "evidencePages": [
       12,
@@ -3438,7 +3438,7 @@
     },
     {
      "id": "w201-validity-8-1000p",
-     "question": "Who was the Chief Financial Officer of Tidewater Transit on 2023-12-22?",
+     "question": "Who held the position of Chief Financial Officer at Tidewater Transit as of December 22, 2023?",
      "answer": "Keira Pemberton",
      "evidencePages": [
       292,
@@ -3501,7 +3501,7 @@
     },
     {
      "id": "w201-validity-9-1000p",
-     "question": "Who was the Head of Procurement of Tidewater Transit on 2021-10-01?",
+     "question": "As of 01/10/2021, who held the position of Head of Procurement at Tidewater Transit?",
      "answer": "Mei Vasquez",
      "evidencePages": [
       12,
@@ -3563,7 +3563,7 @@
     },
     {
      "id": "w201-validity-10-1000p",
-     "question": "Who was the Chief Financial Officer of Tidewater Transit on 2021-11-24?",
+     "question": "As of 24 November 2021, who held the position of Chief Financial Officer at Tidewater Transit?",
      "answer": "Marco Varga",
      "evidencePages": [
       12,
@@ -3625,7 +3625,7 @@
     },
     {
      "id": "w201-validity-11-1000p",
-     "question": "Who was the Chief Operating Officer of Tidewater Transit on 15 December 2022?",
+     "question": "As of 15 December 2022, who held the position of Chief Operating Officer at Tidewater Transit?",
      "answer": "Mei Obi",
      "evidencePages": [
       500,
@@ -3687,7 +3687,7 @@
     },
     {
      "id": "w201-validity-12-1000p",
-     "question": "Who was the General Counsel of Tidewater Transit on 28 June 2021?",
+     "question": "As of 28 June 2021, who held the position of General Counsel at Tidewater Transit?",
      "answer": "Maeve Petrakis",
      "evidencePages": [
       12,
@@ -3749,7 +3749,7 @@
     },
     {
      "id": "w201-identity-13-1000p",
-     "question": "What is the full name of the person who approved contract CN-4347?",
+     "question": "State the full name of the individual who granted approval for contract CN-4347.",
      "answer": "Callum Castellanos",
      "evidencePages": [
       12,
@@ -3811,7 +3811,7 @@
     },
     {
      "id": "w201-identity-14-1000p",
-     "question": "What is the full name of the person who approved contract CN-3046?",
+     "question": "State the full name of the individual who granted approval for contract CN-3046.",
      "answer": "Astrid Zielinski",
      "evidencePages": [
       383,
@@ -3872,7 +3872,7 @@
     },
     {
      "id": "w201-identity-15-1000p",
-     "question": "What is the full name of the person who approved contract CN-8303?",
+     "question": "Identify the full name of the individual who granted approval for contract CN-8303.",
      "answer": "Callum Castellanos",
      "evidencePages": [
       12,
@@ -3934,7 +3934,7 @@
     },
     {
      "id": "w201-identity-16-1000p",
-     "question": "What is the full name of the person who approved contract CN-4250?",
+     "question": "Identify the full name of the individual who granted approval for contract CN-4250.",
      "answer": "Astrid Zielinski",
      "evidencePages": [
       383,
@@ -3996,7 +3996,7 @@
     },
     {
      "id": "w201-identity-17-1000p",
-     "question": "What is the full name of the person who approved contract CN-7502?",
+     "question": "State the full name of the individual who granted approval for contract CN-7502.",
      "answer": "Mei Obi",
      "evidencePages": [
       500,
@@ -4057,7 +4057,7 @@
     },
     {
      "id": "w201-supersession-18-1000p",
-     "question": "What was the value of contract CN-3472 on 11 February 2023, taking any amendments into account?",
+     "question": "Considering any amendments, what was the value of contract CN-3472 as of 11/02/2023?",
      "answer": "630000",
      "evidencePages": [
       923,
@@ -4084,7 +4084,7 @@
     },
     {
      "id": "w201-supersession-19-1000p",
-     "question": "What was the value of contract CN-8303 on 2022-12-01, taking any amendments into account?",
+     "question": "What was the value of contract CN-8303 as of 01/12/2022, after accounting for any amendments?",
      "answer": "440000",
      "evidencePages": [
       926,
@@ -4110,7 +4110,7 @@
     },
     {
      "id": "w201-supersession-20-1000p",
-     "question": "What was the value of contract CN-8954 on 2024-12-03, taking any amendments into account?",
+     "question": "What was the contract value for CN-8954 as of December 3, 2024, including any amendments?",
      "answer": "665000",
      "evidencePages": [
       923,
@@ -4136,7 +4136,7 @@
     },
     {
      "id": "w201-supersession-21-1000p",
-     "question": "What was the value of contract CN-4347 on 28 June 2022, taking any amendments into account?",
+     "question": "What was the value of contract CN-4347 as of 28/06/2022, after accounting for any amendments?",
      "answer": "75000",
      "evidencePages": [
       926,
@@ -4162,7 +4162,7 @@
     },
     {
      "id": "w201-comparison-22-1000p",
-     "question": "On 15 June 2024, which contract had the higher value: CN-2954 or CN-8861?",
+     "question": "As of 15/06/2024, which of the following contracts had the greater value: CN-2954 or CN-8861?",
      "answer": "CN-2954",
      "evidencePages": [
       923,
@@ -4192,7 +4192,7 @@
     },
     {
      "id": "w201-comparison-23-1000p",
-     "question": "On 9 February 2025, which contract had the higher value: CN-3472 or CN-4250?",
+     "question": "Which contract, CN-3472 or CN-4250, had the higher value as of 2025-02-09?",
      "answer": "CN-3472",
      "evidencePages": [
       923,
@@ -4223,7 +4223,7 @@
     },
     {
      "id": "w201-comparison-24-1000p",
-     "question": "On 2025-03-14, which contract had the higher value: CN-8954 or CN-7711?",
+     "question": "As of 14 March 2025, between contract CN-8954 and contract CN-7711, which one had the greater value?",
      "answer": "CN-8954",
      "evidencePages": [
       923,
@@ -4253,7 +4253,7 @@
     },
     {
      "id": "w201-comparison-25-1000p",
-     "question": "On 9 December 2024, which contract had the higher value: CN-5089 or CN-3056?",
+     "question": "As of 09/12/2024, which of the contracts CN-5089 and CN-3056 had the greater value?",
      "answer": "CN-5089",
      "evidencePages": [
       923,
@@ -4283,7 +4283,7 @@
     },
     {
      "id": "w201-comparison-26-1000p",
-     "question": "On 14 June 2024, which contract had the higher value: CN-4250 or CN-4347?",
+     "question": "As of 14/06/2024, which of the contracts CN-4250 and CN-4347 had the greater value?",
      "answer": "CN-4250",
      "evidencePages": [
       926,
@@ -4313,7 +4313,7 @@
     },
     {
      "id": "w201-aggregate-27-1000p",
-     "question": "How many safety incidents in Tidewater Transit's incident log occurred at a site whose operating supplier did not hold a valid ISO 9001 certificate on the day of the incident?",
+     "question": "What is the count of safety incidents recorded in Tidewater Transit's incident log that took place at a site where the operating supplier did not possess a valid ISO 9001 certificate on the incident date?",
      "answer": "4",
      "evidencePages": [
       947,
@@ -4340,7 +4340,7 @@
     },
     {
      "id": "w201-aggregate-28-1000p",
-     "question": "How many safety incidents in Tidewater Transit's incident log occurred at a site whose operating supplier did not hold a valid ISO/IEC 27001 certificate on the day of the incident?",
+     "question": "What is the number of safety incidents recorded in Tidewater Transit's incident log that took place at a site where the operating supplier did not possess a valid ISO/IEC 27001 certificate as of the incident date?",
      "answer": "10",
      "evidencePages": [
       947,
@@ -4367,7 +4367,7 @@
     },
     {
      "id": "w201-aggregate-29-1000p",
-     "question": "How many safety incidents were recorded at sites operated by Umberly Engineering Pty Ltd?",
+     "question": "What is the number of safety incidents documented at sites operated by Umberly Engineering Pty Ltd?",
      "answer": "0",
      "evidencePages": [],
      "datasetKind": "aggregate",
@@ -4389,7 +4389,7 @@
     },
     {
      "id": "w201-aggregate-30-1000p",
-     "question": "How many safety incidents were recorded at sites operated by Brightwater Data Services Pty Ltd?",
+     "question": "What is the number of safety incidents that have been recorded at sites operated by Brightwater Data Services Pty Ltd?",
      "answer": "4",
      "evidencePages": [
       947,
@@ -4414,7 +4414,7 @@
     },
     {
      "id": "w201-absence-31-1000p",
-     "question": "Which of Tidewater Transit's contracted suppliers did not hold a valid ISO 9001 certificate on 8 September 2022?",
+     "question": "As of 8 September 2022, which suppliers contracted by Tidewater Transit lacked a valid ISO 9001 certificate?",
      "answer": "Juniper Bay Facilities Pty Ltd",
      "evidencePages": [
       948
@@ -4451,7 +4451,7 @@
     },
     {
      "id": "w201-absence-32-1000p",
-     "question": "Which of Tidewater Transit's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2022-11-15?",
+     "question": "As of 15 November 2022, which suppliers under contract with Tidewater Transit lacked a valid ISO/IEC 27001 certificate?",
      "answer": "Meridian Logistics Pty Ltd; Aldercroft Data Services Pty Ltd; Umberly Engineering Pty Ltd; Marlowe Engineering Pty Ltd",
      "evidencePages": [
       948
@@ -4500,7 +4500,7 @@
     },
     {
      "id": "w201-absence-33-1000p",
-     "question": "Which of Tidewater Transit's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2025-09-02?",
+     "question": "As of 02/09/2025, which suppliers contracted by Tidewater Transit were without a valid ISO/IEC 27001 certificate?",
      "answer": "Meridian Logistics Pty Ltd; Glenrock Facilities Pty Ltd; Aldercroft Data Services Pty Ltd; Umberly Engineering Pty Ltd; Marlowe Engineering Pty Ltd",
      "evidencePages": [
       948
@@ -4553,7 +4553,7 @@
     },
     {
      "id": "w201-authority-34-1000p",
-     "question": "Was the approval of contract CN-4250 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-4250 fall within the approver's delegated authority on the date approval was granted? Yes or no.",
      "answer": "no",
      "evidencePages": [
       383,
@@ -4579,7 +4579,7 @@
     },
     {
      "id": "w201-authority-35-1000p",
-     "question": "Was the approval of contract CN-8303 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-8303 fall within the approver's delegated authority on the date of approval? Yes or no.",
      "answer": "no",
      "evidencePages": [
       12,
@@ -4603,7 +4603,7 @@
     },
     {
      "id": "w201-authority-36-1000p",
-     "question": "Was the approval of contract CN-7711 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess the delegated authority to approve contract CN-7711 on the date approval was granted? Yes or no.",
      "answer": "no",
      "evidencePages": [
       383,
@@ -4628,7 +4628,7 @@
     },
     {
      "id": "w201-authority-37-1000p",
-     "question": "Was the approval of contract CN-3472 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-3472 receive approval from an individual who, on the date of approval, held the delegated authority to grant such approval? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       12,
@@ -4652,7 +4652,7 @@
     },
     {
      "id": "w201-authority-38-1000p",
-     "question": "Was the approval of contract CN-3056 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess delegated authority to approve contract CN-3056 on the date the approval occurred? Yes or no.",
      "answer": "no",
      "evidencePages": [
       292,
@@ -4677,7 +4677,7 @@
     },
     {
      "id": "w201-authority-39-1000p",
-     "question": "Was the approval of contract CN-2954 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess the delegated authority to approve contract CN-2954 on the date the approval was granted? Yes or no.",
      "answer": "yes",
      "evidencePages": [
       12,
@@ -4702,7 +4702,7 @@
     },
     {
      "id": "w201-authority-40-1000p",
-     "question": "Was the approval of contract CN-4347 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess the delegated authority to approve contract CN-4347 on the date approval was granted? Yes or no.",
      "answer": "yes",
      "evidencePages": [
       12,
@@ -4726,7 +4726,7 @@
     },
     {
      "id": "w201-authority-41-1000p",
-     "question": "Was the approval of contract CN-7502 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess delegated authority to approve contract CN-7502 on the date said contract was approved? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       500,
@@ -4750,7 +4750,7 @@
     },
     {
      "id": "w201-unanswerable-42-1000p",
-     "question": "Who was the Chief Financial Officer of Tidewater Transit on 8 April 2019?",
+     "question": "As of 8 April 2019, who held the position of Chief Financial Officer at Tidewater Transit?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -4775,7 +4775,7 @@
     },
     {
      "id": "w201-unanswerable-43-1000p",
-     "question": "What was the value of contract CN-3824 at signing?",
+     "question": "What was the contract value of CN-3824 at the time of signing?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -4794,7 +4794,7 @@
     },
     {
      "id": "w201-unanswerable-44-1000p",
-     "question": "Who was the Chief Operating Officer of Tidewater Transit on 4 June 2019?",
+     "question": "As of 4 June 2019, who held the position of Chief Operating Officer at Tidewater Transit?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -4818,7 +4818,7 @@
     },
     {
      "id": "w201-unanswerable-45-1000p",
-     "question": "What was the value of contract CN-6342 at signing?",
+     "question": "What was the value of contract CN-6342 when it was executed?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -4838,15 +4838,15 @@
    ]
   },
   {
-   "id": "compose-dev-w202-100p",
+   "id": "compose-devv1-w202-100p",
    "title": "Carrow Group records (Compose world 202) in 100 pages",
    "sourceUrl": "generated",
-   "text": ".cache/compose/compose-dev-w202-100p.pages.txt",
+   "text": ".cache/compose/compose-devv1-w202-100p.pages.txt",
    "labelPages": 100,
    "questions": [
     {
      "id": "w202-needle-1-100p",
-     "question": "What was the value of contract CN-2679 at signing?",
+     "question": "What was the contract value of CN-2679 at the time of signing?",
      "answer": "660000",
      "evidencePages": [
       91
@@ -4868,7 +4868,7 @@
     },
     {
      "id": "w202-needle-2-100p",
-     "question": "What was the value of contract CN-6198 at signing?",
+     "question": "What was the contract value of CN-6198 as of the date it was signed?",
      "answer": "530000",
      "evidencePages": [
       91
@@ -4892,7 +4892,7 @@
     },
     {
      "id": "w202-needle-3-100p",
-     "question": "What was the value of contract CN-4088 at signing?",
+     "question": "What was the contract value of CN-4088 at the time of signing?",
      "answer": "290000",
      "evidencePages": [
       89
@@ -4916,7 +4916,7 @@
     },
     {
      "id": "w202-needle-4-100p",
-     "question": "What was the value of contract CN-7186 at signing?",
+     "question": "What was the contract value of CN-7186 when it was signed?",
      "answer": "740000",
      "evidencePages": [
       89
@@ -4938,7 +4938,7 @@
     },
     {
      "id": "w202-needle-5-100p",
-     "question": "What was the value of contract CN-8460 at signing?",
+     "question": "What was the contract value of CN-8460 as of the date it was signed?",
      "answer": "470000",
      "evidencePages": [
       89
@@ -4960,7 +4960,7 @@
     },
     {
      "id": "w202-needle-6-100p",
-     "question": "What was the value of contract CN-2105 at signing?",
+     "question": "What was the contract value of CN-2105 as of the date it was signed?",
      "answer": "175000",
      "evidencePages": [
       91
@@ -4985,7 +4985,7 @@
     },
     {
      "id": "w202-validity-7-100p",
-     "question": "Who was the Head of Procurement of Carrow Group on 2023-09-06?",
+     "question": "As of 06/09/2023, who held the position of Head of Procurement at Carrow Group?",
      "answer": "Mei Nwosu",
      "evidencePages": [
       42,
@@ -5048,7 +5048,7 @@
     },
     {
      "id": "w202-validity-8-100p",
-     "question": "Who was the Head of Safety of Carrow Group on 11 March 2022?",
+     "question": "As of 11 March 2022, who held the role of Head of Safety at Carrow Group?",
      "answer": "Farah Kerrigan",
      "evidencePages": [
       7,
@@ -5110,7 +5110,7 @@
     },
     {
      "id": "w202-validity-9-100p",
-     "question": "Who was the Chief Financial Officer of Carrow Group on 2025-02-13?",
+     "question": "On 13 February 2025, who held the position of Chief Financial Officer at Carrow Group?",
      "answer": "Idris Uddin",
      "evidencePages": [
       82
@@ -5171,7 +5171,7 @@
     },
     {
      "id": "w202-validity-10-100p",
-     "question": "Who was the Head of Safety of Carrow Group on 2022-05-26?",
+     "question": "Who held the position of Head of Safety at Carrow Group as of May 26, 2022?",
      "answer": "Rohan Obi",
      "evidencePages": [
       28,
@@ -5233,7 +5233,7 @@
     },
     {
      "id": "w202-validity-11-100p",
-     "question": "Who was the Head of Safety of Carrow Group on 6 August 2024?",
+     "question": "Who held the role of Head of Safety at Carrow Group as of 6 August 2024?",
      "answer": "Idris Kowalczyk",
      "evidencePages": [
       59
@@ -5294,7 +5294,7 @@
     },
     {
      "id": "w202-validity-12-100p",
-     "question": "Who was the Chief Risk Officer of Carrow Group on 14 September 2025?",
+     "question": "As of 14/09/2025, who held the position of Chief Risk Officer at Carrow Group?",
      "answer": "Mei Pemberton",
      "evidencePages": [
       84
@@ -5355,7 +5355,7 @@
     },
     {
      "id": "w202-identity-13-100p",
-     "question": "What is the full name of the person who approved contract CN-2105?",
+     "question": "State the complete name of the individual who granted approval for contract CN-2105.",
      "answer": "Mei Nwosu",
      "evidencePages": [
       42,
@@ -5417,7 +5417,7 @@
     },
     {
      "id": "w202-identity-14-100p",
-     "question": "What is the full name of the person who approved contract CN-2804?",
+     "question": "Identify the complete name of the individual who granted approval for contract CN-2804.",
      "answer": "Zara Mahlangu",
      "evidencePages": [
       47,
@@ -5478,7 +5478,7 @@
     },
     {
      "id": "w202-identity-15-100p",
-     "question": "What is the full name of the person who approved contract CN-5052?",
+     "question": "State the full name of the individual who granted approval for contract CN-5052.",
      "answer": "Astrid Carvalho",
      "evidencePages": [
       7,
@@ -5540,7 +5540,7 @@
     },
     {
      "id": "w202-identity-16-100p",
-     "question": "What is the full name of the person who approved contract CN-8460?",
+     "question": "Identify the full name of the individual who granted approval for contract CN-8460.",
      "answer": "Farah Petrakis",
      "evidencePages": [
       42,
@@ -5603,7 +5603,7 @@
     },
     {
      "id": "w202-identity-17-100p",
-     "question": "What is the full name of the person who approved contract CN-2170?",
+     "question": "Identify the complete name of the individual who granted approval for contract CN-2170.",
      "answer": "Anouk Mbeki",
      "evidencePages": [
       41,
@@ -5665,7 +5665,7 @@
     },
     {
      "id": "w202-supersession-18-100p",
-     "question": "What was the value of contract CN-6198 on 2024-06-24, taking any amendments into account?",
+     "question": "As of 24 June 2024, what was the value of contract CN-6198, including any amendments?",
      "answer": "475000",
      "evidencePages": [
       91,
@@ -5691,7 +5691,7 @@
     },
     {
      "id": "w202-supersession-19-100p",
-     "question": "What was the value of contract CN-2105 on 24 June 2024, taking any amendments into account?",
+     "question": "What was the value, as of 2024-06-24, of contract CN-2105, including any amendments?",
      "answer": "245000",
      "evidencePages": [
       91,
@@ -5718,7 +5718,7 @@
     },
     {
      "id": "w202-supersession-20-100p",
-     "question": "What was the value of contract CN-2732 on 14 January 2022, taking any amendments into account?",
+     "question": "What was the value, inclusive of any amendments, of contract CN-2732 as of 2022-01-14?",
      "answer": "540000",
      "evidencePages": [
       89,
@@ -5744,7 +5744,7 @@
     },
     {
      "id": "w202-supersession-21-100p",
-     "question": "What was the value of contract CN-2004 on 27 January 2025, taking any amendments into account?",
+     "question": "What was the value, as of 2025-01-27, of contract CN-2004, after accounting for any amendments?",
      "answer": "510000",
      "evidencePages": [
       91,
@@ -5770,7 +5770,7 @@
     },
     {
      "id": "w202-supersession-22-100p",
-     "question": "What was the value of contract CN-7614 on 2022-04-07, taking any amendments into account?",
+     "question": "What was the value of contract CN-7614 as of 07/04/2022, after accounting for any amendments?",
      "answer": "250000",
      "evidencePages": [
       89,
@@ -5796,7 +5796,7 @@
     },
     {
      "id": "w202-comparison-23-100p",
-     "question": "On 2 April 2024, which contract had the higher value: CN-2105 or CN-7614?",
+     "question": "As of 02/04/2024, which of the two contracts, CN-2105 or CN-7614, carried the higher value?",
      "answer": "CN-7614",
      "evidencePages": [
       89,
@@ -5827,7 +5827,7 @@
     },
     {
      "id": "w202-comparison-24-100p",
-     "question": "On 18 August 2024, which contract had the higher value: CN-2105 or CN-6198?",
+     "question": "As of 18/08/2024, which of the contracts CN-2105 and CN-6198 had the higher value?",
      "answer": "CN-6198",
      "evidencePages": [
       91,
@@ -5857,7 +5857,7 @@
     },
     {
      "id": "w202-comparison-25-100p",
-     "question": "On 26 January 2025, which contract had the higher value: CN-4348 or CN-2732?",
+     "question": "As of 26/01/2025, which of the contracts CN-4348 and CN-2732 had the higher value?",
      "answer": "CN-4348",
      "evidencePages": [
       89,
@@ -5887,7 +5887,7 @@
     },
     {
      "id": "w202-comparison-26-100p",
-     "question": "On 27 May 2025, which contract had the higher value: CN-2732 or CN-2679?",
+     "question": "As of 27/05/2025, which of the contracts CN-2732 and CN-2679 carried the greater value?",
      "answer": "CN-2679",
      "evidencePages": [
       89,
@@ -5918,7 +5918,7 @@
     },
     {
      "id": "w202-comparison-27-100p",
-     "question": "On 2 October 2024, which contract had the higher value: CN-2170 or CN-4088?",
+     "question": "As of 02/10/2024, which of CN-2170 or CN-4088 was the contract with the greater value?",
      "answer": "CN-2170",
      "evidencePages": [
       89,
@@ -5949,7 +5949,7 @@
     },
     {
      "id": "w202-aggregate-28-100p",
-     "question": "How many safety incidents in Carrow Group's incident log occurred at a site whose operating supplier did not hold a valid ISO/IEC 27001 certificate on the day of the incident?",
+     "question": "What is the number of safety incidents recorded in the Carrow Group incident log that took place at a site where the operating supplier did not possess a valid ISO/IEC 27001 certificate on the incident date?",
      "answer": "13",
      "evidencePages": [
       93,
@@ -5976,7 +5976,7 @@
     },
     {
      "id": "w202-aggregate-29-100p",
-     "question": "How many safety incidents in Carrow Group's incident log occurred at a site whose operating supplier did not hold a valid ISO 9001 certificate on the day of the incident?",
+     "question": "What is the count of safety incidents recorded in the Carrow Group incident log that took place at a site where the operating supplier did not possess a valid ISO 9001 certificate on the incident date?",
      "answer": "0",
      "evidencePages": [],
      "datasetKind": "aggregate",
@@ -6000,7 +6000,7 @@
     },
     {
      "id": "w202-aggregate-30-100p",
-     "question": "How many safety incidents were recorded at sites operated by Blackmoor Logistics Pty Ltd?",
+     "question": "What is the number of safety incidents that were recorded at sites operated by Blackmoor Logistics Pty Ltd?",
      "answer": "5",
      "evidencePages": [
       93,
@@ -6025,7 +6025,7 @@
     },
     {
      "id": "w202-aggregate-31-100p",
-     "question": "How many safety incidents were recorded at sites operated by Meridian Catering Pty Ltd?",
+     "question": "What is the number of safety incidents documented at sites operated by Meridian Catering Pty Ltd?",
      "answer": "0",
      "evidencePages": [
       93
@@ -6049,7 +6049,7 @@
     },
     {
      "id": "w202-absence-32-100p",
-     "question": "Which of Carrow Group's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 29 October 2023?",
+     "question": "As of 29/10/2023, which suppliers contracted by Carrow Group were without a valid ISO/IEC 27001 certificate?",
      "answer": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd",
      "evidencePages": [
       94
@@ -6110,7 +6110,7 @@
     },
     {
      "id": "w202-absence-33-100p",
-     "question": "Which of Carrow Group's contracted suppliers did not hold a valid ISO 9001 certificate on 19 January 2026?",
+     "question": "As of 19/01/2026, which suppliers contracted by Carrow Group were without a valid ISO 9001 certificate?",
      "answer": "Meridian Catering Pty Ltd",
      "evidencePages": [
       94
@@ -6147,7 +6147,7 @@
     },
     {
      "id": "w202-absence-34-100p",
-     "question": "Which of Carrow Group's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2022-07-31?",
+     "question": "As of 31/07/2022, which of the suppliers contracted by Carrow Group were without a valid ISO/IEC 27001 certificate?",
      "answer": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd",
      "evidencePages": [
       94
@@ -6204,7 +6204,7 @@
     },
     {
      "id": "w202-authority-35-100p",
-     "question": "Was the approval of contract CN-2804 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess the delegated authority to approve contract CN-2804 on the date approval was granted? Yes or no.",
      "answer": "yes",
      "evidencePages": [
       47,
@@ -6229,7 +6229,7 @@
     },
     {
      "id": "w202-authority-36-100p",
-     "question": "Was the approval of contract CN-2170 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-2170 receive approval from an individual whose delegated authority, on the date the approval was granted, encompassed such approval? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       41,
@@ -6254,7 +6254,7 @@
     },
     {
      "id": "w202-authority-37-100p",
-     "question": "Was the approval of contract CN-2004 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-2004 fall within the delegated authority of the approver at the time approval was granted? Yes or no.",
      "answer": "no",
      "evidencePages": [
       43,
@@ -6279,7 +6279,7 @@
     },
     {
      "id": "w202-authority-38-100p",
-     "question": "Was the approval of contract CN-7614 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "On the date contract CN-7614 was approved, did that approval fall within the approver's delegated authority? Yes or no.",
      "answer": "no",
      "evidencePages": [
       7,
@@ -6304,7 +6304,7 @@
     },
     {
      "id": "w202-authority-39-100p",
-     "question": "Was the approval of contract CN-2679 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-2679 receive approval from an individual whose delegated authority, on the date of approval, permitted them to grant it? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       60,
@@ -6329,7 +6329,7 @@
     },
     {
      "id": "w202-authority-40-100p",
-     "question": "Was the approval of contract CN-6198 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-6198 receive approval from a person whose delegated authority, on the date of approval, covered such approval? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       31,
@@ -6355,7 +6355,7 @@
     },
     {
      "id": "w202-authority-41-100p",
-     "question": "Was the approval of contract CN-2732 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "On the date contract CN-2732 was approved, did that approval fall within the approver's delegated authority? Yes or no.",
      "answer": "no",
      "evidencePages": [
       7,
@@ -6379,7 +6379,7 @@
     },
     {
      "id": "w202-authority-42-100p",
-     "question": "Was the approval of contract CN-7250 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-7250 receive approval from a person whose delegated authority, on the date the approval was granted, permitted them to do so? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       7,
@@ -6404,7 +6404,7 @@
     },
     {
      "id": "w202-unanswerable-43-100p",
-     "question": "Who was the Head of Procurement of Carrow Group on 2019-12-01?",
+     "question": "As of 01/12/2019, who held the position of Head of Procurement at Carrow Group?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -6429,7 +6429,7 @@
     },
     {
      "id": "w202-unanswerable-44-100p",
-     "question": "What was the value of contract CN-6530 at signing?",
+     "question": "What was the contract value of CN-6530 as of the date it was signed?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -6448,7 +6448,7 @@
     },
     {
      "id": "w202-unanswerable-45-100p",
-     "question": "Who was the Head of Safety of Carrow Group on 2020-06-03?",
+     "question": "Who held the role of Head of Safety at Carrow Group as of 03/06/2020?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -6473,7 +6473,7 @@
     },
     {
      "id": "w202-unanswerable-46-100p",
-     "question": "What was the value of contract CN-4016 at signing?",
+     "question": "What was the contract value of CN-4016 at the time of signing?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -6493,15 +6493,15 @@
    ]
   },
   {
-   "id": "compose-dev-w202-500p",
+   "id": "compose-devv1-w202-500p",
    "title": "Carrow Group records (Compose world 202) in 500 pages",
    "sourceUrl": "generated",
-   "text": ".cache/compose/compose-dev-w202-500p.pages.txt",
+   "text": ".cache/compose/compose-devv1-w202-500p.pages.txt",
    "labelPages": 500,
    "questions": [
     {
      "id": "w202-needle-1-500p",
-     "question": "What was the value of contract CN-2679 at signing?",
+     "question": "What was the contract value of CN-2679 at the time of signing?",
      "answer": "660000",
      "evidencePages": [
       454
@@ -6523,7 +6523,7 @@
     },
     {
      "id": "w202-needle-2-500p",
-     "question": "What was the value of contract CN-6198 at signing?",
+     "question": "What was the contract value of CN-6198 as of the date it was signed?",
      "answer": "530000",
      "evidencePages": [
       454
@@ -6547,7 +6547,7 @@
     },
     {
      "id": "w202-needle-3-500p",
-     "question": "What was the value of contract CN-4088 at signing?",
+     "question": "What was the contract value of CN-4088 at the time of signing?",
      "answer": "290000",
      "evidencePages": [
       446
@@ -6571,7 +6571,7 @@
     },
     {
      "id": "w202-needle-4-500p",
-     "question": "What was the value of contract CN-7186 at signing?",
+     "question": "What was the contract value of CN-7186 when it was signed?",
      "answer": "740000",
      "evidencePages": [
       446
@@ -6593,7 +6593,7 @@
     },
     {
      "id": "w202-needle-5-500p",
-     "question": "What was the value of contract CN-8460 at signing?",
+     "question": "What was the contract value of CN-8460 as of the date it was signed?",
      "answer": "470000",
      "evidencePages": [
       446
@@ -6615,7 +6615,7 @@
     },
     {
      "id": "w202-needle-6-500p",
-     "question": "What was the value of contract CN-2105 at signing?",
+     "question": "What was the contract value of CN-2105 as of the date it was signed?",
      "answer": "175000",
      "evidencePages": [
       454
@@ -6640,7 +6640,7 @@
     },
     {
      "id": "w202-validity-7-500p",
-     "question": "Who was the Head of Procurement of Carrow Group on 2023-09-06?",
+     "question": "As of 06/09/2023, who held the position of Head of Procurement at Carrow Group?",
      "answer": "Mei Nwosu",
      "evidencePages": [
       207,
@@ -6703,7 +6703,7 @@
     },
     {
      "id": "w202-validity-8-500p",
-     "question": "Who was the Head of Safety of Carrow Group on 11 March 2022?",
+     "question": "As of 11 March 2022, who held the role of Head of Safety at Carrow Group?",
      "answer": "Farah Kerrigan",
      "evidencePages": [
       29,
@@ -6765,7 +6765,7 @@
     },
     {
      "id": "w202-validity-9-500p",
-     "question": "Who was the Chief Financial Officer of Carrow Group on 2025-02-13?",
+     "question": "On 13 February 2025, who held the position of Chief Financial Officer at Carrow Group?",
      "answer": "Idris Uddin",
      "evidencePages": [
       409
@@ -6826,7 +6826,7 @@
     },
     {
      "id": "w202-validity-10-500p",
-     "question": "Who was the Head of Safety of Carrow Group on 2022-05-26?",
+     "question": "Who held the position of Head of Safety at Carrow Group as of May 26, 2022?",
      "answer": "Rohan Obi",
      "evidencePages": [
       136,
@@ -6888,7 +6888,7 @@
     },
     {
      "id": "w202-validity-11-500p",
-     "question": "Who was the Head of Safety of Carrow Group on 6 August 2024?",
+     "question": "Who held the role of Head of Safety at Carrow Group as of 6 August 2024?",
      "answer": "Idris Kowalczyk",
      "evidencePages": [
       288
@@ -6949,7 +6949,7 @@
     },
     {
      "id": "w202-validity-12-500p",
-     "question": "Who was the Chief Risk Officer of Carrow Group on 14 September 2025?",
+     "question": "As of 14/09/2025, who held the position of Chief Risk Officer at Carrow Group?",
      "answer": "Mei Pemberton",
      "evidencePages": [
       418
@@ -7010,7 +7010,7 @@
     },
     {
      "id": "w202-identity-13-500p",
-     "question": "What is the full name of the person who approved contract CN-2105?",
+     "question": "State the complete name of the individual who granted approval for contract CN-2105.",
      "answer": "Mei Nwosu",
      "evidencePages": [
       207,
@@ -7072,7 +7072,7 @@
     },
     {
      "id": "w202-identity-14-500p",
-     "question": "What is the full name of the person who approved contract CN-2804?",
+     "question": "Identify the complete name of the individual who granted approval for contract CN-2804.",
      "answer": "Zara Mahlangu",
      "evidencePages": [
       235,
@@ -7133,7 +7133,7 @@
     },
     {
      "id": "w202-identity-15-500p",
-     "question": "What is the full name of the person who approved contract CN-5052?",
+     "question": "State the full name of the individual who granted approval for contract CN-5052.",
      "answer": "Astrid Carvalho",
      "evidencePages": [
       29,
@@ -7195,7 +7195,7 @@
     },
     {
      "id": "w202-identity-16-500p",
-     "question": "What is the full name of the person who approved contract CN-8460?",
+     "question": "Identify the full name of the individual who granted approval for contract CN-8460.",
      "answer": "Farah Petrakis",
      "evidencePages": [
       207,
@@ -7258,7 +7258,7 @@
     },
     {
      "id": "w202-identity-17-500p",
-     "question": "What is the full name of the person who approved contract CN-2170?",
+     "question": "Identify the complete name of the individual who granted approval for contract CN-2170.",
      "answer": "Anouk Mbeki",
      "evidencePages": [
       205,
@@ -7320,7 +7320,7 @@
     },
     {
      "id": "w202-supersession-18-500p",
-     "question": "What was the value of contract CN-6198 on 2024-06-24, taking any amendments into account?",
+     "question": "As of 24 June 2024, what was the value of contract CN-6198, including any amendments?",
      "answer": "475000",
      "evidencePages": [
       454,
@@ -7346,7 +7346,7 @@
     },
     {
      "id": "w202-supersession-19-500p",
-     "question": "What was the value of contract CN-2105 on 24 June 2024, taking any amendments into account?",
+     "question": "What was the value, as of 2024-06-24, of contract CN-2105, including any amendments?",
      "answer": "245000",
      "evidencePages": [
       454,
@@ -7373,7 +7373,7 @@
     },
     {
      "id": "w202-supersession-20-500p",
-     "question": "What was the value of contract CN-2732 on 14 January 2022, taking any amendments into account?",
+     "question": "What was the value, inclusive of any amendments, of contract CN-2732 as of 2022-01-14?",
      "answer": "540000",
      "evidencePages": [
       446,
@@ -7399,7 +7399,7 @@
     },
     {
      "id": "w202-supersession-21-500p",
-     "question": "What was the value of contract CN-2004 on 27 January 2025, taking any amendments into account?",
+     "question": "What was the value, as of 2025-01-27, of contract CN-2004, after accounting for any amendments?",
      "answer": "510000",
      "evidencePages": [
       454,
@@ -7425,7 +7425,7 @@
     },
     {
      "id": "w202-supersession-22-500p",
-     "question": "What was the value of contract CN-7614 on 2022-04-07, taking any amendments into account?",
+     "question": "What was the value of contract CN-7614 as of 07/04/2022, after accounting for any amendments?",
      "answer": "250000",
      "evidencePages": [
       446,
@@ -7451,7 +7451,7 @@
     },
     {
      "id": "w202-comparison-23-500p",
-     "question": "On 2 April 2024, which contract had the higher value: CN-2105 or CN-7614?",
+     "question": "As of 02/04/2024, which of the two contracts, CN-2105 or CN-7614, carried the higher value?",
      "answer": "CN-7614",
      "evidencePages": [
       446,
@@ -7482,7 +7482,7 @@
     },
     {
      "id": "w202-comparison-24-500p",
-     "question": "On 18 August 2024, which contract had the higher value: CN-2105 or CN-6198?",
+     "question": "As of 18/08/2024, which of the contracts CN-2105 and CN-6198 had the higher value?",
      "answer": "CN-6198",
      "evidencePages": [
       454,
@@ -7512,7 +7512,7 @@
     },
     {
      "id": "w202-comparison-25-500p",
-     "question": "On 26 January 2025, which contract had the higher value: CN-4348 or CN-2732?",
+     "question": "As of 26/01/2025, which of the contracts CN-4348 and CN-2732 had the higher value?",
      "answer": "CN-4348",
      "evidencePages": [
       446,
@@ -7542,7 +7542,7 @@
     },
     {
      "id": "w202-comparison-26-500p",
-     "question": "On 27 May 2025, which contract had the higher value: CN-2732 or CN-2679?",
+     "question": "As of 27/05/2025, which of the contracts CN-2732 and CN-2679 carried the greater value?",
      "answer": "CN-2679",
      "evidencePages": [
       446,
@@ -7573,7 +7573,7 @@
     },
     {
      "id": "w202-comparison-27-500p",
-     "question": "On 2 October 2024, which contract had the higher value: CN-2170 or CN-4088?",
+     "question": "As of 02/10/2024, which of CN-2170 or CN-4088 was the contract with the greater value?",
      "answer": "CN-2170",
      "evidencePages": [
       446,
@@ -7604,7 +7604,7 @@
     },
     {
      "id": "w202-aggregate-28-500p",
-     "question": "How many safety incidents in Carrow Group's incident log occurred at a site whose operating supplier did not hold a valid ISO/IEC 27001 certificate on the day of the incident?",
+     "question": "What is the number of safety incidents recorded in the Carrow Group incident log that took place at a site where the operating supplier did not possess a valid ISO/IEC 27001 certificate on the incident date?",
      "answer": "13",
      "evidencePages": [
       457,
@@ -7631,7 +7631,7 @@
     },
     {
      "id": "w202-aggregate-29-500p",
-     "question": "How many safety incidents in Carrow Group's incident log occurred at a site whose operating supplier did not hold a valid ISO 9001 certificate on the day of the incident?",
+     "question": "What is the count of safety incidents recorded in the Carrow Group incident log that took place at a site where the operating supplier did not possess a valid ISO 9001 certificate on the incident date?",
      "answer": "0",
      "evidencePages": [],
      "datasetKind": "aggregate",
@@ -7655,7 +7655,7 @@
     },
     {
      "id": "w202-aggregate-30-500p",
-     "question": "How many safety incidents were recorded at sites operated by Blackmoor Logistics Pty Ltd?",
+     "question": "What is the number of safety incidents that were recorded at sites operated by Blackmoor Logistics Pty Ltd?",
      "answer": "5",
      "evidencePages": [
       457,
@@ -7680,7 +7680,7 @@
     },
     {
      "id": "w202-aggregate-31-500p",
-     "question": "How many safety incidents were recorded at sites operated by Meridian Catering Pty Ltd?",
+     "question": "What is the number of safety incidents documented at sites operated by Meridian Catering Pty Ltd?",
      "answer": "0",
      "evidencePages": [
       457
@@ -7704,7 +7704,7 @@
     },
     {
      "id": "w202-absence-32-500p",
-     "question": "Which of Carrow Group's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 29 October 2023?",
+     "question": "As of 29/10/2023, which suppliers contracted by Carrow Group were without a valid ISO/IEC 27001 certificate?",
      "answer": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd",
      "evidencePages": [
       458
@@ -7765,7 +7765,7 @@
     },
     {
      "id": "w202-absence-33-500p",
-     "question": "Which of Carrow Group's contracted suppliers did not hold a valid ISO 9001 certificate on 19 January 2026?",
+     "question": "As of 19/01/2026, which suppliers contracted by Carrow Group were without a valid ISO 9001 certificate?",
      "answer": "Meridian Catering Pty Ltd",
      "evidencePages": [
       458
@@ -7802,7 +7802,7 @@
     },
     {
      "id": "w202-absence-34-500p",
-     "question": "Which of Carrow Group's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2022-07-31?",
+     "question": "As of 31/07/2022, which of the suppliers contracted by Carrow Group were without a valid ISO/IEC 27001 certificate?",
      "answer": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd",
      "evidencePages": [
       458
@@ -7859,7 +7859,7 @@
     },
     {
      "id": "w202-authority-35-500p",
-     "question": "Was the approval of contract CN-2804 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess the delegated authority to approve contract CN-2804 on the date approval was granted? Yes or no.",
      "answer": "yes",
      "evidencePages": [
       235,
@@ -7884,7 +7884,7 @@
     },
     {
      "id": "w202-authority-36-500p",
-     "question": "Was the approval of contract CN-2170 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-2170 receive approval from an individual whose delegated authority, on the date the approval was granted, encompassed such approval? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       205,
@@ -7909,7 +7909,7 @@
     },
     {
      "id": "w202-authority-37-500p",
-     "question": "Was the approval of contract CN-2004 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-2004 fall within the delegated authority of the approver at the time approval was granted? Yes or no.",
      "answer": "no",
      "evidencePages": [
       210,
@@ -7934,7 +7934,7 @@
     },
     {
      "id": "w202-authority-38-500p",
-     "question": "Was the approval of contract CN-7614 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "On the date contract CN-7614 was approved, did that approval fall within the approver's delegated authority? Yes or no.",
      "answer": "no",
      "evidencePages": [
       29,
@@ -7959,7 +7959,7 @@
     },
     {
      "id": "w202-authority-39-500p",
-     "question": "Was the approval of contract CN-2679 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-2679 receive approval from an individual whose delegated authority, on the date of approval, permitted them to grant it? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       298,
@@ -7984,7 +7984,7 @@
     },
     {
      "id": "w202-authority-40-500p",
-     "question": "Was the approval of contract CN-6198 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-6198 receive approval from a person whose delegated authority, on the date of approval, covered such approval? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       154,
@@ -8010,7 +8010,7 @@
     },
     {
      "id": "w202-authority-41-500p",
-     "question": "Was the approval of contract CN-2732 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "On the date contract CN-2732 was approved, did that approval fall within the approver's delegated authority? Yes or no.",
      "answer": "no",
      "evidencePages": [
       29,
@@ -8034,7 +8034,7 @@
     },
     {
      "id": "w202-authority-42-500p",
-     "question": "Was the approval of contract CN-7250 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-7250 receive approval from a person whose delegated authority, on the date the approval was granted, permitted them to do so? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       29,
@@ -8059,7 +8059,7 @@
     },
     {
      "id": "w202-unanswerable-43-500p",
-     "question": "Who was the Head of Procurement of Carrow Group on 2019-12-01?",
+     "question": "As of 01/12/2019, who held the position of Head of Procurement at Carrow Group?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -8084,7 +8084,7 @@
     },
     {
      "id": "w202-unanswerable-44-500p",
-     "question": "What was the value of contract CN-6530 at signing?",
+     "question": "What was the contract value of CN-6530 as of the date it was signed?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -8103,7 +8103,7 @@
     },
     {
      "id": "w202-unanswerable-45-500p",
-     "question": "Who was the Head of Safety of Carrow Group on 2020-06-03?",
+     "question": "Who held the role of Head of Safety at Carrow Group as of 03/06/2020?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -8128,7 +8128,7 @@
     },
     {
      "id": "w202-unanswerable-46-500p",
-     "question": "What was the value of contract CN-4016 at signing?",
+     "question": "What was the contract value of CN-4016 at the time of signing?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -8148,15 +8148,15 @@
    ]
   },
   {
-   "id": "compose-dev-w202-1000p",
+   "id": "compose-devv1-w202-1000p",
    "title": "Carrow Group records (Compose world 202) in 1000 pages",
    "sourceUrl": "generated",
-   "text": ".cache/compose/compose-dev-w202-1000p.pages.txt",
+   "text": ".cache/compose/compose-devv1-w202-1000p.pages.txt",
    "labelPages": 1000,
    "questions": [
     {
      "id": "w202-needle-1-1000p",
-     "question": "What was the value of contract CN-2679 at signing?",
+     "question": "What was the contract value of CN-2679 at the time of signing?",
      "answer": "660000",
      "evidencePages": [
       908
@@ -8178,7 +8178,7 @@
     },
     {
      "id": "w202-needle-2-1000p",
-     "question": "What was the value of contract CN-6198 at signing?",
+     "question": "What was the contract value of CN-6198 as of the date it was signed?",
      "answer": "530000",
      "evidencePages": [
       908
@@ -8202,7 +8202,7 @@
     },
     {
      "id": "w202-needle-3-1000p",
-     "question": "What was the value of contract CN-4088 at signing?",
+     "question": "What was the contract value of CN-4088 at the time of signing?",
      "answer": "290000",
      "evidencePages": [
       892
@@ -8226,7 +8226,7 @@
     },
     {
      "id": "w202-needle-4-1000p",
-     "question": "What was the value of contract CN-7186 at signing?",
+     "question": "What was the contract value of CN-7186 when it was signed?",
      "answer": "740000",
      "evidencePages": [
       892
@@ -8248,7 +8248,7 @@
     },
     {
      "id": "w202-needle-5-1000p",
-     "question": "What was the value of contract CN-8460 at signing?",
+     "question": "What was the contract value of CN-8460 as of the date it was signed?",
      "answer": "470000",
      "evidencePages": [
       892
@@ -8270,7 +8270,7 @@
     },
     {
      "id": "w202-needle-6-1000p",
-     "question": "What was the value of contract CN-2105 at signing?",
+     "question": "What was the contract value of CN-2105 as of the date it was signed?",
      "answer": "175000",
      "evidencePages": [
       908
@@ -8295,7 +8295,7 @@
     },
     {
      "id": "w202-validity-7-1000p",
-     "question": "Who was the Head of Procurement of Carrow Group on 2023-09-06?",
+     "question": "As of 06/09/2023, who held the position of Head of Procurement at Carrow Group?",
      "answer": "Mei Nwosu",
      "evidencePages": [
       413,
@@ -8358,7 +8358,7 @@
     },
     {
      "id": "w202-validity-8-1000p",
-     "question": "Who was the Head of Safety of Carrow Group on 11 March 2022?",
+     "question": "As of 11 March 2022, who held the role of Head of Safety at Carrow Group?",
      "answer": "Farah Kerrigan",
      "evidencePages": [
       58,
@@ -8420,7 +8420,7 @@
     },
     {
      "id": "w202-validity-9-1000p",
-     "question": "Who was the Chief Financial Officer of Carrow Group on 2025-02-13?",
+     "question": "On 13 February 2025, who held the position of Chief Financial Officer at Carrow Group?",
      "answer": "Idris Uddin",
      "evidencePages": [
       817
@@ -8481,7 +8481,7 @@
     },
     {
      "id": "w202-validity-10-1000p",
-     "question": "Who was the Head of Safety of Carrow Group on 2022-05-26?",
+     "question": "Who held the position of Head of Safety at Carrow Group as of May 26, 2022?",
      "answer": "Rohan Obi",
      "evidencePages": [
       270,
@@ -8543,7 +8543,7 @@
     },
     {
      "id": "w202-validity-11-1000p",
-     "question": "Who was the Head of Safety of Carrow Group on 6 August 2024?",
+     "question": "Who held the role of Head of Safety at Carrow Group as of 6 August 2024?",
      "answer": "Idris Kowalczyk",
      "evidencePages": [
       575
@@ -8604,7 +8604,7 @@
     },
     {
      "id": "w202-validity-12-1000p",
-     "question": "Who was the Chief Risk Officer of Carrow Group on 14 September 2025?",
+     "question": "As of 14/09/2025, who held the position of Chief Risk Officer at Carrow Group?",
      "answer": "Mei Pemberton",
      "evidencePages": [
       837
@@ -8665,7 +8665,7 @@
     },
     {
      "id": "w202-identity-13-1000p",
-     "question": "What is the full name of the person who approved contract CN-2105?",
+     "question": "State the complete name of the individual who granted approval for contract CN-2105.",
      "answer": "Mei Nwosu",
      "evidencePages": [
       413,
@@ -8727,7 +8727,7 @@
     },
     {
      "id": "w202-identity-14-1000p",
-     "question": "What is the full name of the person who approved contract CN-2804?",
+     "question": "Identify the complete name of the individual who granted approval for contract CN-2804.",
      "answer": "Zara Mahlangu",
      "evidencePages": [
       470,
@@ -8788,7 +8788,7 @@
     },
     {
      "id": "w202-identity-15-1000p",
-     "question": "What is the full name of the person who approved contract CN-5052?",
+     "question": "State the full name of the individual who granted approval for contract CN-5052.",
      "answer": "Astrid Carvalho",
      "evidencePages": [
       58,
@@ -8850,7 +8850,7 @@
     },
     {
      "id": "w202-identity-16-1000p",
-     "question": "What is the full name of the person who approved contract CN-8460?",
+     "question": "Identify the full name of the individual who granted approval for contract CN-8460.",
      "answer": "Farah Petrakis",
      "evidencePages": [
       413,
@@ -8913,7 +8913,7 @@
     },
     {
      "id": "w202-identity-17-1000p",
-     "question": "What is the full name of the person who approved contract CN-2170?",
+     "question": "Identify the complete name of the individual who granted approval for contract CN-2170.",
      "answer": "Anouk Mbeki",
      "evidencePages": [
       409,
@@ -8975,7 +8975,7 @@
     },
     {
      "id": "w202-supersession-18-1000p",
-     "question": "What was the value of contract CN-6198 on 2024-06-24, taking any amendments into account?",
+     "question": "As of 24 June 2024, what was the value of contract CN-6198, including any amendments?",
      "answer": "475000",
      "evidencePages": [
       908,
@@ -9001,7 +9001,7 @@
     },
     {
      "id": "w202-supersession-19-1000p",
-     "question": "What was the value of contract CN-2105 on 24 June 2024, taking any amendments into account?",
+     "question": "What was the value, as of 2024-06-24, of contract CN-2105, including any amendments?",
      "answer": "245000",
      "evidencePages": [
       908,
@@ -9028,7 +9028,7 @@
     },
     {
      "id": "w202-supersession-20-1000p",
-     "question": "What was the value of contract CN-2732 on 14 January 2022, taking any amendments into account?",
+     "question": "What was the value, inclusive of any amendments, of contract CN-2732 as of 2022-01-14?",
      "answer": "540000",
      "evidencePages": [
       892,
@@ -9054,7 +9054,7 @@
     },
     {
      "id": "w202-supersession-21-1000p",
-     "question": "What was the value of contract CN-2004 on 27 January 2025, taking any amendments into account?",
+     "question": "What was the value, as of 2025-01-27, of contract CN-2004, after accounting for any amendments?",
      "answer": "510000",
      "evidencePages": [
       908,
@@ -9080,7 +9080,7 @@
     },
     {
      "id": "w202-supersession-22-1000p",
-     "question": "What was the value of contract CN-7614 on 2022-04-07, taking any amendments into account?",
+     "question": "What was the value of contract CN-7614 as of 07/04/2022, after accounting for any amendments?",
      "answer": "250000",
      "evidencePages": [
       892,
@@ -9106,7 +9106,7 @@
     },
     {
      "id": "w202-comparison-23-1000p",
-     "question": "On 2 April 2024, which contract had the higher value: CN-2105 or CN-7614?",
+     "question": "As of 02/04/2024, which of the two contracts, CN-2105 or CN-7614, carried the higher value?",
      "answer": "CN-7614",
      "evidencePages": [
       892,
@@ -9137,7 +9137,7 @@
     },
     {
      "id": "w202-comparison-24-1000p",
-     "question": "On 18 August 2024, which contract had the higher value: CN-2105 or CN-6198?",
+     "question": "As of 18/08/2024, which of the contracts CN-2105 and CN-6198 had the higher value?",
      "answer": "CN-6198",
      "evidencePages": [
       908,
@@ -9167,7 +9167,7 @@
     },
     {
      "id": "w202-comparison-25-1000p",
-     "question": "On 26 January 2025, which contract had the higher value: CN-4348 or CN-2732?",
+     "question": "As of 26/01/2025, which of the contracts CN-4348 and CN-2732 had the higher value?",
      "answer": "CN-4348",
      "evidencePages": [
       892,
@@ -9197,7 +9197,7 @@
     },
     {
      "id": "w202-comparison-26-1000p",
-     "question": "On 27 May 2025, which contract had the higher value: CN-2732 or CN-2679?",
+     "question": "As of 27/05/2025, which of the contracts CN-2732 and CN-2679 carried the greater value?",
      "answer": "CN-2679",
      "evidencePages": [
       892,
@@ -9228,7 +9228,7 @@
     },
     {
      "id": "w202-comparison-27-1000p",
-     "question": "On 2 October 2024, which contract had the higher value: CN-2170 or CN-4088?",
+     "question": "As of 02/10/2024, which of CN-2170 or CN-4088 was the contract with the greater value?",
      "answer": "CN-2170",
      "evidencePages": [
       892,
@@ -9259,7 +9259,7 @@
     },
     {
      "id": "w202-aggregate-28-1000p",
-     "question": "How many safety incidents in Carrow Group's incident log occurred at a site whose operating supplier did not hold a valid ISO/IEC 27001 certificate on the day of the incident?",
+     "question": "What is the number of safety incidents recorded in the Carrow Group incident log that took place at a site where the operating supplier did not possess a valid ISO/IEC 27001 certificate on the incident date?",
      "answer": "13",
      "evidencePages": [
       914,
@@ -9286,7 +9286,7 @@
     },
     {
      "id": "w202-aggregate-29-1000p",
-     "question": "How many safety incidents in Carrow Group's incident log occurred at a site whose operating supplier did not hold a valid ISO 9001 certificate on the day of the incident?",
+     "question": "What is the count of safety incidents recorded in the Carrow Group incident log that took place at a site where the operating supplier did not possess a valid ISO 9001 certificate on the incident date?",
      "answer": "0",
      "evidencePages": [],
      "datasetKind": "aggregate",
@@ -9310,7 +9310,7 @@
     },
     {
      "id": "w202-aggregate-30-1000p",
-     "question": "How many safety incidents were recorded at sites operated by Blackmoor Logistics Pty Ltd?",
+     "question": "What is the number of safety incidents that were recorded at sites operated by Blackmoor Logistics Pty Ltd?",
      "answer": "5",
      "evidencePages": [
       914,
@@ -9335,7 +9335,7 @@
     },
     {
      "id": "w202-aggregate-31-1000p",
-     "question": "How many safety incidents were recorded at sites operated by Meridian Catering Pty Ltd?",
+     "question": "What is the number of safety incidents documented at sites operated by Meridian Catering Pty Ltd?",
      "answer": "0",
      "evidencePages": [
       914
@@ -9359,7 +9359,7 @@
     },
     {
      "id": "w202-absence-32-1000p",
-     "question": "Which of Carrow Group's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 29 October 2023?",
+     "question": "As of 29/10/2023, which suppliers contracted by Carrow Group were without a valid ISO/IEC 27001 certificate?",
      "answer": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd; Redfern Freight Pty Ltd",
      "evidencePages": [
       916
@@ -9420,7 +9420,7 @@
     },
     {
      "id": "w202-absence-33-1000p",
-     "question": "Which of Carrow Group's contracted suppliers did not hold a valid ISO 9001 certificate on 19 January 2026?",
+     "question": "As of 19/01/2026, which suppliers contracted by Carrow Group were without a valid ISO 9001 certificate?",
      "answer": "Meridian Catering Pty Ltd",
      "evidencePages": [
       916
@@ -9457,7 +9457,7 @@
     },
     {
      "id": "w202-absence-34-1000p",
-     "question": "Which of Carrow Group's contracted suppliers did not hold a valid ISO/IEC 27001 certificate on 2022-07-31?",
+     "question": "As of 31/07/2022, which of the suppliers contracted by Carrow Group were without a valid ISO/IEC 27001 certificate?",
      "answer": "Brightwater Freight Pty Ltd; Umberly Catering Pty Ltd; Meridian Catering Pty Ltd; Yarrowby Security Pty Ltd; Driftwood Freight Pty Ltd; Glenrock Freight Pty Ltd",
      "evidencePages": [
       916
@@ -9514,7 +9514,7 @@
     },
     {
      "id": "w202-authority-35-1000p",
-     "question": "Was the approval of contract CN-2804 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did the approver possess the delegated authority to approve contract CN-2804 on the date approval was granted? Yes or no.",
      "answer": "yes",
      "evidencePages": [
       470,
@@ -9539,7 +9539,7 @@
     },
     {
      "id": "w202-authority-36-1000p",
-     "question": "Was the approval of contract CN-2170 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-2170 receive approval from an individual whose delegated authority, on the date the approval was granted, encompassed such approval? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       409,
@@ -9564,7 +9564,7 @@
     },
     {
      "id": "w202-authority-37-1000p",
-     "question": "Was the approval of contract CN-2004 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-2004 fall within the delegated authority of the approver at the time approval was granted? Yes or no.",
      "answer": "no",
      "evidencePages": [
       420,
@@ -9589,7 +9589,7 @@
     },
     {
      "id": "w202-authority-38-1000p",
-     "question": "Was the approval of contract CN-7614 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "On the date contract CN-7614 was approved, did that approval fall within the approver's delegated authority? Yes or no.",
      "answer": "no",
      "evidencePages": [
       58,
@@ -9614,7 +9614,7 @@
     },
     {
      "id": "w202-authority-39-1000p",
-     "question": "Was the approval of contract CN-2679 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-2679 receive approval from an individual whose delegated authority, on the date of approval, permitted them to grant it? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       595,
@@ -9639,7 +9639,7 @@
     },
     {
      "id": "w202-authority-40-1000p",
-     "question": "Was the approval of contract CN-6198 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-6198 receive approval from a person whose delegated authority, on the date of approval, covered such approval? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       307,
@@ -9665,7 +9665,7 @@
     },
     {
      "id": "w202-authority-41-1000p",
-     "question": "Was the approval of contract CN-2732 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "On the date contract CN-2732 was approved, did that approval fall within the approver's delegated authority? Yes or no.",
      "answer": "no",
      "evidencePages": [
       58,
@@ -9689,7 +9689,7 @@
     },
     {
      "id": "w202-authority-42-1000p",
-     "question": "Was the approval of contract CN-7250 within the approver's delegated authority on the day it was approved? Answer yes or no.",
+     "question": "Did contract CN-7250 receive approval from a person whose delegated authority, on the date the approval was granted, permitted them to do so? Respond yes or no.",
      "answer": "no",
      "evidencePages": [
       58,
@@ -9714,7 +9714,7 @@
     },
     {
      "id": "w202-unanswerable-43-1000p",
-     "question": "Who was the Head of Procurement of Carrow Group on 2019-12-01?",
+     "question": "As of 01/12/2019, who held the position of Head of Procurement at Carrow Group?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -9739,7 +9739,7 @@
     },
     {
      "id": "w202-unanswerable-44-1000p",
-     "question": "What was the value of contract CN-6530 at signing?",
+     "question": "What was the contract value of CN-6530 as of the date it was signed?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -9758,7 +9758,7 @@
     },
     {
      "id": "w202-unanswerable-45-1000p",
-     "question": "Who was the Head of Safety of Carrow Group on 2020-06-03?",
+     "question": "Who held the role of Head of Safety at Carrow Group as of 03/06/2020?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",
@@ -9783,7 +9783,7 @@
     },
     {
      "id": "w202-unanswerable-46-1000p",
-     "question": "What was the value of contract CN-4016 at signing?",
+     "question": "What was the contract value of CN-4016 at the time of signing?",
      "answer": null,
      "evidencePages": [],
      "datasetKind": "unanswerable",

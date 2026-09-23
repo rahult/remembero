@@ -9,6 +9,7 @@ import type { Fact } from './extract.js';
 import { personName, roleName, STANDARD_NAMES, type World } from './world.js';
 
 export function worldAsSchemaFacts(world: World): Fact[] {
+  const org = world.organisation;
   const person = new Map(world.people.map((p) => [p.id, p]));
   const supplier = new Map(world.suppliers.map((s) => [s.id, s.name]));
   const site = new Map(world.sites.map((s) => [s.id, s.name]));
@@ -36,5 +37,5 @@ export function worldAsSchemaFacts(world: World): Fact[] {
   for (const s of world.sites) facts.push({ predicate: 'site_operator', args: [s.name, supplier.get(s.supplier)!] });
   for (const c of world.certificates) facts.push({ predicate: 'certificate', args: [supplier.get(c.supplier)!, STANDARD_NAMES[c.standard], c.issued, c.expires] });
   for (const i of world.incidents) facts.push({ predicate: 'incident', args: [i.ref, i.on, site.get(i.site)!, i.severity] });
-  return facts;
+  return facts.map((f) => ({ predicate: f.predicate, args: [org, ...f.args] }));
 }

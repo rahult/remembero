@@ -167,7 +167,7 @@ const TOWNS = [
   'Queanbeyan', 'Sale', 'Taree', 'Wodonga', 'Yeppoon', 'Armidale', 'Broome', 'Cessnock',
 ];
 const SITE_KINDS = ['depot', 'warehouse', 'data centre', 'workshop', 'yard'];
-const ORGANISATIONS = ['Carrow Group', 'Estuary Holdings', 'Ferrous Pacific', 'Lumen Utilities', 'Tidewater Transit', 'Marlin Health'];
+export const ORGANISATIONS = ['Carrow Group', 'Estuary Holdings', 'Ferrous Pacific', 'Lumen Utilities', 'Tidewater Transit', 'Marlin Health'];
 
 /** Split a pool into three disjoint thirds, one per split. */
 function third<T>(values: readonly T[], split: Split): T[] {
@@ -176,6 +176,10 @@ function third<T>(values: readonly T[], split: Split): T[] {
 }
 
 export interface WorldOptions {
+  /** Force the organisation's name (a sister organisation must not share the main one's). */
+  organisation?: string;
+  /** Contract references already used elsewhere in the same haystack. */
+  avoidRefs?: ReadonlySet<string>;
   people?: number;
   suppliers?: number;
   contracts?: number;
@@ -255,7 +259,7 @@ export function generateWorld(seed: number, split: Split, options: WorldOptions 
   for (let i = 0; i < (options.contracts ?? 14); i += 1) {
     let ref: string;
     do ref = `CN-${rng.int(1000, 9999)}`;
-    while (usedRefs.has(ref));
+    while (usedRefs.has(ref) || options.avoidRefs?.has(ref));
     usedRefs.add(ref);
     const from = addDays(WORLD_START, rng.int(60, 1_700));
     const contract: Contract = {
@@ -322,7 +326,7 @@ export function generateWorld(seed: number, split: Split, options: WorldOptions 
   return {
     seed,
     split,
-    organisation: rng.pick(ORGANISATIONS),
+    organisation: options.organisation ?? rng.pick(ORGANISATIONS),
     people,
     roles: ROLES,
     roleTerms,

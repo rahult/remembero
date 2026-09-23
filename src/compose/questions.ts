@@ -130,7 +130,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         gold: { kind: 'entity', items: [personSpellings(holder)], distractors: everyoneBut(holder), distractorNumbers: [], display: personName(holder) },
         evidence: [keys.roleStart(held.role, holder.id), ...(held.to === OPEN_END ? [] : [keys.roleEnd(held.role, holder.id)])],
         datalog: `holds_role_on(${term.role}, P, ${on})`,
-        params: { role: roleName(world, term.role), date: on },
+        params: { role: roleName(world, term.role), date: on, organisation: world.organisation },
       };
     });
   }
@@ -214,11 +214,11 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         id: id('aggregate'),
         family: 'aggregate',
         hops: 3,
-        question: `How many safety incidents occurred at a site whose operating supplier did not hold a valid ${STANDARD_NAMES[standard]} certificate on the day of the incident?`,
+        question: `How many safety incidents in ${world.organisation}'s incident log occurred at a site whose operating supplier did not hold a valid ${STANDARD_NAMES[standard]} certificate on the day of the incident?`,
         gold: { kind: 'number', items: [], number: uncertified.length, distractors: [], distractorNumbers: [all, all - uncertified.length].filter((x) => x !== uncertified.length), display: String(uncertified.length) },
         evidence: [...touched.map((i) => keys.incident(i.id)), ...touched.map((i) => keys.site(i.site))],
         datalog: `incident_uncertified(I, ${standard})`,
-        params: { standard: STANDARD_NAMES[standard] },
+        params: { standard: STANDARD_NAMES[standard], organisation: world.organisation },
       };
     });
   }
@@ -252,7 +252,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         id: id('absence'),
         family: 'absence',
         hops: world.suppliers.length,
-        question: `Which contracted suppliers did not hold a valid ${STANDARD_NAMES[standard]} certificate on ${say(on)}?`,
+        question: `Which of ${world.organisation}'s contracted suppliers did not hold a valid ${STANDARD_NAMES[standard]} certificate on ${say(on)}?`,
         gold: {
           kind: 'set',
           items: lacking.map((s) => supplierSpellings(s.name)),
@@ -262,7 +262,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
         },
         evidence: world.certificates.filter((c) => c.standard === standard).map((c) => keys.cert(c.supplier, c.standard, c.issued)),
         datalog: `supplier_name(S, _), \\+ cert_valid_on(S, ${standard}, ${on})`,
-        params: { standard: STANDARD_NAMES[standard], date: on },
+        params: { standard: STANDARD_NAMES[standard], date: on, organisation: world.organisation },
       };
     });
   }
@@ -307,7 +307,7 @@ export function generateQuestions(world: World, perFamily: Partial<Record<Family
           gold: { kind: 'unknown', items: [], distractors: world.roleTerms.filter((t) => t.role === role.id).map((t) => person.get(t.person)!.last), distractorNumbers: [], display: 'unknown' },
           evidence: [],
           datalog: `holds_role_on(${role.id}, P, ${on})  % no row: before the first record`,
-          params: { role: role.name, date: on },
+          params: { role: role.name, date: on, organisation: world.organisation },
         };
       }
       const used = new Set(world.contracts.map((c) => c.ref));

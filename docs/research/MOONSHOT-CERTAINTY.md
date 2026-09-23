@@ -245,3 +245,46 @@ What this does **not** yet show:
 - **Hostile filler.** Government-report filler never produces schema facts. v1: same-domain
   distractor organisations, so the extractor meets near-duplicate names and values.
 - **Scale of the world.** ~125 facts per world; v1 grows the organisation with page count.
+
+## Compose v1, a real planner, and what broke on the way (2026-09-24)
+
+v1 makes the benchmark harder in the two ways v0 was soft: every question is **paraphrased** by an
+LLM (kept only if every parameter survives — 369 of 369 did), and each haystack hides **two sister
+organisations** with the same documents, role titles and formats but different people and
+contracts. The planner is now `deepseek-chat` reading the question text (`src/compose/planner.ts`):
+it picks one of nine query shapes and fills its parameters, and code rejects any parameter not
+found in the question.
+
+**Held-out worlds (103, 104), generated after the last change, 1000 pages:**
+
+| arm | right | confidently wrong |
+| --- | --- | --- |
+| deepseek-chat reading 12 retrieved pages | 72% | 9% |
+| deepseek-chat handed the gold pages | 77% | 9% |
+| **engine: extraction + LLM planner + Datalog** | **100%** | **0%** |
+
+Identical at 100 and 500 pages. Extraction recall 100%, precision 92–94% (the extras are
+"appointments" read off the "Present: the Chair and directors" line, which no question uses).
+Across all six worlds scored since the fixes, the engine path is 93.6–100% right with **zero**
+confidently wrong answers; its misses are Unknowns.
+
+Three lessons, each learned by the benchmark catching a real failure:
+
+1. **Whose fact is it?** With sister organisations in the haystack the nine-predicate schema merged
+   three companies: incident counts included other companies' incidents, authority checks used
+   other companies' limits, and the engine was confidently wrong 4–13% of the time. Every fact now
+   carries its organisation (grounded against the page, whose heading names it) and every rule
+   joins within one.
+2. **One extraction call is not evidence of absence.** The same page answered `% nothing` on one
+   run and 32 certificate records on the previous one. A lost register does not produce Unknown —
+   it produces a confidently wrong answer (a pre-amendment value returned as current). Record-like
+   pages (three or more dates) now get a second independent pass, merged; recall went from 75–94%
+   back to 100% on every world.
+3. **Bound the rules, not only the engine.** Rules that paired every role term with every date in
+   the corpus hit the engine's 5M-fact evaluation budget once three companies were loaded. Each
+   rule now ranges only over the dates it can need (question, approval or incident dates); a world
+   of three companies answers in about 4 seconds, from a single cached derivation per question.
+   An evaluation the engine cannot finish is reported as Unknown with its reason, never guessed.
+
+Cost of the whole engine path on this set: extraction ~$0.0002–0.0004 a page once (two passes on
+record pages), planning ~$0.0001 a question, answering free.

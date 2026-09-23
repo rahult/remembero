@@ -15,15 +15,16 @@ import { normalizeExtractionOutput } from '../llm/extraction-guard.js';
 import { dateSpellings, OPEN_END } from './dates.js';
 import { formatMoney } from './render.js';
 
-export const EXTRACTION_SCHEMA = `appointed('Name as written', 'Role title', Date).   a person took a role from a date
-ceased('Name as written', 'Role title', Date).      a person stopped holding a role on a date
-authority('Role title', Limit, From, To).           the role may approve contracts up to Limit dollars from From until To; To is 99991231 when "until further notice"
-approved('CN-1234', 'Approver as written', Date).   a contract was approved; copy the approver exactly as named (full name, initial and surname, or role title)
-contract('CN-1234', 'Supplier name', Start, End, Value).   a contract register row; Value is the value at signing
-amendment('CN-1234', Number, Effective, Value).     a variation setting the contract value from a date
-site_operator('Site name', 'Supplier name').
-certificate('Supplier name', 'Standard', Issued, Expires).
-incident('INC-123A', Date, 'Site name', Severity).`;
+export const EXTRACTION_SCHEMA = `Every fact starts with 'Org', the organisation whose records the page belongs to (its name is in the page heading).
+appointed('Org', 'Name as written', 'Role title', Date).   a person took a role from a date
+ceased('Org', 'Name as written', 'Role title', Date).      a person stopped holding a role on a date
+authority('Org', 'Role title', Limit, From, To).           the role may approve contracts up to Limit dollars from From until To; To is 99991231 when "until further notice"
+approved('Org', 'CN-1234', 'Approver as written', Date).   a contract was approved; copy the approver exactly as named (full name, initial and surname, or role title)
+contract('Org', 'CN-1234', 'Supplier name', Start, End, Value).   a contract register row; Value is the value at signing
+amendment('Org', 'CN-1234', Number, Effective, Value).     a variation setting the contract value from a date
+site_operator('Org', 'Site name', 'Supplier name').
+certificate('Org', 'Supplier name', 'Standard', Issued, Expires).
+incident('Org', 'INC-123A', Date, 'Site name', Severity).`;
 
 export const EXTRACTION_PROMPT = `You extract facts from one page of an organisation's records into a fixed Datalog schema.
 
@@ -38,15 +39,15 @@ Rules:
 - Only what the page states as done or in force. Never a proposal, a motion, or anything discussed but not resolved.`;
 
 export const PREDICATES: Record<string, number> = {
-  appointed: 3,
-  ceased: 3,
-  authority: 4,
-  approved: 3,
-  contract: 5,
-  amendment: 4,
-  site_operator: 2,
-  certificate: 4,
-  incident: 4,
+  appointed: 4,
+  ceased: 4,
+  authority: 5,
+  approved: 4,
+  contract: 6,
+  amendment: 5,
+  site_operator: 3,
+  certificate: 5,
+  incident: 5,
 };
 
 export type Value = string | number;
@@ -95,15 +96,15 @@ export function parseSchemaFacts(reply: string): Fact[] {
 
 /** Which argument positions hold a date, an amount, or a name/reference, per predicate. */
 const SHAPE: Record<string, Array<'name' | 'date' | 'money' | 'plain'>> = {
-  appointed: ['name', 'name', 'date'],
-  ceased: ['name', 'name', 'date'],
-  authority: ['name', 'money', 'date', 'date'],
-  approved: ['name', 'name', 'date'],
-  contract: ['name', 'name', 'date', 'date', 'money'],
-  amendment: ['name', 'plain', 'date', 'money'],
-  site_operator: ['name', 'name'],
-  certificate: ['name', 'name', 'date', 'date'],
-  incident: ['name', 'date', 'name', 'plain'],
+  appointed: ['name', 'name', 'name', 'date'],
+  ceased: ['name', 'name', 'name', 'date'],
+  authority: ['name', 'name', 'money', 'date', 'date'],
+  approved: ['name', 'name', 'name', 'date'],
+  contract: ['name', 'name', 'name', 'date', 'date', 'money'],
+  amendment: ['name', 'name', 'plain', 'date', 'money'],
+  site_operator: ['name', 'name', 'name'],
+  certificate: ['name', 'name', 'name', 'date', 'date'],
+  incident: ['name', 'name', 'date', 'name', 'plain'],
 };
 
 function squash(text: string): string {
@@ -149,24 +150,24 @@ const REF = /^(cn|inc)-[0-9a-z]+$/i;
 export function repairFacts(facts: readonly Fact[]): { kept: Fact[]; repaired: number; rejected: Fact[] } {
   const roles = new Set<string>();
   for (const f of facts) {
-    if (f.predicate === 'authority') roles.add(normaliseName(String(f.args[0])));
-    if (f.predicate === 'appointed' || f.predicate === 'ceased') roles.add(normaliseName(String(f.args[1])));
+    if (f.predicate === 'authority') roles.add(normaliseName(String(f.args[1])));
+    if (f.predicate === 'appointed' || f.predicate === 'ceased') roles.add(normaliseName(String(f.args[2])));
   }
   const kept: Fact[] = [];
   const rejected: Fact[] = [];
   let repaired = 0;
   for (const fact of facts) {
     const args = [...fact.args];
-    if (fact.predicate === 'approved' && !REF.test(String(args[0])) && REF.test(String(args[1]))) {
-      [args[0], args[1]] = [args[1]!, args[0]!];
+    if (fact.predicate === 'approved' && !REF.test(String(args[1])) && REF.test(String(args[2]))) {
+      [args[1], args[2]] = [args[2]!, args[1]!];
       repaired += 1;
     }
-    const refFirst = ['approved', 'contract', 'amendment', 'incident'].includes(fact.predicate);
-    if (refFirst && !REF.test(String(args[0]))) {
+    const refSecond = ['approved', 'contract', 'amendment', 'incident'].includes(fact.predicate);
+    if (refSecond && !REF.test(String(args[1]))) {
       rejected.push(fact);
       continue;
     }
-    if ((fact.predicate === 'appointed' || fact.predicate === 'ceased') && roles.has(normaliseName(String(args[0])))) {
+    if ((fact.predicate === 'appointed' || fact.predicate === 'ceased') && roles.has(normaliseName(String(args[1])))) {
       rejected.push(fact);
       continue;
     }

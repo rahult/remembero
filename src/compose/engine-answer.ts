@@ -12,26 +12,31 @@ import { evaluate, parseProgram, parseQuery, type Clause } from '../engine/index
 import { normaliseName, type Fact } from './extract.js';
 
 export const ENGINE_RULES = `
-person(P) :- appointed(N, _, _), alias(N, P).
-ended(P, R, F, D) :- appointed(N, R, F), alias(N, P), ceased(M, R, E), alias(M, P), day(D), F <= E, E <= D.
-holds(P, R, D) :- appointed(N, R, F), alias(N, P), day(D), F <= D, \\+ ended(P, R, F, D).
-approver(C, P) :- approved(C, A, _), alias(A, P).
-approver(C, P) :- approved(C, A, D), holds(P, A, D).
-has_approval(C) :- approved(C, _, _).
-value_entry(C, V, E) :- contract(C, _, _, _, V), approved(C, _, E).
-value_entry(C, V, S) :- contract(C, _, S, _, V), \\+ has_approval(C).
-value_entry(C, V, E) :- amendment(C, _, E, V).
-later_value(C, E, D) :- value_entry(C, _, E), value_entry(C, _, E2), day(D), E < E2, E2 <= D.
-value_on(C, V, D) :- value_entry(C, V, E), day(D), E <= D, \\+ later_value(C, E, D).
-limit_on(P, L, D) :- holds(P, R, D), authority(R, L, F, T), F <= D, D < T.
-within_authority(C) :- approved(C, _, D), approver(C, P), limit_on(P, L, D), value_on(C, V, D), V <= L.
-decidable(C) :- approved(C, _, D), approver(C, P), holds(P, _, D), value_on(C, _, D).
-cert_valid_on(S, Std, D) :- certificate(S, Std, I, X), day(D), I <= D, D < X.
-has_operator(Site) :- site_operator(Site, _).
-orphan_incident(I) :- incident(I, _, Site, _), \\+ has_operator(Site).
-uncertified_incident(I, Std) :- incident(I, D, Site, _), site_operator(Site, S), standard(Std), \\+ cert_valid_on(S, Std, D).
-supplier(S) :- contract(_, S, _, _, _).
-supplier(S) :- site_operator(_, S).
+when(D) :- qday(D).
+when(D) :- approved(_, _, _, D).
+cday(D) :- qday(D).
+cday(D) :- incident(_, _, D, _, _).
+term(O, P, R, F) :- appointed(O, N, R, F), alias(O, N, P).
+stop(O, P, R, E) :- ceased(O, M, R, E), alias(O, M, P).
+ended(O, P, R, F, D) :- term(O, P, R, F), stop(O, P, R, E), when(D), F <= E, E <= D.
+holds(O, P, R, D) :- term(O, P, R, F), when(D), F <= D, \\+ ended(O, P, R, F, D).
+approver(O, C, P) :- approved(O, C, A, _), alias(O, A, P).
+approver(O, C, P) :- approved(O, C, A, D), holds(O, P, A, D).
+has_approval(O, C) :- approved(O, C, _, _).
+value_entry(O, C, V, E) :- contract(O, C, _, _, _, V), approved(O, C, _, E).
+value_entry(O, C, V, S) :- contract(O, C, _, S, _, V), \\+ has_approval(O, C).
+value_entry(O, C, V, E) :- amendment(O, C, _, E, V).
+later_value(O, C, E, D) :- value_entry(O, C, _, E), value_entry(O, C, _, E2), when(D), E < E2, E2 <= D.
+value_on(O, C, V, D) :- value_entry(O, C, V, E), when(D), E <= D, \\+ later_value(O, C, E, D).
+limit_on(O, P, L, D) :- holds(O, P, R, D), authority(O, R, L, F, T), F <= D, D < T.
+within_authority(O, C) :- approved(O, C, _, D), approver(O, C, P), limit_on(O, P, L, D), value_on(O, C, V, D), V <= L.
+decidable(O, C) :- approved(O, C, _, D), approver(O, C, P), holds(O, P, _, D), value_on(O, C, _, D).
+cert_valid_on(O, S, Std, D) :- certificate(O, S, Std, I, X), cday(D), I <= D, D < X.
+has_operator(O, Site) :- site_operator(O, Site, _).
+orphan_incident(O, I) :- incident(O, I, _, Site, _), \\+ has_operator(O, Site).
+uncertified_incident(O, I, Std) :- incident(O, I, D, Site, _), site_operator(O, Site, S), standard(Std), \\+ cert_valid_on(O, S, Std, D).
+supplier(O, S) :- contract(O, _, S, _, _, _).
+supplier(O, S) :- site_operator(O, _, S).
 `;
 
 function quote(text: string): string {
@@ -48,17 +53,24 @@ function normaliseFact(fact: Fact): Fact {
  * initial-and-surname form. A surname two people share is dropped rather than guessed.
  */
 export function aliasFacts(facts: readonly Fact[]): string[] {
-  const full = [...new Set(facts.filter((f) => f.predicate === 'appointed').map((f) => String(f.args[0])))];
-  const byAlias = new Map<string, Set<string>>();
-  const add = (alias: string, name: string) => byAlias.set(alias, new Set([...(byAlias.get(alias) ?? []), name]));
-  for (const name of full) {
-    const parts = name.split(' ');
-    const last = parts[parts.length - 1]!;
-    add(name, name);
-    add(last, name);
-    if (parts.length > 1) add(`${parts[0]![0]}. ${last}`, name);
+  const out: string[] = [];
+  const orgs = new Set(facts.filter((f) => f.predicate === 'appointed').map((f) => String(f.args[0])));
+  for (const org of orgs) {
+    const full = [...new Set(facts.filter((f) => f.predicate === 'appointed' && f.args[0] === org).map((f) => String(f.args[1])))];
+    const byAlias = new Map<string, Set<string>>();
+    const add = (alias: string, name: string) => byAlias.set(alias, new Set([...(byAlias.get(alias) ?? []), name]));
+    for (const name of full) {
+      const parts = name.split(' ');
+      const last = parts[parts.length - 1]!;
+      add(name, name);
+      add(last, name);
+      if (parts.length > 1) add(`${parts[0]![0]}. ${last}`, name);
+    }
+    for (const [alias, names] of byAlias) {
+      if (names.size === 1) out.push(`alias(${quote(org)}, ${quote(alias)}, ${quote([...names][0]!)}).`);
+    }
   }
-  return [...byAlias.entries()].filter(([, names]) => names.size === 1).map(([alias, names]) => `alias(${quote(alias)}, ${quote([...names][0]!)}).`);
+  return out;
 }
 
 export class EngineAnswerer {
@@ -66,12 +78,12 @@ export class EngineAnswerer {
 
   constructor(facts: readonly Fact[], questionDays: readonly number[]) {
     const normalised = facts.map(normaliseFact);
+    // only the dates questions ask about; approval and incident dates come from their own facts
     const days = new Set<number>(questionDays);
-    for (const fact of normalised) for (const a of fact.args) if (typeof a === 'number' && a > 19_000_000) days.add(a);
     const text = [
       ...normalised.map((f) => `${f.predicate}(${f.args.map((a) => (typeof a === 'number' ? String(a) : quote(a))).join(', ')}).`),
       ...aliasFacts(normalised),
-      ...[...days].map((d) => `day(${d}).`),
+      ...[...days].map((d) => `qday(${d}).`),
       `standard('iso 9001').`,
       `standard('iso 27001').`,
       ENGINE_RULES,
@@ -105,42 +117,50 @@ export class EngineAnswerer {
   answer(family: string, params: Record<string, string | number>): string {
     const one = (values: Array<string | number>) => (values.length === 1 ? String(values[0]) : 'unknown');
     const c = (key: string) => quote(normaliseName(String(params[key])));
+    // the organisation when the question names one; otherwise a variable the contract binds
+    const org = params.organisation === undefined ? 'O' : c('organisation');
     const date = params.date;
     switch (family) {
       case 'needle':
-        return one(this.column(`contract(${c('contract')}, _, _, _, V)`, 'V'));
+        return one(this.column(`contract(${org}, ${c('contract')}, _, _, _, V)`, 'V'));
       case 'validity':
-        return one(this.column(`holds(P, ${c('role')}, ${date})`, 'P'));
+        return one(this.column(`holds(${org}, P, ${c('role')}, ${date})`, 'P'));
       case 'identity':
-        return one(this.column(`approver(${c('contract')}, P)`, 'P'));
+        return one(this.column(`approver(${org}, ${c('contract')}, P)`, 'P'));
       case 'supersession':
-        return one(this.column(`value_on(${c('contract')}, V, ${date})`, 'V'));
+        return one(this.column(`value_on(${org}, ${c('contract')}, V, ${date})`, 'V'));
       case 'comparison': {
-        const a = this.column(`value_on(${c('contractA')}, V, ${date})`, 'V');
-        const b = this.column(`value_on(${c('contractB')}, V, ${date})`, 'V');
+        const a = this.column(`value_on(${org}, ${c('contractA')}, V, ${date})`, 'V');
+        const b = this.column(`value_on(${org}, ${c('contractB')}, V, ${date})`, 'V');
         if (a.length !== 1 || b.length !== 1 || a[0] === b[0]) return 'unknown';
         return Number(a[0]) > Number(b[0]) ? String(params.contractA) : String(params.contractB);
       }
       case 'aggregate': {
-        if (this.column('orphan_incident(I)', 'I').length > 0) return 'unknown';
         if (params.standard !== undefined) {
-          return String(this.column(`uncertified_incident(I, ${c('standard')})`, 'I').length);
+          if (params.organisation === undefined) return 'unknown';
+          if (this.column(`orphan_incident(${org}, I)`, 'I').length > 0) return 'unknown';
+          return String(this.column(`uncertified_incident(${org}, I, ${c('standard')})`, 'I').length);
         }
-        return String(this.column(`incident(I, _, Site, _), site_operator(Site, ${c('supplier')})`, 'I').length);
+        const orgs = this.column(`site_operator(O, _, ${c('supplier')})`, 'O');
+        if (orgs.length !== 1) return 'unknown';
+        const o = quote(String(orgs[0]));
+        if (this.column(`orphan_incident(${o}, I)`, 'I').length > 0) return 'unknown';
+        return String(this.column(`incident(${o}, I, _, Site, _), site_operator(${o}, Site, ${c('supplier')})`, 'I').length);
       }
       case 'absence': {
-        const lacking = this.column(`supplier(S), \\+ cert_valid_on(S, ${c('standard')}, ${date})`, 'S');
+        if (params.organisation === undefined) return 'unknown';
+        const lacking = this.column(`supplier(${org}, S), \\+ cert_valid_on(${org}, S, ${c('standard')}, ${date})`, 'S');
         return lacking.length === 0 ? 'unknown' : lacking.join('; ');
       }
       case 'authority': {
         const contract = c('contract');
-        if (this.holds(`within_authority(${contract})`)) return 'yes';
-        return this.holds(`decidable(${contract})`) ? 'no' : 'unknown';
+        if (this.holds(`within_authority(${org}, ${contract})`)) return 'yes';
+        return this.holds(`decidable(${org}, ${contract})`) ? 'no' : 'unknown';
       }
       case 'unanswerable':
         return params.role !== undefined
-          ? one(this.column(`holds(P, ${c('role')}, ${date})`, 'P'))
-          : one(this.column(`contract(${c('contract')}, _, _, _, V)`, 'V'));
+          ? one(this.column(`holds(${org}, P, ${c('role')}, ${date})`, 'P'))
+          : one(this.column(`contract(${org}, ${c('contract')}, _, _, _, V)`, 'V'));
       default:
         return 'unknown';
     }
