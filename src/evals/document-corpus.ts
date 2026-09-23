@@ -13,7 +13,7 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import type { RetrievableSession } from '../knowledge/session-retrieval.js';
 
 /** One page of a document, numbered from 1 as the PDF numbers it. */
@@ -143,4 +143,22 @@ export function windowsAsSessions(windows: PageWindow[]): RetrievableSession[] {
     date: new Date(WINDOW_EPOCH + index * DAY_MS).toISOString(),
     turns: [{ role: 'user' as const, text: window.text }],
   }));
+}
+
+
+/**
+ * A spec source's pages: its pre-extracted text if it names one, else its PDF, extracted once and
+ * cached as page text next to the others.
+ */
+export function pagesForSource(source: { id: string; pdf?: string; text?: string }, cacheDir = '.cache/document-recall'): DocumentPage[] {
+  if (source.text !== undefined) return pagesFromTextFile(source.text);
+  const cached = `${cacheDir}/${source.id}.pages.txt`;
+  if (existsSync(cached) && (source.pdf === undefined || !existsSync(source.pdf) || statSync(cached).mtimeMs >= statSync(source.pdf).mtimeMs)) {
+    return pagesFromTextFile(cached);
+  }
+  if (source.pdf === undefined) throw new Error(`source ${source.id} has neither pdf nor text`);
+  const pages = pagesFromPdf(source.pdf);
+  mkdirSync(cacheDir, { recursive: true });
+  writeFileSync(cached, pages.map((page) => page.text).join(PAGE_BREAK));
+  return pages;
 }

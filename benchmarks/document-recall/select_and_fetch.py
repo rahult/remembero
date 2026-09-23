@@ -147,7 +147,11 @@ def main() -> int:
     parser.add_argument("--per-tier", type=int, default=6, help="documents to land per tier")
     parser.add_argument("--attempts", type=int, default=14, help="documents to try per tier")
     parser.add_argument("--tiers", default="100p,500p,1000p")
+    parser.add_argument("--all", action="store_true",
+                        help="every fetchable document, in four page bands, into spec-all.json")
     args = parser.parse_args()
+    if args.all:
+        return fetch_all(args)
 
     documents, questions = load_labels()
     sources: list[dict] = []
@@ -220,6 +224,44 @@ def main() -> int:
             f"{sum(len(source['questions']) for source in got)} questions"
         )
     print(f"\nwrote {SPEC}")
+    return 0
+
+
+ALL_BANDS = {"52-139p": (0, 139), "140-349p": (140, 349), "350-699p": (350, 699), "700p+": (700, 10_000)}
+
+
+def fetch_all(args) -> int:
+    """Every document in the release that can be fetched, grouped into the dataset's own page bands,
+    for retrieval-only sweeps over all 1,354 questions (no reader, so the size costs nothing)."""
+    documents, questions = load_labels()
+    sources: list[dict] = []
+    tiers: list[dict] = []
+    skipped = 0
+    for name, band in ALL_BANDS.items():
+        landed: list[str] = []
+        for row in candidates(documents, questions, band):
+            target = PDF_DIR / f"{row['document_id']}.pdf"
+            ok, note = fetch(row["url"], target)
+            pages = pdf_pages(target) if ok else None
+            if not ok or pages is None or abs(pages - row["pages"]) > 2:
+                skipped += 1
+                target.unlink(missing_ok=True) if ok and pages is None else None
+                continue
+            labelled = [q for q in (spec_question(r) for r in row["questions"]) if q is not None]
+            if not labelled:
+                continue
+            sources.append({
+                "id": row["document_id"], "title": row["title"], "sourceUrl": row["url"],
+                "sha256": hashlib.sha256(target.read_bytes()).hexdigest(), "pdf": str(target),
+                "labelPages": pages, "questions": labelled,
+            })
+            landed.append(row["document_id"])
+        tiers.append({"name": name, "documents": landed, "band": list(band)})
+        print(f"{name}: {len(landed)} documents, {sum(len(s['questions']) for s in sources if s['id'] in landed)} questions", flush=True)
+    out = SPEC.parent / "spec-all.json"
+    out.write_text(json.dumps({"name": "xl-docbench-all", "labels": "XL-DocBench (arXiv:2608.00036)",
+                               "tiers": tiers, "sources": sources}, indent=1) + "\n")
+    print(f"skipped {skipped} unfetchable or mismatched documents; wrote {out}")
     return 0
 
 

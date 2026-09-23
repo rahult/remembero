@@ -11,7 +11,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { OpenRouterClient } from '../llm/client.js';
-import { pagesFromTextFile, windowPages, windowsAsSessions } from './document-corpus.js';
+import { pagesForSource, windowPages, windowsAsSessions } from './document-corpus.js';
 import { ollamaEmbed } from './document-index.js';
 import { RANKERS, buildDocumentRanker, llmDecomposer, type RankerName } from './document-rankers.js';
 import { scoreRetrieval } from './document-recall.js';
@@ -21,7 +21,7 @@ import { DEFAULT_RERANK_KEY_ENV, typesafeCostUsd, typesafeNouls } from './typesa
 
 interface Spec {
   tiers: Array<{ name: string; documents?: string[] }>;
-  sources: Array<{ id: string; questions?: Array<{ id: string; question: string; answer: string | null; evidencePages: number[] }> }>;
+  sources: Array<{ id: string; pdf?: string; text?: string; questions?: Array<{ id: string; question: string; answer: string | null; evidencePages: number[] }> }>;
 }
 
 const DEPTHS = [4, 12] as const;
@@ -92,7 +92,13 @@ async function main() {
     if (args.tiers !== undefined && !args.tiers.has(tier.name)) continue;
     for (const documentId of tier.documents ?? []) {
       const source = byId.get(documentId)!;
-      const pages = pagesFromTextFile(`.cache/document-recall/${documentId}.pages.txt`);
+      let pages;
+      try {
+        pages = pagesForSource(source);
+      } catch (error) {
+        process.stderr.write(`${documentId}: skipped, ${error instanceof Error ? error.message : error}\n`);
+        continue;
+      }
       const sessions = windowsAsSessions(windowPages(pages, { pagesPerWindow: 1, maxBytes: 12_288 }));
       const questions = (source.questions ?? []).filter((q) => q.answer !== null && q.evidencePages.length > 0);
       for (const name of args.rankers) {
