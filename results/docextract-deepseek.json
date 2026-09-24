@@ -1,0 +1,59 @@
+{
+  "corpus": "xl-docbench-page-tiers",
+  "ranAt": "2026-09-22T14:01:24.709Z",
+  "writer": "deepseek-chat",
+  "judge": "deepseek-chat",
+  "results": [
+    {
+      "tier": "100p",
+      "document": "doc_000156",
+      "pages": 108,
+      "summary": {
+        "pagesSampled": 25,
+        "evidencePagesSampled": 15,
+        "facts": 0,
+        "factsPerPage": 0,
+        "pagesWithNoFacts": 25,
+        "extractionErrors": 0,
+        "factsJudged": 0,
+        "precision": 0,
+        "questionsScored": 10,
+        "recall": 0
+      }
+    },
+    {
+      "tier": "500p",
+      "document": "doc_000175",
+      "pages": 514,
+      "summary": {
+        "pagesSampled": 22,
+        "evidencePagesSampled": 12,
+        "facts": 0,
+        "factsPerPage": 0,
+        "pagesWithNoFacts": 22,
+        "extractionErrors": 0,
+        "factsJudged": 0,
+        "precision": 0,
+        "questionsScored": 10,
+        "recall": 0
+      }
+    },
+    {
+      "tier": "1000p",
+      "document": "doc_000120",
+      "pages": 708,
+      "summary": {
+        "pagesSampled": 14,
+        "evidencePagesSampled": 4,
+        "facts": 0,
+        "factsPerPage": 0,
+        "pagesWithNoFacts": 14,
+        "extractionErrors": 0,
+        "factsJudged": 0,
+        "precision": 0,
+        "questionsScored": 6,
+        "recall": 0
+      }
+    }
+  ]
+}

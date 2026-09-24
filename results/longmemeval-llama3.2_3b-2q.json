@@ -1,0 +1,36 @@
+{
+  "summary": {
+    "model": "llama3.2:3b",
+    "n": 2,
+    "correct": 0,
+    "accuracy": 0,
+    "abstentionGold": 0,
+    "byType": {
+      "single-session-user": "0/2"
+    },
+    "calls": 24,
+    "ms": 46172
+  },
+  "detail": [
+    {
+      "id": "e47becba",
+      "type": "single-session-user",
+      "question": "What degree did I graduate with?",
+      "gold": "Business Administration",
+      "answer": "unknown",
+      "query": "education_level(Who, X)",
+      "facts": 10,
+      "correct": false
+    },
+    {
+      "id": "118b2229",
+      "type": "single-session-user",
+      "question": "How long is my daily commute to work?",
+      "gold": "45 minutes each way",
+      "answer": "unknown",
+      "query": "reports_to(Anchor, X), commute_time(X)",
+      "facts": 10,
+      "correct": false
+    }
+  ]
+}
