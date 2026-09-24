@@ -480,6 +480,35 @@
       "queryAlias": null,
       "extractionAlias": null,
       "notes": "train_loss 0.5012. Paired against v7 on one pod (raw, 4/15/10, DeepSeek judge, both thinking): 384/500 vs 391 and 194/266 vs 204. Multi-session, the type the data targeted, fell 93->87 on the 500 and 98->89 on the 266. Negative result: mined misses are kept on the teacher being right, and GLM is itself about 75% on multi-session, so a quarter of the added rows teach the teacher errors, amplified by duplicating each miss three times."
+    },
+    {
+      "run": "compose-engine-e2b",
+      "date": "2026-09-24",
+      "base": "Gemma 4 E2B",
+      "platform": "RunPod pod, secure H200",
+      "data": "20,386 rows from 250 train-split worlds — page -> facts (real document pages must come back % nothing) and question -> plan, a quarter paraphrased by deepseek and checked; 1,013 held-out rows from dev-split worlds; max_length 4096, batch 16 x grad-accum 4",
+      "tasks": "compose engine (extraction + planning)",
+      "minutes": 54,
+      "costUsd": 4.55,
+      "heldoutLoss": 0.00098,
+      "queryAlias": null,
+      "extractionAlias": null,
+      "notes": "one model does both jobs; Datalog answers, no model API in the loop. 0% confidently wrong held out on v1 (100%) and v2 reworded documents (97.7-97.9%); invents 22-68 facts per 1000-page haystack and the page check drops every one"
+    },
+    {
+      "run": "compose-engine-e2b-r2",
+      "date": "2026-09-24",
+      "base": "Gemma 4 E2B",
+      "platform": "RunPod pod, secure H200 ($4.59/h)",
+      "data": "34,265 rows from 430 train-split worlds — 250 template + 120 reworded + 60 adversarial (namesakes and deferred approvals; every second reworded too) — plus real filler pages; 1,374 held-out rows from 8+4+4 dev worlds; --paraphrase 4000; max_length 4096, batch 16 x 4",
+      "tasks": "compose engine (extraction + planning)",
+      "minutes": 88,
+      "costUsd": 7.21,
+      "costNote": "pod lifetime $7.21 at $4.59/h: boot, 5,261 s train, export and Q8 quantize",
+      "heldoutLoss": 0.00089,
+      "queryAlias": null,
+      "extractionAlias": null,
+      "notes": "round 2 teaches the reworded prose and v3 adversarial cases the first model never saw; r1 comparison on the v3 holdout pending this bench"
     }
   ]
 }
