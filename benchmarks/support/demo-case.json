@@ -1,0 +1,28 @@
+{
+ "ticket": {
+  "id": "TCK-1042",
+  "customer": "cust-acme",
+  "fields": {
+   "opened": "2026-12-24T16:30:00Z",
+   "priority": "p1",
+   "customer": "cust-acme",
+   "tier": "enterprise",
+   "monthly_fee": 1200,
+   "first_response": "2026-12-29T10:00:00Z"
+  },
+  "comments": [
+   {
+    "actor": "support-agent",
+    "text": "We shipped a fix and confirmed service restoration with the customer."
+   }
+  ]
+ },
+ "chat": {
+  "id": "TCK-1042-chat",
+  "turns": [
+   { "actor": "requester", "at": "2026-12-24T16:30:00Z", "text": "Our API is down. Ticket TCK-1042 opened 2026-12-24 16:30 UTC." },
+   { "actor": "support-agent", "text": "First response on TCK-1042: 2026-12-29 10:00 UTC — we shipped a fix." },
+   { "actor": "requester", "text": "Confirming service is restored, thank you." }
+  ]
+ }
+}

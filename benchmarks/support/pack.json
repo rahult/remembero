@@ -1,0 +1,26 @@
+{
+ "id": "acme-sla",
+ "version": "1.2",
+ "sopPath": "benchmarks/support/demo-sla.sop.md",
+ "reviewed": "hand-gated v0: every parameter bound to the SOP line that states it; a pack loads only when every claim passes the admission gate",
+ "claims": [
+  { "predicate": "sla_clock", "args": ["enterprise", "p1", 4], "quote": "Enterprise customers with P1 issues receive a first response within 4 business hours" },
+  { "predicate": "sla_clock", "args": ["enterprise", "p2", 8], "quote": "Enterprise customers with P2 issues receive a first response within 8 business hours" },
+  { "predicate": "sla_clock", "args": ["team", "p1", 2], "quote": "Team customers with P1 issues receive a first response within 2 business hours" },
+  { "predicate": "sla_clock", "args": ["team", "p2", 6], "quote": "Team customers with P2 issues receive a first response within 6 business hours" },
+  { "predicate": "sla_clock", "args": ["starter", "p1", 24], "quote": "Starter customers with P1 or P2 issues receive a first response within 24 business hours" },
+  { "predicate": "sla_clock", "args": ["starter", "p2", 24], "quote": "Starter customers with P1 or P2 issues receive a first response within 24 business hours" },
+  { "predicate": "business_hours", "args": ["default", "monday", 9, 18], "quote": "Business hours for the default calendar are 09:00 to 18:00 on Monday" },
+  { "predicate": "business_hours", "args": ["default", "tuesday", 9, 18], "quote": "Business hours for the default calendar are 09:00 to 18:00 on Monday, Tuesday" },
+  { "predicate": "business_hours", "args": ["default", "wednesday", 9, 18], "quote": "Business hours for the default calendar are 09:00 to 18:00 on Monday, Tuesday, Wednesday" },
+  { "predicate": "business_hours", "args": ["default", "thursday", 9, 18], "quote": "Business hours for the default calendar are 09:00 to 18:00 on Monday, Tuesday, Wednesday, Thursday" },
+  { "predicate": "business_hours", "args": ["default", "friday", 9, 18], "quote": "Business hours for the default calendar are 09:00 to 18:00 on Monday, Tuesday, Wednesday, Thursday and Friday" },
+  { "predicate": "zone", "args": ["default", "utc"], "quote": "All times on the default calendar are UTC" },
+  { "predicate": "default_calendar", "args": ["default"], "quote": "Business hours for the default calendar" },
+  { "predicate": "holiday", "args": ["default", "2026-12-25"], "quote": "The default calendar observes 2026-12-25 as a holiday" },
+  { "predicate": "holiday", "args": ["default", "2026-01-01"], "quote": "The default calendar observes 2026-01-01 as a holiday" },
+  { "predicate": "credit_band", "args": [60, 10], "quote": "A breach of 60 or more business minutes earns a credit of 10 percent" },
+  { "predicate": "credit_band", "args": [240, 25], "quote": "A breach of 240 or more business minutes earns a credit of 25 percent" },
+  { "predicate": "credit_band", "args": [480, 50], "quote": "A breach of 480 or more business minutes earns a credit of 50 percent" }
+ ]
+}
