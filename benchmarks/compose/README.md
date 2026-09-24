@@ -77,3 +77,15 @@ npm run compose:engine -- --spec benchmarks/compose/holdout-v1/spec.json --tiers
 The first run: 20,386 rows from 250 train-split worlds, 319 steps on an H200, 54 minutes, $4.55,
 held-out loss 0.00098. On a 16 GB Mac the model extracts at roughly one page per 10–20 seconds
 (prompt processing dominates), so 1000-page haystacks are hours of local time.
+
+Round 2 mixes in the worlds the first model never saw — 120 reworded and 60 adversarial
+(namesakes and deferred approvals; every second of those reworded too) beside the 250 template
+worlds, 34,265 rows — so extraction precision holds past template pages:
+
+```bash
+node dist/evals/run-compose-trainset.js --worlds 250 --reworded 120 --adversarial 60 --paraphrase 4000 --out data/compose-engine-r2
+python benchmarks/runpod/volume.py put data/compose-engine-r2/conversations.jsonl data/compose-engine-e2b-r2/conversations.jsonl
+python benchmarks/runpod/volume.py put data/compose-engine-r2/heldout.jsonl data/compose-engine-e2b-r2/heldout.jsonl
+python benchmarks/runpod/pod.py create-train --run compose-engine-e2b-r2 --base-model google/gemma-4-E2B-it \
+  --gpu "NVIDIA H200" --cloud SECURE --max-length 4096 --batch-size 16 --grad-accum 4 --max-hours 3
+```

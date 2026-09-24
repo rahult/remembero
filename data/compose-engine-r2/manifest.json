@@ -1,0 +1,11 @@
+{
+ "generator": "node dist/evals/run-compose-trainset.js --worlds 250 --reworded 120 --adversarial 60 --paraphrase 4000 --out data/compose-engine-r2",
+ "rngSeed": 20260924,
+ "trainRows": 34265,
+ "heldoutRows": 1374,
+ "trainWorlds": { "template": 250, "reworded": 120, "adversarial": 60, "note": "seeds 10000+, 11000+, 12000+; every second adversarial world is reworded too" },
+ "heldoutWorlds": { "template": 8, "reworded": 4, "adversarial": 4, "note": "seeds 20000+, 21000+, 22000+" },
+ "teacher": "deepseek-chat (question paraphrases and prose-line rewrites, cache-checked)",
+ "purpose": "round 2 of the engine model (compose-engine-e2b-r2): the first model saw only template-rendered pages, so round 2 mixes in reworded prose and the v3 adversarial cases — namesakes and deferred approvals — to hold extraction precision past templates",
+ "trainedAs": "benchmarks/compose/README.md, A local engine model"
+}

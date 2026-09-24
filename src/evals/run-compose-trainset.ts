@@ -15,7 +15,8 @@ import { EXTRACTION_PROMPT } from '../compose/extract.js';
 import { PARAPHRASE_PROMPT, paraphraseProblem } from '../compose/paraphrase.js';
 import { PLANNER_PROMPT } from '../compose/planner.js';
 import { generateQuestions, type ComposeQuestion } from '../compose/questions.js';
-import { paginate, renderWorld, type SchemaFact } from '../compose/render.js';
+import { paginate, renderWorld, type SchemaFact, type Section } from '../compose/render.js';
+import { LineRewriter } from '../compose/reword.js';
 import { Rng } from '../compose/rng.js';
 import { generateWorld, type Split } from '../compose/world.js';
 import { pagesFromTextFile } from './document-corpus.js';
@@ -58,10 +59,22 @@ export function goldPlan(q: ComposeQuestion): { shape: string; params: Record<st
   }
 }
 
-function extractionRows(split: Split, seeds: number[], fillerDocs: string[], rng: Rng): Row[] {
+interface WorldSpec {
+  seed: number;
+  adversarial?: boolean;
+  reworded?: boolean;
+}
+
+async function renderAll(split: Split, worlds: WorldSpec[], rewriter: LineRewriter): Promise<Section[][]> {
+  const rendered = worlds.map((w) => renderWorld(generateWorld(w.seed, split, w.adversarial ? { adversarial: true } : {})));
+  await rewriter.prepare(rendered.filter((_r, i) => worlds[i]!.reworded));
+  return rendered.map((sections, i) => (worlds[i]!.reworded ? rewriter.apply(sections) : sections));
+}
+
+function extractionRows(renderedWorlds: Section[][], fillerDocs: string[], rng: Rng): Row[] {
   const rows: Row[] = [];
-  for (const seed of seeds) {
-    for (const page of paginate(renderWorld(generateWorld(seed, split)))) {
+  for (const sections of renderedWorlds) {
+    for (const page of paginate(sections)) {
       const target = page.facts.length === 0 ? '% nothing' : page.facts.map(factLine).join('\n');
       // most rows use the first-pass prompt; some the second-pass nudge, as the evaluation does
       const prefix = rng.chance(0.25) ? SECOND_PASS : '';
@@ -90,8 +103,8 @@ function extractionRows(split: Split, seeds: number[], fillerDocs: string[], rng
   return rows;
 }
 
-async function plannerRows(split: Split, seeds: number[], paraphraseBudget: number, rng: Rng, client: OpenRouterClient): Promise<Row[]> {
-  const questions = seeds.flatMap((seed) => generateQuestions(generateWorld(seed, split)));
+async function plannerRows(split: Split, worlds: WorldSpec[], paraphraseBudget: number, rng: Rng, client: OpenRouterClient): Promise<Row[]> {
+  const questions = worlds.flatMap((w) => generateQuestions(generateWorld(w.seed, split, w.adversarial ? { adversarial: true } : {})));
   const cachePath = `.cache/compose/paraphrase.trainset.json`;
   const cache: Record<string, string> = existsSync(cachePath) ? JSON.parse(readFileSync(cachePath, 'utf8')) : {};
   const chosen = rng.sample(questions, Math.min(paraphraseBudget, questions.length));
@@ -129,22 +142,35 @@ async function main() {
     return at >= 0 && argv[at + 1] !== undefined ? argv[at + 1]! : fallback;
   };
   const worlds = Number(flag('--worlds', '250'));
+  const reworded = Number(flag('--reworded', '0'));
+  const adversarial = Number(flag('--adversarial', '0'));
   const paraphraseBudget = Number(flag('--paraphrase', '3000'));
   const out = flag('--out', 'data/compose-engine');
   const rng = new Rng(20260924);
   const client = new OpenRouterClient({ model: 'deepseek-chat', apiKey: process.env.DEEPSEEK_API_KEY ?? '', baseUrl: 'https://api.deepseek.com/v1', temperature: 0.7 });
 
-  const trainSeeds = Array.from({ length: worlds }, (_u, i) => 10_000 + i);
-  const heldSeeds = Array.from({ length: 12 }, (_u, i) => 20_000 + i);
+  // template worlds, then reworded worlds, then adversarial worlds (half of those reworded too)
+  const trainWorlds: WorldSpec[] = [
+    ...Array.from({ length: worlds }, (_u, i) => ({ seed: 10_000 + i })),
+    ...Array.from({ length: reworded }, (_u, i) => ({ seed: 11_000 + i, reworded: true })),
+    ...Array.from({ length: adversarial }, (_u, i) => ({ seed: 12_000 + i, adversarial: true, reworded: i % 2 === 0 })),
+  ];
+  const heldWorlds: WorldSpec[] = [
+    ...Array.from({ length: 8 }, (_u, i) => ({ seed: 20_000 + i })),
+    ...(reworded > 0 ? Array.from({ length: 4 }, (_u, i) => ({ seed: 21_000 + i, reworded: true })) : []),
+    ...(adversarial > 0 ? Array.from({ length: 4 }, (_u, i) => ({ seed: 22_000 + i, adversarial: true, reworded: i % 2 === 0 })) : []),
+  ];
+  const rewriter = new LineRewriter(new OpenRouterClient({ model: 'deepseek-chat', apiKey: process.env.DEEPSEEK_API_KEY ?? '', baseUrl: 'https://api.deepseek.com/v1', temperature: 0.7 }));
   // filler documents of the train and dev splits only; test filler stays unseen
   const train = [
-    ...extractionRows('train', trainSeeds, ['doc_000175', 'doc_000029', 'doc_000160', 'doc_000156', 'doc_000251'], rng),
-    ...(await plannerRows('train', trainSeeds, paraphraseBudget, rng, client)),
+    ...extractionRows(await renderAll('train', trainWorlds, rewriter), ['doc_000175', 'doc_000029', 'doc_000160', 'doc_000156', 'doc_000251'], rng),
+    ...(await plannerRows('train', trainWorlds, paraphraseBudget, rng, client)),
   ];
   const held = [
-    ...extractionRows('dev', heldSeeds, ['doc_000150', 'doc_000324'], rng),
-    ...(await plannerRows('dev', heldSeeds, 150, rng, client)),
+    ...extractionRows(await renderAll('dev', heldWorlds, rewriter), ['doc_000150', 'doc_000324'], rng),
+    ...(await plannerRows('dev', heldWorlds, 150, rng, client)),
   ];
+  console.log(`reworded lines: ${rewriter.stats.kept} kept, ${rewriter.stats.rejected} rejected`);
   mkdirSync(out, { recursive: true });
   writeFileSync(`${out}/conversations.jsonl`, `${rng.shuffle(train).map((r) => JSON.stringify(r)).join('\n')}\n`);
   writeFileSync(`${out}/heldout.jsonl`, `${held.map((r) => JSON.stringify(r)).join('\n')}\n`);

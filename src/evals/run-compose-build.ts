@@ -8,8 +8,8 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { OpenRouterClient } from '../llm/client.js';
-import { LINE_PARAPHRASE_PROMPT, PARAPHRASE_PROMPT, paraphraseProblem } from '../compose/paraphrase.js';
-import { unsupportedReason } from '../compose/extract.js';
+import { PARAPHRASE_PROMPT, paraphraseProblem } from '../compose/paraphrase.js';
+import { LineRewriter } from '../compose/reword.js';
 import type { Section } from '../compose/render.js';
 import { mapConcurrent } from './map-concurrent.js';
 import { pagesFromTextFile } from './document-corpus.js';
@@ -46,50 +46,6 @@ async function main() {
   const nameAt = process.argv.indexOf('--name');
   const seeds = seedsAt >= 0 ? process.argv[seedsAt + 1]!.split(',').map(Number) : SEEDS[split];
   const outDir = `benchmarks/compose/${nameAt >= 0 ? process.argv[nameAt + 1] : `${split}${v3 ? '-v3' : v2 ? '-v2' : v1 ? '-v1' : ''}`}`;
-  const lineCachePath = '.cache/compose/line-paraphrase.deepseek.json';
-  const lineCache: Record<string, string> = existsSync(lineCachePath) ? JSON.parse(readFileSync(lineCachePath, 'utf8')) : {};
-  let linesKept = 0;
-  let linesRejected = 0;
-  /**
-   * v2: rewrite each prose line; keep a rewrite only if every fact of the line is still stated on
-   * that one line (the same check extraction faces), so the gold answers stay certain.
-   */
-  const reword = async (sections: Section[]): Promise<Section[]> => {
-    if (!v2) return sections;
-    const prose = new Set(['Board minutes', 'Contract amendments', 'Supplier sites']);
-    const lines = sections.filter((s) => prose.has(s.document)).flatMap((s) => s.lines).filter((l) => (l.facts ?? []).length > 0 || l.keys.length === 0);
-    await mapConcurrent(lines.filter((l) => lineCache[l.text] === undefined), 16, async (line) => {
-      try {
-        const reply = await client.completeWithUsage([
-          { role: 'system', content: LINE_PARAPHRASE_PROMPT },
-          { role: 'user', content: line.text },
-        ]);
-        lineCache[line.text] = reply.content.trim().split('\n')[0]!.trim();
-      } catch {
-        // an unreachable rewrite leaves the original line
-      }
-    });
-    mkdirSync('.cache/compose', { recursive: true });
-    writeFileSync(lineCachePath, JSON.stringify(lineCache, null, 1));
-    return sections.map((section) => {
-      if (!prose.has(section.document)) return section;
-      return {
-        ...section,
-        lines: section.lines.map((line) => {
-          const candidate = lineCache[line.text];
-          if (candidate === undefined || candidate === '') return line;
-          const heading = `${section.heading}\n${candidate}`;
-          const faithful = (line.facts ?? []).every((fact) => unsupportedReason(fact, heading) === undefined);
-          if (!faithful) {
-            linesRejected += 1;
-            return line;
-          }
-          linesKept += 1;
-          return { ...line, text: candidate };
-        }),
-      };
-    });
-  };
   const paraphraseCachePath = '.cache/compose/paraphrase.deepseek.json';
   const paraphrases: Record<string, string> = existsSync(paraphraseCachePath) ? JSON.parse(readFileSync(paraphraseCachePath, 'utf8')) : {};
   const client = new OpenRouterClient({
@@ -100,6 +56,13 @@ async function main() {
   });
   let kept = 0;
   let rejected = 0;
+  const rewriter = new LineRewriter(client);
+  /** v2: prose lines reworded; a rewrite is kept only if every fact of the line survives on it. */
+  const reword = async (sections: Section[]): Promise<Section[]> => {
+    if (!v2) return sections;
+    await rewriter.prepare([sections]);
+    return rewriter.apply(sections);
+  };
   const cacheDir = '.cache/compose';
   mkdirSync(outDir, { recursive: true });
   mkdirSync(cacheDir, { recursive: true });
@@ -195,7 +158,7 @@ async function main() {
     }
   }
   if (v1) console.log(`paraphrases: ${kept} kept, ${rejected} rejected (original question used)`);
-  if (v2) console.log(`reworded lines: ${linesKept} kept, ${linesRejected} rejected (original line used)`);
+  if (v2) console.log(`reworded lines: ${rewriter.stats.kept} kept, ${rewriter.stats.rejected} rejected (original line used)`);
   writeFileSync(
     `${outDir}/spec.json`,
     `${JSON.stringify({ name: `compose-${split}${v3 ? '-v3' : v2 ? '-v2' : v1 ? '-v1' : ''}`, labels: 'Compose: generated worlds, gold computed by the Datalog engine', tiers, sources }, null, 1)}\n`,
