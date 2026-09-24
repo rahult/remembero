@@ -89,3 +89,9 @@ python benchmarks/runpod/volume.py put data/compose-engine-r2/heldout.jsonl data
 python benchmarks/runpod/pod.py create-train --run compose-engine-e2b-r2 --base-model google/gemma-4-E2B-it \
   --gpu "NVIDIA H200" --cloud SECURE --max-length 4096 --batch-size 16 --grad-accum 4 --max-hours 3
 ```
+
+Round 2: 88 minutes, $7.21, held-out loss 0.00089 (r1: 0.00098). On the v3 holdout it gives the
+same answers as r1 — 100 of 101 right, the same one aggregate declined, 0% confidently wrong —
+with cleaner extraction: one more truth fact recovered on world 108, invented facts 27 → 22
+there, nothing dropped by the type check. The ~7% of facts invented on filler pages is unmoved;
+the page check still carries the certainty.

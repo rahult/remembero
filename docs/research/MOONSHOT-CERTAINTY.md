@@ -341,6 +341,15 @@ Identical at 100 and 500 pages. The 100-page runs were on the Mac (llama.cpp, Q8
 the 500 and 1000-page pages were extracted by the same weights under vLLM on a rented H100 (about
 12 minutes, ~$1). Same questions through a reader: deepseek 72% right and 9% confidently wrong.
 
+**Round 2** (`compose-engine-e2b-r2`, 2026-09-24) retrained on the prose it would actually meet:
+34,265 rows from 430 worlds — 250 template + 120 reworded + 60 adversarial (namesakes and
+deferrals; every second reworded too) — 88 minutes on an H200, $7.21, held-out loss 0.00089. On
+the v3 holdout (reworded documents, namesakes, deferrals; 101 questions, 100 pages) it gives the
+same answers as round 1: 100 right, the same one aggregate properly declined, 0% confidently
+wrong. Extraction is a touch cleaner — one more truth fact recovered on world 108 (130 of 131),
+invented facts 27 → 22 there, and nothing dropped by the type check (7–8 before) — but the ~7%
+of facts invented on filler pages is unmoved. The page check, not the model, still carries the
+certainty; shrinking that residual is an open problem.
 What the numbers say:
 - **The small model invents facts on filler pages** — 22 to 68 per 1000-page haystack — and the
   page check (every argument on one line of the page) drops every one. The certainty is carried by

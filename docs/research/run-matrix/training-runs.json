@@ -508,7 +508,7 @@
       "heldoutLoss": 0.00089,
       "queryAlias": null,
       "extractionAlias": null,
-      "notes": "round 2 teaches the reworded prose and v3 adversarial cases the first model never saw; r1 comparison on the v3 holdout pending this bench"
+      "notes": "round 2 teaches the reworded prose and v3 adversarial cases the first model never saw. v3 holdout (101 questions, 100p): same answers as r1 — 100 right, the same declined aggregate, 0% confidently wrong; extraction a touch cleaner (recall 130/131 on world 108 vs 129, invented facts 27 -> 22, zero type-check drops vs 7-8). The ~7% invented on filler pages is unmoved; the page check carries the certainty"
     }
   ]
 }
