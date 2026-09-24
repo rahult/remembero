@@ -110,6 +110,27 @@ describe('admission gate', () => {
     expect(parseDateArg('12/29/2026')).toBe('2026-12-29');
     expect(normalizeText('Ticket TCK-1042, opened 2026-12-24')).toContain('tck-1042');
   });
+
+  it('canonicalizes the datetime forms local models actually emit', () => {
+    expect(parseDateArg('2026-12-29 10:00 UTC')).toBe('2026-12-29T10:00:00Z');
+    expect(parseDateArg('December 29, 2026 at 11:30 AM')).toBe('2026-12-29T11:30:00Z');
+    expect(parseDateArg('December 29, 2026 at 2:05 PM')).toBe('2026-12-29T14:05:00Z');
+  });
+
+  it('accepts a sensor that answers with a JSON array (llama house style), gated as always', async () => {
+    const { extractClaims } = await import('../src/support/extract.js');
+    const fake = {
+      completeWithUsage: async () => ({
+        content: '[\n  {"predicate": "first_response", "args": ["TCK-1042", "2026-12-29 10:00 UTC"], "quote": "First response on TCK-1042: 2026-12-29 10:00 UTC"},\n  {"predicate": "priority", "args": ["TCK-1042", "p2"], "quote": "priority: p1"}\n]',
+      }),
+    };
+    const report = await extractClaims(fake as never, caseSources());
+    // the same reply hits every span; only the spans that actually state the fact admit it
+    expect(report.admitted.filter((c) => c.predicate === 'first_response').length).toBeGreaterThanOrEqual(1);
+    // every p2 claim cites a span that says p1 or nothing: the gate rejects each one
+    expect(report.rejectedCount).toBeGreaterThanOrEqual(1);
+    expect(report.rejections.every((r) => r.reason.includes('not stated on span') || r.reason.includes('unknown predicate'))).toBe(true);
+  });
 });
 
 describe('engine — the worked example', () => {

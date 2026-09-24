@@ -289,8 +289,11 @@ async function main() {
 
   let extractNote = 'harvest (deterministic, $0)';
   if (useExtract) {
-    const apiKey = process.env.OPENROUTER_API_KEY ?? process.env.LLM_API_KEY ?? '';
-    const client = new OpenRouterClient({ model: 'deepseek/deepseek-chat', apiKey, baseUrl: process.env.LLM_BASE_URL ?? 'https://openrouter.ai/api/v1', temperature: 0 });
+    const useOllama = argv.includes('--ollama');
+    const modelName = at('--model', useOllama ? 'llama3.1:8b' : 'deepseek/deepseek-chat');
+    const client = useOllama
+      ? new OpenRouterClient({ model: modelName, apiKey: 'ollama', baseUrl: at('--base-url', 'http://127.0.0.1:11434/v1'), temperature: 0 })
+      : new OpenRouterClient({ model: modelName, apiKey: process.env.OPENROUTER_API_KEY ?? process.env.LLM_API_KEY ?? '', baseUrl: process.env.LLM_BASE_URL ?? 'https://openrouter.ai/api/v1', temperature: 0 });
     let match = 0;
     let admittedTotal = 0;
     let rejectedTotal = 0;
@@ -307,13 +310,14 @@ async function main() {
       rejections.push(...extraction.rejections);
       const goldSources = caseSources(f, false);
       const gold = decide('sla_credits', { ticket: f.ticket }, [...pack.claims, ...admitAll(baseClaimInputs(f), goldSources).admitted], { packId: pack.id, packVersion: pack.version, decidedAt: DECIDED_AT });
-      const proof = decide('sla_credits', { ticket: f.ticket }, [...pack.claims, ...extraction.admitted], { packId: pack.id, packVersion: pack.version, decidedAt: DECIDED_AT });
+      const fieldClaims = admitAll(claimsFromTicket(renderTidy(f).ticket), sources).admitted;
+      const proof = decide('sla_credits', { ticket: f.ticket }, [...pack.claims, ...fieldClaims, ...extraction.admitted], { packId: pack.id, packVersion: pack.version, decidedAt: DECIDED_AT });
       if (proof.verdict === gold.verdict) match += 1;
     }
     arms.push({ arm: 'llm-extract', cases: cases.length, match, failures: [], gate: { admitted: admittedTotal, rejected: rejectedTotal } });
     extractNote = failedSpans > 0
-      ? `deepseek behind the gate: EXTRACTION FAILED on ${failedSpans} spans (last error: ${lastError ?? 'unknown'}) — no live sensor verdict`
-      : `deepseek behind the gate: ${rejectedTotal} of ${admittedTotal + rejectedTotal} candidate claims rejected`;
+      ? `${modelName} behind the gate: EXTRACTION FAILED on ${failedSpans} spans (last error: ${lastError ?? 'unknown'}) — no live sensor verdict`
+      : `${modelName} behind the gate: ${rejectedTotal} of ${admittedTotal + rejectedTotal} candidate claims rejected`;
   }
 
   const report = {

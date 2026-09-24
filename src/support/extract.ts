@@ -13,6 +13,14 @@ import type { OpenRouterClient } from '../llm/client.js';
 import { PREDICATES, admitAll, type ClaimInput } from './claims.js';
 import type { Source, TicketInput } from './sources.js';
 
+function tryParse(text: string): { predicate?: string; args?: (string | number)[]; quote?: string } | Array<{ predicate?: string; args?: (string | number)[] }> | undefined {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+}
+
 const FIELD_PREDICATES: Record<string, string> = {
   opened: 'opened',
   first_response: 'first_response',
@@ -54,6 +62,12 @@ For the span you are given, output one JSON object per line, no prose, no code f
 Argument types: id and word are lowercase strings; date is YYYY-MM-DD (or full ISO timestamp); money, minutes, hours and percent are numbers.
 Every argument must be stated in the span itself. If a value is not literally on the span, do not invent it. Output nothing if the span states none of the predicates.
 
+Example — span:
+Ticket TCK-9001 opened 2026-01-05 09:00 UTC. First response on TCK-9001: 2026-01-05 14:30 UTC by the on-call engineer.
+Output:
+{"predicate": "opened", "args": ["tck-9001", "2026-01-05T09:00:00Z"], "quote": "Ticket TCK-9001 opened 2026-01-05 09:00 UTC"}
+{"predicate": "first_response", "args": ["tck-9001", "2026-01-05T14:30:00Z"], "quote": "First response on TCK-9001: 2026-01-05 14:30 UTC"}
+
 Schema:
 ${registry}`;
 }
@@ -87,24 +101,32 @@ export async function extractClaims(
         { role: 'system', content: extractionPrompt() },
         { role: 'user', content: `source ${span.sourceId} span ${span.spanId}${span.actor ? ` (actor ${span.actor})` : ''}${span.at ? ` at ${span.at}` : ''}:\n\n${span.text}` },
       ]);
-      for (const line of reply.content.split('\n')) {
-        const trimmed = line.trim().replace(/^,/, '');
-        if (!trimmed.startsWith('{')) continue;
-        try {
-          const parsed = JSON.parse(trimmed) as { predicate?: string; args?: (string | number)[]; quote?: string };
-          if (!parsed.predicate || !Array.isArray(parsed.args)) continue;
-          inputs.push({
-            scope: 'case',
-            predicate: parsed.predicate,
-            args: parsed.args,
-            sourceId: span.sourceId,
-            spanId: span.spanId,
-            trust: 'model',
-            at: span.at,
-          });
-        } catch {
-          // a malformed line is not a claim; it is noise the gate never sees
+      // models differ in house style: a JSON array (llama), a bare object, or one object per
+      // line (deepseek). Accept all three; anything else is noise the gate never sees.
+      const content = reply.content.trim();
+      const parsedObjects: Array<{ predicate?: string; args?: (string | number)[]; quote?: string }> = [];
+      const whole = content.startsWith('[') || content.startsWith('{') ? tryParse(content) : undefined;
+      if (Array.isArray(whole)) parsedObjects.push(...whole);
+      else if (whole !== undefined && typeof whole === 'object') parsedObjects.push(whole);
+      else {
+        for (const line of content.split('\n')) {
+          const trimmed = line.trim().replace(/^,/, '');
+          if (!trimmed.startsWith('{')) continue;
+          const parsed = tryParse(trimmed);
+          if (parsed !== undefined && !Array.isArray(parsed) && typeof parsed === 'object') parsedObjects.push(parsed);
         }
+      }
+      for (const parsed of parsedObjects) {
+        if (!parsed.predicate || !Array.isArray(parsed.args)) continue;
+        inputs.push({
+          scope: 'case',
+          predicate: parsed.predicate,
+          args: parsed.args,
+          sourceId: span.sourceId,
+          spanId: span.spanId,
+          trust: 'model',
+          at: span.at,
+        });
       }
     } catch (error) {
       // an unreachable span is an extraction gap the run reports, never hides

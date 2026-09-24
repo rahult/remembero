@@ -54,10 +54,13 @@ async function main() {
 
   const inputs = claimsFromTicket(file.ticket);
   if (extract) {
-    const apiKey = process.env.OPENROUTER_API_KEY ?? process.env.LLM_API_KEY ?? '';
-    const client = new OpenRouterClient({ model: 'deepseek/deepseek-chat', apiKey, baseUrl: process.env.LLM_BASE_URL ?? 'https://openrouter.ai/api/v1', temperature: 0 });
+    const useOllama = argv.includes('--ollama');
+    const modelName = at('--model') ?? (useOllama ? 'llama3.1:8b' : 'deepseek/deepseek-chat');
+    const client = useOllama
+      ? new OpenRouterClient({ model: modelName, apiKey: 'ollama', baseUrl: at('--base-url') ?? 'http://127.0.0.1:11434/v1', temperature: 0 })
+      : new OpenRouterClient({ model: modelName, apiKey: process.env.OPENROUTER_API_KEY ?? process.env.LLM_API_KEY ?? '', baseUrl: process.env.LLM_BASE_URL ?? 'https://openrouter.ai/api/v1', temperature: 0 });
     const extraction = await extractClaims(client, sources);
-    console.error(`gate: ${extraction.admittedCount} admitted, ${extraction.rejectedCount} rejected`);
+    console.error(`gate: ${extraction.admittedCount} admitted, ${extraction.rejectedCount} rejected${extraction.failedSpans ? `, ${extraction.failedSpans} SPANS FAILED (${extraction.lastError ?? 'unknown'})` : ''}`);
     for (const r of extraction.rejections) console.error(`  rejected ${r.predicate}: ${r.reason}`);
   }
   const report = admitAll(inputs, sources);

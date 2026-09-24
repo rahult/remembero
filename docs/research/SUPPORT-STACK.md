@@ -77,14 +77,22 @@ cases (results/support-gold.json):
 | chat-noisy | 40/40 | surface-noise robustness: 0 proof flips vs the clean rendering |
 | info-loss-response | 40/40 | a deleted fact -> Unknown, never a confident answer |
 | info-loss-tier | 40/40 | the missing tier -> Unknown with the reason |
+| llm-extract (llama3.1:8b, local) | 40/40 | a local 8B sensor behind the gate: **same verdicts as the deterministic path, $0 API** |
 
 Pack coverage review flagged 2 unconsumed SOP lines (the follow-the-sun calendar and the
 credit-timing clause) — both genuinely unmodeled, exactly what the reviewer should see.
 
 `--extract` swaps the deterministic harvest for the LLM sensor behind the gate and reports the
-admit/reject ledger plus `failedSpans` — extraction failures are surfaced, never silent. (The
-first live run is blocked on the OpenRouter key's monthly cap; the seam is identical to the
-harvest path, which the gate exercises end to end.)
+admit/reject ledger plus `failedSpans` — extraction failures are surfaced, never silent. The
+first live sensor run (`--ollama`, llama3.1:8b, results/support-gold-ollama-llama31-8b.json)
+puts the exit thesis on real numbers: **175 candidate claims, the gate rejected 40 (23%) —
+invented predicates, misformatted dates, arguments not on the span — and the 135 that passed
+produce the same 40/40 verdicts as the hand-built fact base.** The same day, the demo case
+decided through Ollama returns the identical credit (25% of 1200 = 300) with honest provenance:
+verdict, summary and computation equal to the deterministic run, the sensor's own rejections
+kept in the ledger. What the gate cannot yet do is fix under-extraction — llama missed
+`opened` in prose until prompted with an example, so the one-shot prompt now carries one;
+recall on messy real text stays the measurement the gate challenge set exists for.
 
 ## Tests
 

@@ -1,0 +1,84 @@
+{
+ "ranAt": "2026-09-24T23:30:05.408Z",
+ "seed": 20260924,
+ "shape": "sla_credits",
+ "pack": {
+  "id": "acme-sla",
+  "version": "1.2",
+  "claims": 18,
+  "unconsumedLines": [
+   {
+    "spanId": "p002",
+    "text": "SOP-SLA-7, version 1.2. This document governs first-response commitments and service"
+   },
+   {
+    "spanId": "p015",
+    "text": "Customers on the follow-the-sun calendar are covered by their contract appendix, not this section."
+   }
+  ]
+ },
+ "noiseFlips": 0,
+ "extractNote": "llama3.1:8b behind the gate: 40 of 175 candidate claims rejected",
+ "arms": [
+  {
+   "arm": "tidy-ticket",
+   "cases": 40,
+   "match": 40,
+   "failures": [],
+   "gate": {
+    "admitted": 240,
+    "rejected": 0
+   }
+  },
+  {
+   "arm": "chat-transcript",
+   "cases": 40,
+   "match": 40,
+   "failures": [],
+   "gate": {
+    "admitted": 280,
+    "rejected": 0
+   }
+  },
+  {
+   "arm": "chat-noisy",
+   "cases": 40,
+   "match": 40,
+   "failures": [],
+   "gate": {
+    "admitted": 280,
+    "rejected": 0
+   }
+  },
+  {
+   "arm": "info-loss-response",
+   "cases": 40,
+   "match": 40,
+   "failures": [],
+   "gate": {
+    "admitted": 200,
+    "rejected": 0
+   }
+  },
+  {
+   "arm": "info-loss-tier",
+   "cases": 40,
+   "match": 40,
+   "failures": [],
+   "gate": {
+    "admitted": 200,
+    "rejected": 0
+   }
+  },
+  {
+   "arm": "llm-extract",
+   "cases": 40,
+   "match": 40,
+   "failures": [],
+   "gate": {
+    "admitted": 135,
+    "rejected": 40
+   }
+  }
+ ]
+}

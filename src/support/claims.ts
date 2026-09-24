@@ -100,15 +100,25 @@ const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 
 export function parseDateArg(value: string): string | undefined {
   const v = value.trim();
   if (/^\d{4}-\d{2}-\d{2}(T[\d:.]+(Z|[+-]\d{2}:?\d{2})?)?$/.test(v)) return v;
+  const datetime = v.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*(?:UTC|GMT))?$/i);
+  if (datetime) {
+    const [, d, h, mi, s] = datetime;
+    return `${d}T${h!.padStart(2, '0')}:${mi}:${s ?? '00'}Z`;
+  }
   const m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (m) {
     const [, a, b, y] = m;
     return `${y}-${a!.padStart(2, '0')}-${b!.padStart(2, '0')}`;
   }
-  const named = v.match(/^([a-z]+)\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})$/i);
+  const named = v.match(/^([a-z]+)\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})(?:\s+at\s+(\d{1,2}):(\d{2})\s*(am|pm))?$/i);
   if (named) {
     const month = MONTHS.findIndex((mo) => mo.startsWith(named[1]!.toLowerCase()));
-    if (month >= 0) return `${named[3]}-${String(month + 1).padStart(2, '0')}-${named[2]!.padStart(2, '0')}`;
+    if (month >= 0) {
+      const date = `${named[3]}-${String(month + 1).padStart(2, '0')}-${named[2]!.padStart(2, '0')}`;
+      if (named[4] === undefined) return date;
+      const hour = (Number(named[4]) % 12) + (named[6]!.toLowerCase() === 'pm' ? 12 : 0);
+      return `${date}T${String(hour).padStart(2, '0')}:${named[5]}:00Z`;
+    }
   }
   return undefined;
 }
