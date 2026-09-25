@@ -1,0 +1,146 @@
+{
+ "ranAt": "2026-09-24T00:00:00Z",
+ "family": "sla",
+ "cases": 60,
+ "decided": 59,
+ "rejected": 1,
+ "money": {
+  "recoveryUsd": 1088.5,
+  "leakageUsd": 210
+ },
+ "agreement": {
+  "agree-deny": 13,
+  "agree-allow": 31,
+  "LEAKAGE": 4,
+  "amount-mismatch": 5,
+  "RECOVERY": 6,
+  "agree-escalate": 1
+ },
+ "disputes": [
+  {
+   "ticket": "TCK-10003",
+   "category": "LEAKAGE",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10003 was answered within the clock (120 of 120 business minutes).",
+   "recorded": "granted $40",
+   "amount": 40
+  },
+  {
+   "ticket": "TCK-10009",
+   "category": "amount-mismatch",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10009 breached by 200 business minutes.",
+   "recorded": "granted $80"
+  },
+  {
+   "ticket": "TCK-10012",
+   "category": "RECOVERY",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10012 breached by 90 business minutes.",
+   "recorded": "none",
+   "amount": 40
+  },
+  {
+   "ticket": "TCK-10018",
+   "category": "amount-mismatch",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 400/mo fee (200): ticket tck-10018 breached by 510 business minutes.",
+   "recorded": "granted $400"
+  },
+  {
+   "ticket": "TCK-10021",
+   "category": "amount-mismatch",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10021 breached by 90 business minutes.",
+   "recorded": "granted $80"
+  },
+  {
+   "ticket": "TCK-10022",
+   "category": "LEAKAGE",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "recorded": "granted $40",
+   "amount": 40
+  },
+  {
+   "ticket": "TCK-10023",
+   "category": "RECOVERY",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10023 breached by 510 business minutes.",
+   "recorded": "none",
+   "amount": 49.5
+  },
+  {
+   "ticket": "TCK-10028",
+   "category": "LEAKAGE",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10028 was answered within the clock (240 of 240 business minutes).",
+   "recorded": "granted $120",
+   "amount": 120
+  },
+  {
+   "ticket": "TCK-10032",
+   "category": "RECOVERY",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10032 breached by 700 business minutes.",
+   "recorded": "none",
+   "amount": 49.5
+  },
+  {
+   "ticket": "TCK-10034",
+   "category": "amount-mismatch",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10034 breached by 300 business minutes.",
+   "recorded": "granted $200"
+  },
+  {
+   "ticket": "TCK-10035",
+   "category": "amount-mismatch",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10035 breached by 400 business minutes.",
+   "recorded": "granted $200"
+  },
+  {
+   "ticket": "TCK-10044",
+   "category": "LEAKAGE",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "recorded": "granted $10",
+   "amount": 10
+  },
+  {
+   "ticket": "TCK-10046",
+   "category": "RECOVERY",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10046 breached by 510 business minutes.",
+   "recorded": "none",
+   "amount": 49.5
+  },
+  {
+   "ticket": "TCK-10054",
+   "category": "agree-escalate",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "recorded": "escalated"
+  },
+  {
+   "ticket": "TCK-10056",
+   "category": "RECOVERY",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10056 breached by 400 business minutes.",
+   "recorded": "none",
+   "amount": 300
+  },
+  {
+   "ticket": "TCK-10057",
+   "category": "RECOVERY",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 1200/mo fee (600): ticket tck-10057 breached by 510 business minutes.",
+   "recorded": "none",
+   "amount": 600
+  }
+ ],
+ "unknownReasons": {
+  "the ticket has no first response yet — the clock is still running, so the breach": 1
+ }
+}

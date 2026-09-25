@@ -144,17 +144,38 @@ resellers) is deliberately unmodeled — the coverage review flags all of it. Go
 across tidy / chat / noisy renderings, 0 noise flips, deleted item-state -> Unknown
 (`npm run support:gold -- --family refund`).
 
-## The surface: MCP (2026-09-25)
+## The surfaces: MCP and HTTP (2026-09-25)
 
-`npm run support:mcp` — stdio JSON-RPC, no dependencies: `decide` (question -> proof,
-appended to the verdict store), `check_claim` (the gate, exposed as a tool), `pack_coverage`
-(the unmodeled-clause review). Wired into any MCP client, the stack is usable in projects:
-"check the SLA on this ticket" returns a proof, not a guess.
+Both servers frame the SAME three handlers (`src/support/tools.ts`), so they cannot drift:
+`decide` (question -> proof, appended to the verdict store), `check_claim` (the gate, exposed
+as a tool), `pack_coverage` (the unmodeled-clause review).
+
+- `npm run support:mcp` — stdio JSON-RPC for agent tooling. Locked in by a smoke test that
+  spawns the server and decides the demo case through the protocol.
+- `npm run support:http` — plain JSON over node:http for help-desk webhooks:
+  `GET /health`, `POST /decide`, `POST /check_claim`, `GET /pack_coverage?pack=`. A webhook
+  posts the ticket plus "is a credit due for TCK-1042" and gets the proof back.
+
+## Phase 4: the end-to-end loop (2026-09-25)
+
+`npm run support:pipeline` — export in, decisions and the disputes report out:
+
+    npm run support:pipeline -- --export <export.jsonl>        # a real or synthesized export
+    npm run support:pipeline -- --synthesize 60 --write-export benchmarks/support/sample-export.jsonl
+
+The export is the adapter seam a real CSV/Zendesk/Intercom converter targets — one JSON object
+per line: `{ticket, chat?, recorded?}` where `recorded` is what the help desk actually did.
+The pipeline decides every case (plan -> gate -> engine), appends every verdict to the
+append-only store, and writes the report a team reads weekly. On the committed 60-case sample
+export (engine-generated truth, human error injected): **59 proved, 1 Unknown, $1,088 RECOVERY
+(due but never issued), $210 LEAKAGE (issued but not due), 31+13 agreements, 5 amount
+mismatches** — every dispute row names the ticket and quotes the proof summary. A real export
+replaces the file; none of this code changes.
 
 ## Still out of scope (the cut list, updated)
 
 2B distillation (measure a second model by swapping — demonstrated twice now: r1->r2 on
 compose, deepseek->llama3.1:8b here), ASP/s(CASP) enumeration (parked until a pilot asks),
 PROV-O projection (the append-only store is its source; build when an audit tool needs it),
-non-UTC calendars, and the gate challenge on REAL support text — the measurement that still
-needs a lighthouse's tickets, now with a harness waiting for them.
+non-UTC calendars, and the gate challenge + audit on REAL support text — both harnesses are
+waiting on the one thing only a lighthouse can provide: an export.
