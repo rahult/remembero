@@ -1,0 +1,1648 @@
+{
+ "ranAt": "2026-09-25T02:37:00.455Z",
+ "seed": 20260924,
+ "cases": 200,
+ "pack": {
+  "id": "acme-sla",
+  "version": "1.2"
+ },
+ "money": {
+  "recoveryUsd": 2902.55,
+  "leakageUsd": 120,
+  "note": "synthetic history: error rates are assumptions (12% missed credits, 6% over-granted, 10% goodwill grants); the report format is the deliverable — real exports drop in unchanged"
+ },
+ "agreement": {
+  "allow": 106,
+  "deny": 48,
+  "escalated": 21,
+  "amountMismatches": 4
+ },
+ "categories": [
+  {
+   "category": "agree-allow",
+   "cases": 106
+  },
+  {
+   "category": "agree-deny",
+   "cases": 48
+  },
+  {
+   "category": "agree-escalate",
+   "cases": 21
+  },
+  {
+   "category": "RECOVERY",
+   "cases": 20
+  },
+  {
+   "category": "amount-mismatch",
+   "cases": 4
+  },
+  {
+   "category": "LEAKAGE",
+   "cases": 1
+  }
+ ],
+ "rows": [
+  {
+   "ticket": "TCK-10000",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10001",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 1200/mo fee (600): ticket tck-10001 breached by 700 business minutes.",
+   "action": "granted $600",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10002",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10002 breached by 90 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10003",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10003 was answered within the clock (120 of 120 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10004",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 400/mo fee (200): ticket tck-10004 breached by 700 business minutes.",
+   "action": "granted $200",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10005",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10005 breached by 300 business minutes.",
+   "action": "granted $600",
+   "category": "amount-mismatch",
+   "delta": 300
+  },
+  {
+   "ticket": "TCK-10006",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 99/mo fee (9.9): ticket tck-10006 breached by 90 business minutes.",
+   "action": "granted $9.9",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10007",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10007 breached by 400 business minutes.",
+   "action": "granted $300",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10008",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10008 breached by 300 business minutes.",
+   "action": "granted $100",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10009",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10009 breached by 200 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10010",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10010 was answered within the clock (120 of 120 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10011",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10011 breached by 300 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10012",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10012 breached by 90 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10013",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10013 was answered within the clock (480 of 480 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10014",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10014 breached by 700 business minutes.",
+   "action": "granted $49.5",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10015",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10016",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 99/mo fee (9.9): ticket tck-10016 breached by 200 business minutes.",
+   "action": "granted $9.9",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10017",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10018",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 400/mo fee (200): ticket tck-10018 breached by 510 business minutes.",
+   "action": "granted $200",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10019",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 400/mo fee (200): ticket tck-10019 breached by 510 business minutes.",
+   "action": "granted $200",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10020",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10020 breached by 200 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10021",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10021 breached by 90 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10022",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10023",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10023 breached by 510 business minutes.",
+   "action": "granted $49.5",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10024",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10024 was answered within the clock (1440 of 1440 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10025",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10025 breached by 700 business minutes.",
+   "action": "granted $49.5",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10026",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 1200/mo fee (600): ticket tck-10026 breached by 700 business minutes.",
+   "action": "granted $600",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10027",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 99/mo fee (9.9): ticket tck-10027 breached by 90 business minutes.",
+   "action": "granted $19.8",
+   "category": "amount-mismatch",
+   "delta": 9.9
+  },
+  {
+   "ticket": "TCK-10028",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10028 was answered within the clock (240 of 240 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10029",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10029 was answered within the clock (480 of 480 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10030",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10030 breached by 700 business minutes.",
+   "action": "granted $49.5",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10031",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10031 breached by 90 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10032",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10032 breached by 700 business minutes.",
+   "action": "granted $49.5",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10033",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10034",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10034 breached by 300 business minutes.",
+   "action": "granted $100",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10035",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10035 breached by 400 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10036",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10036 breached by 200 business minutes.",
+   "action": "granted $120",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10037",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10037 was answered within the clock (240 of 240 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10038",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10038 breached by 90 business minutes.",
+   "action": "granted $120",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10039",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10039 was answered within the clock (480 of 480 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10040",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10040 was answered within the clock (480 of 480 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10041",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10041 breached by 200 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10042",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10042 breached by 90 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10043",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10043 breached by 200 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10044",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10045",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10046",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10046 breached by 510 business minutes.",
+   "action": "granted $49.5",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10047",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10048",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10048 breached by 200 business minutes.",
+   "action": "granted $120",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10049",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 99/mo fee (9.9): ticket tck-10049 breached by 90 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10050",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10050 breached by 300 business minutes.",
+   "action": "granted $100",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10051",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10051 breached by 90 business minutes.",
+   "action": "granted $120",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10052",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 400/mo fee (200): ticket tck-10052 breached by 700 business minutes.",
+   "action": "granted $200",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10053",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10053 breached by 200 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10054",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10055",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10055 breached by 200 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10056",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10056 breached by 400 business minutes.",
+   "action": "granted $300",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10057",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 1200/mo fee (600): ticket tck-10057 breached by 510 business minutes.",
+   "action": "granted $600",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10058",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10058 breached by 400 business minutes.",
+   "action": "granted $300",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10059",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10059 breached by 300 business minutes.",
+   "action": "granted $100",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10060",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10060 breached by 90 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10061",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10062",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10062 breached by 300 business minutes.",
+   "action": "granted $300",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10063",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10063 was answered within the clock (1440 of 1440 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10064",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10065",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10066",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10067",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10067 was answered within the clock (360 of 360 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10068",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10068 breached by 300 business minutes.",
+   "action": "granted $100",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10069",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 99/mo fee (24.75): ticket tck-10069 breached by 300 business minutes.",
+   "action": "granted $24.75",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10070",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10070 breached by 200 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10071",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10072",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 1200/mo fee (600): ticket tck-10072 breached by 510 business minutes.",
+   "action": "granted $600",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10073",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10073 breached by 200 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10074",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10074 was answered within the clock (360 of 360 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10075",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10076",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10076 was answered within the clock (1440 of 1440 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10077",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10078",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10079",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 99/mo fee (24.75): ticket tck-10079 breached by 300 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10080",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10081",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 1200/mo fee (600): ticket tck-10081 breached by 700 business minutes.",
+   "action": "granted $600",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10082",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10082 breached by 400 business minutes.",
+   "action": "granted $300",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10083",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10083 breached by 90 business minutes.",
+   "action": "granted $120",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10084",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 400/mo fee (200): ticket tck-10084 breached by 510 business minutes.",
+   "action": "granted $200",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10085",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10085 breached by 400 business minutes.",
+   "action": "granted $100",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10086",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10087",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 99/mo fee (9.9): ticket tck-10087 breached by 200 business minutes.",
+   "action": "granted $9.9",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10088",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10088 was answered within the clock (1440 of 1440 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10089",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10089 breached by 400 business minutes.",
+   "action": "granted $100",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10090",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10090 breached by 300 business minutes.",
+   "action": "granted $100",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10091",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10091 breached by 200 business minutes.",
+   "action": "granted $120",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10092",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10093",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10094",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10095",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 1200/mo fee (600): ticket tck-10095 breached by 510 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10096",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10096 breached by 200 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10097",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10097 breached by 300 business minutes.",
+   "action": "granted $100",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10098",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10099",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10099 breached by 90 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10100",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10101",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10101 breached by 90 business minutes.",
+   "action": "granted $120",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10102",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10102 was answered within the clock (1440 of 1440 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10103",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10103 breached by 400 business minutes.",
+   "action": "granted $100",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10104",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 99/mo fee (24.75): ticket tck-10104 breached by 400 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10105",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10105 breached by 400 business minutes.",
+   "action": "granted $300",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10106",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10106 was answered within the clock (240 of 240 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10107",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10108",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10108 was answered within the clock (360 of 360 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10109",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10110",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10110 breached by 700 business minutes.",
+   "action": "granted $49.5",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10111",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10111 breached by 200 business minutes.",
+   "action": "granted $120",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10112",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 1200/mo fee (600): ticket tck-10112 breached by 510 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10113",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10113 breached by 400 business minutes.",
+   "action": "granted $300",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10114",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 99/mo fee (9.9): ticket tck-10114 breached by 90 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10115",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10115 breached by 400 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10116",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10116 breached by 90 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10117",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10118",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 99/mo fee (24.75): ticket tck-10118 breached by 400 business minutes.",
+   "action": "granted $24.75",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10119",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10119 breached by 90 business minutes.",
+   "action": "granted $120",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10120",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10120 breached by 400 business minutes.",
+   "action": "granted $600",
+   "category": "amount-mismatch",
+   "delta": 300
+  },
+  {
+   "ticket": "TCK-10121",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10121 breached by 90 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10122",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 400/mo fee (200): ticket tck-10122 breached by 510 business minutes.",
+   "action": "granted $200",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10123",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10123 breached by 400 business minutes.",
+   "action": "granted $300",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10124",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 99/mo fee (24.75): ticket tck-10124 breached by 300 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10125",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10125 breached by 90 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10126",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10126 breached by 300 business minutes.",
+   "action": "granted $100",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10127",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10127 was answered within the clock (1440 of 1440 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10128",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 400/mo fee (200): ticket tck-10128 breached by 510 business minutes.",
+   "action": "granted $200",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10129",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 99/mo fee (9.9): ticket tck-10129 breached by 90 business minutes.",
+   "action": "granted $9.9",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10130",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 99/mo fee (24.75): ticket tck-10130 breached by 400 business minutes.",
+   "action": "granted $24.75",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10131",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10131 breached by 700 business minutes.",
+   "action": "granted $49.5",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10132",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10132 breached by 200 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10133",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10133 breached by 300 business minutes.",
+   "action": "granted $300",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10134",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10134 was answered within the clock (360 of 360 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10135",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10136",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10136 was answered within the clock (120 of 120 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10137",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10138",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10138 was answered within the clock (360 of 360 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10139",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10140",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10140 breached by 700 business minutes.",
+   "action": "granted $99",
+   "category": "amount-mismatch",
+   "delta": 49.5
+  },
+  {
+   "ticket": "TCK-10141",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10141 breached by 90 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10142",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 1200/mo fee (600): ticket tck-10142 breached by 700 business minutes.",
+   "action": "granted $600",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10143",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 400/mo fee (200): ticket tck-10143 breached by 510 business minutes.",
+   "action": "granted $200",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10144",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10144 was answered within the clock (1440 of 1440 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10145",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10145 breached by 90 business minutes.",
+   "action": "granted $120",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10146",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 400/mo fee (200): ticket tck-10146 breached by 700 business minutes.",
+   "action": "granted $200",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10147",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10147 breached by 510 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10148",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10148 breached by 400 business minutes.",
+   "action": "granted $100",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10149",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 99/mo fee (24.75): ticket tck-10149 breached by 400 business minutes.",
+   "action": "granted $24.75",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10150",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 400/mo fee (200): ticket tck-10150 breached by 700 business minutes.",
+   "action": "granted $200",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10151",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10152",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10152 breached by 510 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10153",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 400/mo fee (200): ticket tck-10153 breached by 510 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10154",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 99/mo fee (24.75): ticket tck-10154 breached by 300 business minutes.",
+   "action": "granted $24.75",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10155",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10156",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10157",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 99/mo fee (24.75): ticket tck-10157 breached by 300 business minutes.",
+   "action": "granted $24.75",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10158",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 1200/mo fee (600): ticket tck-10158 breached by 510 business minutes.",
+   "action": "granted $600",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10159",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10159 breached by 90 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10160",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10161",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10161 breached by 90 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10162",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10162 breached by 700 business minutes.",
+   "action": "granted $49.5",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10163",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 1200/mo fee (600): ticket tck-10163 breached by 510 business minutes.",
+   "action": "granted $600",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10164",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10165",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 99/mo fee (24.75): ticket tck-10165 breached by 300 business minutes.",
+   "action": "granted $24.75",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10166",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10167",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 99/mo fee (24.75): ticket tck-10167 breached by 300 business minutes.",
+   "action": "granted $24.75",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10168",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10168 breached by 90 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10169",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10169 breached by 90 business minutes.",
+   "action": "granted $120",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10170",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10170 was answered within the clock (1440 of 1440 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10171",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 1200/mo fee (300): ticket tck-10171 breached by 300 business minutes.",
+   "action": "granted $300",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10172",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10172 was answered within the clock (480 of 480 business minutes).",
+   "action": "granted $120",
+   "category": "LEAKAGE",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10173",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 99/mo fee (9.9): ticket tck-10173 breached by 200 business minutes.",
+   "action": "granted $9.9",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10174",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10175",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 400/mo fee (100): ticket tck-10175 breached by 400 business minutes.",
+   "action": "granted $100",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10176",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10177",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10177 was answered within the clock (1440 of 1440 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10178",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 99/mo fee (9.9): ticket tck-10178 breached by 200 business minutes.",
+   "action": "granted $9.9",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10179",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10179 was answered within the clock (360 of 360 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10180",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10180 breached by 200 business minutes.",
+   "action": "granted $120",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10181",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10181 breached by 700 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10182",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10182 breached by 200 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10183",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10183 breached by 90 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10184",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 1200/mo fee (600): ticket tck-10184 breached by 510 business minutes.",
+   "action": "granted $600",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10185",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10186",
+   "verdict": "allow",
+   "summary": "Credit of 25% of the 99/mo fee (24.75): ticket tck-10186 breached by 400 business minutes.",
+   "action": "granted $24.75",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10187",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 99/mo fee (49.5): ticket tck-10187 breached by 510 business minutes.",
+   "action": "granted $49.5",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10188",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 1200/mo fee (120): ticket tck-10188 breached by 90 business minutes.",
+   "action": "granted $120",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10189",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10190",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10190 breached by 90 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10191",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10192",
+   "verdict": "deny",
+   "summary": "No credit: the 15-minute breach is below the smallest credit band (60 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10193",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 400/mo fee (200): ticket tck-10193 breached by 700 business minutes.",
+   "action": "granted $200",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10194",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 99/mo fee (9.9): ticket tck-10194 breached by 90 business minutes.",
+   "action": "granted $9.9",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10195",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10195 breached by 90 business minutes.",
+   "action": "granted $40",
+   "category": "agree-allow",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10196",
+   "verdict": "deny",
+   "summary": "No credit: ticket tck-10196 was answered within the clock (480 of 480 business minutes).",
+   "action": "none",
+   "category": "agree-deny",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10197",
+   "verdict": "unknown",
+   "summary": "Unknown: the ticket has no first response yet — the clock is still running, so the breach cannot be judged",
+   "action": "escalated",
+   "category": "agree-escalate",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10198",
+   "verdict": "allow",
+   "summary": "Credit of 10% of the 400/mo fee (40): ticket tck-10198 breached by 200 business minutes.",
+   "action": "none",
+   "category": "RECOVERY",
+   "delta": 0
+  },
+  {
+   "ticket": "TCK-10199",
+   "verdict": "allow",
+   "summary": "Credit of 50% of the 400/mo fee (200): ticket tck-10199 breached by 700 business minutes.",
+   "action": "granted $200",
+   "category": "agree-allow",
+   "delta": 0
+  }
+ ]
+}

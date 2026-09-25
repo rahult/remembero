@@ -1,0 +1,112 @@
+{
+ "ranAt": "2026-09-25T02:35:19.716Z",
+ "seed": 20260924,
+ "corpus": "223 real documents (.cache/document-recall)",
+ "spansProbed": 52,
+ "probes": 495,
+ "overRejection": {
+  "total": 77,
+  "rejected": 0,
+  "rate": 0,
+  "examples": []
+ },
+ "falseAdmission": {
+  "total": 418,
+  "admitted": 3,
+  "rate": 0.0072,
+  "matcherFailures": 2,
+  "coincidesWithOtherStatedValue": 1,
+  "note": "a coincidence is the span genuinely stating the mutated value on a DIFFERENT fact — a granularity limit of span-level grounding, not a matcher bug",
+  "byMutationClass": [
+   {
+    "class": "monthly_fee:x10",
+    "total": 22,
+    "admitted": 1,
+    "rate": 0.0455
+   },
+   {
+    "class": "monthly_fee:drop-leading",
+    "total": 22,
+    "admitted": 1,
+    "rate": 0.0455
+   },
+   {
+    "class": "holiday:year+1",
+    "total": 55,
+    "admitted": 1,
+    "rate": 0.0182
+   },
+   {
+    "class": "holiday:day+1",
+    "total": 55,
+    "admitted": 0,
+    "rate": 0
+   },
+   {
+    "class": "holiday:day+10",
+    "total": 55,
+    "admitted": 0,
+    "rate": 0
+   },
+   {
+    "class": "holiday:month-swap",
+    "total": 55,
+    "admitted": 0,
+    "rate": 0
+   },
+   {
+    "class": "holiday:drop-last-digit",
+    "total": 55,
+    "admitted": 0,
+    "rate": 0
+   },
+   {
+    "class": "holiday:drop-year-digits",
+    "total": 55,
+    "admitted": 0,
+    "rate": 0
+   },
+   {
+    "class": "monthly_fee:+1",
+    "total": 22,
+    "admitted": 0,
+    "rate": 0
+   },
+   {
+    "class": "monthly_fee:drop-trailing",
+    "total": 22,
+    "admitted": 0,
+    "rate": 0
+   }
+  ],
+  "examples": [
+   {
+    "spanId": "doc_000077.pages.txt:162",
+    "predicate": "monthly_fee",
+    "arg": 49,
+    "truth": "mutated",
+    "mutation": "x10",
+    "admitted": true,
+    "coincides": false
+   },
+   {
+    "spanId": "doc_000171.pages.txt:437",
+    "predicate": "holiday",
+    "arg": "2020-09-30",
+    "truth": "mutated",
+    "mutation": "year+1",
+    "admitted": true,
+    "coincides": true
+   },
+   {
+    "spanId": "doc_000181.pages.txt:3245",
+    "predicate": "monthly_fee",
+    "arg": 25,
+    "truth": "mutated",
+    "mutation": "drop-leading",
+    "admitted": true,
+    "coincides": false
+   }
+  ]
+ }
+}

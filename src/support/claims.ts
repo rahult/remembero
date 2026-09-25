@@ -21,7 +21,7 @@ import { createHash } from 'node:crypto';
 import type { Source, Span } from './sources.js';
 import { findSpan } from './sources.js';
 
-export type ArgType = 'id' | 'word' | 'date' | 'money' | 'hours' | 'minutes' | 'percent';
+export type ArgType = 'id' | 'word' | 'date' | 'money' | 'hours' | 'minutes' | 'percent' | 'days';
 export type Scope = 'case' | 'pack';
 export type Trust = 'system' | 'model' | 'hand';
 
@@ -52,6 +52,13 @@ export const PREDICATES: Record<string, PredicateSpec> = {
   zone: { args: ['id', 'id'], scope: 'pack', note: "a calendar's timezone (v0 supports UTC)" },
   default_calendar: { args: ['id'], scope: 'pack', note: 'the calendar applied unless a customer binds another' },
   credit_band: { args: ['minutes', 'percent'], scope: 'pack', note: 'breach reaching this many business minutes earns this percent of the monthly fee' },
+  // refund family (case facts)
+  purchased: { args: ['id', 'date'], scope: 'case', note: 'the purchase happened at a date' },
+  return_requested: { args: ['id', 'date'], scope: 'case', note: 'a return was requested at a date' },
+  item_state: { args: ['id', 'word'], scope: 'case', note: "the returned item's state (e.g. sealed, opened)" },
+  // refund family (pack parameters)
+  refund_window_days: { args: ['word', 'days'], scope: 'pack', note: 'a plan tier may return within this many calendar days of purchase' },
+  refundable_state: { args: ['word'], scope: 'pack', note: 'an item state the policy refunds (the whitelist — anything else is final sale)' },
 };
 
 export interface ClaimInput {
@@ -94,6 +101,20 @@ export function normalizeText(text: string): string {
     .trim();
 }
 
+/**
+ * A surface counts as stated only with clean boundaries: not glued to another digit or letter.
+ * "$1,234" normalized is "$1234" — the surface "234" must NOT match, and "2025-06-1" must not
+ * match inside "2025-06-12". Substring matching alone admitted both (measured: 8-100% false
+ * admits on those mutation classes over real text before this boundary rule). Numeric surfaces
+ * also refuse a decimal point glued to a further digit: "3" must not match inside "$3.50".
+ */
+export function containsSurface(haystack: string, surface: string, numeric = false): boolean {
+  const escaped = surface.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const left = numeric ? '(?<![a-z0-9]|\\d\\.)' : '(?<![a-z0-9])';
+  const right = numeric ? '(?![a-z0-9]|\\.\\d)' : '(?![a-z0-9])';
+  return new RegExp(`${left}${escaped}${right}`).test(haystack);
+}
+
 const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 
 /** Parse a date argument into an ISO instant or calendar date; undefined when unparseable. */
@@ -133,6 +154,7 @@ export function surfacesFor(arg: string | number, type: ArgType): string[] {
     const month = MONTHS[Number(mo) - 1];
     const short = month?.slice(0, 3);
     return [
+      ...(iso.includes('T') ? [iso.toLowerCase()] : []),
       `${y}-${mo}-${d}`,
       `${mo}/${d}/${y}`,
       `${month} ${Number(d)} ${y}`,
@@ -140,7 +162,7 @@ export function surfacesFor(arg: string | number, type: ArgType): string[] {
       `${Number(d)} ${month} ${y}`,
     ].filter((x): x is string => Boolean(x)).map((x) => x.toLowerCase());
   }
-  if (type === 'money' || type === 'minutes' || type === 'hours' || type === 'percent') {
+  if (type === 'money' || type === 'minutes' || type === 'hours' || type === 'percent' || type === 'days') {
     const n = Number(arg);
     if (!Number.isFinite(n)) return [s.toLowerCase()];
     const out = [String(n)];
@@ -157,7 +179,7 @@ function checkTypes(predicate: string, args: (string | number)[]): string | unde
     const arg = args[i];
     if (type === 'date') {
       if (typeof arg !== 'string' || parseDateArg(arg) === undefined) return `arg ${i + 1} is not a parseable date: ${String(arg)}`;
-    } else if (type === 'money' || type === 'minutes' || type === 'hours' || type === 'percent') {
+    } else if (type === 'money' || type === 'minutes' || type === 'hours' || type === 'percent' || type === 'days') {
       if (typeof arg !== 'number' || !Number.isFinite(arg)) return `arg ${i + 1} must be a number: ${String(arg)}`;
     } else {
       if (typeof arg !== 'string' || arg.trim() === '') return `arg ${i + 1} must be a non-empty string`;
@@ -192,8 +214,10 @@ export function admit(input: ClaimInput, span: Span): GateResult {
   const haystack = normalizeText(span.text);
   const args = canonicalArgs(input.predicate, input.args);
   for (let i = 0; i < args.length; i += 1) {
-    const surfaces = surfacesFor(args[i]!, spec.args[i]!);
-    if (!surfaces.some((surface) => haystack.includes(surface))) {
+    const type = spec.args[i]!;
+    const numeric = type === 'money' || type === 'minutes' || type === 'hours' || type === 'percent' || type === 'days';
+    const surfaces = surfacesFor(args[i]!, type);
+    if (!surfaces.some((surface) => containsSurface(haystack, surface, numeric))) {
       return { ok: false, reason: `arg ${i + 1} (${String(args[i])}) not stated on span ${span.spanId}`, input };
     }
   }
