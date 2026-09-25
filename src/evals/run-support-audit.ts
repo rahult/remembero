@@ -21,14 +21,14 @@ import { decide, type Proof } from '../support/engine.js';
 import { loadPack } from '../support/pack.js';
 import { admitted, DECIDED_AT, generateCases, type CaseFact } from './run-support-gold.js';
 
-type Action =
+export type Action =
   | { kind: 'granted'; amount: number }
   | { kind: 'none' }
   | { kind: 'escalated' };
 
 /** What the (synthetic) support team actually did, with realistic human error rates, given the
  *  case's true verdict. The engine is the labeler — no band math is duplicated here. */
-function recordAction(gold: Proof, f: CaseFact, rng: Rng): Action {
+export function recordAction(gold: Proof, f: CaseFact, rng: Rng): Action {
   if (gold.verdict === 'unknown') return { kind: 'escalated' };
   if (gold.verdict === 'deny') {
     // no credit due: humans mostly deny, but one in ten grants "goodwill"
