@@ -11,15 +11,20 @@ import { SHAPES, type Shape } from './engine.js';
 
 export type Plan = { ok: true; shape: Shape; params: Record<string, string> } | { ok: false; reason: string };
 
-const TICKET_ID = /\b(tck-?\d{3,})\b/i;
+const TICKET_ID = /\b([a-z]{2,5}-\d{2,})\b/i;
 
 export function plan(question: string): Plan {
   const idMatch = question.match(TICKET_ID);
-  const ticket = idMatch ? idMatch[1]!.toLowerCase().replace(/^tck(?=\d)/, 'tck-') : undefined;
+  // any id-style token binds (TCK-1042, RTN-30001, ...); ids are canonical lowercase
+  const ticket = idMatch ? idMatch[1]!.toLowerCase() : undefined;
   const q = question.toLowerCase();
 
   let shape: Shape | undefined;
-  if (/\b(credit|compensation|payout)\b/.test(q)) {
+  if (/\b(deadline|last day|by when|how long do i have)\b/.test(q) && /\b(refund|return)\b/.test(q)) {
+    shape = 'refund_deadline';
+  } else if (/\b(refund|return)\b/.test(q)) {
+    shape = 'refund_eligible';
+  } else if (/\b(credit|compensation|payout)\b/.test(q)) {
     shape = /\bpercent|%\b/.test(q) ? 'credit_percent' : 'sla_credits';
   } else if (/\b(within (the )?sla|on time|met|breach(ed)?|late)\b/.test(q)) {
     shape = 'sla_met';

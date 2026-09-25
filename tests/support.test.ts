@@ -3,12 +3,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { admit, admitAll, hashJson, normalizeText, parseDateArg, type ClaimInput } from '../src/support/claims.js';
+import { claimsFromTicket } from '../src/support/extract.js';
 import { decide } from '../src/support/engine.js';
 import { loadPack } from '../src/support/pack.js';
 import { plan } from '../src/support/planner.js';
 import { chatSource, ticketSource, type Source } from '../src/support/sources.js';
 import { VerdictStore } from '../src/support/store.js';
-import { admitted, DECIDED_AT, generateCases } from '../src/evals/run-support-gold.js';
+import { admitted, DECIDED_AT, generateCases, generateRefundCases, refundAdmitted } from '../src/evals/run-support-gold.js';
 
 const PACK = loadPack('benchmarks/support/pack.json');
 const OPTS = { packId: PACK.id, packVersion: PACK.version, decidedAt: DECIDED_AT };
@@ -237,6 +238,113 @@ describe('pack', () => {
     writeFileSync(packPath, JSON.stringify({ ...JSON.parse(readFileSync('benchmarks/support/pack.json', 'utf8')), sopPath }));
     // the SOP no longer states the parameter, so the claim refuses to bind — either refusal is a refusal
     expect(() => loadPack(packPath)).toThrow(/admission gate|not in the SOP/);
+  });
+});
+
+
+describe('refund family', () => {
+  const PACKR = loadPack('benchmarks/support/pack-refund.json');
+  const OPTSR = { packId: PACKR.id, packVersion: PACKR.version, decidedAt: DECIDED_AT };
+
+  function refundCase(purchased: string, returnIso: string | undefined, state: string | undefined, tier = 'standard') {
+    const ticket = {
+      id: 'RTN-30001',
+      customer: 'cust-nw',
+      fields: {
+        purchased,
+        return_requested: returnIso,
+        item_state: state,
+        customer: 'cust-nw',
+        tier,
+      },
+    };
+    const sources = [ticketSource(ticket)];
+    const { admitted: claims } = admitAll(claimsFromTicket(ticket), sources);
+    return decide('refund_eligible', { ticket: 'rtn-30001' }, [...PACKR.claims, ...claims], OPTSR);
+  }
+
+  it('allows a sealed item returned inside the window', () => {
+    const proof = refundCase('2026-03-02T12:00:00Z', '2026-03-17T12:00:00Z', 'sealed');
+    expect(proof.verdict).toBe('allow');
+    expect(proof.summary).toContain('15 days after purchase, inside the 30-day window');
+  });
+
+  it('denies a return past the window, with the days late', () => {
+    const proof = refundCase('2026-03-02T12:00:00Z', '2026-04-20T12:00:00Z', 'sealed');
+    expect(proof.verdict).toBe('deny');
+    expect(proof.summary).toContain('days past the 30-day window');
+  });
+
+  it('denies an opened item as final sale even inside the window', () => {
+    const proof = refundCase('2026-03-02T12:00:00Z', '2026-03-10T12:00:00Z', 'opened');
+    expect(proof.verdict).toBe('deny');
+    expect(proof.summary).toContain('final sale');
+  });
+
+  it('says Unknown when the item state is missing — the condition clause cannot be judged', () => {
+    const proof = refundCase('2026-03-02T12:00:00Z', '2026-03-10T12:00:00Z', undefined);
+    expect(proof.verdict).toBe('unknown');
+    expect(proof.unknown?.reasons[0]).toContain('item state');
+  });
+
+  it('says Unknown when the return precedes the purchase', () => {
+    const proof = refundCase('2026-03-10T12:00:00Z', '2026-03-02T12:00:00Z', 'sealed');
+    expect(proof.verdict).toBe('unknown');
+    expect(proof.unknown?.reasons[0]).toContain('precedes');
+  });
+
+  it('says Unknown for a tier the pack does not cover — and says what it has', () => {
+    const proof = refundCase('2026-03-02T12:00:00Z', '2026-03-10T12:00:00Z', 'sealed', 'enterprise');
+    expect(proof.verdict).toBe('unknown');
+    expect(proof.unknown?.reasons[0]).toContain('pack has');
+  });
+
+  it('proves the refund deadline from purchase plus the tier window', () => {
+    const ticket = {
+      id: 'RTN-30002',
+      customer: 'cust-nw',
+      fields: { purchased: '2026-03-02T12:00:00Z', customer: 'cust-nw', tier: 'pro' },
+    };
+    const sources = [ticketSource(ticket)];
+    const { admitted: claims } = admitAll(claimsFromTicket(ticket), sources);
+    const proof = decide('refund_deadline', { ticket: 'rtn-30002' }, [...PACKR.claims, ...claims], OPTSR);
+    expect(proof.verdict).toBe('allow');
+    expect(proof.computation).toMatchObject({ windowDays: 60, deadline: '2026-05-01' });
+  });
+
+  it('plans refund questions into the refund shapes', () => {
+    expect(plan('is a refund due for RTN-30001?')).toMatchObject({ ok: true, shape: 'refund_eligible' });
+    expect(plan('what is the refund deadline for rtn-30001?')).toMatchObject({ ok: true, shape: 'refund_deadline' });
+  });
+
+  it('loads the refund pack and flags the unmodeled section-3 clauses', () => {
+    expect(PACKR.claims.map((c) => c.predicate).sort()).toEqual(['refund_window_days', 'refund_window_days', 'refundable_state']);
+    const flagged = PACKR.unconsumedLines.map((l) => l.text).join('\n');
+    expect(flagged).toContain('store credit');
+    expect(flagged).toContain('reseller');
+  });
+
+  it('reproduces gold on the refund corpus across renderings, and converts the deleted state to Unknown', () => {
+    const cases = generateRefundCases(16, 20260924);
+    for (const arm of ['tidy', 'chat', 'noisy'] as const) {
+      for (const f of cases) {
+        const { claims } = refundAdmitted(f, arm !== 'tidy', arm === 'noisy');
+        const proof = decide('refund_eligible', { ticket: f.ticket }, [...PACKR.claims, ...claims], OPTSR);
+        const goldSources = [ticketSource({
+          id: f.ticket,
+          customer: f.customer,
+          fields: { purchased: f.purchasedIso, return_requested: f.returnIso, item_state: f.itemState, customer: f.customer, tier: f.tier },
+        })];
+        const gold = admitAll(claimsFromTicket({ id: f.ticket, customer: f.customer, fields: { purchased: f.purchasedIso, return_requested: f.returnIso, item_state: f.itemState, customer: f.customer, tier: f.tier } }), goldSources);
+        const goldProof = decide('refund_eligible', { ticket: f.ticket }, [...PACKR.claims, ...gold.admitted], OPTSR);
+        expect(`${proof.verdict}: ${proof.summary}`, `${arm} ${f.ticket}`).toBe(`${goldProof.verdict}: ${goldProof.summary}`);
+      }
+    }
+    for (const f of cases) {
+      const { claims } = refundAdmitted(f, false, false, 'state');
+      const proof = decide('refund_eligible', { ticket: f.ticket }, [...PACKR.claims, ...claims], OPTSR);
+      expect(proof.verdict, f.ticket).toBe('unknown');
+    }
   });
 });
 

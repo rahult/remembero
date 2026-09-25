@@ -29,6 +29,9 @@ const FIELD_PREDICATES: Record<string, string> = {
   tier: 'tier',
   monthly_fee: 'monthly_fee',
   calendar: 'calendar_of',
+  purchased: 'purchased',
+  return_requested: 'return_requested',
+  item_state: 'item_state',
 };
 
 /**

@@ -18,8 +18,8 @@ import type { Claim } from './claims.js';
 
 export const ENGINE_RULE = 'sla-credit@v1';
 
-export type Shape = 'sla_credits' | 'sla_met' | 'credit_percent';
-export const SHAPES: readonly Shape[] = ['sla_credits', 'sla_met', 'credit_percent'];
+export type Shape = 'sla_credits' | 'sla_met' | 'credit_percent' | 'refund_eligible' | 'refund_deadline';
+export const SHAPES: readonly Shape[] = ['sla_credits', 'sla_met', 'credit_percent', 'refund_eligible', 'refund_deadline'];
 
 export type Verdict = 'allow' | 'deny' | 'unknown';
 
@@ -124,6 +124,133 @@ function businessMinutes(startIso: string, endIso: string, calendar: string, c: 
 
 /** The whole verdict path for one ticket. Deterministic: no clock reads, no randomness. */
 export function decide(shape: Shape, params: Record<string, string>, claims: Claim[], o: DecideOptions): Proof {
+  if (shape === 'refund_eligible' || shape === 'refund_deadline') return decideRefund(shape, params, claims, o);
+  return decideSla(shape, params, claims, o);
+}
+
+/** Calendar days between two ISO instants (refund windows run in calendar days, not business hours). */
+function calendarDays(fromIso: string, toIso: string): number {
+  const day = (s: string) => Date.parse(s.slice(0, 10));
+  return Math.round((day(toIso) - day(fromIso)) / 86_400_000);
+}
+
+function decideRefund(shape: 'refund_eligible' | 'refund_deadline', params: Record<string, string>, claims: Claim[], o: DecideOptions): Proof {
+  const c = ctx(claims);
+  const ticket = (params.ticket ?? '').toLowerCase();
+  const facts: Proof['facts'] = [];
+  const base = { shape, params, rule: ENGINE_RULE, pack: { id: o.packId, version: o.packVersion }, facts };
+
+  const fail = (reasons: string[], missing: string[]): Proof => ({
+    ...base,
+    verdict: 'unknown',
+    decidedAt: o.decidedAt ?? new Date().toISOString(),
+    summary: `Unknown: ${reasons.join('; ')}`,
+    unknown: { reasons, missing, spansSearched: o.spansSearched ?? 0 },
+  });
+
+  if (!ticket) return fail(['no ticket bound — every parameter must bind to an id'], ['ticket']);
+
+  const need = (predicate: string): { claim?: Claim; missing?: string; conflict?: boolean } => {
+    const rows = c.byTicket(predicate, ticket);
+    if (rows.length === 0) return { missing: `${predicate} for ticket ${ticket} (no admitted claim)`.toLowerCase() };
+    const distinct = [...new Set(rows.map((r) => String(r.args[1])))];
+    if (distinct.length > 1) return { conflict: true };
+    facts.push(factOf(rows[0]!));
+    return { claim: rows[0] };
+  };
+
+  const purchased = need('purchased');
+  if (purchased.conflict) return fail(['conflicting purchase dates for ticket ' + ticket], []);
+  if (purchased.missing) return fail([`cannot place the start of the return window: ${purchased.missing}`], [purchased.missing]);
+
+  const customerOf = need('customer_of');
+  if (customerOf.conflict) return fail(['conflicting customer bindings for ticket ' + ticket], []);
+  if (customerOf.missing) return fail([customerOf.missing], [customerOf.missing]);
+  const customer = String(customerOf.claim!.args[1]);
+  const tierRows = c.claims.filter((x) => x.predicate === 'tier' && x.args[0] === customer);
+  const tierSole = sole(tierRows, (x) => String(x.args[1]));
+  if (tierSole.conflict) return fail(['conflicting tiers for customer ' + customer], []);
+  if (tierSole.value === undefined) return fail([`tier for customer ${customer} not stated`], [`tier for customer ${customer}`]);
+  facts.push(factOf(tierRows.find((x) => String(x.args[1]) === tierSole.value)!));
+
+  const windows = c.pack('refund_window_days').filter((x) => x.args[0] === tierSole.value);
+  const windowSole = sole(windows, (x) => x.args[1] as number);
+  if (windowSole.conflict) return fail([`conflicting return windows in the pack for tier ${tierSole.value}`], []);
+  if (windowSole.value === undefined) {
+    const available = c.pack('refund_window_days').map((x) => `${x.args[0]}=${x.args[1]}d`).sort();
+    return fail([`the pack states no return window for tier ${tierSole.value} (pack has: ${available.join(', ') || 'nothing'})`], [`refund_window_days(${tierSole.value})`]);
+  }
+  facts.push(factOf(windows[0]!));
+  const windowDays = windowSole.value as number;
+
+  if (shape === 'refund_deadline') {
+    const purchasedAt = String(purchased.claim!.args[1]);
+    const deadline = new Date(Date.parse(purchasedAt.slice(0, 10) + 'T00:00:00Z') + windowDays * 86_400_000).toISOString().slice(0, 10);
+    return {
+      ...base,
+      verdict: 'allow',
+      decidedAt: o.decidedAt ?? new Date().toISOString(),
+      summary: `Returns for ticket ${ticket} (tier ${tierSole.value}) are accepted within ${windowDays} days of purchase — by ${deadline}.`,
+      computation: { windowDays, deadline },
+    };
+  }
+
+  const returned = need('return_requested');
+  if (returned.conflict) return fail(['conflicting return dates for ticket ' + ticket], []);
+  if (returned.missing) return fail(['no return is on record yet — eligibility cannot be judged before one exists'], [returned.missing!]);
+
+  const purchasedAt = String(purchased.claim!.args[1]);
+  const returnedAt = String(returned.claim!.args[1]);
+  if (Date.parse(returnedAt) < Date.parse(purchasedAt)) {
+    return fail(['the return precedes the purchase — the dates cannot both be right'], []);
+  }
+  const days = calendarDays(purchasedAt, returnedAt);
+
+  // the item-state whitelist is the exception clause: an empty whitelist is a provably
+  // incomplete pack, the amendment-gap discipline applied to policy parameters
+  const whitelist = c.pack('refundable_state');
+  if (whitelist.length === 0) {
+    return fail(['the pack states no refundable item states — the condition clause cannot be judged'], ['refundable_state']);
+  }
+  for (const w of whitelist) facts.push(factOf(w));
+
+  const state = need('item_state');
+  if (state.conflict) return fail(['conflicting item states for ticket ' + ticket], []);
+  if (state.missing) return fail(['the item state is not stated — whether the condition clause is satisfied cannot be judged'], [state.missing!]);
+  const stateValue = String(state.claim!.args[1]);
+  const allowed = whitelist.some((w) => String(w.args[0]) === stateValue);
+
+  const computation: Record<string, string | number> = { windowDays, daysSincePurchase: days, itemState: stateValue };
+
+  if (!allowed) {
+    return {
+      ...base,
+      verdict: 'deny',
+      decidedAt: o.decidedAt ?? new Date().toISOString(),
+      summary: `No refund: an item whose state is "${stateValue}" is final sale under the pack (refundable states: ${whitelist.map((w) => w.args[0]).join(', ')}).`,
+      computation,
+    };
+  }
+  if (days > windowDays) {
+    computation.daysLate = days - windowDays;
+    return {
+      ...base,
+      verdict: 'deny',
+      decidedAt: o.decidedAt ?? new Date().toISOString(),
+      summary: `No refund: the return came ${days} days after purchase — ${days - windowDays} days past the ${windowDays}-day window for tier ${tierSole.value}.`,
+      computation,
+    };
+  }
+  return {
+    ...base,
+    verdict: 'allow',
+    decidedAt: o.decidedAt ?? new Date().toISOString(),
+    summary: `Refund due: the return came ${days} days after purchase, inside the ${windowDays}-day window, and the item is ${stateValue}.`,
+    computation,
+  };
+}
+
+function decideSla(shape: Shape, params: Record<string, string>, claims: Claim[], o: DecideOptions): Proof {
   const c = ctx(claims);
   // ids are canonical lowercase everywhere (the gate canonicalizes claim ids the same way)
   const ticket = (params.ticket ?? '').toLowerCase();

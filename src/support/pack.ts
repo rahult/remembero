@@ -59,6 +59,7 @@ export function loadPack(packPath: string, sopRoot = ''): Pack {
       const lower = sp.text.toLowerCase();
       const looksRelevant = [...PACK_PREDICATES].some((p) => lower.includes(p.replace(/_/g, ' ')))
         || /\b(business hours|holiday|calendar|percent|first response|sla)\b/.test(lower)
+        || /\b(refund|return|final sale|store credit|reseller|sealed|window)\b/.test(lower)
         || /\b(mon|tue|wed|thu|fri|sat|sun)/.test(lower);
       return looksRelevant && !consumed.has(sp.spanId) && !sp.text.startsWith('#');
     })

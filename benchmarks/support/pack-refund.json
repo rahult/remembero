@@ -1,0 +1,11 @@
+{
+ "id": "northwind-refund",
+ "version": "2.1",
+ "sopPath": "benchmarks/support/refund-sop.md",
+ "reviewed": "hand-gated: parameters bound to SOP lines; the whitelist models section 2, and section 3 is deliberately unmodeled so the coverage review flags it",
+ "claims": [
+  { "predicate": "refund_window_days", "args": ["standard", 30], "quote": "Standard-plan customers may request a return within 30 days" },
+  { "predicate": "refund_window_days", "args": ["pro", 60], "quote": "Pro-plan customers may request a return within 60 days" },
+  { "predicate": "refundable_state", "args": ["sealed"], "quote": "Refunds require the product in its original sealed packaging" }
+ ]
+}

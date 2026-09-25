@@ -101,10 +101,60 @@ with reasons), the engine (the worked example over the holiday calendar, boundar
 every structural Unknown, determinism), the pack (loads only when fully grounded, tampered
 pack refused, coverage flags), the store (append-only, stable hashes), and the gold arms.
 
-## Deliberately out of scope (the cut list)
+## Phase 1 on real text: the gate challenge (2026-09-25)
 
-2B distillation (measure a second model by swapping, not training), ASP/s(CASP) enumeration
-(parked until a pilot asks), PROV-O projection and MCP surface (integration points, built when
-there is a conversation), refund family (second pack, after SLA proves the pattern). The gate
-challenge set on real customer text — the kill criterion for false admits and over-rejection —
-is the next measurement, and it needs a lighthouse customer's tickets to be worth running.
+No customer export yet, so the kill-criterion measurement ran over the repo's 223 real
+XL-DocBench documents — genuine government/agency prose, the messiest text we own. Ground
+truth is certain by construction: dates and dollar amounts are extracted from each span, and
+the gate is probed with the TRUE value (must admit — a rejection is an OVER-REJECTION) and
+with seeded mutants (must reject — an admission is a FALSE ADMIT); 495 probes over 52 spans
+(`npm run support:gate`, results/support-gate-challenge.json):
+
+| run | over-rejection | false admission | worst class |
+| --- | --- | --- | --- |
+| baseline (substring matching) | 0/77 = 0% | 10/122 = 8.2% | drop-trailing 100%, drop-leading 80% |
+| + digit-boundary matching | 0% | 6/418 = 1.4% | drop-trailing 13.6% |
+| + decimal-tight numeric bounds | 0% | 3/418 = **0.72%** | x10 and drop-leading at 4.5% |
+
+Every remaining admit is classified: 2 borderline matcher cases and 1 coincidence — the
+mutated value genuinely stated elsewhere on the same span, a granularity limit of span-level
+grounding, not a matcher bug. The challenge found a real hole and the fix lives in the gate:
+`containsSurface` (claims.ts) now requires clean digit boundaries and refuses decimals glued
+to further digits.
+
+## Phase 1 on history: the audit run (2026-09-25)
+
+`npm run support:audit` (results/support-audit.json): 200 synthetic historical cases with
+realistic agent behavior injected (12% of due credits missed, 6% over-granted at 2x, 10%
+goodwill grants on denials). The engine's comparison report — the artifact a lighthouse
+buyer cares about: **$2,902 RECOVERY** (due but never issued), **$120 LEAKAGE** (issued but
+not due), 175 agreements, 4 amount mismatches, 21 correctly escalated unknowns. The error
+rates are assumptions; the format is the deliverable — a real export drops in unchanged.
+
+## Phase 2: the second policy family — refunds (2026-09-25)
+
+The refund family exercises conditions and exceptions the SLA family never had:
+`purchased` / `return_requested` / `item_state` case claims over a pack of
+`refund_window_days(tier, days)` and a **refundable-state whitelist**. Shapes
+`refund_eligible` and `refund_deadline`: the whitelist IS the exception clause, and an EMPTY
+whitelist is a provably incomplete pack -> Unknown (the amendment-gap discipline applied to
+policy parameters). A real conditioned SOP (`benchmarks/support/refund-sop.md`) ships
+hand-gated as `northwind-refund@2.1`; its section 3 (gift returns, price adjustments,
+resellers) is deliberately unmodeled — the coverage review flags all of it. Gold: 160/160
+across tidy / chat / noisy renderings, 0 noise flips, deleted item-state -> Unknown
+(`npm run support:gold -- --family refund`).
+
+## The surface: MCP (2026-09-25)
+
+`npm run support:mcp` — stdio JSON-RPC, no dependencies: `decide` (question -> proof,
+appended to the verdict store), `check_claim` (the gate, exposed as a tool), `pack_coverage`
+(the unmodeled-clause review). Wired into any MCP client, the stack is usable in projects:
+"check the SLA on this ticket" returns a proof, not a guess.
+
+## Still out of scope (the cut list, updated)
+
+2B distillation (measure a second model by swapping — demonstrated twice now: r1->r2 on
+compose, deepseek->llama3.1:8b here), ASP/s(CASP) enumeration (parked until a pilot asks),
+PROV-O projection (the append-only store is its source; build when an audit tool needs it),
+non-UTC calendars, and the gate challenge on REAL support text — the measurement that still
+needs a lighthouse's tickets, now with a harness waiting for them.
